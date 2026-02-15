@@ -32,6 +32,11 @@ This file maps each commit to:
 - Concepts: reliable iterative delivery, no-skip workflow control.
 - Docs: [Feature Backlog](./feature-backlog.md), [System Design Learning Backlog](./system-design/learning-backlog.md)
 
+6. `305b6b4`
+- Feature: implemented BCrypt hashing for registration/login with legacy password migration path.
+- Concepts: secure credential storage, backward-safe authentication upgrades.
+- Docs: [Authentication Diary](./diary/authentication.md), [Concept 02](./system-design/02-password-storage-and-credential-security.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
