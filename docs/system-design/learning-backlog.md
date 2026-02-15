@@ -13,7 +13,7 @@ Use this file to track architecture/system design concepts to learn with this pr
 | ID | Concept | Status | Why it matters | Notes |
 |---|---|---|---|---|
 | SD-001 | Stateless auth + horizontal scaling | DONE | Enables multi-instance backend behavior | [Concept 01](./01-stateless-auth-and-horizontal-scaling.md) |
-| SD-002 | Password storage and credential security | TODO | Prevent credential compromise | Pair with `F-005` |
+| SD-002 | Password storage and credential security | DONE | Prevent credential compromise | [Concept 02](./02-password-storage-and-credential-security.md), Pair with `F-005` |
 | SD-003 | Token lifecycle (access + refresh) | TODO | Secure long-lived sessions | Pair with `F-006`/`F-008` |
 | SD-004 | API versioning and compatibility | TODO | Safe evolution of clients/services |  |
 | SD-005 | Caching strategy (read paths) | TODO | Performance and latency gains |  |

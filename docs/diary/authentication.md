@@ -5,6 +5,7 @@
 I built signup and login for the Instagram clone flow:
 - `POST /api/auth/register`
 - `POST /api/auth/login`
+- Password storage upgraded to BCrypt hashing (`F-005`).
 
 The backend stores users in PostgreSQL (Docker), and the UI calls these APIs.
 
@@ -52,6 +53,7 @@ This made the end-to-end feature easy to understand and debug.
 - Backend API and logic:
   - [AuthController.java](../../src/main/java/com/instagram/backend/controller/AuthController.java)
   - [AuthService.java](../../src/main/java/com/instagram/backend/service/AuthService.java)
+  - [PasswordConfig.java](../../src/main/java/com/instagram/backend/config/PasswordConfig.java)
   - [UserAccountRepository.java](../../src/main/java/com/instagram/backend/repository/UserAccountRepository.java)
   - [UserAccount.java](../../src/main/java/com/instagram/backend/domain/UserAccount.java)
   - [RegisterRequest.java](../../src/main/java/com/instagram/backend/dto/RegisterRequest.java)
@@ -100,3 +102,4 @@ Full mapping:
 Related system design note:
 
 - [01 - Stateless Auth and Horizontal Scaling](../system-design/01-stateless-auth-and-horizontal-scaling.md)
+- [02 - Password Storage and Credential Security](../system-design/02-password-storage-and-credential-security.md)

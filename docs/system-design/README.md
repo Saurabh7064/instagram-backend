@@ -13,3 +13,4 @@ This section is a practical system design diary using this project as the runnin
 ## Concepts
 
 - [01 - Stateless Auth and Horizontal Scaling](./01-stateless-auth-and-horizontal-scaling.md)
+- [02 - Password Storage and Credential Security](./02-password-storage-and-credential-security.md)

@@ -54,7 +54,7 @@ Target architecture:
 
 ## First implementation tasks
 
-- [ ] Replace plain-text password with BCrypt.
+- [x] Replace plain-text password with BCrypt.
 - [ ] Change login response to include token + expiry.
 - [ ] Add auth filter for protected routes.
 - [ ] Add one protected endpoint (for example `/api/me`).
