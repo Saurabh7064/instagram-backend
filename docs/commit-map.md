@@ -37,6 +37,11 @@ This file maps each commit to:
 - Concepts: secure credential storage, backward-safe authentication upgrades.
 - Docs: [Authentication Diary](./diary/authentication.md), [Concept 02](./system-design/02-password-storage-and-credential-security.md)
 
+7. `ef032c9`
+- Feature: added mandatory testing policy, testing strategy doc, and executable HTTP request file.
+- Concepts: testability gates, repeatable verification workflow.
+- Docs: [Testing Strategy](./testing-strategy.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -62,6 +67,11 @@ This file maps each commit to:
 5. `9e64f6e`
 - Feature: UI protocol aligned with backend `next feature` / `next concept` flow.
 - Concepts: multi-repo workflow consistency.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
+
+6. `e3cd2cd`
+- Feature: UI workflow now enforces integration/E2E + browser demo verification gates.
+- Concepts: definition-of-done consistency across frontend and backend.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
 
 ## Rule
