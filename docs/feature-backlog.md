@@ -25,6 +25,6 @@ Use this file to track product/engineering features for the app.
 
 ## Next 3 recommended
 
-1. `F-005` Password hashing (BCrypt)
-2. `F-006` JWT access token issuance
-3. `F-007` Protected endpoint (`/api/me`)
+1. `F-006` JWT access token issuance
+2. `F-007` Protected endpoint (`/api/me`)
+3. `F-008` Refresh token flow

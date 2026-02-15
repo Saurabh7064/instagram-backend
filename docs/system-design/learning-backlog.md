@@ -25,6 +25,6 @@ Use this file to track architecture/system design concepts to learn with this pr
 
 ## Next 3 recommended
 
-1. `SD-002` Password storage and credential security
-2. `SD-003` Token lifecycle (access + refresh)
+1. `SD-003` Token lifecycle (access + refresh)
+2. `SD-004` API versioning and compatibility
 3. `SD-006` Rate limiting and abuse protection
