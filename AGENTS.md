@@ -8,6 +8,8 @@ For every new feature, refactor, or bug fix that changes behavior:
 2. Update or create a diary entry in `docs/diary/`.
 3. Add exact code pointers (file paths).
 4. Add commit pointers (hashes) when available.
+5. Create at least one git commit for that feature/learning change.
+6. Append the commit in `docs/commit-map.md` with feature and concept mapping.
 
 If a change does not affect behavior (for example formatting-only), diary update is optional.
 

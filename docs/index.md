@@ -7,6 +7,7 @@
 - [Feature Template](./diary/_feature-template.md)
 - [System Design Path](./system-design/README.md)
 - [Concept 01: Stateless Auth and Horizontal Scaling](./system-design/01-stateless-auth-and-horizontal-scaling.md)
+- [Commit Map](./commit-map.md)
 
 ## UI Docs
 

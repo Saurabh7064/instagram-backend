@@ -71,13 +71,12 @@ This made the end-to-end feature easy to understand and debug.
 ## 6) Commit pointers
 
 - Backend commit:
-  - Not available yet (this project is not initialized as a git repo).
+  - `5a1d99c` - register/login API with PostgreSQL Docker setup.
 - UI commit:
-  - Not available yet (repo exists but has no first commit yet).
+  - `1ff70f7` - instagram-style signup/login UI wired to backend APIs.
 
-When you commit, update this section with real hashes:
-- Backend: `git -C /Users/saurabh/Documents/Learning/instagram-backend rev-parse --short HEAD`
-- UI: `git -C /Users/saurabh/Documents/Learning/instagram-ui rev-parse --short HEAD`
+Full mapping:
+- [Commit Map](../commit-map.md)
 
 ## 7) Pitfalls and fixes
 
