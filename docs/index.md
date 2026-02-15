@@ -3,6 +3,7 @@
 ## Backend Docs
 
 - [Feature Backlog (Build Track)](./feature-backlog.md)
+- [Testing Strategy](./testing-strategy.md)
 - [Diary Home](./diary/README.md)
 - [Authentication](./diary/authentication.md)
 - [Feature Template](./diary/_feature-template.md)

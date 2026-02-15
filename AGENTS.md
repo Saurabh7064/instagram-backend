@@ -5,12 +5,15 @@
 For every new feature, refactor, or bug fix that changes behavior:
 
 1. Update code and tests.
-2. Update or create a diary entry in `docs/diary/`.
-3. Add exact code pointers (file paths).
-4. Add commit pointers (hashes) when available.
-5. Create at least one git commit for that feature/learning change.
-6. Append the commit in `docs/commit-map.md` with feature and concept mapping.
-7. Update backlog trackers:
+2. Add/update at least one integration test.
+3. Verify backend API via `curl` or `.http` request file.
+4. If UI + backend flow changed, verify demo in browser (`http://localhost:5173`).
+5. Update or create a diary entry in `docs/diary/`.
+6. Add exact code pointers (file paths).
+7. Add commit pointers (hashes) when available.
+8. Create at least one git commit for that feature/learning change.
+9. Append the commit in `docs/commit-map.md` with feature and concept mapping.
+10. Update backlog trackers:
    - feature status in `docs/feature-backlog.md`
    - concept status in `docs/system-design/learning-backlog.md`
 
@@ -37,6 +40,10 @@ Then:
 4. Mark it `DONE`.
 5. Update diary/docs and `docs/commit-map.md`.
 6. Commit all related changes.
+7. Verify test evidence is present:
+   - integration test run output
+   - `curl`/`.http` API verification
+   - browser demo proof when UI is impacted
 
 ### `next concept` behavior
 
@@ -53,6 +60,16 @@ Then:
 5. Mark concept `DONE` (or keep `IN_PROGRESS` if implementation is intentionally deferred).
 6. Update `docs/commit-map.md`.
 7. Commit all related changes.
+
+## Test Stack Standard
+
+Use this stack by default:
+- Backend integration: Spring Boot Test + Testcontainers (PostgreSQL) + JUnit 5 + MockMvc
+- UI E2E: Playwright
+- API manual verification: `curl` and/or `http/*.http` files
+
+Reference:
+- `docs/testing-strategy.md`
 
 ## Diary Rules
 
