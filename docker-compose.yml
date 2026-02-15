@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: instagram-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: instagram
+      POSTGRES_USER: instagram
+      POSTGRES_PASSWORD: instagram
+    ports:
+      - "55432:5432"
+    volumes:
+      - instagram-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  instagram-postgres-data:
