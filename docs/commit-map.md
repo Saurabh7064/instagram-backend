@@ -27,6 +27,11 @@ This file maps each commit to:
 - Concepts: iterative planning, parallel tracks (implementation vs architecture learning).
 - Docs: [Feature Backlog](./feature-backlog.md), [System Design Learning Backlog](./system-design/learning-backlog.md)
 
+5. `b76ca3d`
+- Feature: added strict `next feature` and `next concept` command protocol with pre-check and completion gates.
+- Concepts: reliable iterative delivery, no-skip workflow control.
+- Docs: [Feature Backlog](./feature-backlog.md), [System Design Learning Backlog](./system-design/learning-backlog.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -47,6 +52,11 @@ This file maps each commit to:
 4. `2c09796`
 - Feature: UI docs now link directly to build and concept backlog trackers.
 - Concepts: discoverability and planning visibility from either repo.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
+
+5. `9e64f6e`
+- Feature: UI protocol aligned with backend `next feature` / `next concept` flow.
+- Concepts: multi-repo workflow consistency.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
 
 ## Rule
