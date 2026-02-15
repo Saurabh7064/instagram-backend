@@ -1,5 +1,9 @@
 # Learning Diary
 
+Legacy structure. New feature notes live in:
+
+- [Feature Learning Path](../features/README.md)
+
 This folder is your feature-to-concept diary.
 
 Main docs navigation:

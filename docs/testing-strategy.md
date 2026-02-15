@@ -11,7 +11,7 @@ For each feature:
 3. If feature touches UI + backend:
    - run app end-to-end,
    - verify in browser (`http://localhost:5173`),
-   - record demo proof in diary/notes.
+   - record demo proof in feature notes.
 
 ## Tech Stack
 
@@ -40,5 +40,5 @@ Why:
 - [ ] Integration test added/updated and passing
 - [ ] API verified by `curl` or `.http`
 - [ ] If UI impacted: browser demo verified
-- [ ] Diary updated with test evidence
+- [ ] Feature note updated with test evidence
 - [ ] Commit map updated

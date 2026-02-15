@@ -8,7 +8,7 @@ For every new feature, refactor, or bug fix that changes behavior:
 2. Add/update at least one integration test.
 3. Verify backend API via `curl` or `.http` request file.
 4. If UI + backend flow changed, verify demo in browser (`http://localhost:5173`).
-5. Update or create a diary entry in `docs/diary/`.
+5. Update or create a feature note in `docs/features/`.
 6. Add exact code pointers (file paths).
 7. Add commit pointers (hashes) when available.
 8. Create at least one git commit for that feature/learning change.
@@ -38,7 +38,7 @@ Then:
 2. Mark it `IN_PROGRESS`.
 3. Build it end-to-end.
 4. Mark it `DONE`.
-5. Update diary/docs and `docs/commit-map.md`.
+5. Update feature-docs and `docs/commit-map.md`.
 6. Commit all related changes.
 7. Verify test evidence is present:
    - integration test run output
@@ -71,9 +71,9 @@ Use this stack by default:
 Reference:
 - `docs/testing-strategy.md`
 
-## Diary Rules
+## Feature Doc Rules
 
-- Reuse `docs/diary/_feature-template.md` for new entries.
+- Reuse `docs/features/_feature-template.md` for new entries.
 - Keep each entry practical:
   - what was built
   - concepts learned

@@ -10,7 +10,7 @@ This file maps each commit to:
 1. `5a1d99c`
 - Feature: register/login API, PostgreSQL Docker setup, CORS, demo user seed.
 - Concepts: API contract design, persistence with JPA, local infra with Docker, cross-origin integration.
-- Docs: [Authentication Diary](./diary/authentication.md)
+- Docs: [Feature 01](./features/01-authentication-and-password-security.md)
 
 2. `c00cd8e`
 - Feature: learning docs system (diary + system design path + docs index).
@@ -35,12 +35,12 @@ This file maps each commit to:
 6. `305b6b4`
 - Feature: implemented BCrypt hashing for registration/login with legacy password migration path.
 - Concepts: secure credential storage, backward-safe authentication upgrades.
-- Docs: [Authentication Diary](./diary/authentication.md), [Concept 02](./system-design/02-password-storage-and-credential-security.md)
+- Docs: [Feature 01](./features/01-authentication-and-password-security.md), [Concept 02](./system-design/02-password-storage-and-credential-security.md)
 
 7. `ef032c9`
 - Feature: added mandatory testing policy, testing strategy doc, and executable HTTP request file.
 - Concepts: testability gates, repeatable verification workflow.
-- Docs: [Testing Strategy](./testing-strategy.md)
+- Docs: [Testing Strategy](./testing-strategy.md), [Feature 01](./features/01-authentication-and-password-security.md)
 
 ## UI Repo: `instagram-ui`
 
