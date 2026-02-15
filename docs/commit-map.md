@@ -17,6 +17,11 @@ This file maps each commit to:
 - Concepts: documentation-as-code, feature-to-concept traceability.
 - Docs: [Docs Index](./index.md)
 
+3. `5ed562a`
+- Feature: enforced commit-per-feature workflow and added shared commit map navigation.
+- Concepts: process governance, traceable engineering workflow.
+- Docs: [Docs Index](./index.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -27,6 +32,11 @@ This file maps each commit to:
 2. `837926e`
 - Feature: UI docs index, diary links, and workflow rules.
 - Concepts: maintainable project workflow and navigable docs.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
+
+3. `cfb1253`
+- Feature: UI workflow updated to require commit-per-feature and linked shared commit map.
+- Concepts: aligned multi-repo engineering conventions.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
 
 ## Rule
