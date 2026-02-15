@@ -4,7 +4,7 @@ This section tracks feature implementation notes in a numbered sequence, similar
 
 ## How to use
 
-1. Pick next feature from [Feature Backlog](../feature-backlog.md).
+1. Pick next feature from [Feature Learning Backlog](./learning-backlog.md).
 2. Build and test it end-to-end.
 3. Add/update a numbered feature note.
 4. Link commits and concept notes.
@@ -12,3 +12,7 @@ This section tracks feature implementation notes in a numbered sequence, similar
 ## Features
 
 - [01 - Authentication and Password Security](./01-authentication-and-password-security.md)
+
+## Backlog
+
+- [Feature Learning Backlog](./learning-backlog.md)

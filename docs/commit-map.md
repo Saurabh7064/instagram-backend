@@ -25,12 +25,12 @@ This file maps each commit to:
 4. `db2aeb7`
 - Feature: added separate backlog trackers for build work and system design learning.
 - Concepts: iterative planning, parallel tracks (implementation vs architecture learning).
-- Docs: [Feature Backlog](./feature-backlog.md), [System Design Learning Backlog](./system-design/learning-backlog.md)
+- Docs: [Feature Learning Backlog](./features/learning-backlog.md), [System Design Learning Backlog](./system-design/learning-backlog.md)
 
 5. `b76ca3d`
 - Feature: added strict `next feature` and `next concept` command protocol with pre-check and completion gates.
 - Concepts: reliable iterative delivery, no-skip workflow control.
-- Docs: [Feature Backlog](./feature-backlog.md), [System Design Learning Backlog](./system-design/learning-backlog.md)
+- Docs: [Feature Learning Backlog](./features/learning-backlog.md), [System Design Learning Backlog](./system-design/learning-backlog.md)
 
 6. `305b6b4`
 - Feature: implemented BCrypt hashing for registration/login with legacy password migration path.

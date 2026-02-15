@@ -14,7 +14,7 @@ For every new feature, refactor, or bug fix that changes behavior:
 8. Create at least one git commit for that feature/learning change.
 9. Append the commit in `docs/commit-map.md` with feature and concept mapping.
 10. Update backlog trackers:
-   - feature status in `docs/feature-backlog.md`
+   - feature status in `docs/features/learning-backlog.md`
    - concept status in `docs/system-design/learning-backlog.md`
 
 If a change does not affect behavior (for example formatting-only), diary update is optional.
@@ -29,12 +29,12 @@ Use these two commands as workflow triggers:
 ### `next feature` behavior
 
 Before starting:
-1. Verify no previous feature is left `IN_PROGRESS` in `docs/feature-backlog.md`.
+1. Verify no previous feature is left `IN_PROGRESS` in `docs/features/learning-backlog.md`.
 2. Verify docs + commit map are updated for the last completed change.
 3. Verify both repos have clean git working trees.
 
 Then:
-1. Pick the next `TODO` feature from `docs/feature-backlog.md` (top-down unless user overrides).
+1. Pick the next `TODO` feature from `docs/features/learning-backlog.md` (top-down unless user overrides).
 2. Mark it `IN_PROGRESS`.
 3. Build it end-to-end.
 4. Mark it `DONE`.
