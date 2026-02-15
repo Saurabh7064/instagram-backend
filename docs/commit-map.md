@@ -42,6 +42,11 @@ This file maps each commit to:
 - Concepts: testability gates, repeatable verification workflow.
 - Docs: [Testing Strategy](./testing-strategy.md), [Feature 01](./features/01-authentication-and-password-security.md)
 
+8. `c583c1a`
+- Feature: reorganized feature documentation into numbered `docs/features` learning path.
+- Concepts: documentation architecture consistency with system-design track.
+- Docs: [Feature Learning Path](./features/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -72,6 +77,11 @@ This file maps each commit to:
 6. `e3cd2cd`
 - Feature: UI workflow now enforces integration/E2E + browser demo verification gates.
 - Concepts: definition-of-done consistency across frontend and backend.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
+
+7. `1c7ceba`
+- Feature: UI docs/rules now reference backend feature-learning path instead of diary-first layout.
+- Concepts: cross-repo documentation consistency.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
 
 ## Rule
