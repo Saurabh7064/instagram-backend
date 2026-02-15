@@ -47,6 +47,11 @@ This file maps each commit to:
 - Concepts: documentation architecture consistency with system-design track.
 - Docs: [Feature Learning Path](./features/README.md)
 
+9. `39fffe3`
+- Feature: fully mirrored feature track to system-design layout using `docs/features/learning-backlog.md`.
+- Concepts: symmetrical documentation information architecture.
+- Docs: [Feature Learning Path](./features/README.md), [Feature Learning Backlog](./features/learning-backlog.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -82,6 +87,11 @@ This file maps each commit to:
 7. `1c7ceba`
 - Feature: UI docs/rules now reference backend feature-learning path instead of diary-first layout.
 - Concepts: cross-repo documentation consistency.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
+
+8. `da252ee`
+- Feature: UI rules/index updated to new mirrored feature structure and backlog path.
+- Concepts: consistent navigation between frontend and backend docs.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
 
 ## Rule
