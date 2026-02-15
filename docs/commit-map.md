@@ -22,6 +22,11 @@ This file maps each commit to:
 - Concepts: process governance, traceable engineering workflow.
 - Docs: [Docs Index](./index.md)
 
+4. `db2aeb7`
+- Feature: added separate backlog trackers for build work and system design learning.
+- Concepts: iterative planning, parallel tracks (implementation vs architecture learning).
+- Docs: [Feature Backlog](./feature-backlog.md), [System Design Learning Backlog](./system-design/learning-backlog.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -37,6 +42,11 @@ This file maps each commit to:
 3. `cfb1253`
 - Feature: UI workflow updated to require commit-per-feature and linked shared commit map.
 - Concepts: aligned multi-repo engineering conventions.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
+
+4. `2c09796`
+- Feature: UI docs now link directly to build and concept backlog trackers.
+- Concepts: discoverability and planning visibility from either repo.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
 
 ## Rule
