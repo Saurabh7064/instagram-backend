@@ -52,6 +52,11 @@ This file maps each commit to:
 - Concepts: symmetrical documentation information architecture.
 - Docs: [Feature Learning Path](./features/README.md), [Feature Learning Backlog](./features/learning-backlog.md)
 
+10. `bbffbe5`
+- Feature: added comprehensive project-driven system design mastery roadmap and linked it into the concept workflow.
+- Concepts: structured tiered learning plan mapped to project execution.
+- Docs: [System Design Mastery Roadmap](./system-design/mastery-roadmap.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -92,6 +97,11 @@ This file maps each commit to:
 8. `da252ee`
 - Feature: UI rules/index updated to new mirrored feature structure and backlog path.
 - Concepts: consistent navigation between frontend and backend docs.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
+
+9. `4b0ea33`
+- Feature: UI docs index now links to the new system design mastery roadmap.
+- Concepts: cross-repo roadmap discoverability.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
 
 ## Rule
