@@ -54,6 +54,7 @@ Before starting:
 
 Then:
 1. Pick next `TODO` concept from `docs/system-design/learning-backlog.md` (top-down unless user overrides).
+   - Use `docs/system-design/mastery-roadmap.md` as the concept priority reference.
 2. Mark it `IN_PROGRESS`.
 3. Add/expand concept note with project mapping.
 4. Add at least one concrete implementation task linked to a feature.

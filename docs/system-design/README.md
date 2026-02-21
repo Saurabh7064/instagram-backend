@@ -2,6 +2,10 @@
 
 This section is a practical system design diary using this project as the running example.
 
+Master roadmap:
+
+- [System Design Mastery Roadmap](./mastery-roadmap.md)
+
 ## How to use
 
 1. Pick one concept.
