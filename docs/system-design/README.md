@@ -5,6 +5,7 @@ This section is a practical system design diary using this project as the runnin
 Master roadmap:
 
 - [System Design Mastery Roadmap](./mastery-roadmap.md)
+- [12-Week Execution Plan](./12-week-execution-plan.md)
 
 ## How to use
 
