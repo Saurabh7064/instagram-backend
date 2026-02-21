@@ -57,6 +57,11 @@ This file maps each commit to:
 - Concepts: structured tiered learning plan mapped to project execution.
 - Docs: [System Design Mastery Roadmap](./system-design/mastery-roadmap.md)
 
+11. `c57a2a9`
+- Feature: added a strict 12-week execution plan mapping weekly features to system-design concepts.
+- Concepts: milestone-driven learning cadence and execution discipline.
+- Docs: [12-Week Execution Plan](./system-design/12-week-execution-plan.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -102,6 +107,11 @@ This file maps each commit to:
 9. `4b0ea33`
 - Feature: UI docs index now links to the new system design mastery roadmap.
 - Concepts: cross-repo roadmap discoverability.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
+
+10. `8950e53`
+- Feature: UI docs index now links to the 12-week execution plan.
+- Concepts: execution-plan discoverability from frontend workflow.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
 
 ## Rule
