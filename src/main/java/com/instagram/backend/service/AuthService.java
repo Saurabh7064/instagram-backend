@@ -18,10 +18,15 @@ public class AuthService {
 
     private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TokenService tokenService;
 
-    public AuthService(UserAccountRepository userAccountRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(
+            UserAccountRepository userAccountRepository,
+            PasswordEncoder passwordEncoder,
+            TokenService tokenService) {
         this.userAccountRepository = userAccountRepository;
         this.passwordEncoder = passwordEncoder;
+        this.tokenService = tokenService;
     }
 
     @Transactional
@@ -40,7 +45,15 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.password()));
 
         UserAccount saved = userAccountRepository.save(user);
-        return new RegisterResponse(saved.getId(), saved.getFullName(), saved.getUsername(), saved.getEmail());
+        TokenService.AuthToken token = tokenService.createAccessToken(saved);
+        return new RegisterResponse(
+                saved.getId(),
+                saved.getFullName(),
+                saved.getUsername(),
+                saved.getEmail(),
+                token.accessToken(),
+                token.tokenType(),
+                token.expiresAt());
     }
 
     @Transactional
@@ -54,7 +67,15 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
 
-        return new LoginResponse(user.getId(), user.getFullName(), user.getUsername(), user.getEmail());
+        TokenService.AuthToken token = tokenService.createAccessToken(user);
+        return new LoginResponse(
+                user.getId(),
+                user.getFullName(),
+                user.getUsername(),
+                user.getEmail(),
+                token.accessToken(),
+                token.tokenType(),
+                token.expiresAt());
     }
 
     private boolean passwordMatchesAndMigrateIfNeeded(UserAccount user, String rawPassword) {

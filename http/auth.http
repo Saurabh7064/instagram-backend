@@ -4,8 +4,8 @@ Content-Type: application/json
 
 {
   "fullName": "Test User",
-  "username": "test.user",
-  "email": "test.user@example.com",
+  "username": "test.user.jwt",
+  "email": "test.user.jwt@example.com",
   "password": "password123"
 }
 

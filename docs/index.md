@@ -5,6 +5,7 @@
 - [Feature Learning Path](./features/README.md)
 - [Feature Learning Backlog](./features/learning-backlog.md)
 - [Feature 01: Authentication and Password Security](./features/01-authentication-and-password-security.md)
+- [Feature 02: JWT Access Token Issuance](./features/02-jwt-access-token-issuance.md)
 - [Testing Strategy](./testing-strategy.md)
 - [System Design Path](./system-design/README.md)
 - [System Design Mastery Roadmap](./system-design/mastery-roadmap.md)

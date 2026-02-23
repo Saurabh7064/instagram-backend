@@ -17,7 +17,7 @@ Use this file to track product/engineering features for the app.
 | F-003 | Signup UI | DONE | Browser registration flow | [Feature 01](./01-authentication-and-password-security.md) |
 | F-004 | Login UI | DONE | Browser login flow | [Feature 01](./01-authentication-and-password-security.md) |
 | F-005 | Password hashing (BCrypt) | DONE | Security baseline | [Feature 01](./01-authentication-and-password-security.md) |
-| F-006 | JWT access token issuance | TODO | Stateless auth for scale | [Concept 01](../system-design/01-stateless-auth-and-horizontal-scaling.md) |
+| F-006 | JWT access token issuance | DONE | Stateless auth for scale | [Feature 02](./02-jwt-access-token-issuance.md) |
 | F-007 | Protected endpoint (`/api/me`) | TODO | Validate auth end-to-end |  |
 | F-008 | Refresh token flow | TODO | Better session UX/security |  |
 | F-009 | Basic profile page API/UI | TODO | First authenticated product feature |  |
@@ -25,6 +25,6 @@ Use this file to track product/engineering features for the app.
 
 ## Next 3 recommended
 
-1. `F-006` JWT access token issuance
-2. `F-007` Protected endpoint (`/api/me`)
-3. `F-008` Refresh token flow
+1. `F-007` Protected endpoint (`/api/me`)
+2. `F-008` Refresh token flow
+3. `F-009` Basic profile page API/UI
