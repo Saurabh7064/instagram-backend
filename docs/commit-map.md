@@ -67,6 +67,11 @@ This file maps each commit to:
 - Concepts: stateless auth token issuance, testable auth contracts with real Postgres container.
 - Docs: [Feature 02](./features/02-jwt-access-token-issuance.md), [Testing Strategy](./testing-strategy.md)
 
+13. `7c2a703`
+- Feature: enforced screenshot-proof workflow, added demo proof archives, and documented Feature 03 for visual verification.
+- Concepts: evidence-based delivery, reproducible UI+backend demo verification.
+- Docs: [Feature 03](./features/03-browser-demo-proof-and-visual-verification.md), [Demo Proofs](./demo-proofs/README.md), [Testing Strategy](./testing-strategy.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -123,6 +128,11 @@ This file maps each commit to:
 - Feature: UI login/register now consumes JWT response and stores access token for subsequent authenticated flows.
 - Concepts: frontend token handling and auth-state bootstrap for protected APIs.
 - Docs: [Feature 02](./features/02-jwt-access-token-issuance.md)
+
+12. `0d40f9c`
+- Feature: added Playwright-based demo proof script and UI workflow rules for mandatory screenshot evidence.
+- Concepts: automated E2E evidence capture and cross-repo quality gate alignment.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 03](./features/03-browser-demo-proof-and-visual-verification.md)
 
 ## Rule
 
