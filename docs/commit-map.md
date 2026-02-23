@@ -77,6 +77,11 @@ This file maps each commit to:
 - Concepts: token-based endpoint protection, identity resolution from JWT subject claim.
 - Docs: [Feature 04](./features/04-protected-me-endpoint.md), [Testing Strategy](./testing-strategy.md)
 
+15. `49d6744`
+- Feature: implemented refresh-token issuance/rotation with `POST /api/auth/refresh`, token-type claim enforcement, integration tests, and browser demo proof.
+- Concepts: token lifecycle management, separating access vs refresh token responsibilities.
+- Docs: [Feature 05](./features/05-refresh-token-flow.md), [Testing Strategy](./testing-strategy.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -143,6 +148,11 @@ This file maps each commit to:
 - Feature: UI now loads protected `/api/me` profile after auth and displays authenticated user details.
 - Concepts: frontend bearer-token API calls and protected-resource UX verification.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 04](./features/04-protected-me-endpoint.md)
+
+14. `10f5c8b`
+- Feature: UI now stores refresh token and supports session refresh with updated screenshot-proof automation.
+- Concepts: client-side refresh-token usage and authenticated session continuity UX.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 05](./features/05-refresh-token-flow.md)
 
 ## Rule
 
