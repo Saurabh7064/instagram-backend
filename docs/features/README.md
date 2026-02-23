@@ -14,6 +14,7 @@ This section tracks feature implementation notes in a numbered sequence, similar
 - [01 - Authentication and Password Security](./01-authentication-and-password-security.md)
 - [02 - JWT Access Token Issuance](./02-jwt-access-token-issuance.md)
 - [03 - Browser Demo Proof and Visual Verification](./03-browser-demo-proof-and-visual-verification.md)
+- [04 - Protected `/api/me` Endpoint](./04-protected-me-endpoint.md)
 
 ## Backlog
 

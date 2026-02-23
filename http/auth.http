@@ -17,3 +17,7 @@ Content-Type: application/json
   "identifier": "demo.user",
   "password": "password123"
 }
+
+### Me (replace token with accessToken from login/register response)
+GET http://localhost:8080/api/me
+Authorization: Bearer {{accessToken}}

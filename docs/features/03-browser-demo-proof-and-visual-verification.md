@@ -36,7 +36,7 @@ Make demo verification evidence mandatory and repeatable for every UI + backend 
   - [02-login-success.png](../demo-proofs/2026-02-23/02-login-success.png)
 - Visual verification result:
   - Login page loads at `http://localhost:5173`.
-  - Success state shows `Logged in as demo.user (Bearer token issued)`.
+  - Success state confirms authenticated flow in the UI.
 
 ## Notes
 

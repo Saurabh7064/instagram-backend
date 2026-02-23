@@ -1,5 +1,6 @@
 package com.instagram.backend;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -8,12 +9,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -73,5 +79,55 @@ class AuthIntegrationTests {
                 .andExpect(jsonPath("$.accessToken").isString())
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
                 .andExpect(jsonPath("$.expiresAt").isNumber());
+    }
+
+    @Test
+    void meRequiresBearerToken() throws Exception {
+        mockMvc.perform(get("/api/me"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void meReturnsAuthenticatedUserWhenTokenProvided() throws Exception {
+        String accessToken = loginAndExtractToken();
+
+        mockMvc.perform(get("/api/me")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("demo.user"))
+                .andExpect(jsonPath("$.fullName").value("Demo User"))
+                .andExpect(jsonPath("$.email").value("demo.user@example.com"))
+                .andExpect(jsonPath("$.createdAt").isString());
+    }
+
+    @Test
+    void meRejectsInvalidBearerToken() throws Exception {
+        mockMvc.perform(get("/api/me")
+                        .header("Authorization", "Bearer not-a-valid-token"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    private String loginAndExtractToken() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "identifier":"demo.user",
+                                  "password":"password123"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        return extractJsonValue(login.getResponse().getContentAsString(), "accessToken");
+    }
+
+    private String extractJsonValue(String json, String fieldName) {
+        Pattern pattern = Pattern.compile("\"" + fieldName + "\"\\s*:\\s*\"([^\"]+)\"");
+        Matcher matcher = pattern.matcher(json);
+        if (!matcher.find()) {
+            throw new IllegalStateException("Field not found in JSON response: " + fieldName);
+        }
+        return matcher.group(1);
     }
 }

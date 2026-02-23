@@ -18,7 +18,7 @@ Use this file to track product/engineering features for the app.
 | F-004 | Login UI | DONE | Browser login flow | [Feature 01](./01-authentication-and-password-security.md) |
 | F-005 | Password hashing (BCrypt) | DONE | Security baseline | [Feature 01](./01-authentication-and-password-security.md) |
 | F-006 | JWT access token issuance | DONE | Stateless auth for scale | [Feature 02](./02-jwt-access-token-issuance.md) |
-| F-007 | Protected endpoint (`/api/me`) | TODO | Validate auth end-to-end |  |
+| F-007 | Protected endpoint (`/api/me`) | DONE | Validate auth end-to-end | [Feature 04](./04-protected-me-endpoint.md) |
 | F-008 | Refresh token flow | TODO | Better session UX/security |  |
 | F-009 | Basic profile page API/UI | TODO | First authenticated product feature |  |
 | F-010 | Posts create/read API/UI | TODO | Core social functionality |  |
