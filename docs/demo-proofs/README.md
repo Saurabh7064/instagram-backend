@@ -13,6 +13,7 @@ Store screenshot evidence for UI + backend integration demos.
 
 1. Page loaded screenshot
 2. Success-state screenshot
+3. If refresh flow is part of the feature: refresh-success screenshot
 
 ## Existing proofs
 

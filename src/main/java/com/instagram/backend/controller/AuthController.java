@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.instagram.backend.dto.LoginRequest;
 import com.instagram.backend.dto.LoginResponse;
+import com.instagram.backend.dto.RefreshRequest;
+import com.instagram.backend.dto.RefreshResponse;
 import com.instagram.backend.dto.RegisterRequest;
 import com.instagram.backend.dto.RegisterResponse;
 import com.instagram.backend.service.AuthService;
@@ -34,5 +36,10 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @PostMapping("/refresh")
+    public RefreshResponse refresh(@Valid @RequestBody RefreshRequest request) {
+        return authService.refresh(request);
     }
 }

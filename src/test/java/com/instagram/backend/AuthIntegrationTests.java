@@ -61,7 +61,9 @@ class AuthIntegrationTests {
                 .andExpect(jsonPath("$.username").value("integration.user"))
                 .andExpect(jsonPath("$.accessToken").isString())
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
-                .andExpect(jsonPath("$.expiresAt").isNumber());
+                .andExpect(jsonPath("$.expiresAt").isNumber())
+                .andExpect(jsonPath("$.refreshToken").isString())
+                .andExpect(jsonPath("$.refreshExpiresAt").isNumber());
     }
 
     @Test
@@ -78,7 +80,9 @@ class AuthIntegrationTests {
                 .andExpect(jsonPath("$.username").value("demo.user"))
                 .andExpect(jsonPath("$.accessToken").isString())
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
-                .andExpect(jsonPath("$.expiresAt").isNumber());
+                .andExpect(jsonPath("$.expiresAt").isNumber())
+                .andExpect(jsonPath("$.refreshToken").isString())
+                .andExpect(jsonPath("$.refreshExpiresAt").isNumber());
     }
 
     @Test
@@ -89,7 +93,7 @@ class AuthIntegrationTests {
 
     @Test
     void meReturnsAuthenticatedUserWhenTokenProvided() throws Exception {
-        String accessToken = loginAndExtractToken();
+        String accessToken = loginAndExtract("accessToken");
 
         mockMvc.perform(get("/api/me")
                         .header("Authorization", "Bearer " + accessToken))
@@ -107,7 +111,60 @@ class AuthIntegrationTests {
                 .andExpect(status().isUnauthorized());
     }
 
-    private String loginAndExtractToken() throws Exception {
+    @Test
+    void refreshReturnsNewTokenPair() throws Exception {
+        String refreshToken = loginAndExtract("refreshToken");
+
+        mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "refreshToken":"%s"
+                                }
+                                """.formatted(refreshToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isString())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.expiresAt").isNumber())
+                .andExpect(jsonPath("$.refreshToken").isString())
+                .andExpect(jsonPath("$.refreshExpiresAt").isNumber());
+    }
+
+    @Test
+    void refreshedAccessTokenCanAccessMe() throws Exception {
+        String refreshToken = loginAndExtract("refreshToken");
+        MvcResult refreshed = mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "refreshToken":"%s"
+                                }
+                                """.formatted(refreshToken)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String accessToken = extractJsonValue(refreshed.getResponse().getContentAsString(), "accessToken");
+
+        mockMvc.perform(get("/api/me")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("demo.user"));
+    }
+
+    @Test
+    void refreshRejectsAccessToken() throws Exception {
+        String accessToken = loginAndExtract("accessToken");
+        mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "refreshToken":"%s"
+                                }
+                                """.formatted(accessToken)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    private String loginAndExtract(String fieldName) throws Exception {
         MvcResult login = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -119,7 +176,7 @@ class AuthIntegrationTests {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        return extractJsonValue(login.getResponse().getContentAsString(), "accessToken");
+        return extractJsonValue(login.getResponse().getContentAsString(), fieldName);
     }
 
     private String extractJsonValue(String json, String fieldName) {

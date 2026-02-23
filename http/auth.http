@@ -18,6 +18,14 @@ Content-Type: application/json
   "password": "password123"
 }
 
+### Refresh (replace with refreshToken from login/register response)
+POST http://localhost:8080/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
 ### Me (replace token with accessToken from login/register response)
 GET http://localhost:8080/api/me
 Authorization: Bearer {{accessToken}}

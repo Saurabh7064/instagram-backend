@@ -7,5 +7,7 @@ public record RegisterResponse(
         String email,
         String accessToken,
         String tokenType,
-        long expiresAt) {
+        long expiresAt,
+        String refreshToken,
+        long refreshExpiresAt) {
 }
