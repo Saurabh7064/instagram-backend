@@ -72,6 +72,11 @@ This file maps each commit to:
 - Concepts: evidence-based delivery, reproducible UI+backend demo verification.
 - Docs: [Feature 03](./features/03-browser-demo-proof-and-visual-verification.md), [Demo Proofs](./demo-proofs/README.md), [Testing Strategy](./testing-strategy.md)
 
+14. `8950425`
+- Feature: implemented protected `GET /api/me` endpoint with JWT bearer validation, profile lookup, integration tests, and UI/API proof updates.
+- Concepts: token-based endpoint protection, identity resolution from JWT subject claim.
+- Docs: [Feature 04](./features/04-protected-me-endpoint.md), [Testing Strategy](./testing-strategy.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -133,6 +138,11 @@ This file maps each commit to:
 - Feature: added Playwright-based demo proof script and UI workflow rules for mandatory screenshot evidence.
 - Concepts: automated E2E evidence capture and cross-repo quality gate alignment.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 03](./features/03-browser-demo-proof-and-visual-verification.md)
+
+13. `b5393e4`
+- Feature: UI now loads protected `/api/me` profile after auth and displays authenticated user details.
+- Concepts: frontend bearer-token API calls and protected-resource UX verification.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 04](./features/04-protected-me-endpoint.md)
 
 ## Rule
 
