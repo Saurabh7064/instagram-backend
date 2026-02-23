@@ -62,6 +62,11 @@ This file maps each commit to:
 - Concepts: milestone-driven learning cadence and execution discipline.
 - Docs: [12-Week Execution Plan](./system-design/12-week-execution-plan.md)
 
+12. `caa2c48`
+- Feature: implemented JWT access token issuance for register/login, added token service, and Testcontainers-based integration tests.
+- Concepts: stateless auth token issuance, testable auth contracts with real Postgres container.
+- Docs: [Feature 02](./features/02-jwt-access-token-issuance.md), [Testing Strategy](./testing-strategy.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -113,6 +118,11 @@ This file maps each commit to:
 - Feature: UI docs index now links to the 12-week execution plan.
 - Concepts: execution-plan discoverability from frontend workflow.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md)
+
+11. `9019d6a`
+- Feature: UI login/register now consumes JWT response and stores access token for subsequent authenticated flows.
+- Concepts: frontend token handling and auth-state bootstrap for protected APIs.
+- Docs: [Feature 02](./features/02-jwt-access-token-issuance.md)
 
 ## Rule
 
