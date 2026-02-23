@@ -1,0 +1,20 @@
+# Demo Proofs
+
+Store screenshot evidence for UI + backend integration demos.
+
+## Convention
+
+- Folder format: `YYYY-MM-DD`
+- File names should be ordered and descriptive:
+  - `01-<step>.png`
+  - `02-<step>.png`
+
+## Required minimum for auth flows
+
+1. Page loaded screenshot
+2. Success-state screenshot
+
+## Existing proofs
+
+- [2026-02-22 login proof](./2026-02-22/)
+- [2026-02-23 login proof](./2026-02-23/)

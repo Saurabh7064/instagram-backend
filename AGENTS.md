@@ -8,12 +8,14 @@ For every new feature, refactor, or bug fix that changes behavior:
 2. Add/update at least one integration test.
 3. Verify backend API via `curl` or `.http` request file.
 4. If UI + backend flow changed, verify demo in browser (`http://localhost:5173`).
-5. Update or create a feature note in `docs/features/`.
-6. Add exact code pointers (file paths).
-7. Add commit pointers (hashes) when available.
-8. Create at least one git commit for that feature/learning change.
-9. Append the commit in `docs/commit-map.md` with feature and concept mapping.
-10. Update backlog trackers:
+5. Capture screenshot proof of the browser demo and save under `docs/demo-proofs/<YYYY-MM-DD>/`.
+6. Verify screenshot content after capture before marking feature done.
+7. Update or create a feature note in `docs/features/`.
+8. Add exact code pointers (file paths).
+9. Add commit pointers (hashes) when available.
+10. Create at least one git commit for that feature/learning change.
+11. Append the commit in `docs/commit-map.md` with feature and concept mapping.
+12. Update backlog trackers:
    - feature status in `docs/features/learning-backlog.md`
    - concept status in `docs/system-design/learning-backlog.md`
 
@@ -43,7 +45,7 @@ Then:
 7. Verify test evidence is present:
    - integration test run output
    - `curl`/`.http` API verification
-   - browser demo proof when UI is impacted
+   - browser demo proof screenshots in `docs/demo-proofs/<YYYY-MM-DD>/`
 
 ### `next concept` behavior
 

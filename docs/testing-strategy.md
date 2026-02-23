@@ -11,7 +11,8 @@ For each feature:
 3. If feature touches UI + backend:
    - run app end-to-end,
    - verify in browser (`http://localhost:5173`),
-   - record demo proof in feature notes.
+   - capture screenshots and save to `docs/demo-proofs/<YYYY-MM-DD>/`,
+   - verify screenshot content before sign-off.
 
 ## Tech Stack
 
@@ -40,5 +41,6 @@ Why:
 - [ ] Integration test added/updated and passing
 - [ ] API verified by `curl` or `.http`
 - [ ] If UI impacted: browser demo verified
+- [ ] Screenshot proof captured in `docs/demo-proofs/<YYYY-MM-DD>/`
 - [ ] Feature note updated with test evidence
 - [ ] Commit map updated

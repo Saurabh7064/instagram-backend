@@ -22,6 +22,7 @@ Use this file to track product/engineering features for the app.
 | F-008 | Refresh token flow | TODO | Better session UX/security |  |
 | F-009 | Basic profile page API/UI | TODO | First authenticated product feature |  |
 | F-010 | Posts create/read API/UI | TODO | Core social functionality |  |
+| F-011 | Browser demo proof workflow | DONE | Reliable visual evidence for UI+backend integration | [Feature 03](./03-browser-demo-proof-and-visual-verification.md) |
 
 ## Next 3 recommended
 
