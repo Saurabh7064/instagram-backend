@@ -16,6 +16,7 @@ This section tracks feature implementation notes in a numbered sequence, similar
 - [03 - Browser Demo Proof and Visual Verification](./03-browser-demo-proof-and-visual-verification.md)
 - [04 - Protected `/api/me` Endpoint](./04-protected-me-endpoint.md)
 - [05 - Refresh Token Flow](./05-refresh-token-flow.md)
+- [06 - Basic Profile Page API/UI](./06-basic-profile-page-api-ui.md)
 
 ## Backlog
 

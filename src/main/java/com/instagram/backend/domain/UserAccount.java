@@ -30,6 +30,9 @@ public class UserAccount {
     @Column(nullable = false)
     private String password;
 
+    @Column
+    private String bio;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -72,6 +75,14 @@ public class UserAccount {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 
     public Instant getCreatedAt() {

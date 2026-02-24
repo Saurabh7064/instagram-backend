@@ -20,11 +20,10 @@ Use this file to track product/engineering features for the app.
 | F-006 | JWT access token issuance | DONE | Stateless auth for scale | [Feature 02](./02-jwt-access-token-issuance.md) |
 | F-007 | Protected endpoint (`/api/me`) | DONE | Validate auth end-to-end | [Feature 04](./04-protected-me-endpoint.md) |
 | F-008 | Refresh token flow | DONE | Better session UX/security | [Feature 05](./05-refresh-token-flow.md) |
-| F-009 | Basic profile page API/UI | TODO | First authenticated product feature |  |
+| F-009 | Basic profile page API/UI | DONE | First authenticated product feature | [Feature 06](./06-basic-profile-page-api-ui.md) |
 | F-010 | Posts create/read API/UI | TODO | Core social functionality |  |
 | F-011 | Browser demo proof workflow | DONE | Reliable visual evidence for UI+backend integration | [Feature 03](./03-browser-demo-proof-and-visual-verification.md) |
 
 ## Next 3 recommended
 
-1. `F-009` Basic profile page API/UI
-2. `F-010` Posts create/read API/UI
+1. `F-010` Posts create/read API/UI

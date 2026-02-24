@@ -164,6 +164,28 @@ class AuthIntegrationTests {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void profilePageRequiresBearerToken() throws Exception {
+        mockMvc.perform(get("/api/profile/me"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void profilePageReturnsBasicProfileData() throws Exception {
+        String accessToken = loginAndExtract("accessToken");
+
+        mockMvc.perform(get("/api/profile/me")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("demo.user"))
+                .andExpect(jsonPath("$.fullName").value("Demo User"))
+                .andExpect(jsonPath("$.bio").isString())
+                .andExpect(jsonPath("$.postsCount").isNumber())
+                .andExpect(jsonPath("$.followersCount").isNumber())
+                .andExpect(jsonPath("$.followingCount").isNumber())
+                .andExpect(jsonPath("$.joinedAt").isString());
+    }
+
     private String loginAndExtract(String fieldName) throws Exception {
         MvcResult login = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

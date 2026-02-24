@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.instagram.backend.dto.MeResponse;
+import com.instagram.backend.dto.ProfilePageResponse;
 import com.instagram.backend.service.ProfileService;
 
 @RestController
@@ -21,5 +22,11 @@ public class ProfileController {
     @GetMapping("/me")
     public MeResponse me(@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
         return profileService.me(authorizationHeader);
+    }
+
+    @GetMapping("/profile/me")
+    public ProfilePageResponse myProfilePage(
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+        return profileService.myProfilePage(authorizationHeader);
     }
 }

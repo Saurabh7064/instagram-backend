@@ -29,3 +29,7 @@ Content-Type: application/json
 ### Me (replace token with accessToken from login/register response)
 GET http://localhost:8080/api/me
 Authorization: Bearer {{accessToken}}
+
+### Profile Page (authenticated)
+GET http://localhost:8080/api/profile/me
+Authorization: Bearer {{accessToken}}

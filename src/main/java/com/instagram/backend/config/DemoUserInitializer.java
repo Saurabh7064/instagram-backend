@@ -20,13 +20,17 @@ public class DemoUserInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        String demoBio = "Building Instagram clone to learn distributed systems.";
         var existing = userAccountRepository.findByUsernameIgnoreCase("demo.user");
         if (existing.isPresent()) {
             UserAccount user = existing.get();
             if (!looksLikeBcrypt(user.getPassword())) {
                 user.setPassword(passwordEncoder.encode(user.getPassword()));
-                userAccountRepository.save(user);
             }
+            if (user.getBio() == null || user.getBio().isBlank()) {
+                user.setBio(demoBio);
+            }
+            userAccountRepository.save(user);
             return;
         }
 
@@ -35,6 +39,7 @@ public class DemoUserInitializer implements CommandLineRunner {
         user.setUsername("demo.user");
         user.setEmail("demo.user@example.com");
         user.setPassword(passwordEncoder.encode("password123"));
+        user.setBio(demoBio);
         userAccountRepository.save(user);
     }
 
