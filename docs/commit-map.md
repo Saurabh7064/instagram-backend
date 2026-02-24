@@ -82,6 +82,11 @@ This file maps each commit to:
 - Concepts: token lifecycle management, separating access vs refresh token responsibilities.
 - Docs: [Feature 05](./features/05-refresh-token-flow.md), [Testing Strategy](./testing-strategy.md)
 
+16. `a3013f2`
+- Feature: implemented authenticated basic profile-page API payload (`/api/profile/me`), demo bio field, and profile-page demo proofs.
+- Concepts: product-facing authenticated read model design and API/UI contract shaping.
+- Docs: [Feature 06](./features/06-basic-profile-page-api-ui.md), [Testing Strategy](./testing-strategy.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -153,6 +158,11 @@ This file maps each commit to:
 - Feature: UI now stores refresh token and supports session refresh with updated screenshot-proof automation.
 - Concepts: client-side refresh-token usage and authenticated session continuity UX.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 05](./features/05-refresh-token-flow.md)
+
+15. `a4ae3f9`
+- Feature: UI now renders a dedicated profile-page panel backed by `/api/profile/me` response.
+- Concepts: authenticated page composition and stable client model for user-profile screens.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 06](./features/06-basic-profile-page-api-ui.md)
 
 ## Rule
 
