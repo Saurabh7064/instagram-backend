@@ -102,6 +102,11 @@ This file maps each commit to:
 - Concepts: ownership-enforced mutations, destructive-action safeguards, and cleanup of dependent records during deletes.
 - Docs: [Feature 09](./features/09-delete-own-post-api-ui.md), [Testing Strategy](./testing-strategy.md), [Demo Proofs](./demo-proofs/README.md)
 
+20. `bfb4fd8`
+- Feature: implemented author-only post editing with a dedicated update contract, extended proof artifacts, and documented the first ownership-enforced update flow.
+- Concepts: explicit update contracts, ownership-guarded writes, and incremental UI mutation flows for content editing.
+- Docs: [Feature 10](./features/10-edit-own-post-api-ui.md), [Testing Strategy](./testing-strategy.md), [Demo Proofs](./demo-proofs/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -193,6 +198,11 @@ This file maps each commit to:
 - Feature: UI now exposes delete for user-owned hero posts and extends the browser proof run through the delete action.
 - Concepts: ownership-aware action rendering and safe UX gating for destructive operations.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 09](./features/09-delete-own-post-api-ui.md)
+
+19. `912b280`
+- Feature: UI now supports inline editing for user-owned hero posts and extends the browser proof run through the edit step before like/delete.
+- Concepts: inline content editing, localized UI state transitions, and staged mutation verification in browser automation.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 10](./features/10-edit-own-post-api-ui.md)
 
 ## Rule
 
