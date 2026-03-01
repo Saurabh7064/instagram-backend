@@ -55,4 +55,12 @@ public class PostController {
             @PathVariable Long postId) {
         return postService.unlike(authorizationHeader, postId);
     }
+
+    @DeleteMapping("/posts/{postId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            @PathVariable Long postId) {
+        postService.delete(authorizationHeader, postId);
+    }
 }

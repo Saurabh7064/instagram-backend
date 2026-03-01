@@ -56,3 +56,7 @@ Authorization: Bearer {{accessToken}}
 ### Unlike Post 1 (authenticated)
 DELETE http://localhost:8080/api/posts/1/like
 Authorization: Bearer {{accessToken}}
+
+### Delete Post 1 (authenticated, only owner can delete)
+DELETE http://localhost:8080/api/posts/1
+Authorization: Bearer {{accessToken}}

@@ -87,6 +87,19 @@ public class PostService {
         return toResponse(postRepository.save(post), viewer);
     }
 
+    @Transactional
+    public void delete(String authorizationHeader, Long postId) {
+        var viewer = requireViewer(authorizationHeader);
+        var post = requirePost(postId);
+
+        if (!post.getAuthor().getId().equals(viewer.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only delete your own posts");
+        }
+
+        postLikeRepository.deleteAllByPost(post);
+        postRepository.delete(post);
+    }
+
     public long countPostsFor(com.instagram.backend.domain.UserAccount user) {
         return postRepository.countByAuthor(user);
     }

@@ -247,6 +247,39 @@ class AuthIntegrationTests {
                 .andExpect(jsonPath("$.likeCount").isNumber());
     }
 
+    @Test
+    void deleteOwnPostRemovesCreatedPost() throws Exception {
+        String accessToken = loginAndExtract("accessToken");
+
+        MvcResult created = mockMvc.perform(post("/api/posts")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "caption":"Post to delete",
+                                  "imageUrl":"/mock/post-canyon.svg",
+                                  "locationLabel":"Delete Test"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String postId = extractNumericJsonValue(created.getResponse().getContentAsString(), "id");
+
+        mockMvc.perform(delete("/api/posts/" + postId)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void deleteRejectsPostsOwnedByAnotherUser() throws Exception {
+        String accessToken = loginAndExtract("accessToken");
+
+        mockMvc.perform(delete("/api/posts/1")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isForbidden());
+    }
+
     private String loginAndExtract(String fieldName) throws Exception {
         MvcResult login = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -267,6 +300,15 @@ class AuthIntegrationTests {
         Matcher matcher = pattern.matcher(json);
         if (!matcher.find()) {
             throw new IllegalStateException("Field not found in JSON response: " + fieldName);
+        }
+        return matcher.group(1);
+    }
+
+    private String extractNumericJsonValue(String json, String fieldName) {
+        Pattern pattern = Pattern.compile("\"" + fieldName + "\"\\s*:\\s*(\\d+)");
+        Matcher matcher = pattern.matcher(json);
+        if (!matcher.find()) {
+            throw new IllegalStateException("Numeric field not found in JSON response: " + fieldName);
         }
         return matcher.group(1);
     }
