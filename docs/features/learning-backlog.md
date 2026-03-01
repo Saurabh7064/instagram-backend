@@ -26,7 +26,30 @@ Use this file to track product/engineering features for the app.
 | F-012 | Post like/unlike API/UI | DONE | First engagement action on content | [Feature 08](./08-post-like-unlike-api-ui.md) |
 | F-013 | Delete own post API/UI | DONE | First ownership-based content mutation | [Feature 09](./09-delete-own-post-api-ui.md) |
 | F-014 | Edit own post API/UI | DONE | First ownership-based update flow | [Feature 10](./10-edit-own-post-api-ui.md) |
+| F-015 | Persist real feed media uploads | TODO | Replace SVG placeholder media with real uploaded content |  |
+| F-016 | Multi-post feed rendering | TODO | Show more than the hero card and support scrolling feed state |  |
+| F-017 | Comments create/read API/UI | TODO | Core conversation layer on posts |  |
+| F-018 | Save/unsave posts API/UI | TODO | Personal curation and later-viewing flow |  |
+| F-019 | Follow/unfollow users API/UI | TODO | Core social graph behavior |  |
+| F-020 | Followers/following lists API/UI | TODO | Inspect and navigate the social graph |  |
+| F-021 | Personalized feed ranking | TODO | Move from chronological feed to relevance-based ordering |  |
+| F-022 | Search users and posts API/UI | TODO | Discovery beyond the home feed |  |
+| F-023 | Explore page API/UI | TODO | Dedicated discovery surface with ranked content |  |
+| F-024 | Real stories API/UI | TODO | Replace mocked story circles with actual ephemeral content |  |
+| F-025 | Story viewer and expiry rules | TODO | Complete the stories product loop |  |
+| F-026 | Direct messages thread list API/UI | TODO | Private communication basics |  |
+| F-027 | Direct message send/read flow | TODO | Actual messaging experience |  |
+| F-028 | Notifications API/UI | TODO | User awareness for likes, follows, and comments |  |
+| F-029 | Profile edit API/UI | TODO | Let users change name, bio, avatar, and profile metadata |  |
+| F-030 | Image/video processing pipeline | TODO | Production path for media storage, resizing, and delivery |  |
+| F-031 | Reels-style short video feed | TODO | Core modern Instagram engagement surface |  |
+| F-032 | Hashtags and mentions parsing | TODO | Link content, search, and discovery graph |  |
+| F-033 | Post reporting and moderation queue | TODO | Safety and abuse-handling baseline |  |
+| F-034 | Rate limiting and abuse protection | TODO | Protect auth and content APIs under load or attack |  |
+| F-035 | Production auth hardening | TODO | Session revocation, device sessions, and stronger security controls |  |
 
 ## Next 3 recommended
 
-1. No pending feature. Add the next feature here before using `next feature`.
+1. `F-015` Persist real feed media uploads
+2. `F-016` Multi-post feed rendering
+3. `F-017` Comments create/read API/UI
