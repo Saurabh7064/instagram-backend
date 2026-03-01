@@ -11,6 +11,7 @@ import com.instagram.backend.domain.Post;
 import com.instagram.backend.domain.PostLike;
 import com.instagram.backend.dto.CreatePostRequest;
 import com.instagram.backend.dto.FeedPostResponse;
+import com.instagram.backend.dto.UpdatePostRequest;
 import com.instagram.backend.repository.PostLikeRepository;
 import com.instagram.backend.repository.PostRepository;
 import com.instagram.backend.repository.UserAccountRepository;
@@ -88,13 +89,20 @@ public class PostService {
     }
 
     @Transactional
+    public FeedPostResponse update(String authorizationHeader, Long postId, UpdatePostRequest request) {
+        var viewer = requireViewer(authorizationHeader);
+        var post = requireOwnedPost(viewer, postId);
+
+        post.setCaption(request.caption().trim());
+        post.setLocationLabel(request.locationLabel().trim());
+
+        return toResponse(postRepository.save(post), viewer);
+    }
+
+    @Transactional
     public void delete(String authorizationHeader, Long postId) {
         var viewer = requireViewer(authorizationHeader);
-        var post = requirePost(postId);
-
-        if (!post.getAuthor().getId().equals(viewer.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only delete your own posts");
-        }
+        var post = requireOwnedPost(viewer, postId);
 
         postLikeRepository.deleteAllByPost(post);
         postRepository.delete(post);
@@ -113,6 +121,14 @@ public class PostService {
     private Post requirePost(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+    }
+
+    private Post requireOwnedPost(com.instagram.backend.domain.UserAccount viewer, Long postId) {
+        var post = requirePost(postId);
+        if (!post.getAuthor().getId().equals(viewer.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only modify your own posts");
+        }
+        return post;
     }
 
     private FeedPostResponse toResponse(Post post, com.instagram.backend.domain.UserAccount viewer) {

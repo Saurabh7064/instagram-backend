@@ -60,3 +60,13 @@ Authorization: Bearer {{accessToken}}
 ### Delete Post 1 (authenticated, only owner can delete)
 DELETE http://localhost:8080/api/posts/1
 Authorization: Bearer {{accessToken}}
+
+### Edit Post 1 (authenticated, only owner can edit)
+PUT http://localhost:8080/api/posts/1
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "caption": "Edited from http file",
+  "locationLabel": "HTTP Edit"
+}

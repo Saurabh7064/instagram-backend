@@ -3,6 +3,7 @@ package com.instagram.backend;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -245,6 +246,55 @@ class AuthIntegrationTests {
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.likedByViewer").value(false))
                 .andExpect(jsonPath("$.likeCount").isNumber());
+    }
+
+    @Test
+    void updateOwnPostChangesCaption() throws Exception {
+        String accessToken = loginAndExtract("accessToken");
+
+        MvcResult created = mockMvc.perform(post("/api/posts")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "caption":"Post to edit",
+                                  "imageUrl":"/mock/post-canyon.svg",
+                                  "locationLabel":"Edit Test"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String postId = extractNumericJsonValue(created.getResponse().getContentAsString(), "id");
+
+        mockMvc.perform(put("/api/posts/" + postId)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "caption":"Edited integration caption",
+                                  "locationLabel":"Edited Location"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.caption").value("Edited integration caption"))
+                .andExpect(jsonPath("$.locationLabel").value("Edited Location"));
+    }
+
+    @Test
+    void updateRejectsPostsOwnedByAnotherUser() throws Exception {
+        String accessToken = loginAndExtract("accessToken");
+
+        mockMvc.perform(put("/api/posts/1")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "caption":"Nope",
+                                  "locationLabel":"Nope"
+                                }
+                                """))
+                .andExpect(status().isForbidden());
     }
 
     @Test

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.instagram.backend.dto.CreatePostRequest;
 import com.instagram.backend.dto.FeedPostResponse;
+import com.instagram.backend.dto.UpdatePostRequest;
 import com.instagram.backend.service.PostService;
 
 import jakarta.validation.Valid;
@@ -54,6 +56,14 @@ public class PostController {
             @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
             @PathVariable Long postId) {
         return postService.unlike(authorizationHeader, postId);
+    }
+
+    @PutMapping("/posts/{postId}")
+    public FeedPostResponse update(
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            @PathVariable Long postId,
+            @Valid @RequestBody UpdatePostRequest request) {
+        return postService.update(authorizationHeader, postId, request);
     }
 
     @DeleteMapping("/posts/{postId}")

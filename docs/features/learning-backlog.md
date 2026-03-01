@@ -25,6 +25,7 @@ Use this file to track product/engineering features for the app.
 | F-011 | Browser demo proof workflow | DONE | Reliable visual evidence for UI+backend integration | [Feature 03](./03-browser-demo-proof-and-visual-verification.md) |
 | F-012 | Post like/unlike API/UI | DONE | First engagement action on content | [Feature 08](./08-post-like-unlike-api-ui.md) |
 | F-013 | Delete own post API/UI | DONE | First ownership-based content mutation | [Feature 09](./09-delete-own-post-api-ui.md) |
+| F-014 | Edit own post API/UI | DONE | First ownership-based update flow | [Feature 10](./10-edit-own-post-api-ui.md) |
 
 ## Next 3 recommended
 

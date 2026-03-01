@@ -20,4 +20,4 @@ Store screenshot evidence for UI + backend integration demos.
 - [2026-02-22 login proof](./2026-02-22/)
 - [2026-02-23 login proof](./2026-02-23/)
 - [2026-02-24 profile page proof](./2026-02-24/)
-- [2026-03-01 home feed + post + like + delete proof](./2026-03-01/)
+- [2026-03-01 home feed + post + edit + like + delete proof](./2026-03-01/)
