@@ -92,6 +92,11 @@ This file maps each commit to:
 - Concepts: authenticated write/read model design, incremental persistence for a social feed, practical local-environment fallback when infra is unavailable.
 - Docs: [Feature 07](./features/07-posts-create-read-api-ui.md), [Testing Strategy](./testing-strategy.md), [Demo Proofs](./demo-proofs/README.md)
 
+18. `b84b5f3`
+- Feature: implemented persisted post likes with authenticated like/unlike endpoints, viewer-specific liked state in the feed payload, and updated demo proofs.
+- Concepts: engagement write paths, join-table modeling for per-user actions, and feed read-model shaping for viewer-aware UI.
+- Docs: [Feature 08](./features/08-post-like-unlike-api-ui.md), [Testing Strategy](./testing-strategy.md), [Demo Proofs](./demo-proofs/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -173,6 +178,11 @@ This file maps each commit to:
 - Feature: UI home page now loads a real authenticated feed, supports post creation, uses screenshot-style visual assets, and updates the browser proof flow for post creation.
 - Concepts: client-side feed hydration, optimistic product-facing UI composition, and frontend fallback behavior when the backend is unavailable.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 07](./features/07-posts-create-read-api-ui.md)
+
+17. `340f039`
+- Feature: UI now supports real like/unlike interaction on the hero post, renders liked state visually, and prefers backend login before falling back to local demo mode.
+- Concepts: viewer-state-driven UI rendering, single-action mutation flows, and pragmatic frontend resilience when the API is unavailable.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 08](./features/08-post-like-unlike-api-ui.md)
 
 ## Rule
 
