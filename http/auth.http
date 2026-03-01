@@ -14,8 +14,8 @@ POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-  "identifier": "demo.user",
-  "password": "password123"
+  "identifier": "a",
+  "password": "a"
 }
 
 ### Refresh (replace with refreshToken from login/register response)
@@ -33,3 +33,18 @@ Authorization: Bearer {{accessToken}}
 ### Profile Page (authenticated)
 GET http://localhost:8080/api/profile/me
 Authorization: Bearer {{accessToken}}
+
+### Feed (authenticated)
+GET http://localhost:8080/api/feed
+Authorization: Bearer {{accessToken}}
+
+### Create Post (authenticated)
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "caption": "Created from http file",
+  "imageUrl": "/mock/post-canyon.svg",
+  "locationLabel": "HTTP Request"
+}

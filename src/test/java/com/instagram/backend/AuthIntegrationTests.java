@@ -72,12 +72,12 @@ class AuthIntegrationTests {
                         .contentType("application/json")
                         .content("""
                                 {
-                                  "identifier":"demo.user",
-                                  "password":"password123"
+                                  "identifier":"a",
+                                  "password":"a"
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("demo.user"))
+                .andExpect(jsonPath("$.username").value("a"))
                 .andExpect(jsonPath("$.accessToken").isString())
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
                 .andExpect(jsonPath("$.expiresAt").isNumber())
@@ -98,9 +98,9 @@ class AuthIntegrationTests {
         mockMvc.perform(get("/api/me")
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("demo.user"))
-                .andExpect(jsonPath("$.fullName").value("Demo User"))
-                .andExpect(jsonPath("$.email").value("demo.user@example.com"))
+                .andExpect(jsonPath("$.username").value("a"))
+                .andExpect(jsonPath("$.fullName").value("A"))
+                .andExpect(jsonPath("$.email").value("a@example.com"))
                 .andExpect(jsonPath("$.createdAt").isString());
     }
 
@@ -148,7 +148,7 @@ class AuthIntegrationTests {
         mockMvc.perform(get("/api/me")
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("demo.user"));
+                .andExpect(jsonPath("$.username").value("a"));
     }
 
     @Test
@@ -177,8 +177,8 @@ class AuthIntegrationTests {
         mockMvc.perform(get("/api/profile/me")
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("demo.user"))
-                .andExpect(jsonPath("$.fullName").value("Demo User"))
+                .andExpect(jsonPath("$.username").value("a"))
+                .andExpect(jsonPath("$.fullName").value("A"))
                 .andExpect(jsonPath("$.bio").isString())
                 .andExpect(jsonPath("$.postsCount").isNumber())
                 .andExpect(jsonPath("$.followersCount").isNumber())
@@ -186,13 +186,45 @@ class AuthIntegrationTests {
                 .andExpect(jsonPath("$.joinedAt").isString());
     }
 
+    @Test
+    void feedReturnsSeededPostsForAuthenticatedUser() throws Exception {
+        String accessToken = loginAndExtract("accessToken");
+
+        mockMvc.perform(get("/api/feed")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].author").isString())
+                .andExpect(jsonPath("$[0].caption").isString())
+                .andExpect(jsonPath("$[0].imageUrl").isString());
+    }
+
+    @Test
+    void createPostAddsNewFeedItem() throws Exception {
+        String accessToken = loginAndExtract("accessToken");
+
+        mockMvc.perform(post("/api/posts")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "caption":"Integration test post",
+                                  "imageUrl":"/mock/post-canyon.svg",
+                                  "locationLabel":"Integration Test"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.author").value("a"))
+                .andExpect(jsonPath("$.caption").value("Integration test post"))
+                .andExpect(jsonPath("$.imageUrl").value("/mock/post-canyon.svg"));
+    }
+
     private String loginAndExtract(String fieldName) throws Exception {
         MvcResult login = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "identifier":"demo.user",
-                                  "password":"password123"
+                                  "identifier":"a",
+                                  "password":"a"
                                 }
                                 """))
                 .andExpect(status().isOk())

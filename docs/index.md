@@ -10,6 +10,7 @@
 - [Feature 04: Protected `/api/me` Endpoint](./features/04-protected-me-endpoint.md)
 - [Feature 05: Refresh Token Flow](./features/05-refresh-token-flow.md)
 - [Feature 06: Basic Profile Page API/UI](./features/06-basic-profile-page-api-ui.md)
+- [Feature 07: Posts Create/Read API/UI](./features/07-posts-create-read-api-ui.md)
 - [Testing Strategy](./testing-strategy.md)
 - [Demo Proofs](./demo-proofs/README.md)
 - [System Design Path](./system-design/README.md)

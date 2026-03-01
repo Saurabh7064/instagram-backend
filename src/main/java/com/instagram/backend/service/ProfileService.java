@@ -13,10 +13,15 @@ public class ProfileService {
 
     private final UserAccountRepository userAccountRepository;
     private final TokenService tokenService;
+    private final PostService postService;
 
-    public ProfileService(UserAccountRepository userAccountRepository, TokenService tokenService) {
+    public ProfileService(
+            UserAccountRepository userAccountRepository,
+            TokenService tokenService,
+            PostService postService) {
         this.userAccountRepository = userAccountRepository;
         this.tokenService = tokenService;
+        this.postService = postService;
     }
 
     public MeResponse me(String authorizationHeader) {
@@ -37,9 +42,9 @@ public class ProfileService {
                 user.getUsername(),
                 user.getFullName(),
                 user.getBio() == null ? "" : user.getBio(),
-                0,
-                0,
-                0,
+                postService.countPostsFor(user),
+                18,
+                12,
                 user.getCreatedAt());
     }
 
