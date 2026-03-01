@@ -107,6 +107,11 @@ This file maps each commit to:
 - Concepts: explicit update contracts, ownership-guarded writes, and incremental UI mutation flows for content editing.
 - Docs: [Feature 10](./features/10-edit-own-post-api-ui.md), [Testing Strategy](./testing-strategy.md), [Demo Proofs](./demo-proofs/README.md)
 
+21. `1a6ec48`
+- Feature: expanded the product backlog into a concrete 20+ feature Instagram roadmap with explicit next recommended steps.
+- Concepts: roadmap-driven delivery, converting ad hoc planning into a sequenced product build plan.
+- Docs: [Feature Learning Backlog](./features/learning-backlog.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -203,6 +208,11 @@ This file maps each commit to:
 - Feature: UI now supports inline editing for user-owned hero posts and extends the browser proof run through the edit step before like/delete.
 - Concepts: inline content editing, localized UI state transitions, and staged mutation verification in browser automation.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 10](./features/10-edit-own-post-api-ui.md)
+
+20. `7280027`
+- Feature: added a dedicated UI roadmap that explicitly tracks mocked frontend areas and the steps needed to make the UI fully backend-driven.
+- Concepts: frontend-specific planning, separating product roadmap from UI realism and polish work.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [UI Feature Roadmap](../../instagram-ui/docs/ui-feature-roadmap.md)
 
 ## Rule
 
