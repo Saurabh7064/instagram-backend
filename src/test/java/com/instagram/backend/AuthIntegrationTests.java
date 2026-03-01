@@ -2,6 +2,7 @@ package com.instagram.backend;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -216,6 +217,34 @@ class AuthIntegrationTests {
                 .andExpect(jsonPath("$.author").value("a"))
                 .andExpect(jsonPath("$.caption").value("Integration test post"))
                 .andExpect(jsonPath("$.imageUrl").value("/mock/post-canyon.svg"));
+    }
+
+    @Test
+    void likePostMarksFeedItemAsLiked() throws Exception {
+        String accessToken = loginAndExtract("accessToken");
+
+        mockMvc.perform(post("/api/posts/1/like")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.likedByViewer").value(true))
+                .andExpect(jsonPath("$.likeCount").isNumber());
+    }
+
+    @Test
+    void unlikePostRemovesViewerLike() throws Exception {
+        String accessToken = loginAndExtract("accessToken");
+
+        mockMvc.perform(post("/api/posts/1/like")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/api/posts/1/like")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.likedByViewer").value(false))
+                .andExpect(jsonPath("$.likeCount").isNumber());
     }
 
     private String loginAndExtract(String fieldName) throws Exception {

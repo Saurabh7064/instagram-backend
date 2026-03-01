@@ -11,6 +11,7 @@
 - [Feature 05: Refresh Token Flow](./features/05-refresh-token-flow.md)
 - [Feature 06: Basic Profile Page API/UI](./features/06-basic-profile-page-api-ui.md)
 - [Feature 07: Posts Create/Read API/UI](./features/07-posts-create-read-api-ui.md)
+- [Feature 08: Post Like/Unlike API/UI](./features/08-post-like-unlike-api-ui.md)
 - [Testing Strategy](./testing-strategy.md)
 - [Demo Proofs](./demo-proofs/README.md)
 - [System Design Path](./system-design/README.md)

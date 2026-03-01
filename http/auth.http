@@ -48,3 +48,11 @@ Authorization: Bearer {{accessToken}}
   "imageUrl": "/mock/post-canyon.svg",
   "locationLabel": "HTTP Request"
 }
+
+### Like Post 1 (authenticated)
+POST http://localhost:8080/api/posts/1/like
+Authorization: Bearer {{accessToken}}
+
+### Unlike Post 1 (authenticated)
+DELETE http://localhost:8080/api/posts/1/like
+Authorization: Bearer {{accessToken}}

@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,5 +40,19 @@ public class PostController {
             @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
             @Valid @RequestBody CreatePostRequest request) {
         return postService.create(authorizationHeader, request);
+    }
+
+    @PostMapping("/posts/{postId}/like")
+    public FeedPostResponse like(
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            @PathVariable Long postId) {
+        return postService.like(authorizationHeader, postId);
+    }
+
+    @DeleteMapping("/posts/{postId}/like")
+    public FeedPostResponse unlike(
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            @PathVariable Long postId) {
+        return postService.unlike(authorizationHeader, postId);
     }
 }

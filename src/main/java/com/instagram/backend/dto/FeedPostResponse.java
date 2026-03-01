@@ -11,5 +11,6 @@ public record FeedPostResponse(
         String imageUrl,
         String locationLabel,
         long likeCount,
+        boolean likedByViewer,
         Instant createdAt) {
 }

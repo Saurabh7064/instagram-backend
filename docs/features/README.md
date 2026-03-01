@@ -18,6 +18,7 @@ This section tracks feature implementation notes in a numbered sequence, similar
 - [05 - Refresh Token Flow](./05-refresh-token-flow.md)
 - [06 - Basic Profile Page API/UI](./06-basic-profile-page-api-ui.md)
 - [07 - Posts Create/Read API/UI](./07-posts-create-read-api-ui.md)
+- [08 - Post Like/Unlike API/UI](./08-post-like-unlike-api-ui.md)
 
 ## Backlog
 
