@@ -87,6 +87,11 @@ This file maps each commit to:
 - Concepts: product-facing authenticated read model design and API/UI contract shaping.
 - Docs: [Feature 06](./features/06-basic-profile-page-api-ui.md), [Testing Strategy](./testing-strategy.md)
 
+17. `f579e42`
+- Feature: implemented persisted posts with authenticated `GET /api/feed` and `POST /api/posts`, seeded feed data, proof screenshots, and local H2 runtime fallback for end-to-end verification.
+- Concepts: authenticated write/read model design, incremental persistence for a social feed, practical local-environment fallback when infra is unavailable.
+- Docs: [Feature 07](./features/07-posts-create-read-api-ui.md), [Testing Strategy](./testing-strategy.md), [Demo Proofs](./demo-proofs/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -163,6 +168,11 @@ This file maps each commit to:
 - Feature: UI now renders a dedicated profile-page panel backed by `/api/profile/me` response.
 - Concepts: authenticated page composition and stable client model for user-profile screens.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 06](./features/06-basic-profile-page-api-ui.md)
+
+16. `a4e4c00`
+- Feature: UI home page now loads a real authenticated feed, supports post creation, uses screenshot-style visual assets, and updates the browser proof flow for post creation.
+- Concepts: client-side feed hydration, optimistic product-facing UI composition, and frontend fallback behavior when the backend is unavailable.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 07](./features/07-posts-create-read-api-ui.md)
 
 ## Rule
 
