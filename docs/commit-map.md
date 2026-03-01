@@ -97,6 +97,11 @@ This file maps each commit to:
 - Concepts: engagement write paths, join-table modeling for per-user actions, and feed read-model shaping for viewer-aware UI.
 - Docs: [Feature 08](./features/08-post-like-unlike-api-ui.md), [Testing Strategy](./testing-strategy.md), [Demo Proofs](./demo-proofs/README.md)
 
+19. `ed69e0a`
+- Feature: implemented author-only post deletion, cleaned up likes on delete, extended proof artifacts, and documented the first destructive content action.
+- Concepts: ownership-enforced mutations, destructive-action safeguards, and cleanup of dependent records during deletes.
+- Docs: [Feature 09](./features/09-delete-own-post-api-ui.md), [Testing Strategy](./testing-strategy.md), [Demo Proofs](./demo-proofs/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -183,6 +188,11 @@ This file maps each commit to:
 - Feature: UI now supports real like/unlike interaction on the hero post, renders liked state visually, and prefers backend login before falling back to local demo mode.
 - Concepts: viewer-state-driven UI rendering, single-action mutation flows, and pragmatic frontend resilience when the API is unavailable.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 08](./features/08-post-like-unlike-api-ui.md)
+
+18. `a038435`
+- Feature: UI now exposes delete for user-owned hero posts and extends the browser proof run through the delete action.
+- Concepts: ownership-aware action rendering and safe UX gating for destructive operations.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [Feature 09](./features/09-delete-own-post-api-ui.md)
 
 ## Rule
 
