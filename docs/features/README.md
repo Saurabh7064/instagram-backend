@@ -21,6 +21,7 @@ This section tracks feature implementation notes in a numbered sequence, similar
 - [08 - Post Like/Unlike API/UI](./08-post-like-unlike-api-ui.md)
 - [09 - Delete Own Post API/UI](./09-delete-own-post-api-ui.md)
 - [10 - Edit Own Post API/UI](./10-edit-own-post-api-ui.md)
+- [11 - Persist Real Feed Media Uploads](./11-persist-real-feed-media-uploads.md)
 
 ## Backlog
 

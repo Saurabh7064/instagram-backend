@@ -14,6 +14,7 @@
 - [Feature 08: Post Like/Unlike API/UI](./features/08-post-like-unlike-api-ui.md)
 - [Feature 09: Delete Own Post API/UI](./features/09-delete-own-post-api-ui.md)
 - [Feature 10: Edit Own Post API/UI](./features/10-edit-own-post-api-ui.md)
+- [Feature 11: Persist Real Feed Media Uploads](./features/11-persist-real-feed-media-uploads.md)
 - [Testing Strategy](./testing-strategy.md)
 - [Demo Proofs](./demo-proofs/README.md)
 - [System Design Path](./system-design/README.md)

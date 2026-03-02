@@ -70,3 +70,8 @@ Authorization: Bearer {{accessToken}}
   "caption": "Edited from http file",
   "locationLabel": "HTTP Edit"
 }
+
+### Upload Media (authenticated, use curl)
+# curl -X POST http://localhost:8080/api/media \
+#   -H "Authorization: Bearer {{accessToken}}" \
+#   -F "file=@/absolute/path/to/image.png"

@@ -26,7 +26,7 @@ Use this file to track product/engineering features for the app.
 | F-012 | Post like/unlike API/UI | DONE | First engagement action on content | [Feature 08](./08-post-like-unlike-api-ui.md) |
 | F-013 | Delete own post API/UI | DONE | First ownership-based content mutation | [Feature 09](./09-delete-own-post-api-ui.md) |
 | F-014 | Edit own post API/UI | DONE | First ownership-based update flow | [Feature 10](./10-edit-own-post-api-ui.md) |
-| F-015 | Persist real feed media uploads | TODO | Replace SVG placeholder media with real uploaded content |  |
+| F-015 | Persist real feed media uploads | DONE | Replace SVG placeholder media with real uploaded content | [Feature 11](./11-persist-real-feed-media-uploads.md) |
 | F-016 | Multi-post feed rendering | TODO | Show more than the hero card and support scrolling feed state |  |
 | F-017 | Comments create/read API/UI | TODO | Core conversation layer on posts |  |
 | F-018 | Save/unsave posts API/UI | TODO | Personal curation and later-viewing flow |  |
@@ -50,6 +50,6 @@ Use this file to track product/engineering features for the app.
 
 ## Next 3 recommended
 
-1. `F-015` Persist real feed media uploads
-2. `F-016` Multi-post feed rendering
-3. `F-017` Comments create/read API/UI
+1. `F-016` Multi-post feed rendering
+2. `F-017` Comments create/read API/UI
+3. `F-018` Save/unsave posts API/UI
