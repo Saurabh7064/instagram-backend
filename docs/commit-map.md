@@ -112,6 +112,11 @@ This file maps each commit to:
 - Concepts: roadmap-driven delivery, converting ad hoc planning into a sequenced product build plan.
 - Docs: [Feature Learning Backlog](./features/learning-backlog.md)
 
+22. `d2a1df3`
+- Feature: implemented authenticated media upload and media serving, wired uploaded media into post creation, and captured a new proof set using real uploaded content.
+- Concepts: separating media storage from post metadata, authenticated upload pipelines, and temp-backed local storage as a stepping stone to object storage.
+- Docs: [Feature 11](./features/11-persist-real-feed-media-uploads.md), [Testing Strategy](./testing-strategy.md), [Demo Proofs](./demo-proofs/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -213,6 +218,11 @@ This file maps each commit to:
 - Feature: added a dedicated UI roadmap that explicitly tracks mocked frontend areas and the steps needed to make the UI fully backend-driven.
 - Concepts: frontend-specific planning, separating product roadmap from UI realism and polish work.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [UI Feature Roadmap](../../instagram-ui/docs/ui-feature-roadmap.md)
+
+21. `1e07611`
+- Feature: UI post creation now requires a selected media file, uploads it first, uses the returned real media URL, and updates the UI roadmap to mark media previews as no longer mocked.
+- Concepts: staged frontend mutations (upload then create), file-input driven UX, and reducing mock dependencies in the product surface.
+- Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [UI Feature Roadmap](../../instagram-ui/docs/ui-feature-roadmap.md), [Feature 11](./features/11-persist-real-feed-media-uploads.md)
 
 ## Rule
 
