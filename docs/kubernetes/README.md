@@ -25,6 +25,21 @@ Use the [12-Week Execution Plan](./12-week-execution-plan.md) for the recommende
 - Failure and recovery behavior is exercised where the item calls for it.
 - The backlog, note, and commit map are updated.
 
+## Teaching standard for every lesson
+
+Every numbered Kubernetes lesson must be understandable without assuming prior Kubernetes knowledge. Use the [Lesson Template](./_lesson-template.md) and include:
+
+1. A simple explanation using ordinary language.
+2. The concrete problem the concept solves.
+3. A small mental model or analogy, plus where that analogy stops being accurate.
+4. How the concept maps to this Instagram project.
+5. A guided hands-on exercise with expected observations.
+6. At least three comprehension questions covering recall, application, and troubleshooting.
+7. A clearly separated answer key with explanations, not only final answers.
+8. A short "teach it back" prompt so the learner can explain the idea in their own words.
+
+Questions should be attempted before reading the answer key. A lesson is understood when the learner can explain why the resource exists, predict its behavior, and diagnose one simple failure—not merely reproduce a command.
+
 ## Evidence conventions
 
 Store compact text evidence in the numbered learning note. Store UI screenshots under `docs/demo-proofs/<YYYY-MM-DD>/`. Useful evidence includes:

@@ -19,13 +19,16 @@ This schedule assumes roughly four to six focused hours per week. Slow down when
 
 ## Weekly learning loop
 
-1. Explain the concept in your own words before implementation.
-2. Predict the resource state and failure behavior.
-3. Apply the smallest working change.
-4. Observe the controller status, events, logs, and application behavior.
-5. Introduce one controlled failure.
-6. Recover it and record why the recovery worked.
-7. Update the backlog, learning note, and commit map.
+1. Read the simple explanation and identify the problem being solved.
+2. Explain the concept in your own words before implementation.
+3. Predict the resource state and failure behavior.
+4. Apply the smallest working change.
+5. Observe the controller status, events, logs, and application behavior.
+6. Introduce one controlled failure.
+7. Recover it and record why the recovery worked.
+8. Answer the lesson questions before checking the explained solutions.
+9. Complete the teach-it-back prompt.
+10. Update the backlog, learning note, and commit map.
 
 ## Suggested local tooling
 

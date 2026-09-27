@@ -77,7 +77,11 @@ Then:
 2. Mark it `IN_PROGRESS`.
 3. Use `docs/kubernetes/mastery-roadmap.md` and `docs/kubernetes/12-week-execution-plan.md` as guidance.
 4. Implement the project exercise and perform its required success and failure verification.
-5. Add or update a numbered learning note under `docs/kubernetes/` with commands, observed evidence, code pointers, and pitfalls.
+5. Add or update a numbered learning note using `docs/kubernetes/_lesson-template.md`.
+   - Explain the concept in simple terms and state the problem it solves.
+   - Map it to this project with commands, observed evidence, code pointers, and pitfalls.
+   - Include at least three learner questions and a separate answer key with explained solutions.
+   - Include a short teach-it-back prompt.
 6. Mark the item `DONE` only when its evidence is complete.
 7. Update `docs/commit-map.md` and commit all related changes.
 

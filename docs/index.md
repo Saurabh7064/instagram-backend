@@ -24,6 +24,7 @@
 - [Concept 01: Stateless Auth and Horizontal Scaling](./system-design/01-stateless-auth-and-horizontal-scaling.md)
 - [Concept 02: Password Storage and Credential Security](./system-design/02-password-storage-and-credential-security.md)
 - [Kubernetes Learning Path](./kubernetes/README.md)
+- [Kubernetes Lesson Template](./kubernetes/_lesson-template.md)
 - [Kubernetes Learning Backlog](./kubernetes/learning-backlog.md)
 - [Kubernetes Mastery Roadmap](./kubernetes/mastery-roadmap.md)
 - [12-Week Kubernetes Execution Plan](./kubernetes/12-week-execution-plan.md)
