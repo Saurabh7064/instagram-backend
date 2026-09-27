@@ -72,8 +72,9 @@ Diagnose symptoms from commands, status, logs, events, and application behavior.
 
 Explain the concept in two or three sentences as if teaching a developer who has never used Kubernetes.
 
-<details>
-<summary>Answer key and explanations</summary>
+## Answer key and explanations
+
+Keep this section present and directly visible. Do not use collapsible HTML or omit answers. Encourage the learner to attempt the questions before continuing to this section.
 
 Mirror every question here. Give the answer and explain why it is correct. For troubleshooting answers, name the evidence and the next command or action rather than supplying only a diagnosis.
 
@@ -83,8 +84,6 @@ Teach-it-back checklist:
 - Describes the Kubernetes resource or mechanism in simple terms.
 - Connects desired state, observed state, and controller action where relevant.
 - Includes one project example.
-
-</details>
 
 ## Evidence
 

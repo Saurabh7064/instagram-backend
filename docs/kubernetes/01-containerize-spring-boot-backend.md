@@ -480,8 +480,9 @@ Explain to a developer who has never used containers:
 4. how the backend finds PostgreSQL;
 5. why Kubernetes needs this work first.
 
-<details>
-<summary>Answer key and explanations</summary>
+## Answer key and explanations
+
+The answers are always included and visible. Attempt the questions first, then compare your reasoning with the explanations below.
 
 ### Part A — foundations
 
@@ -559,8 +560,6 @@ Teach-it-back checklist:
 - Mentions this project's backend jar and PostgreSQL dependency.
 - Distinguishes host ports from container ports.
 - Identifies local media storage as a remaining horizontal-scaling limitation.
-
-</details>
 
 ## Evidence
 

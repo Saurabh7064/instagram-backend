@@ -80,7 +80,7 @@ Then:
 5. Add or update a numbered learning note using `docs/kubernetes/_lesson-template.md`.
    - Explain the concept in simple terms and state the problem it solves.
    - Map it to this project with commands, observed evidence, code pointers, and pitfalls.
-   - Include a substantial question set (normally at least 15 across foundations, application, prediction, and troubleshooting) and a separate answer key with an explained solution for every question.
+   - Include a substantial question set (normally at least 15 across foundations, application, prediction, and troubleshooting) and a separate, always-visible answer key with an explained solution for every question. Never hide or omit the answers.
    - Include a short teach-it-back prompt.
 6. Mark the item `DONE` only when its evidence is complete.
 7. Update `docs/commit-map.md` and commit all related changes.
