@@ -132,6 +132,11 @@ This file maps each commit to:
 - Concepts: container images versus containers, build/runtime image separation, non-root runtime users, container-to-container networking, environment-driven configuration, and image readiness for Kubernetes Pods.
 - Docs: [Kubernetes Lesson 01](./kubernetes/01-containerize-spring-boot-backend.md), [Kubernetes Learning Backlog](./kubernetes/learning-backlog.md)
 
+26. `877ca3a`
+- Learning change: expanded the first Kubernetes lesson into a beginner-focused chapter and strengthened the permanent lesson standard to require substantial question sets with explained solutions.
+- Concepts: source-to-process fundamentals, JAR and JVM roles, image/container/runtime distinctions, Dockerfile layers and caching, container networking, persistent state, security boundaries, and evidence-based troubleshooting.
+- Docs: [Kubernetes Lesson 01](./kubernetes/01-containerize-spring-boot-backend.md), [Kubernetes Lesson Template](./kubernetes/_lesson-template.md), [Kubernetes Learning Path](./kubernetes/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
