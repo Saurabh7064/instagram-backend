@@ -137,6 +137,11 @@ This file maps each commit to:
 - Concepts: source-to-process fundamentals, JAR and JVM roles, image/container/runtime distinctions, Dockerfile layers and caching, container networking, persistent state, security boundaries, and evidence-based troubleshooting.
 - Docs: [Kubernetes Lesson 01](./kubernetes/01-containerize-spring-boot-backend.md), [Kubernetes Lesson Template](./kubernetes/_lesson-template.md), [Kubernetes Learning Path](./kubernetes/README.md)
 
+27. `8f5358d`
+- Learning change: made explained answers mandatory and directly visible in every Kubernetes lesson instead of hiding them in collapsible sections.
+- Concepts: accessible self-assessment, immediate feedback, and complete lesson artifacts.
+- Docs: [Kubernetes Lesson 01](./kubernetes/01-containerize-spring-boot-backend.md), [Kubernetes Lesson Template](./kubernetes/_lesson-template.md), [Kubernetes Learning Path](./kubernetes/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
