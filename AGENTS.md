@@ -23,10 +23,11 @@ If a change does not affect behavior (for example formatting-only), diary update
 
 ## Command Protocol
 
-Use these two commands as workflow triggers:
+Use these three commands as workflow triggers:
 
 1. `next feature`
 2. `next concept`
+3. `next kubernetes`
 
 ### `next feature` behavior
 
@@ -63,6 +64,22 @@ Then:
 5. Mark concept `DONE` (or keep `IN_PROGRESS` if implementation is intentionally deferred).
 6. Update `docs/commit-map.md`.
 7. Commit all related changes.
+
+### `next kubernetes` behavior
+
+Before starting:
+1. Verify no previous item is left `IN_PROGRESS` in `docs/kubernetes/learning-backlog.md`.
+2. Verify the previous item's note and `docs/commit-map.md` are updated.
+3. Verify both repos have clean git working trees.
+
+Then:
+1. Pick the next `TODO` item from `docs/kubernetes/learning-backlog.md` (top-down unless user overrides).
+2. Mark it `IN_PROGRESS`.
+3. Use `docs/kubernetes/mastery-roadmap.md` and `docs/kubernetes/12-week-execution-plan.md` as guidance.
+4. Implement the project exercise and perform its required success and failure verification.
+5. Add or update a numbered learning note under `docs/kubernetes/` with commands, observed evidence, code pointers, and pitfalls.
+6. Mark the item `DONE` only when its evidence is complete.
+7. Update `docs/commit-map.md` and commit all related changes.
 
 ## Test Stack Standard
 
