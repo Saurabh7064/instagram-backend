@@ -50,9 +50,23 @@ List likely mistakes, their symptoms, and how to distinguish their causes.
 
 Answer these before opening the answer key.
 
-1. Recall question: define or identify the core concept.
-2. Application question: predict what happens in a project scenario.
-3. Troubleshooting question: diagnose a symptom from evidence.
+Include at least 15 questions, grouped so the learner can progress from basics to reasoning:
+
+### Foundations
+
+Define and distinguish the lesson's important terms.
+
+### Read the project configuration
+
+Explain important lines from the actual project artifacts.
+
+### Apply and predict
+
+Predict behavior in realistic project scenarios and explain why.
+
+### Troubleshoot
+
+Diagnose symptoms from commands, status, logs, events, and application behavior.
 
 ### Teach it back
 
@@ -61,9 +75,7 @@ Explain the concept in two or three sentences as if teaching a developer who has
 <details>
 <summary>Answer key and explanations</summary>
 
-1. Give the answer and explain why it is correct.
-2. Give the expected behavior and connect it to the underlying mechanism.
-3. Give the likely diagnosis, the evidence that supports it, and the next command or action.
+Mirror every question here. Give the answer and explain why it is correct. For troubleshooting answers, name the evidence and the next command or action rather than supplying only a diagnosis.
 
 Teach-it-back checklist:
 

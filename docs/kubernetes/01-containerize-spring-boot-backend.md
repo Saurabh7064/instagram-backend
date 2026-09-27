@@ -278,7 +278,16 @@ Before running commands, predict:
 
 ### Build
 
-Start Docker Desktop, then run:
+First build the application artifact without Docker:
+
+```bash
+./gradlew bootJar
+ls -lh build/libs
+```
+
+This proves the application can be packaged. It does not prove that PostgreSQL is reachable or that the API works at runtime.
+
+Start Docker Desktop, then build and start the two services:
 
 ```bash
 docker compose up --build -d postgres backend
@@ -287,6 +296,14 @@ docker compose up --build -d postgres backend
 Or build only the image:
 
 ```bash
+docker build -t instagram-backend:local .
+```
+
+Inspect the image and repeat the build to observe caching:
+
+```bash
+docker image ls instagram-backend
+docker image inspect instagram-backend:local
 docker build -t instagram-backend:local .
 ```
 
@@ -303,7 +320,17 @@ Inspect the running services:
 ```bash
 docker compose ps
 docker compose logs backend --tail=80
+docker compose logs postgres --tail=80
 ```
+
+Verify the runtime user and main process:
+
+```bash
+docker compose exec backend id
+docker compose exec backend ps
+```
+
+Expected: the application runs as the `instagram` user rather than UID `0` (root).
 
 Verify login:
 
@@ -349,6 +376,16 @@ docker compose ps
 
 The recovery works because Compose restores the `postgres` service, and restarting the backend gives Spring Boot a fresh chance to create a working database connection pool.
 
+Repeat login and feed verification after recovery. Recovery is not proven merely because both containers say `Up`; useful API behavior must return.
+
+When finished, stop and remove the Compose containers and network:
+
+```bash
+docker compose down
+```
+
+This keeps the named PostgreSQL volume. `docker compose down --volumes` would also delete that volume and can erase the local database, so do not add `--volumes` casually.
+
 ## Common pitfalls
 
 - Using `localhost` for the database inside a container: inside the backend container, `localhost` means the backend container itself, not PostgreSQL.
@@ -356,25 +393,163 @@ The recovery works because Compose restores the `postgres` service, and restarti
 - Running as root by default: a non-root user limits damage if the app process is compromised.
 - Copying the entire repo into the runtime image: this makes the image larger and leaks files that are not needed to run the service.
 - Forgetting `.dockerignore`: Docker may send build outputs, Git data, or screenshots into the build context, making builds slower and less predictable.
+- Assuming `EXPOSE 8080` publishes a host port: it is documentation; Compose `ports` performs the mapping.
+- Assuming `depends_on` means PostgreSQL is ready: startup ordering is weaker than a readiness guarantee.
+- Assuming `Up` means healthy: the process can run while database-backed requests fail.
+- Expecting local uploaded files to appear in every replica: container-local writable storage is not automatically shared.
 
 ## Check your understanding
 
-Answer these before opening the answer key.
+Answer these in your own words before opening the solutions. The goal is to explain and predict, not memorize vocabulary.
 
-1. Recall question: what is the difference between a Docker image and a running container?
-2. Application question: why does `DB_URL` use `postgres:5432` in Compose instead of `localhost:55432`?
-3. Troubleshooting question: the backend container starts, but login returns a database connection error. Which two commands would you run first?
+### Part A — foundations
+
+1. What is the difference between Java source code and a running process?
+2. What does `./gradlew bootJar` produce?
+3. Why does the JAR still need a JVM?
+4. What is a container image?
+5. What is a container?
+6. Can one image create multiple containers? What is shared and what remains separate?
+7. What does a Dockerfile do?
+8. What does an image registry do?
+9. Why does Kubernetes normally need an image rather than only a Git repository?
+10. Give two differences between a container and a virtual machine.
+
+### Part B — read the Dockerfile
+
+11. Why does the build stage use a JDK while the runtime stage uses a JRE?
+12. What does `AS build` enable?
+13. Does `RUN ./gradlew bootJar` execute whenever a container starts? Why?
+14. Why are the Gradle build files copied before `src`?
+15. What does `COPY --from=build` accomplish?
+16. Why does the final image not need source code or the Java compiler?
+17. What security benefit does `USER instagram` provide?
+18. What does `EXPOSE 8080` do, and what does it not do?
+19. What process does `ENTRYPOINT` start?
+20. What happens to the container when that main process exits?
+
+### Part C — configuration and networking
+
+21. Why should real database credentials and JWT secrets not be built into the image?
+22. Explain the default-value behavior in `${DB_URL:jdbc:postgresql://localhost:55432/instagram}`.
+23. Why does the backend use `postgres:5432` inside Compose?
+24. Why is `localhost:55432` wrong from inside the backend container?
+25. Explain both numbers in `55432:5432`.
+26. Does backend-to-PostgreSQL traffic need the host port `55432`?
+27. What is the difference between listening, exposed, and published ports?
+28. Why can the same image run in Compose and later Kubernetes without recompiling Java?
+
+### Part D — layers, storage, and security
+
+29. What is the Docker build context?
+30. Name three things excluded by `.dockerignore` and explain why that helps.
+31. Why is a second unchanged image build often faster?
+32. Why does changing only a Java source file usually preserve the cached dependency layer?
+33. Does running as non-root guarantee security? Explain.
+34. What happens to files stored only in a deleted container's writable layer?
+35. Why does PostgreSQL use a named Compose volume?
+36. Why is the current local media-upload storage unsafe across multiple backend replicas?
+
+### Part E — troubleshooting scenarios
+
+37. Compose says the backend is `Up`, but login reports a database error. How can both be true?
+38. Which three commands would you run first to inspect the backend and PostgreSQL?
+39. The backend logs show attempts to reach `localhost:55432`. What is likely wrong?
+40. Docker says host port `8080` is already allocated. Must Spring's internal port change? What else can you do?
+41. You changed Java code, but the running API still behaves like the old version. List a sensible debugging order.
+42. PostgreSQL was recreated and its data disappeared. What configuration or command would you investigate?
+43. Why is a real login plus protected feed call stronger evidence than startup logs alone?
+44. What does `depends_on` guarantee, and what does it not guarantee?
+45. Why is `docker compose down --volumes` more destructive than `docker compose down`?
+
+### Part F — connecting this lesson to Kubernetes
+
+46. What artifact from this lesson will a Kubernetes Pod reference?
+47. If Kubernetes creates three Pods from one image, how many running application instances exist?
+48. Why does JWT authentication help those replicas behave interchangeably?
+49. Which current feature still prevents the replicas from being completely interchangeable?
+50. In one paragraph, explain the path from Java source to a Kubernetes-managed process.
 
 ### Teach it back
 
-Explain why Kubernetes needs a container image before it can run the Spring Boot backend.
+Explain to a developer who has never used containers:
+
+1. what an image is;
+2. what a container is;
+3. why the Dockerfile has two stages;
+4. how the backend finds PostgreSQL;
+5. why Kubernetes needs this work first.
 
 <details>
 <summary>Answer key and explanations</summary>
 
-1. An image is the packaged template: filesystem layers plus metadata and startup command. A container is a running process created from that image.
-2. Compose puts services on a shared network and gives each service a DNS name. From the backend container, `postgres:5432` reaches the PostgreSQL container directly. `localhost:55432` is the host-machine mapping, not the container-to-container address.
-3. Start with `docker compose ps` to see service state and `docker compose logs backend --tail=80` to inspect the application error. If PostgreSQL looks suspicious, follow with `docker compose logs postgres --tail=80`.
+### Part A — foundations
+
+1. Source code is input for developers and build tools. A process is a program currently executing with CPU, memory, and operating-system resources.
+2. It produces an executable Spring Boot JAR under `build/libs/`.
+3. The JAR contains Java bytecode. The JVM loads and executes it and supplies the Java runtime libraries.
+4. An image is a read-only, layered application package containing files and runtime metadata such as the startup command.
+5. A container is a running instance created from an image, with a main process and isolated runtime state.
+6. Yes. They share the packaged image contents. Each container has its own process, environment, network identity, and writable layer unless storage is intentionally shared.
+7. It is the recipe Docker uses to build an image.
+8. It stores and distributes images so other machines or cluster nodes can pull them.
+9. Kubernetes schedules runnable artifacts. It should not recreate a development environment and compile the repository every time a Pod is replaced.
+10. A virtual machine usually includes a guest kernel and complete operating system. A container shares the host kernel and is generally smaller and faster to start.
+
+### Part B — Dockerfile
+
+11. Compilation requires JDK development tools. Running an already-built JAR needs the smaller JRE.
+12. It names the first stage so the final stage can copy the built artifact from it.
+13. No. `RUN` executes during image construction. Container startup executes the `ENTRYPOINT`.
+14. Stable build definitions allow Docker to reuse dependency layers when only source code changes.
+15. It copies the generated JAR out of the builder stage into the clean runtime stage.
+16. Java executes compiled bytecode in the JAR. Source and compiler tools are build inputs, not runtime requirements.
+17. A compromised application process generally has fewer privileges than it would as root, reducing potential damage.
+18. It documents the expected container port. It does not publish that port to the host or prove a process is listening.
+19. It starts `java -jar /app/app.jar` as the container's main process.
+20. The container stops because its main process ended.
+
+### Part C — configuration and networking
+
+21. Image layers and metadata can be inspected and images may be shared. Embedded secrets are hard to rotate and travel with every copy.
+22. Spring uses `DB_URL` when provided; otherwise it uses the value after the colon as a local default.
+23. Compose gives each service an internal DNS name. `postgres` resolves to the database container, which listens internally on `5432`.
+24. `localhost` inside the backend container refers to the backend container. `55432` is the host-side published port, not the database's internal address.
+25. `55432` is the laptop's host port; `5432` is the PostgreSQL container port receiving the forwarded traffic.
+26. No. Containers communicate directly over the Compose network using `postgres:5432`.
+27. Listening means a process opened a port. `EXPOSE` documents an intended port. Publishing maps a host port to a container port.
+28. Environment-specific addresses and secrets are supplied at runtime, while the compiled application and Java runtime remain unchanged in the image.
+
+### Part D — layers, storage, and security
+
+29. The build context is the directory tree Docker may send to the builder and use in `COPY` instructions. Here, `.` means the repository directory.
+30. Examples include `.git`, `build`, `.gradle`, logs, IDE files, and screenshots. Excluding them reduces transfer size, accidental disclosure, and unnecessary cache invalidation.
+31. Docker can reuse unchanged image layers instead of executing every instruction again.
+32. Build definitions and resolved dependencies appear in earlier layers. A later `COPY src` change invalidates that layer and following layers, not the unchanged earlier ones.
+33. No. It reduces privilege but does not fix vulnerable code, leaked secrets, unsafe networks, or excessive external permissions.
+34. Those files disappear when the container is deleted unless they were written to a mounted volume or external storage.
+35. It keeps database data separate from the disposable PostgreSQL container so data can survive container replacement.
+36. A file written by one backend container does not automatically exist in another container's local filesystem. Shared object storage is the eventual production solution.
+
+### Part E — troubleshooting
+
+37. `Up` only says the main process exists. The application can still be unable to use a required dependency.
+38. Start with `docker compose ps`, `docker compose logs backend --tail=80`, and `docker compose logs postgres --tail=80`.
+39. `DB_URL` is probably missing or overridden incorrectly, causing the host-oriented default to be used inside the container.
+40. No. Stop the conflicting host process or publish a different host port such as `8081:8080`; the application may continue listening on container port `8080`.
+41. Confirm the source was saved, rebuild the image, inspect build output/cache, recreate the backend service, verify which image/container is running, and call the intended host and port.
+42. Inspect the named-volume mount and whether a command such as `docker compose down --volumes` deleted it.
+43. The calls verify host networking, HTTP routing, request handling, database access, token issuance, and authorization together. Logs may prove only partial startup.
+44. It supplies basic startup ordering. It does not guarantee that PostgreSQL is healthy and ready to accept connections.
+45. `down` preserves named volumes by default. Adding `--volumes` removes them and can erase local database data.
+
+### Part F — Kubernetes connection
+
+46. A Pod will reference the backend container image, eventually through a local image store or registry.
+47. Three running application instances exist—one in each Pod—even though they were created from the same packaged image.
+48. Any replica with the signing key can validate a JWT without depending on server-local session memory.
+49. Temp-backed local media storage is replica-local, so a later request routed elsewhere may not find an uploaded file.
+50. Gradle compiles the Java source into a Spring Boot JAR. Docker's JDK stage builds it, the JRE stage packages only the runtime artifact and startup metadata, and the result becomes an image. Kubernetes later asks a node runtime to create and manage containers from that image.
 
 Teach-it-back checklist:
 
@@ -382,6 +557,8 @@ Teach-it-back checklist:
 - Describes image versus container.
 - Connects environment variables to runtime configuration.
 - Mentions this project's backend jar and PostgreSQL dependency.
+- Distinguishes host ports from container ports.
+- Identifies local media storage as a remaining horizontal-scaling limitation.
 
 </details>
 

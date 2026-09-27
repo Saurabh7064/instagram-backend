@@ -34,7 +34,7 @@ Every numbered Kubernetes lesson must be understandable without assuming prior K
 3. A small mental model or analogy, plus where that analogy stops being accurate.
 4. How the concept maps to this Instagram project.
 5. A guided hands-on exercise with expected observations.
-6. At least three comprehension questions covering recall, application, and troubleshooting.
+6. A substantial comprehension set—normally at least 15 questions—covering foundations, application, prediction, and troubleshooting. Foundational lessons should contain more when several new terms are introduced.
 7. A clearly separated answer key with explanations, not only final answers.
 8. A short "teach it back" prompt so the learner can explain the idea in their own words.
 
