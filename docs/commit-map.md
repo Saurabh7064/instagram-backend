@@ -117,6 +117,11 @@ This file maps each commit to:
 - Concepts: separating media storage from post metadata, authenticated upload pipelines, and temp-backed local storage as a stepping stone to object storage.
 - Docs: [Feature 11](./features/11-persist-real-feed-media-uploads.md), [Testing Strategy](./testing-strategy.md), [Demo Proofs](./demo-proofs/README.md)
 
+23. `8137afb`
+- Learning change: added a project-driven Kubernetes track, a 15-item hands-on backlog, a 12-week execution plan, and the `next kubernetes` workflow trigger.
+- Concepts: containers, Kubernetes workload primitives, configuration, state, reliability, traffic, scaling, security, packaging, delivery, and production operations.
+- Docs: [Kubernetes Learning Path](./kubernetes/README.md), [Kubernetes Learning Backlog](./kubernetes/learning-backlog.md), [Kubernetes Mastery Roadmap](./kubernetes/mastery-roadmap.md), [12-Week Kubernetes Execution Plan](./kubernetes/12-week-execution-plan.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
