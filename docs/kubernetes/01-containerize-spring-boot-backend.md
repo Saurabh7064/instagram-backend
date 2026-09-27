@@ -110,6 +110,147 @@ The new [.dockerignore](/Users/saurabh/Documents/Learning/instagram-backend/.doc
 
 The updated [docker-compose.yml](/Users/saurabh/Documents/Learning/instagram-backend/docker-compose.yml) now includes a `backend` service. It builds this image and connects it to the existing `postgres` service using `DB_URL=jdbc:postgresql://postgres:5432/instagram`.
 
+### The build stage, line by line
+
+```dockerfile
+FROM eclipse-temurin:24-jdk AS build
+```
+
+`FROM` chooses the starting image. A **JDK** includes the Java compiler and other build tools. `AS build` names this stage so a later stage can copy its output.
+
+```dockerfile
+WORKDIR /workspace
+```
+
+Later build commands run relative to `/workspace`. Docker creates the directory when necessary.
+
+```dockerfile
+COPY gradlew settings.gradle build.gradle ./
+COPY gradle ./gradle
+RUN ./gradlew dependencies --no-daemon
+```
+
+These lines copy the Gradle wrapper and build definitions, then resolve dependencies. They appear before the application source because Docker caches image layers. Changing one Java file should not force every dependency to be downloaded again when the build definitions are unchanged.
+
+`RUN` happens while the image is being built. It is not repeated each time a container starts.
+
+```dockerfile
+COPY src ./src
+RUN ./gradlew bootJar --no-daemon
+```
+
+The source is copied only after dependency setup. Gradle then compiles it and creates the executable JAR under `/workspace/build/libs/`.
+
+### The runtime stage, line by line
+
+```dockerfile
+FROM eclipse-temurin:24-jre
+```
+
+The second `FROM` starts a fresh stage. A **JRE** provides what is needed to execute Java but excludes many development tools found in the JDK.
+
+```dockerfile
+WORKDIR /app
+RUN groupadd --system instagram && useradd --system --gid instagram instagram
+```
+
+The runtime working directory is `/app`. A dedicated operating-system group and user are created so the backend does not run as the powerful root user.
+
+```dockerfile
+COPY --from=build /workspace/build/libs/*.jar app.jar
+```
+
+Only the built JAR is copied from the builder stage. The source tree, Gradle cache, and compiler do not enter the final image.
+
+```dockerfile
+USER instagram
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+```
+
+- `USER` selects the non-root runtime identity.
+- `EXPOSE 8080` documents the intended container port. It does **not** publish the port to the host.
+- `ENTRYPOINT` supplies the default process. The JSON-array form starts Java directly and provides clearer operating-system signal handling than wrapping it in a shell.
+
+When this Java process exits, the container exits. A container is not a background machine that remains alive independently of its main process.
+
+### Why two stages?
+
+| Build stage | Runtime stage |
+|---|---|
+| Compiles the project | Runs the finished project |
+| Needs the JDK and Gradle | Needs a JRE |
+| Contains source and build caches | Contains the application JAR |
+| Temporary input to the build | Becomes the final deployable image |
+
+This makes the final image smaller, reduces unnecessary tools and files, and creates a clearer security boundary between building and running.
+
+### Build context, layers, and cache
+
+In `docker build -t instagram-backend:local .`, the final `.` is the **build context**. Docker may send files from that directory to the builder, and `COPY` can only access included context files.
+
+The [.dockerignore](/Users/saurabh/Documents/Learning/instagram-backend/.dockerignore) removes items such as Git history, IDE metadata, previous build output, logs, and demo screenshots from the context. This reduces transfer size, avoids accidental disclosure, and prevents irrelevant files from invalidating cached layers.
+
+Most Dockerfile instructions create reusable layers. If only a file under `src/` changes, the earlier Gradle and dependency layers can often be reused. This explains why a second unchanged build is usually faster.
+
+### Image tag versus image identity
+
+This command creates the human-readable tag `instagram-backend:local`:
+
+```bash
+docker build -t instagram-backend:local .
+```
+
+A tag can later be moved to a rebuilt image. Production systems often use controlled version tags or immutable digests so operators know exactly which content is deployed.
+
+### Networking: why `localhost` is confusing
+
+`localhost` means “the network environment of the process making the request.” Inside the backend container, `localhost` points to the backend container—not the laptop and not the PostgreSQL container.
+
+Compose gives services DNS names on a shared network. The backend therefore reaches PostgreSQL at:
+
+```text
+postgres:5432
+```
+
+The Compose mapping `55432:5432` has two sides:
+
+- `55432` is the port on the laptop;
+- `5432` is the port inside the PostgreSQL container.
+
+A database client running on the laptop uses `localhost:55432`. The backend container uses `postgres:5432` and does not need to travel through the host mapping.
+
+Keep these port concepts separate:
+
+- **listening:** a process has opened a port inside its network environment;
+- **exposed:** an image documents its intended port with `EXPOSE`;
+- **published:** the runtime maps a host port to a container port;
+- **service discovery:** a DNS name such as `postgres` resolves to the desired service.
+
+### Configuration at runtime
+
+The image should hold the stable application and runtime. Environment-specific values should be supplied when a container starts. Spring syntax such as:
+
+```properties
+spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:55432/instagram}
+```
+
+means “use `DB_URL` when present; otherwise use the value after the colon.” That is why the same image can work directly on a laptop, in Compose, and later in Kubernetes.
+
+Real credentials should not be copied into an image. Images can be inspected and shared, and secrets baked into layers are difficult to rotate safely.
+
+### What `depends_on` does not mean
+
+Compose's `depends_on` provides basic startup ordering. It does not necessarily mean PostgreSQL is fully initialized and accepting connections before the backend begins connecting.
+
+“The container process started” and “the application is ready for traffic” are different statements. Later Kubernetes lessons make this visible through startup and readiness probes.
+
+### A project-specific scaling warning
+
+JWT authentication helps multiple backend instances because any replica with the signing key can validate a request without server-local login-session memory.
+
+Uploaded media, however, is currently stored on local temp-backed storage. If container A stores a file and a later request reaches container B, container B may not have it. Containerization does not remove this stateful limitation; production media should eventually move to shared object storage.
+
 ## Mapping to this project
 
 The backend already externalizes runtime settings in [application.properties](/Users/saurabh/Documents/Learning/instagram-backend/src/main/resources/application.properties):
@@ -267,7 +408,7 @@ Teach-it-back checklist:
 
 ## Commit pointers
 
-- Add commit hash after committing this lesson.
+- `c9007bf` added the Dockerfile, `.dockerignore`, Compose backend service, lesson note, and backlog completion.
 
 ## What comes next
 

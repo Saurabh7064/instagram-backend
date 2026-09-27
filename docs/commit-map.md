@@ -127,6 +127,11 @@ This file maps each commit to:
 - Concepts: progressive teaching, prediction before implementation, failure-driven learning, retrieval practice, and teach-back verification.
 - Docs: [Kubernetes Learning Path](./kubernetes/README.md), [Kubernetes Lesson Template](./kubernetes/_lesson-template.md), [12-Week Kubernetes Execution Plan](./kubernetes/12-week-execution-plan.md)
 
+25. `c9007bf`
+- Learning change: containerized the Spring Boot backend with a multi-stage non-root Docker image, added a Compose backend service, verified container startup, login/feed API smoke checks, and PostgreSQL recovery.
+- Concepts: container images versus containers, build/runtime image separation, non-root runtime users, container-to-container networking, environment-driven configuration, and image readiness for Kubernetes Pods.
+- Docs: [Kubernetes Lesson 01](./kubernetes/01-containerize-spring-boot-backend.md), [Kubernetes Learning Backlog](./kubernetes/learning-backlog.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
