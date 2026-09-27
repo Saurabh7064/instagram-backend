@@ -122,6 +122,11 @@ This file maps each commit to:
 - Concepts: containers, Kubernetes workload primitives, configuration, state, reliability, traffic, scaling, security, packaging, delivery, and production operations.
 - Docs: [Kubernetes Learning Path](./kubernetes/README.md), [Kubernetes Learning Backlog](./kubernetes/learning-backlog.md), [Kubernetes Mastery Roadmap](./kubernetes/mastery-roadmap.md), [12-Week Kubernetes Execution Plan](./kubernetes/12-week-execution-plan.md)
 
+24. `198a021`
+- Learning change: required every Kubernetes lesson to explain the concept simply, identify the problem it solves, provide a project exercise, and test understanding with questions and explained solutions.
+- Concepts: progressive teaching, prediction before implementation, failure-driven learning, retrieval practice, and teach-back verification.
+- Docs: [Kubernetes Learning Path](./kubernetes/README.md), [Kubernetes Lesson Template](./kubernetes/_lesson-template.md), [12-Week Kubernetes Execution Plan](./kubernetes/12-week-execution-plan.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
