@@ -400,85 +400,75 @@ This keeps the named PostgreSQL volume. `docker compose down --volumes` would al
 
 ## Check your understanding
 
-Answer these in your own words before expanding the answers. The goal is to explain and predict, not memorize vocabulary.
+Try these in your own words before expanding the explanations. The goal is to explain and predict, not memorize vocabulary.
 
 ### Part A — foundations
 
-1. What is the difference between Java source code and a running process?
 <details>
-<summary>Answer</summary>
+<summary>1. What is the difference between Java source code and a running process?</summary>
 
 Source code is input for developers and build tools. A process is a program currently executing with CPU, memory, and operating-system resources.
 
 </details>
 
-2. What does `./gradlew bootJar` produce?
 <details>
-<summary>Answer</summary>
+<summary>2. What does `./gradlew bootJar` produce?</summary>
 
 It produces an executable Spring Boot JAR under `build/libs/`.
 
 </details>
 
-3. Why does the JAR still need a JVM?
 <details>
-<summary>Answer</summary>
+<summary>3. Why does the JAR still need a JVM?</summary>
 
 The JAR contains Java bytecode. The JVM loads and executes it and supplies the Java runtime libraries.
 
 </details>
 
-4. What is a container image?
 <details>
-<summary>Answer</summary>
+<summary>4. What is a container image?</summary>
 
 An image is a read-only, layered application package containing files and runtime metadata such as the startup command.
 
 </details>
 
-5. What is a container?
 <details>
-<summary>Answer</summary>
+<summary>5. What is a container?</summary>
 
 A container is a running instance created from an image, with a main process and isolated runtime state.
 
 </details>
 
-6. Can one image create multiple containers? What is shared and what remains separate?
 <details>
-<summary>Answer</summary>
+<summary>6. Can one image create multiple containers? What is shared and what remains separate?</summary>
 
 Yes. They share the packaged image contents. Each container has its own process, environment, network identity, and writable layer unless storage is intentionally shared.
 
 </details>
 
-7. What does a Dockerfile do?
 <details>
-<summary>Answer</summary>
+<summary>7. What does a Dockerfile do?</summary>
 
 It is the recipe Docker uses to build an image.
 
 </details>
 
-8. What does an image registry do?
 <details>
-<summary>Answer</summary>
+<summary>8. What does an image registry do?</summary>
 
 It stores and distributes images so other machines or cluster nodes can pull them.
 
 </details>
 
-9. Why does Kubernetes normally need an image rather than only a Git repository?
 <details>
-<summary>Answer</summary>
+<summary>9. Why does Kubernetes normally need an image rather than only a Git repository?</summary>
 
 Kubernetes schedules runnable artifacts. It should not recreate a development environment and compile the repository every time a Pod is replaced.
 
 </details>
 
-10. Give two differences between a container and a virtual machine.
 <details>
-<summary>Answer</summary>
+<summary>10. Give two differences between a container and a virtual machine.</summary>
 
 A virtual machine usually includes a guest kernel and complete operating system. A container shares the host kernel and is generally smaller and faster to start.
 
@@ -486,81 +476,71 @@ A virtual machine usually includes a guest kernel and complete operating system.
 
 ### Part B — read the Dockerfile
 
-11. Why does the build stage use a JDK while the runtime stage uses a JRE?
 <details>
-<summary>Answer</summary>
+<summary>11. Why does the build stage use a JDK while the runtime stage uses a JRE?</summary>
 
 Compilation requires JDK development tools. Running an already-built JAR needs the smaller JRE.
 
 </details>
 
-12. What does `AS build` enable?
 <details>
-<summary>Answer</summary>
+<summary>12. What does `AS build` enable?</summary>
 
 It names the first stage so the final stage can copy the built artifact from it.
 
 </details>
 
-13. Does `RUN ./gradlew bootJar` execute whenever a container starts? Why?
 <details>
-<summary>Answer</summary>
+<summary>13. Does `RUN ./gradlew bootJar` execute whenever a container starts? Why?</summary>
 
 No. `RUN` executes during image construction. Container startup executes the `ENTRYPOINT`.
 
 </details>
 
-14. Why are the Gradle build files copied before `src`?
 <details>
-<summary>Answer</summary>
+<summary>14. Why are the Gradle build files copied before `src`?</summary>
 
 Stable build definitions allow Docker to reuse dependency layers when only source code changes.
 
 </details>
 
-15. What does `COPY --from=build` accomplish?
 <details>
-<summary>Answer</summary>
+<summary>15. What does `COPY --from=build` accomplish?</summary>
 
 It copies the generated JAR out of the builder stage into the clean runtime stage.
 
 </details>
 
-16. Why does the final image not need source code or the Java compiler?
 <details>
-<summary>Answer</summary>
+<summary>16. Why does the final image not need source code or the Java compiler?</summary>
 
 Java executes compiled bytecode in the JAR. Source and compiler tools are build inputs, not runtime requirements.
 
 </details>
 
-17. What security benefit does `USER instagram` provide?
 <details>
-<summary>Answer</summary>
+<summary>17. What security benefit does `USER instagram` provide?</summary>
 
 A compromised application process generally has fewer privileges than it would as root, reducing potential damage.
 
 </details>
 
-18. What does `EXPOSE 8080` do, and what does it not do?
 <details>
-<summary>Answer</summary>
+<summary>18. What does `EXPOSE 8080` do, and what does it not do?</summary>
 
 It documents the expected container port. It does not publish that port to the host or prove a process is listening.
 
 </details>
 
-19. What process does `ENTRYPOINT` start?
 <details>
-<summary>Answer</summary>
+<summary>19. What process does `ENTRYPOINT` start?</summary>
 
 It starts `java -jar /app/app.jar` as the container's main process.
 
 </details>
 
-20. What happens to the container when that main process exits?
 <details>
-<summary>Answer</summary>
+<summary>20. What happens to the container when that main process exits?</summary>
 
 The container stops because its main process ended.
 
@@ -568,65 +548,57 @@ The container stops because its main process ended.
 
 ### Part C — configuration and networking
 
-21. Why should real database credentials and JWT secrets not be built into the image?
 <details>
-<summary>Answer</summary>
+<summary>21. Why should real database credentials and JWT secrets not be built into the image?</summary>
 
 Image layers and metadata can be inspected and images may be shared. Embedded secrets are hard to rotate and travel with every copy.
 
 </details>
 
-22. Explain the default-value behavior in `${DB_URL:jdbc:postgresql://localhost:55432/instagram}`.
 <details>
-<summary>Answer</summary>
+<summary>22. Explain the default-value behavior in `${DB_URL:jdbc:postgresql://localhost:55432/instagram}`.</summary>
 
 Spring uses `DB_URL` when provided; otherwise it uses the value after the colon as a local default.
 
 </details>
 
-23. Why does the backend use `postgres:5432` inside Compose?
 <details>
-<summary>Answer</summary>
+<summary>23. Why does the backend use `postgres:5432` inside Compose?</summary>
 
 Compose gives each service an internal DNS name. `postgres` resolves to the database container, which listens internally on `5432`.
 
 </details>
 
-24. Why is `localhost:55432` wrong from inside the backend container?
 <details>
-<summary>Answer</summary>
+<summary>24. Why is `localhost:55432` wrong from inside the backend container?</summary>
 
 `localhost` inside the backend container refers to the backend container. `55432` is the host-side published port, not the database's internal address.
 
 </details>
 
-25. Explain both numbers in `55432:5432`.
 <details>
-<summary>Answer</summary>
+<summary>25. Explain both numbers in `55432:5432`.</summary>
 
 `55432` is the laptop's host port; `5432` is the PostgreSQL container port receiving the forwarded traffic.
 
 </details>
 
-26. Does backend-to-PostgreSQL traffic need the host port `55432`?
 <details>
-<summary>Answer</summary>
+<summary>26. Does backend-to-PostgreSQL traffic need the host port `55432`?</summary>
 
 No. Containers communicate directly over the Compose network using `postgres:5432`.
 
 </details>
 
-27. What is the difference between listening, exposed, and published ports?
 <details>
-<summary>Answer</summary>
+<summary>27. What is the difference between listening, exposed, and published ports?</summary>
 
 Listening means a process opened a port. `EXPOSE` documents an intended port. Publishing maps a host port to a container port.
 
 </details>
 
-28. Why can the same image run in Compose and later Kubernetes without recompiling Java?
 <details>
-<summary>Answer</summary>
+<summary>28. Why can the same image run in Compose and later Kubernetes without recompiling Java?</summary>
 
 Environment-specific addresses and secrets are supplied at runtime, while the compiled application and Java runtime remain unchanged in the image.
 
@@ -634,65 +606,57 @@ Environment-specific addresses and secrets are supplied at runtime, while the co
 
 ### Part D — layers, storage, and security
 
-29. What is the Docker build context?
 <details>
-<summary>Answer</summary>
+<summary>29. What is the Docker build context?</summary>
 
 The build context is the directory tree Docker may send to the builder and use in `COPY` instructions. Here, `.` means the repository directory.
 
 </details>
 
-30. Name three things excluded by `.dockerignore` and explain why that helps.
 <details>
-<summary>Answer</summary>
+<summary>30. Name three things excluded by `.dockerignore` and explain why that helps.</summary>
 
 Examples include `.git`, `build`, `.gradle`, logs, IDE files, and screenshots. Excluding them reduces transfer size, accidental disclosure, and unnecessary cache invalidation.
 
 </details>
 
-31. Why is a second unchanged image build often faster?
 <details>
-<summary>Answer</summary>
+<summary>31. Why is a second unchanged image build often faster?</summary>
 
 Docker can reuse unchanged image layers instead of executing every instruction again.
 
 </details>
 
-32. Why does changing only a Java source file usually preserve the cached dependency layer?
 <details>
-<summary>Answer</summary>
+<summary>32. Why does changing only a Java source file usually preserve the cached dependency layer?</summary>
 
 Build definitions and resolved dependencies appear in earlier layers. A later `COPY src` change invalidates that layer and following layers, not the unchanged earlier ones.
 
 </details>
 
-33. Does running as non-root guarantee security? Explain.
 <details>
-<summary>Answer</summary>
+<summary>33. Does running as non-root guarantee security? Explain.</summary>
 
 No. It reduces privilege but does not fix vulnerable code, leaked secrets, unsafe networks, or excessive external permissions.
 
 </details>
 
-34. What happens to files stored only in a deleted container's writable layer?
 <details>
-<summary>Answer</summary>
+<summary>34. What happens to files stored only in a deleted container's writable layer?</summary>
 
 Those files disappear when the container is deleted unless they were written to a mounted volume or external storage.
 
 </details>
 
-35. Why does PostgreSQL use a named Compose volume?
 <details>
-<summary>Answer</summary>
+<summary>35. Why does PostgreSQL use a named Compose volume?</summary>
 
 It keeps database data separate from the disposable PostgreSQL container so data can survive container replacement.
 
 </details>
 
-36. Why is the current local media-upload storage unsafe across multiple backend replicas?
 <details>
-<summary>Answer</summary>
+<summary>36. Why is the current local media-upload storage unsafe across multiple backend replicas?</summary>
 
 A file written by one backend container does not automatically exist in another container's local filesystem. Shared object storage is the eventual production solution.
 
@@ -700,73 +664,64 @@ A file written by one backend container does not automatically exist in another 
 
 ### Part E — troubleshooting scenarios
 
-37. Compose says the backend is `Up`, but login reports a database error. How can both be true?
 <details>
-<summary>Answer</summary>
+<summary>37. Compose says the backend is `Up`, but login reports a database error. How can both be true?</summary>
 
 `Up` only says the main process exists. The application can still be unable to use a required dependency.
 
 </details>
 
-38. Which three commands would you run first to inspect the backend and PostgreSQL?
 <details>
-<summary>Answer</summary>
+<summary>38. Which three commands would you run first to inspect the backend and PostgreSQL?</summary>
 
 Start with `docker compose ps`, `docker compose logs backend --tail=80`, and `docker compose logs postgres --tail=80`.
 
 </details>
 
-39. The backend logs show attempts to reach `localhost:55432`. What is likely wrong?
 <details>
-<summary>Answer</summary>
+<summary>39. The backend logs show attempts to reach `localhost:55432`. What is likely wrong?</summary>
 
 `DB_URL` is probably missing or overridden incorrectly, causing the host-oriented default to be used inside the container.
 
 </details>
 
-40. Docker says host port `8080` is already allocated. Must Spring's internal port change? What else can you do?
 <details>
-<summary>Answer</summary>
+<summary>40. Docker says host port `8080` is already allocated. Must Spring's internal port change? What else can you do?</summary>
 
 No. Stop the conflicting host process or publish a different host port such as `8081:8080`; the application may continue listening on container port `8080`.
 
 </details>
 
-41. You changed Java code, but the running API still behaves like the old version. List a sensible debugging order.
 <details>
-<summary>Answer</summary>
+<summary>41. You changed Java code, but the running API still behaves like the old version. List a sensible debugging order.</summary>
 
 Confirm the source was saved, rebuild the image, inspect build output/cache, recreate the backend service, verify which image/container is running, and call the intended host and port.
 
 </details>
 
-42. PostgreSQL was recreated and its data disappeared. What configuration or command would you investigate?
 <details>
-<summary>Answer</summary>
+<summary>42. PostgreSQL was recreated and its data disappeared. What configuration or command would you investigate?</summary>
 
 Inspect the named-volume mount and whether a command such as `docker compose down --volumes` deleted it.
 
 </details>
 
-43. Why is a real login plus protected feed call stronger evidence than startup logs alone?
 <details>
-<summary>Answer</summary>
+<summary>43. Why is a real login plus protected feed call stronger evidence than startup logs alone?</summary>
 
 The calls verify host networking, HTTP routing, request handling, database access, token issuance, and authorization together. Logs may prove only partial startup.
 
 </details>
 
-44. What does `depends_on` guarantee, and what does it not guarantee?
 <details>
-<summary>Answer</summary>
+<summary>44. What does `depends_on` guarantee, and what does it not guarantee?</summary>
 
 It supplies basic startup ordering. It does not guarantee that PostgreSQL is healthy and ready to accept connections.
 
 </details>
 
-45. Why is `docker compose down --volumes` more destructive than `docker compose down`?
 <details>
-<summary>Answer</summary>
+<summary>45. Why is `docker compose down --volumes` more destructive than `docker compose down`?</summary>
 
 `down` preserves named volumes by default. Adding `--volumes` removes them and can erase local database data.
 
@@ -774,41 +729,36 @@ It supplies basic startup ordering. It does not guarantee that PostgreSQL is hea
 
 ### Part F — connecting this lesson to Kubernetes
 
-46. What artifact from this lesson will a Kubernetes Pod reference?
 <details>
-<summary>Answer</summary>
+<summary>46. What artifact from this lesson will a Kubernetes Pod reference?</summary>
 
 A Pod will reference the backend container image, eventually through a local image store or registry.
 
 </details>
 
-47. If Kubernetes creates three Pods from one image, how many running application instances exist?
 <details>
-<summary>Answer</summary>
+<summary>47. If Kubernetes creates three Pods from one image, how many running application instances exist?</summary>
 
 Three running application instances exist, one in each Pod, even though they were created from the same packaged image.
 
 </details>
 
-48. Why does JWT authentication help those replicas behave interchangeably?
 <details>
-<summary>Answer</summary>
+<summary>48. Why does JWT authentication help those replicas behave interchangeably?</summary>
 
 Any replica with the signing key can validate a JWT without depending on server-local session memory.
 
 </details>
 
-49. Which current feature still prevents the replicas from being completely interchangeable?
 <details>
-<summary>Answer</summary>
+<summary>49. Which current feature still prevents the replicas from being completely interchangeable?</summary>
 
 Temp-backed local media storage is replica-local, so a later request routed elsewhere may not find an uploaded file.
 
 </details>
 
-50. In one paragraph, explain the path from Java source to a Kubernetes-managed process.
 <details>
-<summary>Answer</summary>
+<summary>50. In one paragraph, explain the path from Java source to a Kubernetes-managed process.</summary>
 
 Gradle compiles the Java source into a Spring Boot JAR. Docker's JDK stage builds it, the JRE stage packages only the runtime artifact and startup metadata, and the result becomes an image. Kubernetes later asks a node runtime to create and manage containers from that image.
 

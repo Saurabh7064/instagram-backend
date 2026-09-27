@@ -35,10 +35,10 @@ Every numbered Kubernetes lesson must be understandable without assuming prior K
 4. How the concept maps to this Instagram project.
 5. A guided hands-on exercise with expected observations.
 6. A substantial comprehension set—normally at least 15 questions—covering foundations, application, prediction, and troubleshooting. Foundational lessons should contain more when several new terms are introduced.
-7. Expandable answers directly below each question using `<details><summary>Answer</summary>...`; do not create a separate answer-key section.
+7. Each question must be the clickable `<summary>` of its own `<details>` block; do not create a separate solution section.
 8. A short "teach it back" prompt so the learner can explain the idea in their own words.
 
-Questions should be attempted before expanding the answer beside each question. A lesson is understood when the learner can explain why the resource exists, predict its behavior, and diagnose one simple failure—not merely reproduce a command.
+Questions should be attempted before clicking each question to expand its explanation. A lesson is understood when the learner can explain why the resource exists, predict its behavior, and diagnose one simple failure—not merely reproduce a command.
 
 ## Evidence conventions
 

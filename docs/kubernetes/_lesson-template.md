@@ -48,7 +48,7 @@ List likely mistakes, their symptoms, and how to distinguish their causes.
 
 ## Check your understanding
 
-Answer each question in your own words before expanding its answer.
+Try each question in your own words before clicking it to expand its explanation.
 
 Include at least 15 questions, grouped so the learner can progress from basics to reasoning:
 
@@ -56,11 +56,10 @@ Include at least 15 questions, grouped so the learner can progress from basics t
 
 Define and distinguish the lesson's important terms.
 
-1. Example question?
 <details>
-<summary>Answer</summary>
+<summary>1. Example question?</summary>
 
-Write the answer directly below the question. Explain why it is correct, not only the final answer.
+Write the explanation directly below the question. Explain why it is correct, not only the final result.
 
 </details>
 
@@ -76,20 +75,19 @@ Predict behavior in realistic project scenarios and explain why.
 
 Diagnose symptoms from commands, status, logs, events, and application behavior.
 
-For troubleshooting answers, name the evidence and the next command or action rather than supplying only a diagnosis.
+For troubleshooting explanations, name the evidence and the next command or action rather than supplying only a diagnosis.
 
 ### Teach it back
 
 Explain the concept in two or three sentences as if teaching a developer who has never used Kubernetes.
 
-Do not create a separate answer-key section. Every answer must be expandable directly below its question with this exact pattern:
+Do not create a separate solution section. Every explanation must be inside a details block whose summary is the question itself:
 
 ```markdown
-1. Question text?
 <details>
-<summary>Answer</summary>
+<summary>1. Question text?</summary>
 
-Answer text with explanation.
+Explanation text.
 
 </details>
 ```
