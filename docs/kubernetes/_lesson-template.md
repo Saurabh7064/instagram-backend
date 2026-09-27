@@ -48,13 +48,21 @@ List likely mistakes, their symptoms, and how to distinguish their causes.
 
 ## Check your understanding
 
-Answer these before opening the answer key.
+Answer each question in your own words before expanding its answer.
 
 Include at least 15 questions, grouped so the learner can progress from basics to reasoning:
 
 ### Foundations
 
 Define and distinguish the lesson's important terms.
+
+1. Example question?
+<details>
+<summary>Answer</summary>
+
+Write the answer directly below the question. Explain why it is correct, not only the final answer.
+
+</details>
 
 ### Read the project configuration
 
@@ -68,15 +76,23 @@ Predict behavior in realistic project scenarios and explain why.
 
 Diagnose symptoms from commands, status, logs, events, and application behavior.
 
+For troubleshooting answers, name the evidence and the next command or action rather than supplying only a diagnosis.
+
 ### Teach it back
 
 Explain the concept in two or three sentences as if teaching a developer who has never used Kubernetes.
 
-## Answer key and explanations
+Do not create a separate answer-key section. Every answer must be expandable directly below its question with this exact pattern:
 
-Keep this section present and directly visible. Do not use collapsible HTML or omit answers. Encourage the learner to attempt the questions before continuing to this section.
+```markdown
+1. Question text?
+<details>
+<summary>Answer</summary>
 
-Mirror every question here. Give the answer and explain why it is correct. For troubleshooting answers, name the evidence and the next command or action rather than supplying only a diagnosis.
+Answer text with explanation.
+
+</details>
+```
 
 Teach-it-back checklist:
 
