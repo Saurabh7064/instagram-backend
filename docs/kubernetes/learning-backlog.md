@@ -33,4 +33,3 @@ Use this file to track hands-on Kubernetes learning for the Instagram project.
 1. `K8S-001` Containerize the backend
 2. `K8S-002` Local cluster and Kubernetes primitives
 3. `K8S-003` Backend Deployment and Service
-

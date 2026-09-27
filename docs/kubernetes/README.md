@@ -37,4 +37,3 @@ Store compact text evidence in the numbered learning note. Store UI screenshots 
 - persistence checks before and after Pod replacement
 
 Do not commit credentials, rendered Secret values, kubeconfig files, or cluster-specific private data.
-

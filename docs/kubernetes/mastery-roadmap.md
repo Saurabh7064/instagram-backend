@@ -79,4 +79,3 @@ Project outcome: a production architecture and runbook explain monitoring, deplo
 - A Deployment provides replicas, but availability also depends on probes, disruption policy, scheduling, dependencies, and capacity.
 - A Secret object improves configuration separation but is not automatically a complete secret-management solution.
 - Horizontal scaling requires stateless application behavior. The JWT design helps, while local uploaded files work against it.
-

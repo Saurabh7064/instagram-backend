@@ -37,4 +37,3 @@ This schedule assumes roughly four to six focused hours per week. Slow down when
 - Optional later tools: Helm, Kustomize, kubeconform, and a container-image scanner
 
 Choose one local cluster implementation and keep it through the core weeks so tooling differences do not distract from Kubernetes concepts.
-
