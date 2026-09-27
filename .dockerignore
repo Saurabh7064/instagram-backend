@@ -1,0 +1,8 @@
+.gradle
+build
+docs/demo-proofs
+.git
+.gitignore
+.idea
+*.iml
+*.log

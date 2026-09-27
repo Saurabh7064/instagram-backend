@@ -12,7 +12,7 @@ Use this file to track hands-on Kubernetes learning for the Instagram project.
 
 | ID | Topic and project exercise | Status | Completion evidence |
 |---|---|---|---|
-| K8S-001 | Containerize the Spring Boot backend with a production-style multi-stage image | TODO | Image builds; container starts; login and feed APIs pass via `curl` |
+| K8S-001 | Containerize the Spring Boot backend with a production-style multi-stage image | DONE | Image builds; Compose backend starts; login and feed APIs pass via `curl`; recovery after PostgreSQL restart verified in [Lesson 01](./01-containerize-spring-boot-backend.md) |
 | K8S-002 | Create a local cluster and learn `kubectl`, Pods, namespaces, labels, and selectors | TODO | Cluster inspection commands and a disposable Pod exercise are documented |
 | K8S-003 | Deploy the backend with a Deployment and expose it with a Service | TODO | Deployment becomes available; Service routes to multiple healthy Pods |
 | K8S-004 | Externalize application settings with ConfigMaps and Secrets | TODO | No runtime credentials in manifests; backend receives configuration correctly |

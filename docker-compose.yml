@@ -12,5 +12,20 @@ services:
     volumes:
       - instagram-postgres-data:/var/lib/postgresql/data
 
+  backend:
+    build:
+      context: .
+    container_name: instagram-backend
+    depends_on:
+      - postgres
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/instagram
+      DB_USERNAME: instagram
+      DB_PASSWORD: instagram
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:5173
+      APP_JWT_SECRET: instagram-container-secret-key-change-me-at-least-32-bytes
+    ports:
+      - "8080:8080"
+
 volumes:
   instagram-postgres-data:
