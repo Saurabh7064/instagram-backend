@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hello-kubernetes
+  namespace: instagram-learning
+  labels:
+    app.kubernetes.io/name: hello-kubernetes
+    app.kubernetes.io/part-of: instagram-learning
+    tier: learning
+    track: stable
+spec:
+  restartPolicy: Always
+  containers:
+    - name: web
+      image: nginx:1.27-alpine
+      ports:
+        - name: http
+          containerPort: 80

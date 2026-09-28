@@ -28,6 +28,8 @@
 - [Kubernetes Learning Backlog](./kubernetes/learning-backlog.md)
 - [Kubernetes Mastery Roadmap](./kubernetes/mastery-roadmap.md)
 - [12-Week Kubernetes Execution Plan](./kubernetes/12-week-execution-plan.md)
+- [Kubernetes Lesson 01: Containerize the Spring Boot Backend](./kubernetes/01-containerize-spring-boot-backend.md)
+- [Kubernetes Lesson 02: Local Cluster and Core Primitives](./kubernetes/02-local-cluster-kubectl-pods-labels.md)
 - [Commit Map](./commit-map.md)
 
 ## UI Docs

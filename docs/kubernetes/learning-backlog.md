@@ -13,7 +13,7 @@ Use this file to track hands-on Kubernetes learning for the Instagram project.
 | ID | Topic and project exercise | Status | Completion evidence |
 |---|---|---|---|
 | K8S-001 | Containerize the Spring Boot backend with a production-style multi-stage image | DONE | Image builds; Compose backend starts; login and feed APIs pass via `curl`; recovery after PostgreSQL restart verified in [Lesson 01](./01-containerize-spring-boot-backend.md) |
-| K8S-002 | Create a local cluster and learn `kubectl`, Pods, namespaces, labels, and selectors | TODO | Cluster inspection commands and a disposable Pod exercise are documented |
+| K8S-002 | Create a local cluster and learn `kubectl`, Pods, namespaces, labels, and selectors | DONE | kind cluster/node readiness, isolated context, namespace/Pod manifests, HTTP check, selector behavior, image-pull failure recovery, and bare-Pod deletion behavior verified in [Lesson 02](./02-local-cluster-kubectl-pods-labels.md) |
 | K8S-003 | Deploy the backend with a Deployment and expose it with a Service | TODO | Deployment becomes available; Service routes to multiple healthy Pods |
 | K8S-004 | Externalize application settings with ConfigMaps and Secrets | TODO | No runtime credentials in manifests; backend receives configuration correctly |
 | K8S-005 | Run PostgreSQL with persistent storage and understand StatefulSets | TODO | Data survives PostgreSQL Pod deletion and recreation |
@@ -30,6 +30,6 @@ Use this file to track hands-on Kubernetes learning for the Instagram project.
 
 ## Next 3 recommended
 
-1. `K8S-001` Containerize the backend
-2. `K8S-002` Local cluster and Kubernetes primitives
-3. `K8S-003` Backend Deployment and Service
+1. `K8S-003` Backend Deployment and Service
+2. `K8S-004` ConfigMaps and Secrets
+3. `K8S-005` PostgreSQL persistence and StatefulSets

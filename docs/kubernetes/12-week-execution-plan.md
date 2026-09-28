@@ -26,7 +26,7 @@ This schedule assumes roughly four to six focused hours per week. Slow down when
 5. Observe the controller status, events, logs, and application behavior.
 6. Introduce one controlled failure.
 7. Recover it and record why the recovery worked.
-8. Try each lesson question before clicking it to expand its explanation.
+8. Try each lesson question before reading its always-visible explained answer.
 9. Complete the teach-it-back prompt.
 10. Update the backlog, learning note, and commit map.
 
