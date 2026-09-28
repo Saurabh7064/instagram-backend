@@ -153,6 +153,12 @@ This file maps each commit to:
 - Concepts: active recall, optional answer reveal, question-to-explanation proximity, and consistent lesson interaction.
 - Docs: [Kubernetes Lesson 01](./kubernetes/01-containerize-spring-boot-backend.md), [Kubernetes Lesson 02](./kubernetes/02-local-cluster-kubectl-pods-labels.md), [Kubernetes Lesson Template](./kubernetes/_lesson-template.md)
 
+30. `7f1ace1`
+- Learning change: redesigned the Kubernetes course for true beginners by splitting the first two modules into thirteen prerequisite-ordered micro-lessons while retaining the original long chapters as optional references.
+- Concepts: progressive disclosure, vocabulary budgets, prerequisite resets, distributed retrieval practice, learner-paced stop/go gates, and separating implementation completion from demonstrated understanding.
+- Structure: six container micro-lessons, seven Kubernetes-primitives micro-lessons, concise module landing pages, a reusable micro-lesson template, and a learner-progress tracker.
+- Docs: [Kubernetes Module 01](./kubernetes/01-containerize-spring-boot-backend.md), [Kubernetes Module 02](./kubernetes/02-local-cluster-kubectl-pods-labels.md), [Kubernetes Learning Path](./kubernetes/README.md), [Learner Progress](./kubernetes/learner-progress.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`

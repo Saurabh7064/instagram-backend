@@ -97,6 +97,7 @@ If the explanation mixes up image/container or host/container `localhost`, revis
 
 - `c9007bf` added the Dockerfile, `.dockerignore`, Compose backend service, original lesson, and verified container/API evidence.
 - `877ca3a` expanded the original beginner explanations.
+- `7f1ace1` split the module into six beginner micro-lessons and preserved the original chapter as optional reference material.
 - The complete command evidence remains in the optional full reference.
 
 ## What comes next
