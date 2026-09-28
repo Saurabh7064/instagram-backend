@@ -1,6 +1,6 @@
 # 02C — kubectl, Kubeconfig, and Context
 
-**Time:** 10–15 minutes  
+**Time:** 10–15 minutes
 **Prerequisite:** [02B — The Control-Plane Request Journey](./02b-control-plane-request-journey.md)
 
 ## One thing you will learn

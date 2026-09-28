@@ -1,6 +1,6 @@
 # 02B — The Control-Plane Request Journey
 
-**Time:** 10–15 minutes  
+**Time:** 10–15 minutes
 **Prerequisite:** [02A — Why Kubernetes? Cluster and Node](./02a-why-kubernetes-cluster-node.md)
 
 ## One thing you will learn

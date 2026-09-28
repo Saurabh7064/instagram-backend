@@ -1,6 +1,6 @@
 # 02F — Namespaces, Labels, and Selectors
 
-**Time:** 10–15 minutes  
+**Time:** 10–15 minutes
 **Prerequisite:** [02E — Pods and Their Lifecycle](./02e-pods-lifecycle.md)
 
 ## One thing you will learn

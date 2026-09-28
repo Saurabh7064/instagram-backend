@@ -1,6 +1,6 @@
 # 02E — Pods and Their Lifecycle
 
-**Time:** 10–15 minutes  
+**Time:** 10–15 minutes
 **Prerequisite:** [02D — Desired State, Objects, and Manifests](./02d-desired-state-objects-manifests.md)
 
 ## One thing you will learn

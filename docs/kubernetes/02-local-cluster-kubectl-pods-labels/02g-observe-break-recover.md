@@ -1,6 +1,6 @@
 # 02G — Observe, Break, and Recover
 
-**Time:** 10–15 minutes  
+**Time:** 10–15 minutes
 **Prerequisite:** [02F — Namespaces, Labels, and Selectors](./02f-namespaces-labels-selectors.md)
 
 ## One thing you will learn

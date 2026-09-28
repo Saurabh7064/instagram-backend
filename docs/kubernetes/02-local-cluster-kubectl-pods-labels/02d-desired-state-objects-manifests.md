@@ -1,6 +1,6 @@
 # 02D — Desired State, Objects, and Manifests
 
-**Time:** 10–15 minutes  
+**Time:** 10–15 minutes
 **Prerequisite:** [02C — kubectl, Kubeconfig, and Context](./02c-kubectl-kubeconfig-context.md)
 
 ## One thing you will learn

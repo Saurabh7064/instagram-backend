@@ -1,6 +1,6 @@
 # 02A — Why Kubernetes? Cluster and Node
 
-**Time:** 10–15 minutes  
+**Time:** 10–15 minutes
 **Learning state:** Start here
 
 ## One thing you will learn
