@@ -148,6 +148,11 @@ This file maps each commit to:
 - Evidence: node readiness, NGINX HTTP response, label-selector changes, invalid-image failure and recovery, bare-Pod non-recreation, server-side manifest validation, and passing backend tests.
 - Docs: [Kubernetes Lesson 02](./kubernetes/02-local-cluster-kubectl-pods-labels.md), [Kubernetes Learning Backlog](./kubernetes/learning-backlog.md)
 
+29. `ae4e310`
+- Learning change: standardized Kubernetes self-checks so every question is the clickable summary of its own expandable block and its explained answer is contained inside that block.
+- Concepts: active recall, optional answer reveal, question-to-explanation proximity, and consistent lesson interaction.
+- Docs: [Kubernetes Lesson 01](./kubernetes/01-containerize-spring-boot-backend.md), [Kubernetes Lesson 02](./kubernetes/02-local-cluster-kubectl-pods-labels.md), [Kubernetes Lesson Template](./kubernetes/_lesson-template.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
