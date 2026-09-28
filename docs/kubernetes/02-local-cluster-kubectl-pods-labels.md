@@ -661,76 +661,395 @@ An imperative label or image change can make live state drift from Git. Reapplyi
 
 ## Check your understanding
 
-Try to answer every question in your own words before reading the answer key. The answers are intentionally visible and complete below; they are part of the lesson, not optional material.
+Try to answer each question in your own words before expanding it. Select a question to reveal its explanation.
 
 ### Part A — foundations
 
-1. What is a Kubernetes cluster?
-2. What is the difference between a cluster and a node?
-3. What is the control plane responsible for?
-4. What role does the API server play?
-5. What does the scheduler decide?
-6. What does kubelet do?
-7. Does `kubectl` normally start a container directly on a node?
-8. What is desired state?
-9. What is observed state?
-10. What does reconciliation mean?
-11. What is a Kubernetes object?
-12. What is a manifest?
+<details>
+<summary>1. What is a Kubernetes cluster?</summary>
+
+A cluster is the complete Kubernetes environment: its control plane plus one or more nodes and their networking and runtime components. It is the system within which Kubernetes objects and workloads exist.
+
+</details>
+
+<details>
+<summary>2. What is the difference between a cluster and a node?</summary>
+
+A cluster contains nodes. A node is one machine or machine-like worker that can run Pods; the cluster coordinates one or many nodes. This kind setup has one Docker container acting as both control-plane and worker node.
+
+</details>
+
+<details>
+<summary>3. What is the control plane responsible for?</summary>
+
+The control plane accepts desired state, stores cluster objects, schedules work, and runs control loops that reconcile actual state toward desired state.
+
+</details>
+
+<details>
+<summary>4. What role does the API server play?</summary>
+
+The API server is Kubernetes' front door. Clients and internal components read or change objects through its HTTP API; it validates requests and coordinates persistence of object state.
+
+</details>
+
+<details>
+<summary>5. What does the scheduler decide?</summary>
+
+The scheduler chooses a suitable node for a Pod that has not yet been assigned, considering constraints and available cluster information. It chooses placement; it does not itself start the container.
+
+</details>
+
+<details>
+<summary>6. What does kubelet do?</summary>
+
+Kubelet runs on a node. It watches Pods assigned to that node, asks the container runtime to start or stop containers, and reports observed Pod and container status.
+
+</details>
+
+<details>
+<summary>7. Does `kubectl` normally start a container directly on a node?</summary>
+
+No. `kubectl` sends an API request to the API server. The scheduler and node components perform placement and runtime work.
+
+</details>
+
+<details>
+<summary>8. What is desired state?</summary>
+
+Desired state is what the user or controller says should exist, commonly expressed in an object's `spec`—for example, a Pod using `nginx:1.27-alpine`.
+
+</details>
+
+<details>
+<summary>9. What is observed state?</summary>
+
+Observed state is what Kubernetes currently sees: assignment, phase, container state, IP, readiness, and other status information. Events add a history of notable actions and failures.
+
+</details>
+
+<details>
+<summary>10. What does reconciliation mean?</summary>
+
+Reconciliation is the repeated comparison of desired and observed state followed by action to reduce their difference. It is continuous control, not merely a one-time script.
+
+</details>
+
+<details>
+<summary>11. What is a Kubernetes object?</summary>
+
+A Kubernetes object is an API representation of intent or cluster state, such as a Pod, Namespace, Service, or Deployment. It has identity and structured fields stored through the API.
+
+</details>
+
+<details>
+<summary>12. What is a manifest?</summary>
+
+A manifest is a YAML or JSON document describing the object you want to submit. It is a version-controllable representation of desired configuration, not the running process itself.
+
+</details>
 
 ### Part B — manifests, Pods, and lifecycle
 
-13. What do `apiVersion`, `kind`, `metadata`, and `spec` mean?
-14. Who normally writes an object's `status`?
-15. What is a Pod?
-16. Why is a Pod not exactly the same as a container?
-17. Why is a Pod not a miniature virtual machine?
-18. What can containers in the same Pod share?
-19. Does Pod phase `Running` prove that an application is healthy?
-20. What is the difference between restarting a container and replacing a Pod?
-21. Why did the lesson Pod stay deleted instead of returning automatically?
-22. What changes when the deleted Pod is recreated from the same manifest?
+<details>
+<summary>13. What do `apiVersion`, `kind`, `metadata`, and `spec` mean?</summary>
+
+`apiVersion` selects an API group/version; `kind` selects the resource type; `metadata` identifies and organizes it; `spec` describes user-requested desired state specific to that type.
+
+</details>
+
+<details>
+<summary>14. Who normally writes an object's `status`?</summary>
+
+Kubernetes components normally populate and update `status` after observing the resource. Users declare `spec`; the platform reports status.
+
+</details>
+
+<details>
+<summary>15. What is a Pod?</summary>
+
+A Pod is Kubernetes' smallest schedulable workload object. It wraps one or more tightly coupled containers in a shared execution context.
+
+</details>
+
+<details>
+<summary>16. Why is a Pod not exactly the same as a container?</summary>
+
+A Pod may have several containers and owns their shared network identity, lifecycle placement, and declared volumes. A container is one process-isolation unit inside that Pod.
+
+</details>
+
+<details>
+<summary>17. Why is a Pod not a miniature virtual machine?</summary>
+
+A Pod does not include a complete guest operating system or kernel. Its containers share the node kernel and are designed to be replaceable.
+
+</details>
+
+<details>
+<summary>18. What can containers in the same Pod share?</summary>
+
+Containers in one Pod can share the Pod IP and network namespace, communicate through `localhost`, and mount declared shared volumes. They are also scheduled together.
+
+</details>
+
+<details>
+<summary>19. Does Pod phase `Running` prove that an application is healthy?</summary>
+
+No. `Running` is a broad lifecycle phase. The process may be starting, restarting, misconfigured, or returning failures. Readiness signals and useful application requests provide stronger evidence.
+
+</details>
+
+<details>
+<summary>20. What is the difference between restarting a container and replacing a Pod?</summary>
+
+A container restart occurs inside the same Pod; the Pod name and UID remain and restart count rises. Pod replacement creates a new Pod object/runtime identity, usually with a new UID and often a different IP.
+
+</details>
+
+<details>
+<summary>21. Why did the lesson Pod stay deleted instead of returning automatically?</summary>
+
+It was a bare Pod with no owning controller. Deleting the API object removed the desired state, so there was no Deployment or ReplicaSet asking Kubernetes to create a replacement.
+
+</details>
+
+<details>
+<summary>22. What changes when the deleted Pod is recreated from the same manifest?</summary>
+
+It receives a new server-generated UID and may receive a different Pod IP, even if its human-readable name and spec are identical. It is a new object instance.
+
+</details>
 
 ### Part C — kubeconfig, namespaces, labels, and selectors
 
-23. What information does kubeconfig contain?
-24. What is a context?
-25. Why did this lesson use a separate kubeconfig file?
-26. Does changing directories in the terminal change the kubectl context?
-27. What problem does a namespace solve?
-28. Can two namespaces each contain a Pod named `hello-kubernetes`?
-29. Are Nodes namespaced resources?
-30. Is a namespace automatically a complete security boundary?
-31. What is a label?
-32. Must labels be unique?
-33. What does a label selector do?
-34. In `app=demo,tier=web`, do both conditions need to match?
-35. What is the difference between a label and an annotation?
-36. Does a selector itself send network traffic to Pods?
+<details>
+<summary>23. What information does kubeconfig contain?</summary>
+
+Kubeconfig stores known clusters/API endpoints, user authentication information, contexts pairing users with clusters, the selected context, and optionally a default namespace.
+
+</details>
+
+<details>
+<summary>24. What is a context?</summary>
+
+A context selects one cluster, one user identity, and optionally one namespace. It determines the target and credentials used by a kubectl request.
+
+</details>
+
+<details>
+<summary>25. Why did this lesson use a separate kubeconfig file?</summary>
+
+The machine's default context pointed at an old remote GKE cluster. A separate file guarantees that lesson commands target only the local kind cluster without changing or relying on the user's global selection.
+
+</details>
+
+<details>
+<summary>26. Does changing directories in the terminal change the kubectl context?</summary>
+
+No. The current working directory does not select a Kubernetes cluster. Kubeconfig, context, command flags, and environment configuration do.
+
+</details>
+
+<details>
+<summary>27. What problem does a namespace solve?</summary>
+
+A namespace groups and scopes many resources within one cluster, allowing repeated names and attaching quotas, access rules, and policies to logical groups.
+
+</details>
+
+<details>
+<summary>28. Can two namespaces each contain a Pod named `hello-kubernetes`?</summary>
+
+Yes. Names must be unique for a given resource kind inside a namespace, not usually across the whole cluster.
+
+</details>
+
+<details>
+<summary>29. Are Nodes namespaced resources?</summary>
+
+No. Nodes are cluster-scoped. `kubectl api-resources --namespaced=false` reveals other cluster-scoped types.
+
+</details>
+
+<details>
+<summary>30. Is a namespace automatically a complete security boundary?</summary>
+
+No. Namespaces establish scope and grouping. Effective isolation also requires mechanisms such as RBAC, NetworkPolicies, quotas, admission rules, and careful credential handling.
+
+</details>
+
+<details>
+<summary>31. What is a label?</summary>
+
+A label is a key/value attribute intended to identify an object's meaningful dimensions so clients and Kubernetes resources can group and select it.
+
+</details>
+
+<details>
+<summary>32. Must labels be unique?</summary>
+
+No. Many objects commonly share a label such as `app=instagram-backend`. Labels are deliberately non-unique grouping metadata.
+
+</details>
+
+<details>
+<summary>33. What does a label selector do?</summary>
+
+A selector filters objects by their labels. It may match zero, one, or many objects.
+
+</details>
+
+<details>
+<summary>34. In `app=demo,tier=web`, do both conditions need to match?</summary>
+
+Both must match. Comma-separated selector requirements are combined with logical AND.
+
+</details>
+
+<details>
+<summary>35. What is the difference between a label and an annotation?</summary>
+
+Labels are designed for grouping and selection. Annotations store non-identifying supporting metadata that is not intended for selector queries.
+
+</details>
+
+<details>
+<summary>36. Does a selector itself send network traffic to Pods?</summary>
+
+No. It only identifies a set of objects. A Service can use a selector as part of its networking behavior, but the selector alone is not a router.
+
+</details>
 
 ### Part D — commands and evidence
 
-37. What question does `kubectl get` answer best?
-38. When is `kubectl describe` more useful than `get`?
-39. When are container logs useful?
-40. Why might logs be unavailable during `ImagePullBackOff`?
-41. What does `kubectl exec` do?
-42. What does `kubectl apply` do conceptually?
-43. Why use `kubectl wait` after applying a Pod?
-44. What does `kubectl delete` remove: only a running process, or the API object representing desired state?
+<details>
+<summary>37. What question does `kubectl get` answer best?</summary>
+
+`get` best answers which objects exist and what their summarized current state is. Output formats can reveal more fields, but its default view is an inventory/status overview.
+
+</details>
+
+<details>
+<summary>38. When is `kubectl describe` more useful than `get`?</summary>
+
+`describe` is useful when you need details such as node assignment, container state/reason, conditions, mounts, and recent events explaining why an object is not behaving as expected.
+
+</details>
+
+<details>
+<summary>39. When are container logs useful?</summary>
+
+Logs are useful after a container has started and its process writes diagnostics or request records to standard output/error. They help explain application-level startup and runtime behavior.
+
+</details>
+
+<details>
+<summary>40. Why might logs be unavailable during `ImagePullBackOff`?</summary>
+
+If the image cannot be pulled, the new container never starts, so it produces no logs. Pod status, `describe`, and events show the registry/image resolution failure instead.
+
+</details>
+
+<details>
+<summary>41. What does `kubectl exec` do?</summary>
+
+`exec` asks Kubernetes to run a command inside an existing container. It is useful for targeted inspection, but changes made interactively are not a durable substitute for manifests or rebuilt images.
+
+</details>
+
+<details>
+<summary>42. What does `kubectl apply` do conceptually?</summary>
+
+`apply` submits desired fields from a manifest and reconciles the live object configuration toward them. Reapplying the same intended configuration is repeatable.
+
+</details>
+
+<details>
+<summary>43. Why use `kubectl wait` after applying a Pod?</summary>
+
+API acceptance does not mean the container is ready. `wait` observes a specific condition until success or timeout, making the expected state explicit.
+
+</details>
+
+<details>
+<summary>44. What does `kubectl delete` remove: only a running process, or the API object representing desired state?</summary>
+
+`delete` removes the Kubernetes API object representing desired state. Kubernetes then stops associated runtime containers. Whether a replacement appears depends on an owning controller.
+
+</details>
 
 ### Part E — predict and troubleshoot
 
-45. You run `kubectl get pods` and see nothing, but the Pod exists in `instagram-learning`. What is the likely mistake?
-46. A Pod reports `ErrImagePull`, followed by `ImagePullBackOff`. What should you inspect first, and what does the backoff mean?
-47. A Pod is `Running` and `1/1`, but HTTP requests fail. What evidence should you gather next?
-48. You change `track=stable` to `track=canary`. What will selectors for each value return?
-49. The Instagram backend image exists in Docker on the laptop, but kind reports that it cannot pull it. Why?
-50. A bare Pod's container process crashes. How can that differ from deleting the entire Pod object?
-51. You accidentally omit `--kubeconfig` and the default context names a remote GKE cluster. What should you do before any mutation?
-52. Why does Compose hostname `postgres` not automatically resolve in this Kubernetes cluster?
-53. Why was NGINX chosen for this lesson instead of immediately running the Instagram backend?
-54. In one paragraph, describe the complete path from `kubectl apply` to a running NGINX container.
+<details>
+<summary>45. You run `kubectl get pods` and see nothing, but the Pod exists in `instagram-learning`. What is the likely mistake?</summary>
+
+The command likely queried the `default` namespace. Add `-n instagram-learning` or use `-A` to inspect all namespaces.
+
+</details>
+
+<details>
+<summary>46. A Pod reports `ErrImagePull`, followed by `ImagePullBackOff`. What should you inspect first, and what does the backoff mean?</summary>
+
+Inspect `describe pod` and namespace events first. `ErrImagePull` records a pull failure; `ImagePullBackOff` means Kubernetes is delaying repeated pull attempts rather than retrying continuously. The event message usually gives the concrete registry, tag, authentication, or network error.
+
+</details>
+
+<details>
+<summary>47. A Pod is `Running` and `1/1`, but HTTP requests fail. What evidence should you gather next?</summary>
+
+Inspect `describe`, events, and logs, then execute or port-forward an application-level request. `Running 1/1` only proves basic container state without a meaningful readiness probe.
+
+</details>
+
+<details>
+<summary>48. You change `track=stable` to `track=canary`. What will selectors for each value return?</summary>
+
+The stable selector returns no objects while the canary selector finds the Pod. Labels drive query membership immediately; the Pod name and image do not need to change.
+
+</details>
+
+<details>
+<summary>49. The Instagram backend image exists in Docker on the laptop, but kind reports that it cannot pull it. Why?</summary>
+
+The kind node has its own container runtime image store. The host Docker image is not automatically visible inside that store. Load it with `kind load docker-image ... --name instagram-learning` or push/pull it through a registry.
+
+</details>
+
+<details>
+<summary>50. A bare Pod's container process crashes. How can that differ from deleting the entire Pod object?</summary>
+
+With `restartPolicy: Always`, kubelet can restart the failed container inside the same existing Pod, increasing the restart count. Deleting the bare Pod removes the object itself, and no higher-level controller recreates it.
+
+</details>
+
+<details>
+<summary>51. You accidentally omit `--kubeconfig` and the default context names a remote GKE cluster. What should you do before any mutation?</summary>
+
+Stop and inspect the target. Use the explicit lesson kubeconfig and verify `kind-instagram-learning` before issuing any create, update, or delete command. Never test a destructive command to discover where it goes.
+
+</details>
+
+<details>
+<summary>52. Why does Compose hostname `postgres` not automatically resolve in this Kubernetes cluster?</summary>
+
+Compose and Kubernetes create different networks and service-discovery systems. A Compose service name has no meaning in Kubernetes unless a Kubernetes Service or matching DNS configuration is created there.
+
+</details>
+
+<details>
+<summary>53. Why was NGINX chosen for this lesson instead of immediately running the Instagram backend?</summary>
+
+The backend requires PostgreSQL, credentials/configuration, port exposure, and project image loading. NGINX isolates Pod, namespace, label, selector, and diagnostic learning so those dependencies do not obscure the fundamentals.
+
+</details>
+
+<details>
+<summary>54. In one paragraph, describe the complete path from `kubectl apply` to a running NGINX container.</summary>
+
+`kubectl` reads the explicit kubeconfig and sends the Pod manifest to the API server. The API server validates and stores the object. The scheduler assigns it to the kind node. Kubelet on that node observes the assignment and asks containerd to pull `nginx:1.27-alpine` and start it. Kubelet then reports Pod and container status, while events record scheduling, pulling, creation, and startup actions.
+
+</details>
 
 ### Teach it back
 
@@ -742,80 +1061,8 @@ Explain in two or three minutes, without reading commands:
 4. how you would diagnose a Pod that cannot start;
 5. why deleting this bare Pod does not demonstrate Kubernetes self-healing.
 
-## Answer key and explanations
-
-Every answer is always present and visible. Compare both your conclusion and your reasoning.
-
-### Part A — foundations
-
-1. A cluster is the complete Kubernetes environment: its control plane plus one or more nodes and their networking and runtime components. It is the system within which Kubernetes objects and workloads exist.
-2. A cluster contains nodes. A node is one machine or machine-like worker that can run Pods; the cluster coordinates one or many nodes. This kind setup has one Docker container acting as both control-plane and worker node.
-3. The control plane accepts desired state, stores cluster objects, schedules work, and runs control loops that reconcile actual state toward desired state.
-4. The API server is Kubernetes' front door. Clients and internal components read or change objects through its HTTP API; it validates requests and coordinates persistence of object state.
-5. The scheduler chooses a suitable node for a Pod that has not yet been assigned, considering constraints and available cluster information. It chooses placement; it does not itself start the container.
-6. Kubelet runs on a node. It watches Pods assigned to that node, asks the container runtime to start or stop containers, and reports observed Pod and container status.
-7. No. `kubectl` sends an API request to the API server. The scheduler and node components perform placement and runtime work.
-8. Desired state is what the user or controller says should exist, commonly expressed in an object's `spec`—for example, a Pod using `nginx:1.27-alpine`.
-9. Observed state is what Kubernetes currently sees: assignment, phase, container state, IP, readiness, and other status information. Events add a history of notable actions and failures.
-10. Reconciliation is the repeated comparison of desired and observed state followed by action to reduce their difference. It is continuous control, not merely a one-time script.
-11. A Kubernetes object is an API representation of intent or cluster state, such as a Pod, Namespace, Service, or Deployment. It has identity and structured fields stored through the API.
-12. A manifest is a YAML or JSON document describing the object you want to submit. It is a version-controllable representation of desired configuration, not the running process itself.
-
-### Part B — manifests, Pods, and lifecycle
-
-13. `apiVersion` selects an API group/version; `kind` selects the resource type; `metadata` identifies and organizes it; `spec` describes user-requested desired state specific to that type.
-14. Kubernetes components normally populate and update `status` after observing the resource. Users declare `spec`; the platform reports status.
-15. A Pod is Kubernetes' smallest schedulable workload object. It wraps one or more tightly coupled containers in a shared execution context.
-16. A Pod may have several containers and owns their shared network identity, lifecycle placement, and declared volumes. A container is one process-isolation unit inside that Pod.
-17. A Pod does not include a complete guest operating system or kernel. Its containers share the node kernel and are designed to be replaceable.
-18. Containers in one Pod can share the Pod IP and network namespace, communicate through `localhost`, and mount declared shared volumes. They are also scheduled together.
-19. No. `Running` is a broad lifecycle phase. The process may be starting, restarting, misconfigured, or returning failures. Readiness signals and useful application requests provide stronger evidence.
-20. A container restart occurs inside the same Pod; the Pod name and UID remain and restart count rises. Pod replacement creates a new Pod object/runtime identity, usually with a new UID and often a different IP.
-21. It was a bare Pod with no owning controller. Deleting the API object removed the desired state, so there was no Deployment or ReplicaSet asking Kubernetes to create a replacement.
-22. It receives a new server-generated UID and may receive a different Pod IP, even if its human-readable name and spec are identical. It is a new object instance.
-
-### Part C — kubeconfig, namespaces, labels, and selectors
-
-23. Kubeconfig stores known clusters/API endpoints, user authentication information, contexts pairing users with clusters, the selected context, and optionally a default namespace.
-24. A context selects one cluster, one user identity, and optionally one namespace. It determines the target and credentials used by a kubectl request.
-25. The machine's default context pointed at an old remote GKE cluster. A separate file guarantees that lesson commands target only the local kind cluster without changing or relying on the user's global selection.
-26. No. The current working directory does not select a Kubernetes cluster. Kubeconfig, context, command flags, and environment configuration do.
-27. A namespace groups and scopes many resources within one cluster, allowing repeated names and attaching quotas, access rules, and policies to logical groups.
-28. Yes. Names must be unique for a given resource kind inside a namespace, not usually across the whole cluster.
-29. No. Nodes are cluster-scoped. `kubectl api-resources --namespaced=false` reveals other cluster-scoped types.
-30. No. Namespaces establish scope and grouping. Effective isolation also requires mechanisms such as RBAC, NetworkPolicies, quotas, admission rules, and careful credential handling.
-31. A label is a key/value attribute intended to identify an object's meaningful dimensions so clients and Kubernetes resources can group and select it.
-32. No. Many objects commonly share a label such as `app=instagram-backend`. Labels are deliberately non-unique grouping metadata.
-33. A selector filters objects by their labels. It may match zero, one, or many objects.
-34. Both must match. Comma-separated selector requirements are combined with logical AND.
-35. Labels are designed for grouping and selection. Annotations store non-identifying supporting metadata that is not intended for selector queries.
-36. No. It only identifies a set of objects. A Service can use a selector as part of its networking behavior, but the selector alone is not a router.
-
-### Part D — commands and evidence
-
-37. `get` best answers which objects exist and what their summarized current state is. Output formats can reveal more fields, but its default view is an inventory/status overview.
-38. `describe` is useful when you need details such as node assignment, container state/reason, conditions, mounts, and recent events explaining why an object is not behaving as expected.
-39. Logs are useful after a container has started and its process writes diagnostics or request records to standard output/error. They help explain application-level startup and runtime behavior.
-40. If the image cannot be pulled, the new container never starts, so it produces no logs. Pod status, `describe`, and events show the registry/image resolution failure instead.
-41. `exec` asks Kubernetes to run a command inside an existing container. It is useful for targeted inspection, but changes made interactively are not a durable substitute for manifests or rebuilt images.
-42. `apply` submits desired fields from a manifest and reconciles the live object configuration toward them. Reapplying the same intended configuration is repeatable.
-43. API acceptance does not mean the container is ready. `wait` observes a specific condition until success or timeout, making the expected state explicit.
-44. `delete` removes the Kubernetes API object representing desired state. Kubernetes then stops associated runtime containers. Whether a replacement appears depends on an owning controller.
-
-### Part E — predict and troubleshoot
-
-45. The command likely queried the `default` namespace. Add `-n instagram-learning` or use `-A` to inspect all namespaces.
-46. Inspect `describe pod` and namespace events first. `ErrImagePull` records a pull failure; `ImagePullBackOff` means Kubernetes is delaying repeated pull attempts rather than retrying continuously. The event message usually gives the concrete registry, tag, authentication, or network error.
-47. Inspect `describe`, events, and logs, then execute or port-forward an application-level request. `Running 1/1` only proves basic container state without a meaningful readiness probe.
-48. The stable selector returns no objects while the canary selector finds the Pod. Labels drive query membership immediately; the Pod name and image do not need to change.
-49. The kind node has its own container runtime image store. The host Docker image is not automatically visible inside that store. Load it with `kind load docker-image ... --name instagram-learning` or push/pull it through a registry.
-50. With `restartPolicy: Always`, kubelet can restart the failed container inside the same existing Pod, increasing the restart count. Deleting the bare Pod removes the object itself, and no higher-level controller recreates it.
-51. Stop and inspect the target. Use the explicit lesson kubeconfig and verify `kind-instagram-learning` before issuing any create, update, or delete command. Never test a destructive command to discover where it goes.
-52. Compose and Kubernetes create different networks and service-discovery systems. A Compose service name has no meaning in Kubernetes unless a Kubernetes Service or matching DNS configuration is created there.
-53. The backend requires PostgreSQL, credentials/configuration, port exposure, and project image loading. NGINX isolates Pod, namespace, label, selector, and diagnostic learning so those dependencies do not obscure the fundamentals.
-54. `kubectl` reads the explicit kubeconfig and sends the Pod manifest to the API server. The API server validates and stores the object. The scheduler assigns it to the kind node. Kubelet on that node observes the assignment and asks containerd to pull `nginx:1.27-alpine` and start it. Kubelet then reports Pod and container status, while events record scheduling, pulling, creation, and startup actions.
-
-### Teach-it-back checklist
+<details>
+<summary>Teach-it-back checklist</summary>
 
 A strong explanation should:
 
@@ -826,6 +1073,8 @@ A strong explanation should:
 - explain namespaces as scope and labels/selectors as grouping;
 - choose `describe` and events for image-pull failures;
 - explain why a controller, not merely Kubernetes in general, is needed to replace a deleted Pod.
+
+</details>
 
 ## Evidence
 
