@@ -142,6 +142,12 @@ This file maps each commit to:
 - Concepts: accessible self-assessment, immediate feedback, and complete lesson artifacts.
 - Docs: [Kubernetes Lesson 01](./kubernetes/01-containerize-spring-boot-backend.md), [Kubernetes Lesson Template](./kubernetes/_lesson-template.md), [Kubernetes Learning Path](./kubernetes/README.md)
 
+28. `fa12b65`
+- Learning change: created an isolated local kind cluster and taught Kubernetes architecture, kubectl targeting, object manifests, Pods, namespaces, labels, selectors, observation, and basic failure diagnosis through a verified disposable-Pod exercise.
+- Concepts: control plane and node responsibilities, API-driven desired state, spec versus status, Pod/container lifecycle, namespace scope, label selection, `ImagePullBackOff` diagnosis, and bare-Pod ownership limitations.
+- Evidence: node readiness, NGINX HTTP response, label-selector changes, invalid-image failure and recovery, bare-Pod non-recreation, server-side manifest validation, and passing backend tests.
+- Docs: [Kubernetes Lesson 02](./kubernetes/02-local-cluster-kubectl-pods-labels.md), [Kubernetes Learning Backlog](./kubernetes/learning-backlog.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`

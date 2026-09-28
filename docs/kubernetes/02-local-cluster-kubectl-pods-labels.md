@@ -862,7 +862,7 @@ A strong explanation should:
 
 ## Commit pointers
 
-- Add the implementation and lesson commit after committing `K8S-002`.
+- `fa12b65` added the kind cluster configuration, namespace and Pod manifests, verified primitives lesson, teaching-standard alignment, and completed backlog entry.
 
 ## What comes next
 
