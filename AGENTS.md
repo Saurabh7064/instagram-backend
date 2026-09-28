@@ -77,11 +77,16 @@ Then:
 2. Mark it `IN_PROGRESS`.
 3. Use `docs/kubernetes/mastery-roadmap.md` and `docs/kubernetes/12-week-execution-plan.md` as guidance.
 4. Implement the project exercise and perform its required success and failure verification.
-5. Add or update a numbered learning note using `docs/kubernetes/_lesson-template.md`.
-   - Explain the concept in simple terms and state the problem it solves.
-   - Map it to this project with commands, observed evidence, code pointers, and pitfalls.
-   - Include a substantial question set (normally at least 15 across foundations, application, prediction, and troubleshooting). Make each question the summary of its own expandable `<details>` block, with the explained answer inside that block. Never omit an answer.
-   - Include a short teach-it-back prompt.
+5. Add or update a module landing page using `docs/kubernetes/_lesson-template.md` and micro-lessons using `docs/kubernetes/_micro-lesson-template.md`.
+   - Treat each backlog item as a module, not one continuous chapter. Split it into named 10–15 minute micro-lessons in prerequisite order.
+   - Assume no prior Kubernetes or container knowledge. State prerequisites and briefly teach any missing prerequisite one level earlier. Never use an unfamiliar term before defining it.
+   - Give each micro-lesson one primary idea, one concrete problem, and normally no more than 3–5 new terms. Preserve depth by adding micro-lessons instead of packing concepts together.
+   - Label content `Must understand`, `Useful later`, or `Optional deep dive`. The core path must be understandable without optional sections.
+   - Explain commands only after teaching the idea they demonstrate. Show the prediction, command or action, expected observation, and why it occurs.
+   - Put 3–6 checkpoint questions immediately after the concept they test. Make each question the summary of its own expandable `<details>` block, with its explained answer inside. Include at least 15 questions across the whole module and never omit an answer.
+   - End each micro-lesson with observable stop/go criteria. End the module with a recap, vocabulary cheat sheet, integrated exercise, controlled failure/recovery, and teach-it-back prompt.
+   - In chat, teach only one micro-lesson at a time. Ask 2–3 checkpoint questions and wait for the learner's attempt before advancing. If the learner is confused, step back one prerequisite level and introduce no additional terminology.
+   - Track comprehension separately in `docs/kubernetes/learner-progress.md`. Never mark a micro-lesson `UNDERSTOOD` merely because its code or lab is complete; require the learner to explain the idea and answer its checkpoint.
 6. Mark the item `DONE` only when its evidence is complete.
 7. Update `docs/commit-map.md` and commit all related changes.
 

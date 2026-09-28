@@ -2,12 +2,18 @@
 
 The goal is operational understanding, not memorizing YAML. Every topic should answer three questions: what Kubernetes is reconciling, how to observe it, and how the Instagram application behaves when it fails.
 
+This roadmap is a coverage map, not a lesson-size guide. One bullet may require several micro-lessons. Teach prerequisites before Kubernetes abstractions, and do not combine topics merely because they share a tier.
+
 ## Tier 0 — Prerequisites
 
-- Linux processes, ports, signals, filesystems, and environment variables
-- Container images, registries, tags, layers, and multi-stage builds
-- Container networking and persistent volumes
-- Basic YAML and HTTP health checks
+- Source code, compiled artifacts, JVMs, and running processes
+- HTTP requests, listening ports, `localhost`, and host/container port mappings
+- Environment variables, filesystems, disposable state, and persistent data
+- Basic YAML structure and indentation
+- Container images, containers, Dockerfiles, runtimes, registries, and tags
+- Image layers, build context, caching, and multi-stage builds
+- Container-to-container networking and service names
+- Process health versus application readiness
 
 Project exercise: build a small, non-root backend image and run it locally against PostgreSQL.
 

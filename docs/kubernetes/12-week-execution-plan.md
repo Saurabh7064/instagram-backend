@@ -2,6 +2,8 @@
 
 This schedule assumes roughly four to six focused hours per week. Slow down when a failure exercise is unclear; debugging is part of the curriculum.
 
+Weeks are pacing suggestions, not deadlines. Each week is a module split into foundations, guided examples, project practice, and failure/recovery with recap. Move on only when the learner can explain the problem in plain language, predict one behavior, and diagnose one simple failure. If not, repeat or add a micro-lesson without advancing the calendar.
+
 | Week | Learning goal | Project deliverable | Required verification |
 |---|---|---|---|
 | 1 | Containers and image lifecycle | Multi-stage, non-root backend image plus `.dockerignore` | Build image, run container, execute tests and API smoke calls |

@@ -1,99 +1,67 @@
-# NN - Lesson Title
+# NN - Module Title
 
-## Goal
+## Start here
 
-State what the learner will understand and be able to do by the end.
+State plainly:
 
-## In simple terms
+- what the learner is assumed to know;
+- what is taught from scratch;
+- what this module will accomplish;
+- what this module intentionally postpones.
 
-Explain the concept in plain language. Define unfamiliar terms when they first appear. Keep the first explanation short enough to retell from memory.
+If a prerequisite is missing, link to the exact micro-lesson that teaches it.
 
-## What problem does this solve?
+## Why this module exists
 
-Describe the real operational or development problem that exists without this concept. Include a concrete failure or limitation rather than saying only that it is a best practice.
+Describe the concrete development or operational problem before naming the Kubernetes solution.
 
-## Mental model
+## Micro-lesson path
 
-Give a small analogy or diagram when useful. State where the analogy stops matching the real Kubernetes behavior.
+| Part | Topic | Time | Prerequisite | Ready when |
+|---|---|---:|---|---|
+| NNA | First idea | 10–15 min | Explicit prerequisite | Observable mastery criterion |
+| NNB | Next idea | 10–15 min | NNA | Observable mastery criterion |
 
-## How it works
+Tell the learner to complete one row at a time rather than reading the whole module in one sitting.
 
-Explain the important mechanics and how Kubernetes moves from desired state to actual state.
+## Core path versus reference
 
-## Mapping to this project
+- **Core path:** link every required micro-lesson in order.
+- **Optional reference:** link the full-depth chapter, advanced notes, or large question bank.
+- **Project artifacts:** link the manifests, code, scripts, and configuration used by the module.
 
-Link the concept to exact backend or UI files and describe how it affects the Instagram application.
+## One-page recap
 
-## Hands-on exercise
+Summarize only the relationships that must be retained. Prefer one compact diagram and a short list over repeating each micro-lesson.
 
-### Predict
+## Vocabulary cheat sheet
 
-Write down what should happen before running commands.
+| Term | Plain meaning | Project example | Do not confuse it with |
+|---|---|---|---|
+| Example | One-sentence definition | Concrete project mapping | Commonly confused term |
+
+## Module practice
 
 ### Build
 
-List the smallest implementation steps and commands.
+Link to the integrated project exercise.
 
 ### Observe
 
-Record resource status, events, logs, API results, and other relevant evidence.
+List the evidence that proves useful behavior, not only process existence.
 
 ### Break and recover
 
-Introduce one safe, controlled failure. Diagnose and recover it, then explain why the recovery worked.
+Link to one safe controlled-failure exercise and its recovery explanation.
 
-## Common pitfalls
+## Teach it back
 
-List likely mistakes, their symptoms, and how to distinguish their causes.
-
-## Check your understanding
-
-Try each question in your own words before expanding its answer.
-
-Include at least 15 questions, grouped so the learner can progress from basics to reasoning:
-
-### Foundations
-
-Define and distinguish the lesson's important terms.
-
-<details>
-<summary>1. Example question?</summary>
-
-Write the explained answer here. State why it is correct, not only the final conclusion.
-
-</details>
-
-### Read the project configuration
-
-Explain important lines from the actual project artifacts.
-
-### Apply and predict
-
-Predict behavior in realistic project scenarios and explain why.
-
-### Troubleshoot
-
-Diagnose symptoms from commands, status, logs, events, and application behavior.
-
-For troubleshooting answers, name the evidence and the next command or action rather than supplying only a diagnosis.
-
-### Teach it back
-
-Explain the concept in two or three sentences as if teaching a developer who has never used Kubernetes.
-
-Do not create a separate answer-key section. Keep each answer inside the expandable block for its own question, and never omit an answer.
-
-Teach-it-back checklist:
-
-- Names the problem being solved.
-- Describes the Kubernetes resource or mechanism in simple terms.
-- Connects desired state, observed state, and controller action where relevant.
-- Includes one project example.
+Ask the learner to explain the module's problem, mechanism, project example, and one failure in their own words.
 
 ## Evidence
 
 - Tests:
-- Kubernetes resource state:
+- Resource state:
 - API verification:
 - Browser proof, if applicable:
 - Failure/recovery result:
@@ -108,4 +76,4 @@ Teach-it-back checklist:
 
 ## What comes next
 
-Explain how this lesson prepares the learner for the next backlog item.
+Name the next module and the exact understanding this module provides for it.
