@@ -159,6 +159,12 @@ This file maps each commit to:
 - Structure: six container micro-lessons, seven Kubernetes-primitives micro-lessons, concise module landing pages, a reusable micro-lesson template, and a learner-progress tracker.
 - Docs: [Kubernetes Module 01](./kubernetes/01-containerize-spring-boot-backend.md), [Kubernetes Module 02](./kubernetes/02-local-cluster-kubectl-pods-labels.md), [Kubernetes Learning Path](./kubernetes/README.md), [Learner Progress](./kubernetes/learner-progress.md)
 
+31. `7340b34`
+- Learning change: added one beginner-first path that interleaves Kubernetes, Terraform, AWS, and current DevOps practices without treating them as four simultaneous full courses.
+- Concepts: spiral learning, explicit tool ownership, local-first Kubernetes, preview-first infrastructure as code, short-lived EKS milestone labs, cloud cost/destruction gates, CI with OIDC, GitOps, supply-chain security, observability, and separate implementation/comprehension evidence.
+- Structure: 20 dependency-ordered stages, a six-part readiness module, project backlog, learner tracker, current/core-versus-later toolchain, AWS/Terraform safety rules, and the `next devops` workflow trigger.
+- Docs: [Integrated DevOps Path](./devops/README.md), [Stage 00](./devops/00-readiness-and-safety.md), [20-Stage Plan](./devops/20-stage-execution-plan.md), [Toolchain](./devops/toolchain.md), [Cloud Safety](./devops/cloud-safety.md), [Learner Progress](./devops/learner-progress.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
