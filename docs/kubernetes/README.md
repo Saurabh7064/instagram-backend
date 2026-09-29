@@ -12,7 +12,7 @@ This track teaches Kubernetes by progressively deploying and operating this Inst
 6. Write or update a numbered note under this directory.
 7. Mark the item `DONE`, update [Commit Map](../commit-map.md), and commit the learning change.
 
-Use the [12-Week Execution Plan](./12-week-execution-plan.md) for the recommended sequence and pace.
+Use the [12-Week Execution Plan](./12-week-execution-plan.md) when studying Kubernetes as a standalone track. When learning Kubernetes together with Terraform, AWS, and modern DevOps practices, use the [Integrated DevOps Learning Path](../devops/README.md) as the primary sequence and return here for Kubernetes depth.
 
 ## Lessons
 

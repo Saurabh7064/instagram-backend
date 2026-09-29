@@ -23,11 +23,12 @@ If a change does not affect behavior (for example formatting-only), diary update
 
 ## Command Protocol
 
-Use these three commands as workflow triggers:
+Use these four commands as workflow triggers:
 
 1. `next feature`
 2. `next concept`
 3. `next kubernetes`
+4. `next devops`
 
 ### `next feature` behavior
 
@@ -89,6 +90,39 @@ Then:
    - Track comprehension separately in `docs/kubernetes/learner-progress.md`. Never mark a micro-lesson `UNDERSTOOD` merely because its code or lab is complete; require the learner to explain the idea and answer its checkpoint.
 6. Mark the item `DONE` only when its evidence is complete.
 7. Update `docs/commit-map.md` and commit all related changes.
+
+### `next devops` behavior
+
+Use this command for the integrated Kubernetes + Terraform + AWS + DevOps path. Do not advance the standalone Kubernetes calendar separately when the learner is following this path; the integrated backlog decides the order.
+
+Before starting:
+1. Verify no previous item is left `IN_PROGRESS` in `docs/devops/learning-backlog.md`.
+2. Verify the previous item's note, learner-progress entry, and `docs/commit-map.md` are current.
+3. Verify both repos have clean git working trees.
+4. If the milestone can change AWS resources, verify the intended AWS account and region, the budget/anomaly-alert setup, expected cost class, resource tags, and teardown plan before doing anything billable.
+
+Then:
+1. Pick the next `TODO` milestone from `docs/devops/learning-backlog.md` (top-down unless the user overrides).
+2. Mark it `IN_PROGRESS`.
+3. Use `docs/devops/integrated-roadmap.md`, `docs/devops/20-stage-execution-plan.md`, `docs/devops/toolchain.md`, and `docs/devops/cloud-safety.md` as guidance.
+4. Split the milestone into prerequisite-ordered 10–15 minute micro-lessons. Reuse the teaching structure in `docs/kubernetes/_micro-lesson-template.md`:
+   - assume no prior Kubernetes, Terraform, AWS, networking, IAM, YAML, or Linux knowledge unless it was demonstrated;
+   - teach one primary idea and at most one small supporting connection at a time;
+   - explain in simple terms, start with the problem, define every new term, and label optional depth;
+   - use prediction -> action -> observation -> explanation;
+   - include 3–6 checkpoint questions per micro-lesson, with each answer and explanation inside that question's expandable `<details>` block;
+   - teach one micro-lesson at a time in chat and stop for the learner's attempt.
+5. Prefer the local kind cluster and local Terraform exercises. For an AWS milestone:
+   - use short-lived IAM role or IAM Identity Center credentials, never committed/static access keys;
+   - run formatting, validation, lint/security checks, and show a reviewed `terraform plan` first;
+   - list every potentially billable resource and obtain explicit user confirmation in the current turn before `terraform apply` creates paid resources;
+   - never destroy cloud resources without explicit confirmation and a data/backup review;
+   - use immutable image tags/digests, least privilege, and a documented same-session cleanup path;
+   - independently verify teardown and record any remaining billable resources.
+6. Implement the project exercise and perform required success, controlled-failure, recovery, cost, and teardown verification.
+7. Keep tool ownership separate: Terraform owns AWS infrastructure; GitHub Actions owns CI; Argo CD owns Git-based application delivery; Kubernetes owns workload reconciliation. Do not make Terraform and Argo CD manage the same application objects.
+8. Mark the project milestone `DONE` only when its artifact and evidence are complete. Track comprehension separately in `docs/devops/learner-progress.md`; never infer understanding from a successful lab. Require a plain-language explanation, a correct prediction, and a diagnosed failure before `DEMONSTRATED`, then recheck later before `RETAINED`.
+9. Update `docs/commit-map.md` and commit all related changes.
 
 ## Test Stack Standard
 

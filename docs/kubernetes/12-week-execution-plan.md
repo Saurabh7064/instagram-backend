@@ -1,5 +1,7 @@
 # 12-Week Kubernetes Execution Plan
 
+> This remains the standalone Kubernetes plan. For the beginner path that interleaves Kubernetes with Terraform, AWS, CI/GitOps, security, observability, and cost, use the [20-Stage Integrated DevOps Execution Plan](../devops/20-stage-execution-plan.md). Do not advance both calendars independently.
+
 This schedule assumes roughly four to six focused hours per week. Slow down when a failure exercise is unclear; debugging is part of the curriculum.
 
 Weeks are pacing suggestions, not deadlines. Each week is a module split into foundations, guided examples, project practice, and failure/recovery with recap. Move on only when the learner can explain the problem in plain language, predict one behavior, and diagnose one simple failure. If not, repeat or add a micro-lesson without advancing the calendar.

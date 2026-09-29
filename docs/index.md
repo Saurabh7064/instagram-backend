@@ -32,6 +32,14 @@
 - [12-Week Kubernetes Execution Plan](./kubernetes/12-week-execution-plan.md)
 - [Kubernetes Lesson 01: Containerize the Spring Boot Backend](./kubernetes/01-containerize-spring-boot-backend.md)
 - [Kubernetes Lesson 02: Local Cluster and Core Primitives](./kubernetes/02-local-cluster-kubectl-pods-labels.md)
+- [Integrated Kubernetes + Terraform + AWS + DevOps Path](./devops/README.md)
+- [DevOps Stage 00: Readiness and Safety](./devops/00-readiness-and-safety.md)
+- [Integrated DevOps Roadmap](./devops/integrated-roadmap.md)
+- [20-Stage Integrated DevOps Plan](./devops/20-stage-execution-plan.md)
+- [Integrated DevOps Learning Backlog](./devops/learning-backlog.md)
+- [Integrated DevOps Learner Progress](./devops/learner-progress.md)
+- [Current DevOps Toolchain](./devops/toolchain.md)
+- [AWS and Terraform Safety Rules](./devops/cloud-safety.md)
 - [Commit Map](./commit-map.md)
 
 ## UI Docs
