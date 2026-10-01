@@ -105,6 +105,7 @@ If you say kubectl starts the container directly, revisit 02B. If context target
 - `fa12b65` added the isolated kind cluster, namespace and Pod manifests, original detailed lesson, selector exercise, controlled image failure, recovery, and bare-Pod evidence.
 - `b83c4d3` added the original commit mapping.
 - `7f1ace1` split the module into seven beginner micro-lessons and preserved the original chapter as optional reference material.
+- `490111a` fixed the first-time setup order so the core path creates or reuses the cluster before querying it, restores missing kubeconfig safely, waits before container access, and postpones Pod deletion until after the main recovery exercise.
 - The local `instagram-learning` cluster and lesson Pod were verified before this readability refactor.
 
 ## What comes next

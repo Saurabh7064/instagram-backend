@@ -165,6 +165,12 @@ This file maps each commit to:
 - Structure: 20 dependency-ordered stages, a six-part readiness module, project backlog, learner tracker, current/core-versus-later toolchain, AWS/Terraform safety rules, and the `next devops` workflow trigger.
 - Docs: [Integrated DevOps Path](./devops/README.md), [Stage 00](./devops/00-readiness-and-safety.md), [20-Stage Plan](./devops/20-stage-execution-plan.md), [Toolchain](./devops/toolchain.md), [Cloud Safety](./devops/cloud-safety.md), [Learner Progress](./devops/learner-progress.md)
 
+32. `490111a`
+- Learning fix: repaired the Kubernetes Module 02 prerequisite chain so a first-time learner checks tools, creates or reuses `instagram-learning`, and prepares its isolated kubeconfig before any node or API query.
+- Concepts: explicit setup preconditions, safe create-versus-reuse branching, prerequisite ordering, readiness synchronization, and restoring state after destructive learning exercises.
+- Additional fixes: aligned the 02C prerequisite, added a readiness wait before `exec`, moved bare-Pod deletion after the image recovery lab, and recorded 02A as `LEARNING` rather than inferred understanding.
+- Docs: [Kubernetes Module 02](./kubernetes/02-local-cluster-kubectl-pods-labels.md), [02A Cluster Setup](./kubernetes/02-local-cluster-kubectl-pods-labels/02a-why-kubernetes-cluster-node.md), [Kubernetes Learner Progress](./kubernetes/learner-progress.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
