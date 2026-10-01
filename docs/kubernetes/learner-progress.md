@@ -25,7 +25,7 @@ Never mark a part `UNDERSTOOD` merely because commands succeeded or the module b
 
 | Part | Topic | Status | Evidence of understanding |
 |---|---|---|---|
-| [02A](./02-local-cluster-kubectl-pods-labels/02a-why-kubernetes-cluster-node.md) | Why Kubernetes; cluster and node | NOT_ASSESSED |  |
+| [02A](./02-local-cluster-kubectl-pods-labels/02a-why-kubernetes-cluster-node.md) | Why Kubernetes; cluster and node | LEARNING | 2026-09-30: learner started the part and correctly identified that node inspection assumed an uncreated cluster. Lesson setup order was corrected; conceptual checkpoint not attempted yet. |
 | [02B](./02-local-cluster-kubectl-pods-labels/02b-control-plane-request-journey.md) | Control-plane request journey | NOT_ASSESSED |  |
 | [02C](./02-local-cluster-kubectl-pods-labels/02c-kubectl-kubeconfig-context.md) | kubectl, kubeconfig, and context | NOT_ASSESSED |  |
 | [02D](./02-local-cluster-kubectl-pods-labels/02d-desired-state-objects-manifests.md) | Desired state, objects, and manifests | NOT_ASSESSED |  |

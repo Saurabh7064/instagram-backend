@@ -97,7 +97,17 @@ If the Pod shows `Running` and `1/1`, will that alone prove NGINX returns an HTT
 
 ### Try it
 
-First inspect the summary:
+First wait for the Pod created in 02D to become ready. This prevents a fast reader from trying to enter the container while its image is still being pulled or its process is still starting:
+
+```bash
+kubectl --kubeconfig /tmp/instagram-learning-kubeconfig \
+  wait --for=condition=Ready \
+  pod/hello-kubernetes \
+  -n instagram-learning \
+  --timeout=120s
+```
+
+Then inspect the summary:
 
 ```bash
 kubectl --kubeconfig /tmp/instagram-learning-kubeconfig \
@@ -115,11 +125,11 @@ kubectl --kubeconfig /tmp/instagram-learning-kubeconfig \
 
 ### Expected result
 
-The summary should eventually show `Running` and `1/1`. The second command should return NGINX welcome-page HTML.
+The wait command should report that the condition was met. The summary should show `Running` and `1/1`. The HTTP command should return NGINX welcome-page HTML.
 
 ### Why this result occurs
 
-The first command reports lifecycle information. The second command asks the running container to perform a real HTTP request through the Pod's own network. That request provides stronger evidence that a web process is listening and responding.
+The wait command prevents a startup race before `exec`. The summary reports lifecycle information. The final command asks the running container to perform a real HTTP request through the Pod's own network. That request provides stronger evidence that a web process is listening and responding.
 
 ## Pause and check
 

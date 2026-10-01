@@ -112,7 +112,13 @@ kubectl --kubeconfig /tmp/instagram-learning-kubeconfig \
 kind-instagram-learning
 ```
 
-If the file was removed while the cluster still exists, restore it safely:
+If the file is missing, first check whether the cluster still exists:
+
+```bash
+kind get clusters
+```
+
+If `instagram-learning` is absent, return to the create-or-reuse exercise in 02A. If it is listed, restore the separate connection file safely:
 
 ```bash
 kind export kubeconfig \

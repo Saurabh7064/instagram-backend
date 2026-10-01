@@ -71,17 +71,7 @@ For the real backend, a pulled and started image can still fail because PostgreS
 
 The current Pod was applied directly and has no higher-level owner. If you delete the Pod object, nothing recreates it automatically. The next Kubernetes module introduces a Deployment, which keeps a requested number of Pods present.
 
-You can prove the current behavior after the main recovery:
-
-```bash
-kubectl --kubeconfig /tmp/instagram-learning-kubeconfig \
-  delete pod hello-kubernetes -n instagram-learning --wait=true
-
-kubectl --kubeconfig /tmp/instagram-learning-kubeconfig \
-  get pods -n instagram-learning
-```
-
-Expected: no Pod returns. Restore it by reapplying [pod.yaml](/Users/saurabh/Documents/Learning/instagram-backend/k8s/learning/02-primitives/pod.yaml).
+Do not delete it yet. The main failure/recovery exercise below needs the healthy Pod. A final section performs the deletion only after that exercise and includes the restoration commands.
 
 <details>
 <summary>Optional deep dive</summary>
@@ -163,6 +153,37 @@ kubectl --kubeconfig /tmp/instagram-learning-kubeconfig \
 ### Expected recovery result
 
 The Pod returns to ready state and the final request returns NGINX HTML. Recovery works because the manifest restores the valid `nginx:1.27-alpine` desired image.
+
+### Final proof: delete the bare Pod, then restore it
+
+Predict first: because this Pod has no higher-level owner, will Kubernetes recreate it after deletion?
+
+Delete it and observe the empty namespace:
+
+```bash
+kubectl --kubeconfig /tmp/instagram-learning-kubeconfig \
+  delete pod hello-kubernetes -n instagram-learning --wait=true
+
+kubectl --kubeconfig /tmp/instagram-learning-kubeconfig \
+  get pods -n instagram-learning
+```
+
+Expected: no Pod returns. Kubernetes accepted the deletion, and no Deployment or other owner is requesting a replacement.
+
+Restore the lesson's desired state before finishing:
+
+```bash
+kubectl --kubeconfig /tmp/instagram-learning-kubeconfig \
+  apply -f k8s/learning/02-primitives/pod.yaml
+
+kubectl --kubeconfig /tmp/instagram-learning-kubeconfig \
+  wait --for=condition=Ready \
+  pod/hello-kubernetes \
+  -n instagram-learning \
+  --timeout=120s
+```
+
+Expected: the manifest creates the Pod again and the wait command reports that it is ready. This is a manual restoration, not automatic recreation.
 
 ## Pause and check
 

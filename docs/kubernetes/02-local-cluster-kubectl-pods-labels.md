@@ -4,7 +4,7 @@
 
 This module assumes only one container idea from Module 01: an image is a stored template and a container is a running instance. If that distinction is unclear, read [01B](./01-containerize-spring-boot-backend/01b-image-container-and-dockerfile.md) first.
 
-No Kubernetes, YAML, cloud, or cluster knowledge is assumed. YAML structure, cluster vocabulary, safe command targeting, Pods, namespaces, labels, and troubleshooting are introduced in separate parts.
+No Kubernetes, YAML, cloud, or cluster knowledge is assumed. YAML structure, cluster vocabulary, safe local-cluster creation, command targeting, Pods, namespaces, labels, and troubleshooting are introduced in separate parts. The 02A exercise checks that Docker and kind are available, then creates or safely reuses the lesson cluster before inspecting it.
 
 This module does **not** deploy the Instagram backend yet. It uses one simple NGINX Pod so database configuration cannot hide the Kubernetes fundamentals. The backend Deployment and Service belong to Module 03.
 
@@ -20,9 +20,9 @@ Kubernetes provides that system. Before using higher-level resources such as Dep
 
 | Part | Learn one thing | Time | Start when | Ready when |
 |---|---|---:|---|---|
-| [02A](./02-local-cluster-kubectl-pods-labels/02a-why-kubernetes-cluster-node.md) | Why Kubernetes exists; cluster versus node | 10–15 min | Image/container distinction is clear | You can explain why Docker alone is not orchestration |
+| [02A](./02-local-cluster-kubectl-pods-labels/02a-why-kubernetes-cluster-node.md) | Why Kubernetes exists; cluster versus node; create or reuse the local cluster | 10–15 min plus cluster startup | Image/container distinction is clear | You can explain the two terms and inspect one node only after its cluster exists |
 | [02B](./02-local-cluster-kubectl-pods-labels/02b-control-plane-request-journey.md) | Who accepts, schedules, and starts work | 10–15 min | 02A is clear | You can retell the request path without saying kubectl starts containers |
-| [02C](./02-local-cluster-kubectl-pods-labels/02c-kubectl-kubeconfig-context.md) | Safe kubectl targeting | 10–15 min | 02A is clear | You verify the local context before mutation |
+| [02C](./02-local-cluster-kubectl-pods-labels/02c-kubectl-kubeconfig-context.md) | Safe kubectl targeting | 10–15 min | 02B is clear | You verify the local context before mutation |
 | [02D](./02-local-cluster-kubectl-pods-labels/02d-desired-state-objects-manifests.md) | Object, manifest, spec, status, reconciliation | 10–15 min | 02B and 02C are clear | You can separate what you request from what Kubernetes observes |
 | [02E](./02-local-cluster-kubectl-pods-labels/02e-pods-lifecycle.md) | Pod and container lifecycle | 10–15 min | 02D is clear | You can distinguish Running, Ready, restart, and replacement |
 | [02F](./02-local-cluster-kubectl-pods-labels/02f-namespaces-labels-selectors.md) | Scope and grouping | 10–15 min | 02D and 02E are clear | You can predict which Pods a selector matches |
@@ -83,7 +83,7 @@ Keep these distinctions:
 
 The practical work is distributed so every command has a concept behind it:
 
-1. Inspect the cluster and node in [02A](./02-local-cluster-kubectl-pods-labels/02a-why-kubernetes-cluster-node.md).
+1. Check for, create or reuse, and then inspect the cluster and node in [02A](./02-local-cluster-kubectl-pods-labels/02a-why-kubernetes-cluster-node.md).
 2. Verify the isolated kubeconfig and context in [02C](./02-local-cluster-kubectl-pods-labels/02c-kubectl-kubeconfig-context.md).
 3. Read and apply the manifests in [02D](./02-local-cluster-kubectl-pods-labels/02d-desired-state-objects-manifests.md).
 4. Verify Pod readiness and HTTP behavior in [02E](./02-local-cluster-kubectl-pods-labels/02e-pods-lifecycle.md).

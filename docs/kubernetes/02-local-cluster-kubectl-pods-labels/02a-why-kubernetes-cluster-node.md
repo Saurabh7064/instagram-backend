@@ -1,6 +1,6 @@
 # 02A — Why Kubernetes? Cluster and Node
 
-**Time:** 10–15 minutes
+**Time:** 10–15 minutes of explanation, plus up to a few minutes for first-time cluster creation
 **Learning state:** Start here
 
 ## One thing you will learn
@@ -19,7 +19,7 @@ You do **not** need to know Kubernetes commands, YAML, networking, or cloud infr
 
 ## Vocabulary budget
 
-This micro-lesson introduces four terms:
+This micro-lesson introduces five terms:
 
 | Term | Plain meaning |
 |---|---|
@@ -27,6 +27,7 @@ This micro-lesson introduces four terms:
 | workload | An application or task that Kubernetes runs |
 | cluster | The complete Kubernetes environment |
 | node | One machine-like worker inside a cluster |
+| kind | A tool that creates a local Kubernetes cluster using Docker containers as nodes |
 
 ## The problem first
 
@@ -85,7 +86,7 @@ See [kind-cluster.yaml](/Users/saurabh/Documents/Learning/instagram-backend/k8s/
 
 ## Useful later
 
-The local cluster is created with **kind**, a learning tool whose name means “Kubernetes IN Docker.” Its node is itself a Docker container on the laptop. That is convenient for learning, but production nodes are usually virtual or physical machines.
+The name **kind** means “Kubernetes IN Docker.” Its local node is itself a Docker container on the laptop. That is convenient for learning, but production nodes are usually virtual or physical machines.
 
 <details>
 <summary>Optional deep dive</summary>
@@ -97,6 +98,69 @@ You do not need that architecture detail to continue.
 </details>
 
 ## Tiny exercise
+
+Before we can ask kind for the cluster's nodes, the cluster must exist. This exercise deliberately handles both possible starting states:
+
+- a new learner who has no `instagram-learning` cluster yet;
+- a returning learner whose cluster already exists.
+
+Run the commands from the repository root:
+
+```bash
+cd /Users/saurabh/Documents/Learning/instagram-backend
+```
+
+### 1. Check the three tool prerequisites
+
+kind uses Docker to run its local node, so Docker must be running and kind must be installed. Later exercises use `kubectl`, the command-line client for talking to Kubernetes; 02C explains it fully. For now, only verify that all three tools are available:
+
+```bash
+docker info --format 'Docker server: {{.ServerVersion}}'
+kind version
+kubectl version --client
+```
+
+The commands should print Docker, kind, and kubectl version information. If any command fails, stop here; the lab setup is incomplete and there is no safe reason to continue to cluster inspection.
+
+### 2. Check before creating
+
+This read-only command lists existing kind clusters:
+
+```bash
+kind get clusters
+```
+
+There are two valid outcomes:
+
+- If `instagram-learning` is listed, do not create it again. Refresh the lesson's separate connection file:
+
+  ```bash
+  kind export kubeconfig \
+    --name instagram-learning \
+    --kubeconfig /tmp/instagram-learning-kubeconfig
+  ```
+
+- If `instagram-learning` is not listed, create it now:
+
+  ```bash
+  kind create cluster \
+    --name instagram-learning \
+    --config k8s/learning/02-primitives/kind-cluster.yaml \
+    --kubeconfig /tmp/instagram-learning-kubeconfig \
+    --wait 120s
+  ```
+
+What the creation command says:
+
+| Part | Plain meaning |
+|---|---|
+| `create cluster` | Create a new local Kubernetes environment |
+| `--name instagram-learning` | Give this cluster a predictable name |
+| `--config ...kind-cluster.yaml` | Use the project's one-node cluster description |
+| `--kubeconfig /tmp/...` | Write a separate connection file instead of changing the default one |
+| `--wait 120s` | Wait up to 120 seconds for the control-plane node to become ready |
+
+The connection file is explained properly in 02C. For now, its purpose is simply to keep this lesson cluster separate from any other Kubernetes cluster configured on the computer.
 
 ### Predict
 
@@ -116,7 +180,7 @@ You should see one node named similarly to:
 instagram-learning-control-plane
 ```
 
-If kind reports that the cluster does not exist, stop here rather than creating something blindly. The complete cluster-creation command appears later in the guided lab.
+If kind reports that the cluster does not exist here, return to Step 2 above. The create-or-reuse decision must happen before this command.
 
 ### Why this result occurs
 
@@ -154,13 +218,21 @@ No. One node is a deliberate simplification for local learning. Kubernetes suppo
 
 </details>
 
+<details>
+<summary>5. Why do we run `kind get clusters` before `kind create cluster`?</summary>
+
+It tells us which starting state we are in. If `instagram-learning` already exists, trying to create it again fails and hides the real lesson behind a setup error. If it does not exist, the creation command is necessary before `kind get nodes` can return anything. Checking first makes the exercise safe for both new and returning learners.
+
+</details>
+
 ## Stop/go check
 
 Continue to 02B only when you can say, without rereading:
 
 - the operational problem Kubernetes begins to solve;
 - the difference between a cluster and a node;
-- why the existing container image comes before Kubernetes.
+- why the existing container image comes before Kubernetes;
+- why cluster creation or reuse must happen before node inspection.
 
 If those still blur together, redraw the three-line cluster diagram and explain it using the Instagram backend as the workload.
 

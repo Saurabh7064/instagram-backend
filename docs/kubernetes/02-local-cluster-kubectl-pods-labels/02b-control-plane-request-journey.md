@@ -9,7 +9,7 @@ You will be able to tell the story of how a request moves from Kubernetes' front
 
 ## Assumptions
 
-You already know that a cluster is the complete Kubernetes environment and that a node is a machine-like worker inside it. You do not need to know the Kubernetes command line or YAML yet.
+You already know that a cluster is the complete Kubernetes environment and that a node is a machine-like worker inside it. You created or safely reused the `instagram-learning` cluster in 02A, which also created or refreshed `/tmp/instagram-learning-kubeconfig`. You do not need to understand that connection file yet; 02C teaches it.
 
 ## Vocabulary budget
 
@@ -115,7 +115,7 @@ The output should include a line beginning with something like:
 Kubernetes control plane is running at https://...
 ```
 
-The exact address can differ. If the temporary file is missing, do not switch to an unknown default cluster; 02C explains how to restore and verify it safely.
+The exact address can differ. If the command says the temporary file or cluster is missing, do not switch to an unknown default cluster. Return to the create-or-reuse steps in 02A; 02C then explains how the connection file targets the cluster.
 
 ### Why this result occurs
 
