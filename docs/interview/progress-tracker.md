@@ -16,8 +16,8 @@ Update this file once per week. Evidence should link to notes, problem logs, moc
 
 | Area | Target | Current | Status | Next action |
 |---|---:|---:|---|---|
-| Coding patterns mastered | 12 | 0 | NOT_STARTED | Start arrays/hash maps |
-| Problems mastered | 130 | 0 | NOT_STARTED | Log first timed set |
+| Coding patterns mastered | 12 | 0 | LEARNING | Complete [Arrays and Hash Maps](./01-coding/lessons/01-arrays-hash-maps.md) |
+| Problems mastered | 130 | 0 | LEARNING | Record the timed baseline honestly |
 | System designs completed | 15 | 0 | NOT_STARTED | Design URL shortener |
 | Behavioral stories rehearsed | 8 | 0 | NOT_STARTED | Draft technical challenge story |
 | Project deep-dives ready | 2 | 0 | NOT_STARTED | Select Nike and U.S. Bank examples |
@@ -28,6 +28,12 @@ Update this file once per week. Evidence should link to notes, problem logs, moc
 | Active interview processes | 3+ | 0 | NOT_STARTED | Build target-company list |
 
 Status values: `NOT_STARTED`, `LEARNING`, `PRACTICING`, `INTERVIEW_READY`, `RETAINED`.
+
+## Active lesson
+
+- Day: [2026-10-04 — Coding Baseline and Arrays + Hash Maps](./daily/2026-10-04-day-01.md)
+- Status: `LEARNING`
+- Completion requires: timed evidence, at least 6/8 checkpoints correct before answer reveal, and scheduled spaced reviews.
 
 ## Weekly review template
 

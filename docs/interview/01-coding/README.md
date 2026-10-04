@@ -19,6 +19,12 @@ Recognize the pattern, explain a baseline approach, implement the improved solut
 11. One-dimensional dynamic programming
 12. Two-dimensional dynamic programming
 
+## Lessons
+
+1. [Arrays and Hash Maps in Java](./lessons/01-arrays-hash-maps.md) — `LEARNING`
+
+Current session: [Day 1 — Coding Baseline and Arrays + Hash Maps](../daily/2026-10-04-day-01.md)
+
 ## Mastery rule
 
 A problem counts as mastered only when you can solve a fresh variant without hints, explain trade-offs aloud, write runnable code, and revisit it successfully after at least one week.
@@ -27,7 +33,7 @@ A problem counts as mastered only when you can solve a fresh variant without hin
 
 | Date | Problem/link | Pattern | Difficulty | Time | Hint? | Main mistake | Review dates | Mastered? |
 |---|---|---|---|---:|---|---|---|---|
-|  |  |  |  |  |  |  |  |  |
+| 2026-10-04 | Longest consecutive run baseline | HashSet / sequence boundary | Medium |  |  |  | 2026-10-05, 2026-10-11, 2026-11-04 | NO |
 
 ## Per-problem note template
 
