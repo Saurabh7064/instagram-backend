@@ -21,7 +21,8 @@ Update this file once per week. Evidence should link to notes, problem logs, moc
 | System designs completed | 15 | 0 | NOT_STARTED | Design URL shortener |
 | Behavioral stories rehearsed | 8 | 0 | NOT_STARTED | Draft technical challenge story |
 | Project deep-dives ready | 2 | 0 | NOT_STARTED | Select Nike and U.S. Bank examples |
-| Java/backend topics ready | 10 | 0 | NOT_STARTED | Baseline Java/JVM questions |
+| Java/JVM topics ready | 10 | 0 | NOT_STARTED | Baseline Java/JVM questions |
+| Spring/Hibernate topics ready | 10 | 0 | NOT_STARTED | Baseline framework/ORM questions |
 | Low-level designs completed | 6 | 0 | NOT_STARTED | Design parking lot or elevator |
 | Full mock interviews | 8 | 0 | NOT_STARTED | Schedule first mock |
 | Active interview processes | 3+ | 0 | NOT_STARTED | Build target-company list |

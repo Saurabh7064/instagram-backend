@@ -10,8 +10,8 @@ Keep four primary tracks. The remaining folders support those tracks rather than
 |---|---:|---|
 | [Coding](./01-coding/README.md) | 40% | Solve and explain an unseen medium problem in 30–35 minutes |
 | [System design](./02-system-design/README.md) | 30% | Lead a 45–60 minute senior-level design discussion |
-| [Behavioral](./03-behavioral/README.md) and [project deep-dives](./08-resume-project-deep-dives/README.md) | 20% | Tell concise, evidence-backed stories that show senior scope and impact |
-| [Role-specific knowledge](./04-java-backend/README.md) | 10% | Answer likely Java/backend questions and connect answers to real experience |
+| [Behavioral](./03-behavioral/README.md) and [project deep-dives](./09-resume-project-deep-dives/README.md) | 20% | Tell concise, evidence-backed stories that show senior scope and impact |
+| [Role-specific knowledge](./04-java/README.md) and [Spring/Hibernate](./05-spring-hibernate/README.md) | 10% | Answer likely language and framework questions and connect answers to real experience |
 
 Do not split time equally across every folder. Low-level design, fundamentals, cloud/DevOps, mocks, company research, and job-search work should be pulled in when a target role or a weak mock interview justifies them.
 
@@ -20,14 +20,15 @@ Do not split time equally across every folder. Low-level design, fundamentals, c
 1. [Coding and LeetCode](./01-coding/README.md)
 2. [System design](./02-system-design/README.md)
 3. [Behavioral stories](./03-behavioral/README.md)
-4. [Java and backend](./04-java-backend/README.md)
-5. [Low-level design](./05-low-level-design/README.md)
-6. [Core fundamentals](./06-core-fundamentals/README.md)
-7. [Cloud, messaging, and DevOps](./07-cloud-messaging-devops/README.md)
-8. [Resume and project deep-dives](./08-resume-project-deep-dives/README.md)
-9. [Mock interviews](./09-mock-interviews/README.md)
-10. [Company-specific preparation](./10-company-specific/README.md)
-11. [Job-search pipeline](./11-job-search/README.md)
+4. [Java](./04-java/README.md)
+5. [Spring and Hibernate](./05-spring-hibernate/README.md)
+6. [Low-level design](./06-low-level-design/README.md)
+7. [Core fundamentals](./07-core-fundamentals/README.md)
+8. [Cloud, messaging, and DevOps](./08-cloud-messaging-devops/README.md)
+9. [Resume and project deep-dives](./09-resume-project-deep-dives/README.md)
+10. [Mock interviews](./10-mock-interviews/README.md)
+11. [Company-specific preparation](./11-company-specific/README.md)
+12. [Job-search pipeline](./12-job-search/README.md)
 
 Use the [progress tracker](./progress-tracker.md) for weekly evidence and the [question inbox](./question-inbox.md) for uncategorized questions. Empty the inbox during the weekly review instead of creating an unstructured “other questions” folder.
 
@@ -46,7 +47,8 @@ Start applying before all gates are green. Use these gates to decide where prepa
 - System design: 3 complete mocks delivered within 60 minutes without losing the requirements-to-trade-offs structure.
 - Behavioral: 8 stories can be delivered in both 2-minute and 5-minute versions with specific personal actions and measurable results.
 - Project depth: 2 major systems can be drawn and explained, including scale, failures, trade-offs, and what you would change.
-- Java/backend: at least 80% of the prioritized question bank can be answered aloud without notes.
+- Java: at least 80% of the prioritized language/JVM question bank can be answered aloud without notes.
+- Spring/Hibernate: at least 80% of the prioritized framework/ORM question bank can be answered aloud without notes.
 - Interview execution: 4 mocks completed, with recurring issues converted into targeted practice.
 
 ## Rules that prevent busywork

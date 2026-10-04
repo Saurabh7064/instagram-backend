@@ -7,7 +7,7 @@ This plan assumes roughly three hours per day and targets Senior Java/Backend En
 - Coding: 10–12 carefully reviewed problems, including 2–3 unseen timed problems.
 - System design: one concept block plus one complete design.
 - Behavioral/project: draft or rehearse two stories or project sections.
-- Java/backend: one focused topic answered aloud.
+- Java or Spring/Hibernate: one focused topic answered aloud.
 - Execution: one recorded session or mock, followed by a written correction plan.
 
 ## Month 1 — Foundation and baseline
