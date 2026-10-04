@@ -149,12 +149,16 @@ Reference:
 
 For every lesson under `docs/interview/01-coding/`:
 
-1. Include the complete problem statement, examples, constraints or explicit assumptions, and expected complexity when applicable.
-2. Provide a clickable link beside the problem to an editable Java practice file under `src/test/java/com/instagram/backend/interview/`; never place runnable Java only under `docs/`, because IntelliJ does not treat that directory as a Java source root.
-3. The practice file must contain a runnable `main` method, sample/edge-case checks, and a clearly marked method where the learner writes the solution.
-4. Provide a separate clickable reference-solution file so the learner can attempt the problem without accidentally reading the answer.
-5. Include exact compile and run commands for both files.
-6. Explain the reference approach, invariant, correctness reasoning, time complexity, space complexity, pitfalls, and reasonable alternatives.
-7. Compile both Java files and run the reference solution before marking the lesson artifact complete.
-8. Keep learning status separate from artifact completeness. A working reference solution does not mean the learner has mastered the problem.
-9. Keep the practice and reference classes in a named package matching their `src/test/java` directory so IntelliJ can run and debug each `main` method directly without adding production code to the application artifact.
+1. Organize material as module -> micro-lesson. A module landing page may list the sequence, but each micro-lesson directory must teach one primary idea through one focused problem.
+2. Introduce no more than three new terms in a micro-lesson. If a second pattern, transformation, or unrelated Java pitfall appears, move it to another micro-lesson.
+3. In chat and in the active daily plan, teach only one micro-lesson at a time. Keep later lessons `TODO` until the learner completes the current stop/go check.
+4. Include the complete problem statement, examples, constraints or explicit assumptions, and expected complexity when applicable.
+5. Provide a clickable link beside the problem to an editable Java practice file under `src/test/java/com/instagram/backend/interview/`; never place runnable Java only under `docs/`, because IntelliJ does not treat that directory as a Java source root.
+6. The practice file must contain a runnable `main` method, sample/edge-case checks, and a clearly marked method where the learner writes the solution.
+7. Provide a separate clickable reference-solution file so the learner can attempt the problem without accidentally reading the answer.
+8. Include exact compile and run commands for both files.
+9. Explain the reference approach, invariant, correctness reasoning, time complexity, space complexity, pitfalls, and reasonable alternatives that directly relate to the one primary idea.
+10. Include 2–3 checkpoint questions with explained answers and observable stop/go criteria.
+11. Compile both Java files and run the reference solution before marking the lesson artifact complete.
+12. Keep learning status separate from artifact completeness. A working reference solution does not mean the learner has mastered the problem.
+13. Keep the practice and reference classes in a named package matching their `src/test/java` directory so IntelliJ can run and debug each `main` method directly without adding production code to the application artifact.

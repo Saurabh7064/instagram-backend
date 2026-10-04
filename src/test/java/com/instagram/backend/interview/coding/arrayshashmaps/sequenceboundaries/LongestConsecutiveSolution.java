@@ -1,4 +1,4 @@
-package com.instagram.backend.interview.coding.lesson01;
+package com.instagram.backend.interview.coding.arrayshashmaps.sequenceboundaries;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -189,18 +189,18 @@ This file maps each commit to:
 36. `6bf8728`
 - Learning change: initialized the first deep interview lesson with a timed coding baseline, Arrays/HashMap/HashSet mental models, Java implementation guidance, deliberate practice, checkpoints, and spaced reviews.
 - Concepts: repeated-search elimination, membership versus key-value lookup, loop invariants, average-case hash complexity, Java collection correctness, honest baseline measurement, and retention-based progression.
-- Docs: [Day 1 Plan](./interview/daily/2026-10-04-day-01.md), [Arrays and Hash Maps Lesson](./interview/01-coding/lessons/01-arrays-hash-maps.md), [Interview Progress Tracker](./interview/progress-tracker.md)
+- Docs: [Day 1 Plan](./interview/daily/2026-10-04-day-01.md), [Arrays and Hash-Based Lookup Module](./interview/01-coding/lessons/01-arrays-hash-maps/README.md), [Interview Progress Tracker](./interview/progress-tracker.md)
 
 37. `ec12d0a`
 - Learning fix: made runnable starter and reference Java programs mandatory for every interview coding lesson and retrofitted Lesson 01 with both artifacts.
 - Concepts: executable learning materials, solution discoverability, attempt-versus-answer separation, repeatable edge-case checks, and artifact verification independent of learner mastery.
-- Docs: [Interview Coding Lesson Standard](../AGENTS.md), [Arrays and Hash Maps Lesson](./interview/01-coding/lessons/01-arrays-hash-maps.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/lesson01/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/lesson01/LongestConsecutiveSolution.java)
+- Docs: [Interview Coding Lesson Standard](../AGENTS.md), [Sequence Boundaries Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java)
 
 38. `b513f48`
 - Learning fix: moved interview Java programs into IntelliJ’s recognized test source root, added matching packages, documented IDE execution, and made the unimplemented starter run with a clear readiness message.
 - Concepts: Gradle/IntelliJ source sets, package-to-directory alignment, non-production learning code, IDE run configuration discovery, and friendly starter-program behavior.
 - Verification: `./gradlew testClasses`, runnable practice main, and passing reference-solution checks.
-- Docs: [Arrays and Hash Maps Lesson](./interview/01-coding/lessons/01-arrays-hash-maps.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/lesson01/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/lesson01/LongestConsecutiveSolution.java)
+- Docs: [Sequence Boundaries Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java)
 
 ## UI Repo: `instagram-ui`
 
