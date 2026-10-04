@@ -16,8 +16,8 @@ Update this file once per week. Evidence should link to notes, problem logs, moc
 
 | Area | Target | Current | Status | Next action |
 |---|---:|---:|---|---|
-| Coding patterns mastered | 12 | 0 | LEARNING | Complete [HashSet Membership](./01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md) |
-| Problems mastered | 130 | 0 | LEARNING | Implement and explain Contains Duplicate |
+| Coding patterns mastered | 12 | 0 | LEARNING | Complete [Sequence Boundaries](./01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md) |
+| Problems mastered | 130 | 0 | LEARNING | Implement and explain Longest Consecutive |
 | System designs completed | 15 | 0 | NOT_STARTED | Design URL shortener |
 | Behavioral stories rehearsed | 8 | 0 | NOT_STARTED | Draft technical challenge story |
 | Project deep-dives ready | 2 | 0 | NOT_STARTED | Select Nike and U.S. Bank examples |
@@ -31,9 +31,10 @@ Status values: `NOT_STARTED`, `LEARNING`, `PRACTICING`, `INTERVIEW_READY`, `RETA
 
 ## Active lesson
 
-- Day: [2026-10-04 — HashSet Membership Only](./daily/2026-10-04-day-01.md)
+- Session: [2026-10-04 — Sequence Boundaries](./daily/2026-10-04-session-02.md)
 - Status: `LEARNING`
-- Completion requires: passing code, all 3 checkpoints answered before reveal, a correct invariant, and scheduled spaced reviews.
+- Completion requires: passing code, all 3 checkpoints answered before reveal, a correct boundary explanation, and scheduled spaced reviews.
+- Deferred: [HashSet Membership](./01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md) — learner requested return later; not counted as mastered.
 
 ## Weekly review template
 

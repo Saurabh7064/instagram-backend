@@ -1,6 +1,6 @@
 # Micro-Lesson 01 — HashSet Membership
 
-- Status: `LEARNING`
+- Status: `DEFERRED` at learner request on 2026-10-04
 - Time: 35–45 minutes
 - Primary idea: remember whether a value has appeared
 - New terms: membership, duplicate, invariant
@@ -109,4 +109,4 @@ Proceed only when you can:
 - explain the `O(n)` time and `O(n)` space trade-off;
 - answer all three checkpoints before revealing their answers.
 
-If any item is unclear, repeat this one problem tomorrow. Do not open Micro-Lesson 02 yet.
+If any item is unclear, repeat this one problem during the deferred review. This lesson remains incomplete and does not count toward mastery.

@@ -1,12 +1,12 @@
 # Micro-Lesson 02 — Sequence Boundaries
 
-- Status: `TODO`
+- Status: `LEARNING`
 - Time: 45–60 minutes
 - Prerequisite: [HashSet Membership](../01-hashset-membership/README.md)
 - Primary idea: begin scanning a run only from its first value
 - New terms: predecessor, boundary, consecutive
 
-Do not start this lesson until Micro-Lesson 01 passes its stop/go check.
+Micro-Lesson 01 was deferred at the learner’s request. The only bridge needed here is that a `HashSet` stores unique values and supports average constant-time membership checks. Return to the full prerequisite later.
 
 ## Problem
 

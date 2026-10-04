@@ -22,10 +22,10 @@ Recognize the pattern, explain a baseline approach, implement the improved solut
 ## Lessons
 
 1. [Arrays and Hash-Based Lookup](./lessons/01-arrays-hash-maps/README.md) — module
-   - [Micro-Lesson 01: HashSet Membership](./lessons/01-arrays-hash-maps/01-hashset-membership/README.md) — `LEARNING`
-   - [Micro-Lesson 02: Sequence Boundaries](./lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md) — `TODO`
+   - [Micro-Lesson 01: HashSet Membership](./lessons/01-arrays-hash-maps/01-hashset-membership/README.md) — `DEFERRED`
+   - [Micro-Lesson 02: Sequence Boundaries](./lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md) — `LEARNING`
 
-Current session: [Day 1 — HashSet Membership Only](../daily/2026-10-04-day-01.md)
+Current session: [Session 02 — Sequence Boundaries](../daily/2026-10-04-session-02.md)
 
 ## Mastery rule
 
@@ -35,7 +35,8 @@ A problem counts as mastered only when you can solve a fresh variant without hin
 
 | Date | Problem/link | Pattern | Difficulty | Time | Hint? | Main mistake | Review dates | Mastered? |
 |---|---|---|---|---:|---|---|---|---|
-| 2026-10-04 | Contains duplicate | HashSet membership | Easy |  |  |  | 2026-10-05, 2026-10-11, 2026-11-04 | NO |
+| 2026-10-04 | Contains duplicate | HashSet membership | Easy |  |  | Deferred by learner | Return later | DEFERRED |
+| 2026-10-04 | Longest consecutive run | Sequence boundary | Medium |  |  |  | 2026-10-05, 2026-10-11, 2026-11-04 | NO |
 
 ## Per-problem note template
 
