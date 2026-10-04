@@ -176,6 +176,11 @@ This file maps each commit to:
 - Concepts: outcome-based preparation, spaced retrieval, timed practice, mock-feedback loops, senior-level behavioral evidence, project deep-dives, and overlapping preparation with the application pipeline.
 - Docs: [Interview Preparation Hub](./interview/README.md), [12-Week Interview Execution Plan](./interview/12-week-execution-plan.md), [Interview Progress Tracker](./interview/progress-tracker.md)
 
+34. `4bb6135`
+- Learning refactor: separated core Java/JVM preparation from Spring and Hibernate framework/ORM preparation and renumbered the supporting interview tracks.
+- Concepts: language-versus-framework learning boundaries, focused readiness measurement, and easier weakness-based study selection.
+- Docs: [Java Interview Questions](./interview/04-java/README.md), [Spring and Hibernate Interview Questions](./interview/05-spring-hibernate/README.md), [Interview Preparation Hub](./interview/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
