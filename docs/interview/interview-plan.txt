@@ -1,0 +1,187 @@
+Yes. Given your **~10 years of experience**, current Senior SWE role, and the possibility that you may need an H-1B transfer quickly after a layoff, I would optimize almost entirely for **passing Senior Software Engineer interviews**, not for becoming encyclopedic.
+
+Your preparation should have **4 tracks only**:
+
+| Track | Time | Goal |
+|---|---:|---|
+| Coding / LeetCode | **40%** | Clear coding rounds |
+| System Design | **30%** | Clear senior-level design rounds |
+| Your experience + behavioral | **20%** | Demonstrate 10-year/senior-level impact |
+| Job-specific tech | **10%** | Java/Python/AWS/Kafka/Kubernetes etc. |
+
+### 1. Coding: target ~120–150 problems
+
+Don't randomly click LeetCode problems. Learn **interview patterns**.
+
+Focus heavily on:
+
+- Arrays/strings: HashMap, two pointers, sliding window, prefix sum, intervals
+- Trees: DFS, BFS, BST, recursion, LCA
+- Graphs: BFS/DFS, topological sort, union-find, shortest path
+- DP: 1-D DP, 2-D DP, knapsack-style, subsequences
+- Binary search
+- Heap / priority queue
+- Stack/queue
+- Linked lists
+
+Skip obscure algorithms unless a target company's interview history suggests otherwise.
+
+Your success criterion isn't "I completed 150." It is:
+
+> Give me an unseen Medium → I identify the pattern → explain brute force → improve it → code it correctly → discuss complexity, in **30–35 minutes**.
+
+That's interview readiness.
+
+### 2. System design: extremely important for you
+
+At ~10 YOE, I'd put **more emphasis here than I would for someone with 3–5 years experience**.
+
+Don't spend weeks reading distributed-systems textbooks. Learn enough theory to **design systems in an interview**.
+
+First learn these concepts:
+
+**Load balancer → API gateway → caching → SQL vs NoSQL → indexing → replication → partitioning/sharding → queues/Kafka → CDN → object storage → consistency → rate limiting → idempotency → retries/DLQ → monitoring.**
+
+Then immediately start designing.
+
+You should be able to handle roughly **15–20 common designs**, such as:
+
+> URL shortener
+> Rate limiter
+> Notification system
+> Chat/messaging system
+> News feed
+> File storage/Dropbox
+> YouTube/video streaming
+> Uber/location service
+> Ticket booking
+> Payment system
+> Search/autocomplete
+> Metrics/logging system
+> Distributed job scheduler
+> E-commerce/order system
+> Kafka/event-processing pipeline
+
+For every problem, follow essentially the same interview structure:
+
+**Requirements → scale estimates → APIs → data model → high-level architecture → deep dive → bottlenecks/failures → trade-offs.**
+
+You don't need to memorize architectures. You need that process to become automatic.
+
+### 3. Your 10 YOE is actually another interview subject
+
+This is the part I think you should **not underestimate**.
+
+A senior interviewer can forgive forgetting some Kubernetes command. They will have a much harder time overlooking someone with 10 YOE who cannot clearly explain:
+
+**"Tell me about the most complex system you've built."**
+
+You already have useful material from your Nike work: ingestion/data pipelines, AWS, Lambda, S3, RDS, Kafka, monitoring, CI/CD, migrations, etc.
+
+Turn your experience into about **8 polished stories**:
+
+1. Most technically challenging project
+2. Architecture/design decision you made
+3. Major production incident
+4. Performance/scalability improvement
+5. Disagreement with another engineer
+6. Ambiguous project you drove
+7. Failure/mistake and what changed afterward
+8. Mentoring/leadership/cross-team influence
+
+For each, know the **scale, architecture, your exact contribution, trade-offs, measurable result and what you'd change today**.
+
+This is where your 10 years should become an advantage rather than merely a number on the résumé.
+
+### 4. Don't study technologies randomly
+
+This is where I think you can save a lot of time.
+
+Don't decide:
+
+> "Today I'll learn Kubernetes."
+> "Tomorrow I'll study Kafka."
+> "Maybe I should learn Terraform."
+> "AI is popular, maybe I'll learn agents."
+
+That's exactly the diversion you're trying to avoid.
+
+Instead, study technology **through interview questions**.
+
+For Kafka, for example:
+
+**Why Kafka? → partition → consumer group → ordering → offset → delivery semantics → duplicate processing → rebalancing → DLQ → Kafka vs SQS → scaling consumers.**
+
+If you can answer those comfortably and discuss how you've used Kafka, **stop**. Don't take a 30-hour Kafka course.
+
+Same for Kubernetes:
+
+**Pod → Deployment → ReplicaSet → Service → ingress → ConfigMap/Secret → readiness/liveness → requests/limits → autoscaling → rolling deployment → debugging.**
+
+Then stop unless your target role specifically demands deeper Kubernetes knowledge.
+
+### Your October → January roadmap
+
+You have roughly three months, so I'd structure it like this.
+
+**October — Foundation**
+
+Coding: ~50 problems, especially arrays, trees and graphs.
+
+System design: learn the core building blocks and complete ~5 designs.
+
+Experience: prepare your résumé and your first 4 major project stories.
+
+**November — Interview level**
+
+Coding: another ~50 problems, introducing more graph/DP/heap questions.
+
+System design: ~8 more designs.
+
+Start doing **timed coding** instead of leisurely solving.
+
+Prepare all behavioral stories.
+
+And **start applying**. Don't wait until you're "ready."
+
+**December — Simulation**
+
+Another ~30–50 coding problems, but now mostly weaknesses and company-specific questions.
+
+Do complete **45-minute coding interviews**.
+
+Do complete **45–60-minute system-design interviews**.
+
+Practice explaining your Nike/U.S. Bank projects without preparation.
+
+Applications/referrals should be running heavily by this point.
+
+**January — interview pipeline, not studying**
+
+Ideally, January isn't:
+
+> "I finally finished my preparation. Time to apply."
+
+It should be:
+
+> "I already have several interview processes running."
+
+That difference is particularly important with H-1B because you don't want your job search starting only after your employment ends.
+
+### Your daily routine
+
+If you can manage **3 hours/day**, I'd do:
+
+**90 min LeetCode → 60 min System Design → 30 min behavioral/project/tech questions.**
+
+On weekends, replace one session with a mock interview.
+
+There is one rule I'd use to decide whether something deserves your study time:
+
+> **"Is there a realistic chance an interviewer will ask me this?"**
+
+If **yes**, learn it. If **no**, bookmark it for later.
+
+That means for the next three months I'd put **AI side projects, deep Kubernetes study, certifications, random courses, obscure LeetCode algorithms, and general computer-science reading** behind interview preparation.
+
+For your situation, I would rather see you enter January with **130 LeetCode problems mastered + 15 system designs + 8 excellent experience stories + active interviews** than with 10 new technologies on your résumé.

@@ -2,6 +2,10 @@
 
 ## Backend Docs
 
+- [Senior Backend Interview Preparation Hub](./interview/README.md)
+- [Interview Progress Tracker](./interview/progress-tracker.md)
+- [October 2026–January 2027 Interview Plan](./interview/interview-plan.md)
+- [12-Week Interview Execution Plan](./interview/12-week-execution-plan.md)
 - [Feature Learning Path](./features/README.md)
 - [Feature Learning Backlog](./features/learning-backlog.md)
 - [Feature 01: Authentication and Password Security](./features/01-authentication-and-password-security.md)
@@ -44,4 +48,4 @@
 
 ## UI Docs
 
-- [UI Docs Index](../instagram-ui/docs/index.md)
+- [UI Docs Index](../../instagram-ui/docs/index.md)
