@@ -202,6 +202,12 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, runnable practice main, and passing reference-solution checks.
 - Docs: [Sequence Boundaries Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java)
 
+39. `5a14ce1`
+- Learning refactor: replaced the overloaded Arrays/HashMap lesson with focused micro-lessons and made HashSet membership the only active topic.
+- Concepts: one-primary-idea lessons, prerequisite ordering, limited terminology, explicit stop/go gates, and matching one-problem Java packages.
+- Verification: Gradle test-source compilation plus runnable starter and passing reference programs for HashSet membership and sequence boundaries.
+- Docs: [Arrays and Hash-Based Lookup Module](./interview/01-coding/lessons/01-arrays-hash-maps/README.md), [HashSet Membership](./interview/01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md), [Day 1 Plan](./interview/daily/2026-10-04-day-01.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
