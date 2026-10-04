@@ -4,7 +4,13 @@
 
 Prepare eight reusable stories that demonstrate senior-level ownership, judgment, collaboration, and measurable impact. Do not memorize scripts; memorize the facts and decision points.
 
-## Story bank
+## Working files
+
+- [Eight-story behavioral bank](./story-bank.md)
+- [Behavioral and leadership question bank](./question-bank.md)
+- [Resume and project deep-dives](../09-resume-project-deep-dives/README.md) for architecture diagrams, scale, and supporting technical evidence
+
+## Eight core stories
 
 1. Most technically challenging project
 2. Architecture or trade-off decision
@@ -31,3 +37,5 @@ Prepare eight reusable stories that demonstrate senior-level ownership, judgment
 ## Senior-level check
 
 Each story should make scope, constraints, personal contribution, stakeholder handling, technical judgment, and measurable outcome clear. Replace “we” with “I” where the interviewer needs to understand your contribution, while still giving teammates credit.
+
+The behavioral answer should normally be concise. If the interviewer asks for architecture or implementation depth, transition to the linked project deep-dive rather than packing every technical detail into the opening story.

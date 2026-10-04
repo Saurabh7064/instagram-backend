@@ -2,6 +2,8 @@
 
 Every significant resume claim is an invitation for detailed follow-up. Prepare two anchor projects and shorter notes for every other major claim.
 
+This folder stores the technical evidence behind behavioral stories, especially technical challenge, architecture decision, production incident, and performance/scalability. Keep the concise interview narratives in the [eight-story behavioral bank](../03-behavioral/story-bank.md).
+
 ## Project deep-dive template
 
 - Project and business problem:
