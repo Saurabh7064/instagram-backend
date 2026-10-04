@@ -186,6 +186,11 @@ This file maps each commit to:
 - Concepts: STAR-style evidence, story reuse across question variants, personal-contribution clarity, measurable outcomes, technical deep-dive separation, and spoken retrieval practice.
 - Docs: [Behavioral Interview Path](./interview/03-behavioral/README.md), [Eight-Story Bank](./interview/03-behavioral/story-bank.md), [Behavioral Question Bank](./interview/03-behavioral/question-bank.md)
 
+36. `6bf8728`
+- Learning change: initialized the first deep interview lesson with a timed coding baseline, Arrays/HashMap/HashSet mental models, Java implementation guidance, deliberate practice, checkpoints, and spaced reviews.
+- Concepts: repeated-search elimination, membership versus key-value lookup, loop invariants, average-case hash complexity, Java collection correctness, honest baseline measurement, and retention-based progression.
+- Docs: [Day 1 Plan](./interview/daily/2026-10-04-day-01.md), [Arrays and Hash Maps Lesson](./interview/01-coding/lessons/01-arrays-hash-maps.md), [Interview Progress Tracker](./interview/progress-tracker.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
