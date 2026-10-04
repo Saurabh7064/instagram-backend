@@ -181,6 +181,11 @@ This file maps each commit to:
 - Concepts: language-versus-framework learning boundaries, focused readiness measurement, and easier weakness-based study selection.
 - Docs: [Java Interview Questions](./interview/04-java/README.md), [Spring and Hibernate Interview Questions](./interview/05-spring-hibernate/README.md), [Interview Preparation Hub](./interview/README.md)
 
+35. `88dabdf`
+- Learning change: added an eight-story behavioral tracker and a categorized senior-engineering behavioral question bank with reusable follow-up probes.
+- Concepts: STAR-style evidence, story reuse across question variants, personal-contribution clarity, measurable outcomes, technical deep-dive separation, and spoken retrieval practice.
+- Docs: [Behavioral Interview Path](./interview/03-behavioral/README.md), [Eight-Story Bank](./interview/03-behavioral/story-bank.md), [Behavioral Question Bank](./interview/03-behavioral/question-bank.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
