@@ -31,20 +31,29 @@ Examples:
 
 ### Code files
 
-- Write your answer here: [LongestConsecutivePractice.java](../code/lesson-01/LongestConsecutivePractice.java)
-- Check the answer after your attempt: [LongestConsecutiveSolution.java](../code/lesson-01/LongestConsecutiveSolution.java)
+- Write your answer here: [LongestConsecutivePractice.java](../../../../src/test/java/com/instagram/backend/interview/coding/lesson01/LongestConsecutivePractice.java)
+- Check the answer after your attempt: [LongestConsecutiveSolution.java](../../../../src/test/java/com/instagram/backend/interview/coding/lesson01/LongestConsecutiveSolution.java)
 
 The practice file contains a `main` method and edge-case checks. Only replace the body of `longestConsecutive`; keep the checks unchanged for the first attempt.
 
-Run the editable practice program from the repository root:
+### Run in IntelliJ IDEA
+
+1. Open `LongestConsecutivePractice.java` using the link above.
+2. Wait for the Gradle import/indexing to finish.
+3. Click the green triangle beside `main`, or right-click inside the file and choose **Run 'LongestConsecutivePractice.main()'**.
+4. Write only inside `longestConsecutive`, then run again.
+
+If the green triangle is absent, reload the Gradle project and verify that IntelliJ recognizes `src/test/java` as **Test Sources Root** and uses JDK 24 as the Project SDK/Gradle JVM.
+
+Run the editable practice program from Terminal at the repository root:
 
 ```bash
-cd docs/interview/01-coding/code/lesson-01
-javac LongestConsecutivePractice.java
-java LongestConsecutivePractice
+./gradlew testClasses
+java -cp build/classes/java/test \
+  com.instagram.backend.interview.coding.lesson01.LongestConsecutivePractice
 ```
 
-Before implementing the method, the program intentionally throws `UnsupportedOperationException`. After a correct implementation, it prints `All practice checks passed.`
+Before implementing the method, the program prints instructions confirming that it is ready. After a correct implementation, it prints `All practice checks passed.`
 
 ### Baseline protocol
 
@@ -272,14 +281,14 @@ An `int[26]` assumes a restricted alphabet such as lowercase English letters. Ge
 
 ## Part 8 — Reference solution and analysis
 
-The complete runnable answer is always available in [LongestConsecutiveSolution.java](../code/lesson-01/LongestConsecutiveSolution.java). Reveal or open it only after completing the timed attempt.
+The complete runnable answer is always available in [LongestConsecutiveSolution.java](../../../../src/test/java/com/instagram/backend/interview/coding/lesson01/LongestConsecutiveSolution.java). Reveal or open it only after completing the timed attempt.
 
 Run the reference solution from the repository root:
 
 ```bash
-cd docs/interview/01-coding/code/lesson-01
-javac LongestConsecutiveSolution.java
-java LongestConsecutiveSolution
+./gradlew testClasses
+java -cp build/classes/java/test \
+  com.instagram.backend.interview.coding.lesson01.LongestConsecutiveSolution
 ```
 
 Expected output:

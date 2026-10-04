@@ -1,3 +1,5 @@
+package com.instagram.backend.interview.coding.lesson01;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -10,6 +12,22 @@ import java.util.Set;
 public class LongestConsecutivePractice {
 
     public static void main(String[] args) {
+        try {
+            runChecks();
+            System.out.println("All practice checks passed.");
+        } catch (UnsupportedOperationException exception) {
+            System.out.println("Practice program is ready.");
+            System.out.println("Implement longestConsecutive, then run this main method again.");
+        }
+    }
+
+    static int longestConsecutive(int[] values) {
+        // TODO: Write your solution here.
+        // Target: O(n) average time and O(n) additional space.
+        throw new UnsupportedOperationException("Implement longestConsecutive");
+    }
+
+    private static void runChecks() {
         assertEquals(4, longestConsecutive(new int[] {100, 4, 200, 1, 3, 2}),
                 "unordered run");
         assertEquals(3, longestConsecutive(new int[] {1, 2, 0, 1}),
@@ -26,14 +44,6 @@ public class LongestConsecutivePractice {
         assertEquals(2,
                 longestConsecutive(new int[] {Integer.MIN_VALUE, Integer.MIN_VALUE + 1}),
                 "lower integer boundary");
-
-        System.out.println("All practice checks passed.");
-    }
-
-    static int longestConsecutive(int[] values) {
-        // TODO: Write your solution here.
-        // Target: O(n) average time and O(n) additional space.
-        throw new UnsupportedOperationException("Implement longestConsecutive");
     }
 
     private static void assertEquals(int expected, int actual, String scenario) {

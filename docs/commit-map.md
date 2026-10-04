@@ -194,7 +194,7 @@ This file maps each commit to:
 37. `ec12d0a`
 - Learning fix: made runnable starter and reference Java programs mandatory for every interview coding lesson and retrofitted Lesson 01 with both artifacts.
 - Concepts: executable learning materials, solution discoverability, attempt-versus-answer separation, repeatable edge-case checks, and artifact verification independent of learner mastery.
-- Docs: [Interview Coding Lesson Standard](../AGENTS.md), [Arrays and Hash Maps Lesson](./interview/01-coding/lessons/01-arrays-hash-maps.md), [Editable Practice Program](./interview/01-coding/code/lesson-01/LongestConsecutivePractice.java), [Reference Solution](./interview/01-coding/code/lesson-01/LongestConsecutiveSolution.java)
+- Docs: [Interview Coding Lesson Standard](../AGENTS.md), [Arrays and Hash Maps Lesson](./interview/01-coding/lessons/01-arrays-hash-maps.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/lesson01/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/lesson01/LongestConsecutiveSolution.java)
 
 ## UI Repo: `instagram-ui`
 
