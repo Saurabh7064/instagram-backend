@@ -208,6 +208,12 @@ This file maps each commit to:
 - Verification: Gradle test-source compilation plus runnable starter and passing reference programs for HashSet membership and sequence boundaries.
 - Docs: [Arrays and Hash-Based Lookup Module](./interview/01-coding/lessons/01-arrays-hash-maps/README.md), [HashSet Membership](./interview/01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md), [Day 1 Plan](./interview/daily/2026-10-04-day-01.md)
 
+40. `65e9658`
+- Learning state change: deferred HashSet Membership at the learner’s request without awarding mastery and activated Sequence Boundaries as the only current lesson.
+- Concepts: explicit deferral versus completion, learner-controlled sequencing, prerequisite bridge, and preserving honest progress evidence.
+- Verification: runnable Longest Consecutive starter, passing reference solution, and resolved documentation links.
+- Docs: [Sequence Boundaries](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Session 02 Plan](./interview/daily/2026-10-04-session-02.md), [Interview Progress Tracker](./interview/progress-tracker.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
