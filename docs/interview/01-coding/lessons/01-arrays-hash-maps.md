@@ -29,6 +29,23 @@ Examples:
 - `[1, 2, 0, 1]` returns `3` because duplicates do not lengthen the run.
 - `[]` returns `0`.
 
+### Code files
+
+- Write your answer here: [LongestConsecutivePractice.java](../code/lesson-01/LongestConsecutivePractice.java)
+- Check the answer after your attempt: [LongestConsecutiveSolution.java](../code/lesson-01/LongestConsecutiveSolution.java)
+
+The practice file contains a `main` method and edge-case checks. Only replace the body of `longestConsecutive`; keep the checks unchanged for the first attempt.
+
+Run the editable practice program from the repository root:
+
+```bash
+cd docs/interview/01-coding/code/lesson-01
+javac LongestConsecutivePractice.java
+java LongestConsecutivePractice
+```
+
+Before implementing the method, the program intentionally throws `UnsupportedOperationException`. After a correct implementation, it prints `All practice checks passed.`
+
 ### Baseline protocol
 
 1. Ask clarifying questions before coding.
@@ -253,9 +270,23 @@ Choose the clearest form you can explain under pressure. Compactness is not the 
 
 An `int[26]` assumes a restricted alphabet such as lowercase English letters. General Unicode text requires a different design, often based on code points rather than Java `char` values.
 
-## Part 8 — Baseline solution analysis
+## Part 8 — Reference solution and analysis
 
-Reveal this only after completing the timed attempt.
+The complete runnable answer is always available in [LongestConsecutiveSolution.java](../code/lesson-01/LongestConsecutiveSolution.java). Reveal or open it only after completing the timed attempt.
+
+Run the reference solution from the repository root:
+
+```bash
+cd docs/interview/01-coding/code/lesson-01
+javac LongestConsecutiveSolution.java
+java LongestConsecutiveSolution
+```
+
+Expected output:
+
+```text
+All reference-solution checks passed.
+```
 
 <details>
 <summary>Show the longest-consecutive-sequence reasoning and Java solution</summary>

@@ -144,3 +144,16 @@ Reference:
   - pitfalls/fixes
   - next improvements
 - For all code references, use clickable Markdown file links (not plain text paths).
+
+## Interview Coding Lesson Standard
+
+For every lesson under `docs/interview/01-coding/`:
+
+1. Include the complete problem statement, examples, constraints or explicit assumptions, and expected complexity when applicable.
+2. Provide a clickable link beside the problem to an editable Java practice file.
+3. The practice file must contain a runnable `main` method, sample/edge-case checks, and a clearly marked method where the learner writes the solution.
+4. Provide a separate clickable reference-solution file so the learner can attempt the problem without accidentally reading the answer.
+5. Include exact compile and run commands for both files.
+6. Explain the reference approach, invariant, correctness reasoning, time complexity, space complexity, pitfalls, and reasonable alternatives.
+7. Compile both Java files and run the reference solution before marking the lesson artifact complete.
+8. Keep learning status separate from artifact completeness. A working reference solution does not mean the learner has mastered the problem.
