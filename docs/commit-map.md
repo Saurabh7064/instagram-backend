@@ -171,6 +171,11 @@ This file maps each commit to:
 - Additional fixes: aligned the 02C prerequisite, added a readiness wait before `exec`, moved bare-Pod deletion after the image recovery lab, and recorded 02A as `LEARNING` rather than inferred understanding.
 - Docs: [Kubernetes Module 02](./kubernetes/02-local-cluster-kubectl-pods-labels.md), [02A Cluster Setup](./kubernetes/02-local-cluster-kubectl-pods-labels/02a-why-kubernetes-cluster-node.md), [Kubernetes Learner Progress](./kubernetes/learner-progress.md)
 
+33. `8c92af8`
+- Learning change: added a Senior Java/Backend interview preparation hub with four prioritized tracks, eleven focused work areas, a measurable progress dashboard, and a 12-week execution plan.
+- Concepts: outcome-based preparation, spaced retrieval, timed practice, mock-feedback loops, senior-level behavioral evidence, project deep-dives, and overlapping preparation with the application pipeline.
+- Docs: [Interview Preparation Hub](./interview/README.md), [12-Week Interview Execution Plan](./interview/12-week-execution-plan.md), [Interview Progress Tracker](./interview/progress-tracker.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
