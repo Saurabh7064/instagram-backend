@@ -214,6 +214,12 @@ This file maps each commit to:
 - Verification: runnable Longest Consecutive starter, passing reference solution, and resolved documentation links.
 - Docs: [Sequence Boundaries](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Session 02 Plan](./interview/daily/2026-10-04-session-02.md), [Interview Progress Tracker](./interview/progress-tracker.md)
 
+41. `2e4b79e`
+- Learning change: added a 72-problem coding micro-lesson index across 14 prerequisite-ordered modules, with one focused idea and an official LeetCode link per lesson.
+- Concepts: curriculum visibility without premature content expansion, one-active-lesson discipline, core-path versus reinforcement counts, and explicit learning-state tracking.
+- Verification: 72 unique lesson rows, exactly one `LEARNING` row, one `DEFERRED` row, official LeetCode links, and resolved local documentation links.
+- Docs: [Coding Micro-Lesson Index](./interview/01-coding/lesson-index.md), [Coding and LeetCode Path](./interview/01-coding/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
