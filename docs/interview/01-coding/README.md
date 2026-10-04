@@ -1,5 +1,7 @@
 # Coding and LeetCode
 
+Full curriculum: [Coding Micro-Lesson Index](./lesson-index.md)
+
 ## Goal
 
 Recognize the pattern, explain a baseline approach, implement the improved solution, test it, and state time/space complexity within 30–35 minutes.
@@ -18,6 +20,8 @@ Recognize the pattern, explain a baseline approach, implement the improved solut
 10. Backtracking
 11. One-dimensional dynamic programming
 12. Two-dimensional dynamic programming
+
+The pattern list above is the high-level order. The lesson index expands it into 72 focused, linked problems while keeping only one lesson active at a time.
 
 ## Lessons
 
