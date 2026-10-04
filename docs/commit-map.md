@@ -196,6 +196,12 @@ This file maps each commit to:
 - Concepts: executable learning materials, solution discoverability, attempt-versus-answer separation, repeatable edge-case checks, and artifact verification independent of learner mastery.
 - Docs: [Interview Coding Lesson Standard](../AGENTS.md), [Arrays and Hash Maps Lesson](./interview/01-coding/lessons/01-arrays-hash-maps.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/lesson01/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/lesson01/LongestConsecutiveSolution.java)
 
+38. `b513f48`
+- Learning fix: moved interview Java programs into IntelliJ’s recognized test source root, added matching packages, documented IDE execution, and made the unimplemented starter run with a clear readiness message.
+- Concepts: Gradle/IntelliJ source sets, package-to-directory alignment, non-production learning code, IDE run configuration discovery, and friendly starter-program behavior.
+- Verification: `./gradlew testClasses`, runnable practice main, and passing reference-solution checks.
+- Docs: [Arrays and Hash Maps Lesson](./interview/01-coding/lessons/01-arrays-hash-maps.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/lesson01/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/lesson01/LongestConsecutiveSolution.java)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
