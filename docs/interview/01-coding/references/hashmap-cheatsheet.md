@@ -2,7 +2,7 @@
 
 Use this page when you need to refresh common `HashMap` operations and the patterns they support in coding interviews.
 
-- Reference time: 15–20 minutes
+- Reference time: 25–35 minutes; review one section at a time
 - Practice time: 20–30 minutes
 - Runnable operations: [HashMapOperationsDemo.java](../../../../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/HashMapOperationsDemo.java)
 
@@ -31,39 +31,83 @@ import java.util.Map;
 
 ```java
 Map<String, Integer> scores = new HashMap<>();
+scores.put("Ana", 10);
+// scores contains the mapping "Ana" -> 10
+
 Map<String, Integer> mutableCopy = new HashMap<>(scores);
+mutableCopy.put("Ben", 20);
+// mutableCopy contains "Ana" -> 10 and "Ben" -> 20
+// scores still contains only "Ana" -> 10
 
 Map<String, Integer> immutableSmallMap = Map.of("Ana", 10, "Ben", 20);
 Map<String, Integer> immutableCopy = Map.copyOf(scores);
+// put, remove, or replace on either immutable map throws
+// UnsupportedOperationException
 
 Map<String, Integer> destination = new HashMap<>();
 destination.putAll(scores);
+// destination now contains "Ana" -> 10
 ```
+
+`new HashMap<>(scores)` creates a separate mutable map containing the same mappings. Adding a new mapping to the copy does not add it to `scores`.
 
 Program to the `Map` interface on the left and choose `HashMap` as the implementation on the right. `Map.of` and `Map.copyOf` return unmodifiable maps and reject null keys or values.
 
 ## Insert and update
 
 ```java
-Integer oldValue = scores.put("Ana", 10); // null if no old mapping
-scores.put("Ana", 15);                    // overwrite
+Map<String, Integer> scores = new HashMap<>();
 
-scores.putIfAbsent("Ben", 20);            // write only when absent
-scores.replace("Ana", 25);                // update only when present
-scores.replace("Ana", 25, 30);            // require an exact old value
+Integer oldValue = scores.put("Ana", 10);
+// oldValue is null; scores contains "Ana" -> 10
+
+oldValue = scores.put("Ana", 15);
+// oldValue is 10; scores now contains "Ana" -> 15
+
+scores.putIfAbsent("Ana", 99);
+// no change because "Ana" already exists; its value remains 15
+
+scores.putIfAbsent("Ben", 20);
+// scores now also contains "Ben" -> 20
+
+scores.replace("Ana", 25);
+// "Ana" -> 25 because the key exists
+
+boolean replaced = scores.replace("Ana", 25, 30);
+// replaced is true; "Ana" -> 30 because its old value matched 25
+
 scores.replaceAll((name, score) -> score + 1);
+// mappings are now "Ana" -> 31 and "Ben" -> 21
 ```
+
+`put` always stores the supplied value and returns the previous value, or `null` if there was no mapping. `putIfAbsent` does not overwrite a non-null existing value. `replace` changes only an existing mapping.
 
 ## Read and test presence
 
 ```java
+Map<String, Integer> scores = new HashMap<>();
+scores.put("Ana", 30);
+
 Integer score = scores.get("Ana");
+// score is 30
+
+Integer missing = scores.get("Cara");
+// missing is null
+
 int safeScore = scores.getOrDefault("Cara", 0);
+// safeScore is 0, but "Cara" was NOT inserted into scores
 
 boolean hasKey = scores.containsKey("Ana");
+// hasKey is true
+
 boolean hasValue = scores.containsValue(30);
+// hasValue is true
+
 int entries = scores.size();
+// entries is 1
+
 boolean empty = scores.isEmpty();
+// empty is false
 ```
 
 `get` returning `null` is ambiguous when null values are allowed: the key may be absent or mapped to null. Use `containsKey` when the distinction matters.
@@ -73,9 +117,18 @@ boolean empty = scores.isEmpty();
 ## Remove and clear
 
 ```java
+Map<String, Integer> scores = new HashMap<>();
+scores.put("Ana", 30);
+scores.put("Ben", 20);
+
 Integer removedValue = scores.remove("Ana");
+// removedValue is 30; "Ana" is no longer present
+
 boolean removedExactPair = scores.remove("Ben", 20);
+// removedExactPair is true; "Ben" is no longer present
+
 scores.clear();
+// scores is empty; clear returns nothing
 ```
 
 ## `computeIfAbsent`: create only when missing
@@ -91,8 +144,12 @@ for (String word : List.of("apple", "ant", "boat")) {
             .add(word);
 }
 
-// {a=[apple, ant], b=[boat]}
+// wordsByFirstLetter maps:
+// 'a' -> ["apple", "ant"]
+// 'b' -> ["boat"]
 ```
+
+On the first word beginning with `'a'`, `computeIfAbsent` creates an empty list, stores it under `'a'`, and returns that list so `add("apple")` can run. For `"ant"`, the existing list is returned; no second list is created.
 
 The mapping function runs only when the key has no non-null value. If the function returns `null`, no mapping is stored.
 
@@ -102,13 +159,21 @@ Adjacency-list example:
 Map<Integer, List<Integer>> neighbors = new HashMap<>();
 neighbors.computeIfAbsent(1, key -> new ArrayList<>()).add(2);
 neighbors.computeIfAbsent(1, key -> new ArrayList<>()).add(3);
+
+// neighbors maps 1 -> [2, 3]
 ```
 
 ## `computeIfPresent`: update only when present
 
 ```java
+Map<String, Integer> scores = new HashMap<>();
+scores.put("Ana", 20);
+
 scores.computeIfPresent("Ana", (name, oldScore) -> oldScore + 5);
-scores.computeIfPresent("Missing", (name, oldScore) -> oldScore + 5); // no change
+// "Ana" now maps to 25
+
+scores.computeIfPresent("Missing", (name, oldScore) -> oldScore + 5);
+// no change because "Missing" is absent
 ```
 
 It runs only when the key currently has a non-null value. Returning `null` removes the mapping.
@@ -116,9 +181,17 @@ It runs only when the key currently has a non-null value. Returning `null` remov
 ## `compute`: handle present and absent
 
 ```java
+Map<String, Integer> scores = new HashMap<>();
+
 scores.compute(
         "Ana",
         (name, oldScore) -> oldScore == null ? 1 : oldScore + 1);
+// "Ana" was absent, so oldScore was null and "Ana" now maps to 1
+
+scores.compute(
+        "Ana",
+        (name, oldScore) -> oldScore == null ? 1 : oldScore + 1);
+// "Ana" was present with 1, so it now maps to 2
 ```
 
 `compute` always invokes the function. The old value may be `null`, and returning `null` removes or leaves absent the mapping.
@@ -134,10 +207,10 @@ for (String word : List.of("red", "blue", "red")) {
     frequencies.merge(word, 1, Integer::sum);
 }
 
-// {red=2, blue=1}
+// frequencies maps "red" -> 2 and "blue" -> 1
 ```
 
-When the key is absent, `merge` stores `1`. When present, it combines the old and supplied values. If the remapping function returns `null`, the key is removed.
+For the first `"red"`, the key is absent, so `merge` stores `1`. For the second `"red"`, `Integer::sum` combines the old value `1` with the supplied value `1`, producing `2`. If a remapping function returns `null`, the key is removed.
 
 The longer equivalent is:
 
@@ -189,28 +262,46 @@ scores.entrySet().removeIf(entry -> entry.getValue() < 10);
 ### Value to index
 
 ```java
+int[] numbers = {4, 7, 4};
 Map<Integer, Integer> indexByValue = new HashMap<>();
-indexByValue.put(numbers[index], index);
+
+for (int index = 0; index < numbers.length; index++) {
+    indexByValue.put(numbers[index], index);
+}
+
+// indexByValue maps 4 -> 2 and 7 -> 1
 ```
+
+The second `4` overwrites the earlier mapping `4 -> 0`, so the map retains the most recent index. Whether that is correct depends on the problem.
 
 ### Character frequency
 
 ```java
+String text = "abb";
 Map<Character, Integer> counts = new HashMap<>();
+
 for (char character : text.toCharArray()) {
     counts.merge(character, 1, Integer::sum);
 }
+
+// counts maps 'a' -> 1 and 'b' -> 2
 ```
 
 ### Group by a derived key
 
 ```java
+List<String> words = List.of("cat", "sun", "apple");
 Map<Integer, List<String>> wordsByLength = new HashMap<>();
+
 for (String word : words) {
     wordsByLength
             .computeIfAbsent(word.length(), key -> new ArrayList<>())
             .add(word);
 }
+
+// wordsByLength maps:
+// 3 -> ["cat", "sun"]
+// 5 -> ["apple"]
 ```
 
 ## Complexity and behavior

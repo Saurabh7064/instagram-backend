@@ -31,19 +31,35 @@ public class ArrayOperationsDemo {
         int[] destination = new int[2];
         System.arraycopy(numbers, 1, destination, 0, 2);
         assertArrayEquals(new int[] {9, 5}, destination, "copy into another array");
+
+        System.out.println("copyOfRange([5, 9, 5, 2], 1, 3) -> "
+                + Arrays.toString(middle));
+        System.out.println("arraycopy from index 1, copy 2 values -> "
+                + Arrays.toString(destination));
     }
 
     private static void demonstrateFillSortAndSearch() {
         int[] numbers = {5, 9, 5, 2};
-        int[] filled = Arrays.copyOf(numbers, numbers.length);
+        int[] filled = new int[5];
 
-        Arrays.fill(filled, 1, 3, 7);
-        assertArrayEquals(new int[] {5, 7, 7, 2}, filled, "fill a range");
+        Arrays.fill(filled, -1);
+        Arrays.fill(filled, 1, 4, 7);
+        assertArrayEquals(new int[] {-1, 7, 7, 7, -1}, filled, "fill a range");
+        System.out.println("fill indexes [1, 4) with 7 -> " + Arrays.toString(filled));
 
         Arrays.sort(numbers);
         assertArrayEquals(new int[] {2, 5, 5, 9}, numbers, "sort ascending");
         assertTrue(Arrays.binarySearch(numbers, 9) >= 0, "find in sorted input");
         assertTrue(Arrays.binarySearch(numbers, 8) < 0, "report a missing value");
+        System.out.println("sort [5, 9, 5, 2] -> " + Arrays.toString(numbers));
+        System.out.println("binarySearch(sorted, 9) -> "
+                + Arrays.binarySearch(numbers, 9));
+
+        int[] partial = {9, 4, 3, 8};
+        Arrays.sort(partial, 1, 3);
+        assertArrayEquals(new int[] {9, 3, 4, 8}, partial, "sort a half-open range");
+        System.out.println("sort indexes [1, 3) in [9, 4, 3, 8] -> "
+                + Arrays.toString(partial));
     }
 
     private static void demonstrateGenerateReverseAndAggregate() {
@@ -54,6 +70,10 @@ public class ArrayOperationsDemo {
         reverse(squares);
         assertArrayEquals(new int[] {16, 9, 4, 1, 0}, squares, "reverse in place");
         assertEquals(30, Arrays.stream(squares).sum(), "sum values");
+
+        System.out.println("setAll(index -> index * index) -> [0, 1, 4, 9, 16]");
+        System.out.println("reverse in place -> " + Arrays.toString(squares));
+        System.out.println("stream sum -> " + Arrays.stream(squares).sum());
     }
 
     private static void reverse(int[] values) {

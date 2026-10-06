@@ -40,6 +40,9 @@ public class HashMapOperationsDemo {
         Map<String, Integer> copy = new HashMap<>();
         copy.putAll(scores);
         assertEquals(scores, copy, "copy all entries");
+
+        System.out.println("putIfAbsent and replace -> " + scores);
+        System.out.println("putAll into a new map -> " + copy);
     }
 
     private static void demonstrateComputationOperations() {
@@ -61,6 +64,8 @@ public class HashMapOperationsDemo {
         counts.merge("pear", 1, Integer::sum);
         counts.merge("pear", 1, Integer::sum);
         assertEquals(2, counts.get("pear"), "merge inserts then combines");
+
+        System.out.println("computeIfAbsent/Present, compute, and merge -> " + counts);
     }
 
     private static void demonstrateGroupingAndCounting() {
@@ -81,6 +86,9 @@ public class HashMapOperationsDemo {
                 "create another group");
         assertEquals(2, frequencies.get("apple"), "count duplicates with merge");
         assertEquals(1, frequencies.get("ant"), "count one occurrence");
+
+        System.out.println("group with computeIfAbsent -> " + wordsByFirstLetter);
+        System.out.println("count with merge -> " + frequencies);
     }
 
     private static void assertEquals(Object expected, Object actual, String scenario) {
