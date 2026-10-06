@@ -238,6 +238,12 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, passing `ArrayOperationsDemo`, passing `HashMapOperationsDemo`, expected Two Sum starter output, passing Two Sum reference checks, balanced Markdown code fences, and resolved local links.
 - Docs: [Java Array Cheat Sheet](./interview/01-coding/references/array-cheatsheet.md), [Array Demo](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/ArrayOperationsDemo.java), [Java HashMap Cheat Sheet](./interview/01-coding/references/hashmap-cheatsheet.md), [HashMap Demo](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/HashMapOperationsDemo.java)
 
+45. `120a3bc`
+- Learning improvement: rewrote Array and HashMap examples to show starting state, operation meaning, exact result, mutation behavior, and the reason each result occurs.
+- Concepts: half-open ranges, mutating versus value-returning operations, concrete execution tracing, array aliasing and copying, binary-search insertion points, map update semantics, lazy collection creation, and frequency merging.
+- Verification: `./gradlew testClasses`, passing and output-producing Array and HashMap demos, passing Two Sum reference checks, balanced Markdown code fences, and clean diff checks.
+- Docs: [Java Array Cheat Sheet](./interview/01-coding/references/array-cheatsheet.md), [Array Demo](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/ArrayOperationsDemo.java), [Java HashMap Cheat Sheet](./interview/01-coding/references/hashmap-cheatsheet.md), [HashMap Demo](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/HashMapOperationsDemo.java)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
