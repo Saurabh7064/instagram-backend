@@ -1,59 +1,29 @@
 package com.instagram.backend.interview.coding.arrayshashmaps.refresher;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
- * Runnable examples for the Java Arrays + HashMap cheat sheet.
+ * Runnable examples for the Java HashMap cheat sheet.
  */
-public class ArrayHashMapOperationsDemo {
+public class HashMapOperationsDemo {
 
     public static void main(String[] args) {
-        demonstrateArrayOperations();
-        demonstrateBasicMapOperations();
-        demonstrateMapComputationOperations();
+        demonstrateBasicOperations();
+        demonstrateComputationOperations();
         demonstrateGroupingAndCounting();
 
-        System.out.println("All Array and HashMap operation checks passed.");
+        System.out.println("All HashMap operation checks passed.");
     }
 
-    private static void demonstrateArrayOperations() {
-        int[] numbers = {5, 1, 5, 2};
-
-        assertEquals(5, numbers[0], "read array value by index");
-        numbers[1] = 9;
-        assertArrayEquals(new int[] {5, 9, 5, 2}, numbers, "update array value");
-
-        int[] copy = Arrays.copyOf(numbers, numbers.length);
-        int[] middle = Arrays.copyOfRange(numbers, 1, 3);
-        assertTrue(copy != numbers, "copy has a different identity");
-        assertArrayEquals(numbers, copy, "copy has the same values");
-        assertArrayEquals(new int[] {9, 5}, middle, "copy a half-open range");
-
-        Arrays.fill(copy, 1, 3, 7);
-        assertArrayEquals(new int[] {5, 7, 7, 2}, copy, "fill a range");
-
-        Arrays.sort(numbers);
-        assertArrayEquals(new int[] {2, 5, 5, 9}, numbers, "sort ascending");
-        assertTrue(Arrays.binarySearch(numbers, 9) >= 0, "find a value in sorted input");
-        assertTrue(Arrays.binarySearch(numbers, 8) < 0, "report a missing value");
-
-        int[] squares = new int[5];
-        Arrays.setAll(squares, index -> index * index);
-        assertArrayEquals(new int[] {0, 1, 4, 9, 16}, squares, "generate by index");
-
-        int sum = Arrays.stream(numbers).sum();
-        assertEquals(21, sum, "sum array values");
-    }
-
-    private static void demonstrateBasicMapOperations() {
+    private static void demonstrateBasicOperations() {
         Map<String, Integer> scores = new HashMap<>();
 
         assertEquals(null, scores.put("Ana", 10), "put a new key");
-        assertEquals(10, scores.put("Ana", 15), "put returns the replaced value");
+        assertEquals(10, scores.put("Ana", 15), "put returns replaced value");
         assertEquals(15, scores.get("Ana"), "get an existing value");
         assertEquals(0, scores.getOrDefault("Missing", 0), "read with a default");
 
@@ -67,16 +37,17 @@ public class ArrayHashMapOperationsDemo {
         assertTrue(scores.remove("Ben", 20), "remove an exact key-value pair");
         assertTrue(!scores.containsKey("Ben"), "removed key is absent");
 
-        Map<String, Integer> copy = new HashMap<>(scores);
-        assertEquals(scores, copy, "copy a map");
+        Map<String, Integer> copy = new HashMap<>();
+        copy.putAll(scores);
+        assertEquals(scores, copy, "copy all entries");
     }
 
-    private static void demonstrateMapComputationOperations() {
+    private static void demonstrateComputationOperations() {
         Map<String, Integer> counts = new HashMap<>();
 
         counts.computeIfAbsent("apple", key -> key.length());
         counts.computeIfAbsent("apple", key -> 999);
-        assertEquals(5, counts.get("apple"), "computeIfAbsent runs only when missing");
+        assertEquals(5, counts.get("apple"), "computeIfAbsent runs when missing");
 
         counts.computeIfPresent("apple", (key, oldValue) -> oldValue + 1);
         counts.computeIfPresent("missing", (key, oldValue) -> oldValue + 1);
@@ -85,11 +56,11 @@ public class ArrayHashMapOperationsDemo {
 
         counts.compute("banana", (key, oldValue) -> oldValue == null ? 1 : oldValue + 1);
         counts.compute("banana", (key, oldValue) -> oldValue == null ? 1 : oldValue + 1);
-        assertEquals(2, counts.get("banana"), "compute handles absent and present values");
+        assertEquals(2, counts.get("banana"), "compute handles absent and present");
 
         counts.merge("pear", 1, Integer::sum);
         counts.merge("pear", 1, Integer::sum);
-        assertEquals(2, counts.get("pear"), "merge inserts then combines values");
+        assertEquals(2, counts.get("pear"), "merge inserts then combines");
     }
 
     private static void demonstrateGroupingAndCounting() {
@@ -112,16 +83,8 @@ public class ArrayHashMapOperationsDemo {
         assertEquals(1, frequencies.get("ant"), "count one occurrence");
     }
 
-    private static void assertArrayEquals(int[] expected, int[] actual, String scenario) {
-        if (!Arrays.equals(expected, actual)) {
-            throw new AssertionError(
-                    scenario + ": expected " + Arrays.toString(expected)
-                            + " but received " + Arrays.toString(actual));
-        }
-    }
-
     private static void assertEquals(Object expected, Object actual, String scenario) {
-        if (!java.util.Objects.equals(expected, actual)) {
+        if (!Objects.equals(expected, actual)) {
             throw new AssertionError(
                     scenario + ": expected " + expected + " but received " + actual);
         }

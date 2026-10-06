@@ -2,7 +2,7 @@
 
 This module is intentionally split into small lessons. Study only the active lesson; do not read the later solution files early.
 
-If basic Java syntax feels rusty, pause for the supplemental [Java Arrays + HashMap Cheat Sheet](../../references/array-hashmap-cheatsheet.md). It is a reference and warm-up, not a mastery-state change.
+If basic Java syntax feels rusty, pause for the supplemental [Java Array Cheat Sheet](../../references/array-cheatsheet.md) or [Java HashMap Cheat Sheet](../../references/hashmap-cheatsheet.md). They are references and warm-ups, not mastery-state changes.
 
 ## Lesson sequence
 

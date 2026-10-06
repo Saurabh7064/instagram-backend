@@ -2,7 +2,7 @@
 
 Full curriculum: [Coding Micro-Lesson Index](./lesson-index.md)
 
-Syntax rusty? Start with the supplemental [Java Arrays + HashMap Cheat Sheet](./references/array-hashmap-cheatsheet.md). It includes common operations, a runnable demo, and a Two Sum warm-up without changing your active lesson.
+Syntax rusty? Use the separate [Java Array Cheat Sheet](./references/array-cheatsheet.md) and [Java HashMap Cheat Sheet](./references/hashmap-cheatsheet.md). Each has its own runnable examples, and neither changes your active lesson.
 
 ## Goal
 
