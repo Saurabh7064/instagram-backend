@@ -2,6 +2,8 @@
 
 This module is intentionally split into small lessons. Study only the active lesson; do not read the later solution files early.
 
+If basic Java syntax feels rusty, pause for the supplemental [Array + HashMap Refresher](../../references/array-hashmap-cheatsheet.md). It is a warm-up, not a mastery-state change.
+
 ## Lesson sequence
 
 | Order | Micro-lesson | Primary idea | Status |

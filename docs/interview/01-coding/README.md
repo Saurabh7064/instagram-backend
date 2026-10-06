@@ -2,6 +2,8 @@
 
 Full curriculum: [Coding Micro-Lesson Index](./lesson-index.md)
 
+Syntax rusty? Start with the supplemental [Array + HashMap Refresher](./references/array-hashmap-cheatsheet.md). It includes a compact Java cheat sheet and a runnable Two Sum warm-up without changing your active lesson.
+
 ## Goal
 
 Recognize the pattern, explain a baseline approach, implement the improved solution, test it, and state time/space complexity within 30–35 minutes.
