@@ -220,6 +220,12 @@ This file maps each commit to:
 - Verification: 72 unique lesson rows, exactly one `LEARNING` row, one `DEFERRED` row, official LeetCode links, and resolved local documentation links.
 - Docs: [Coding Micro-Lesson Index](./interview/01-coding/lesson-index.md), [Coding and LeetCode Path](./interview/01-coding/README.md)
 
+42. `a3504d0`
+- Learning change: added a supplemental Java Array + HashMap cheat sheet with a focused Two Sum warm-up, editable practice program, and separate reference solution without changing the active lesson's mastery state.
+- Concepts: indexed array traversal, value-to-index lookup, complements, loop invariants, and the time-space trade-off of replacing a nested scan with a hash map.
+- Verification: `./gradlew testClasses`, expected starter readiness output, passing reference-solution checks across standard, duplicate-value, and negative-value cases, and resolved local documentation links.
+- Docs: [Array + HashMap Refresher](./interview/01-coding/references/array-hashmap-cheatsheet.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/TwoSumPractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/TwoSumSolution.java)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
