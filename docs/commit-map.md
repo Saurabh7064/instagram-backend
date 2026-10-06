@@ -226,6 +226,12 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, expected starter readiness output, passing reference-solution checks across standard, duplicate-value, and negative-value cases, and resolved local documentation links.
 - Docs: [Array + HashMap Refresher](./interview/01-coding/references/array-hashmap-cheatsheet.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/TwoSumPractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/TwoSumSolution.java)
 
+43. `918ace2`
+- Learning change: expanded the Array + HashMap reference into a broad Java operation catalog and added a runnable demonstration of representative operations.
+- Concepts: array creation, traversal, copying, filling, sorting, binary search, reversal, streams, list conversion, map CRUD, `computeIfAbsent`, `computeIfPresent`, `compute`, `merge`, grouping, frequency counting, map iteration, collection selection, and complexity trade-offs.
+- Verification: `./gradlew testClasses`, passing `ArrayHashMapOperationsDemo`, balanced Markdown code fences, resolved runnable-demo link, and clean diff checks.
+- Docs: [Java Arrays + HashMap Cheat Sheet](./interview/01-coding/references/array-hashmap-cheatsheet.md), [Runnable Operations Demo](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/ArrayHashMapOperationsDemo.java)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
