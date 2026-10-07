@@ -250,6 +250,12 @@ This file maps each commit to:
 - Verification: target GitHub repository inspected before configuration, remote found without existing branches, and unrelated Kubernetes work excluded from the workflow commit.
 - Docs: [Project Workflow Rules](../AGENTS.md)
 
+47. `7137445`
+- Learning change: built an eight-week system-design interview curriculum from the November–December 2024 question history, added a dated/routed question bank, and initialized four concept micro-lessons in the learner's why/analogy/prediction/failure/teach-back format.
+- Concepts: interview framing, quality attributes, caching consistency, data partitioning and replication, Cassandra routing and hot keys, incremental monolith migration, e-commerce/payment workflows, privacy, multi-region design, and evidence-based comprehension tracking.
+- Verification: 11 curriculum files checked for balanced code fences, all local Markdown links resolved, supplied system-design questions extracted, adjacent Java/Spring/coding/behavioral questions explicitly routed, and diff checks passed.
+- Docs: [System Design Interview Plan](./interview/02-system-design/learning-plan.md), [Question Bank](./interview/02-system-design/question-bank-nov-dec-2024.md), [Concept Lessons](./interview/02-system-design/concepts/README.md), [Learner Progress](./interview/02-system-design/learner-progress.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
