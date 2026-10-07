@@ -268,6 +268,12 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, passing learner practice checks, passing reference-solution checks, resolved lesson links, balanced Markdown fences, and no remaining `Run from Terminal` sections under coding lessons.
 - Docs: [HashSet Membership Lesson and Review](./interview/01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md), [Learner Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/hashsetmembership/ContainsDuplicatePractice.java), [Project Workflow Rules](../AGENTS.md)
 
+50. `04bffa7`
+- Learning improvement: expanded Sequence Boundaries into a line-by-line explanation with normal and integer-boundary dry runs, exact overflow results, boolean naming alternatives, guard-order reasoning, correctness proof, complexity accounting, and common failure modes.
+- Workflow change: non-obvious code guards and API calls now require concrete inputs/results, the failure without the line, equivalent forms, and short-circuit/overflow explanations when applicable.
+- Verification: `./gradlew testClasses`, expected starter readiness output, passing reference checks for ordinary, duplicate, empty, negative, lower-boundary, upper-boundary, and separated-extremes cases, balanced Markdown fences, resolved links, and clean diff checks.
+- Docs: [Sequence Boundaries Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Practice Program](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java), [Project Workflow Rules](../AGENTS.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
