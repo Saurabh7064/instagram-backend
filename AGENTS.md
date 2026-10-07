@@ -14,8 +14,9 @@ For every new feature, refactor, or bug fix that changes behavior:
 8. Add exact code pointers (file paths).
 9. Add commit pointers (hashes) when available.
 10. Create at least one git commit for that feature/learning change.
-11. Append the commit in `docs/commit-map.md` with feature and concept mapping.
-12. Update backlog trackers:
+11. Push completed commits to the configured `origin` remote after generating or changing code or learning artifacts. Never include unrelated uncommitted work; if authentication, network access, or remote divergence prevents the push, report it explicitly.
+12. Append the commit in `docs/commit-map.md` with feature and concept mapping.
+13. Update backlog trackers:
    - feature status in `docs/features/learning-backlog.md`
    - concept status in `docs/system-design/learning-backlog.md`
 
