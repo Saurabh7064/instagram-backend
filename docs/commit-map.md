@@ -256,6 +256,12 @@ This file maps each commit to:
 - Verification: 11 curriculum files checked for balanced code fences, all local Markdown links resolved, supplied system-design questions extracted, adjacent Java/Spring/coding/behavioral questions explicitly routed, and diff checks passed.
 - Docs: [System Design Interview Plan](./interview/02-system-design/learning-plan.md), [Question Bank](./interview/02-system-design/question-bank-nov-dec-2024.md), [Concept Lessons](./interview/02-system-design/concepts/README.md), [Learner Progress](./interview/02-system-design/learner-progress.md)
 
+48. `6f3f441`
+- Learning change: added a standalone Java HashSet refresher with explicit input/output explanations, a runnable operations demo, and navigation to the existing Contains Duplicate practice.
+- Concepts: membership, uniqueness, boolean mutation results, union/intersection/difference, bulk operations, ordering variants, conversions, value equality and hashing, duplicate detection, visited sets, and average-case complexity.
+- Verification: `./gradlew testClasses`, passing output-producing `HashSetOperationsDemo`, expected Contains Duplicate starter output, passing Contains Duplicate reference checks, balanced Markdown fences, resolved local links, and clean diff checks.
+- Docs: [Java HashSet Cheat Sheet](./interview/01-coding/references/hashset-cheatsheet.md), [HashSet Operations Demo](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/HashSetOperationsDemo.java), [HashSet Membership Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
