@@ -9,23 +9,25 @@ This file extracts, normalizes, de-duplicates, explains, and routes the supplied
 - `P2`: useful specialization or role-dependent depth.
 - `ROUTE`: valuable question, but belongs in another interview track.
 
+For full, standalone answers to the microservices prompts below, use the [Microservices Interview Questions](./questions/microservices/README.md) module. It keeps one primary question per file and ends every answer with explained practice questions.
+
 ## November 2024 — extracted system-design questions
 
 | ID | Date | Normalized question | Priority | Primary lesson |
 |---|---|---|---|---|
-| MIG-01 | Nov 6 | How would you decompose a tightly coupled legacy Java monolith into microservices? | `P0` | [Migration](./concepts/04-monolith-to-microservices-migration.md) |
-| MIG-02 | Nov 6 | How would you minimize risk and preserve functionality during migration? | `P0` | Migration |
-| MIG-03 | Nov 6 | How do you maintain backward compatibility while both architectures coexist? | `P0` | Migration |
+| MIG-01 | Nov 6 | How would you decompose a tightly coupled legacy Java monolith into microservices? | `P0` | [Detailed answer](./questions/microservices/01-decomposing-a-monolith.md) |
+| MIG-02 | Nov 6 | How would you minimize risk and preserve functionality during migration? | `P0` | [Detailed answer](./questions/microservices/01-decomposing-a-monolith.md) |
+| MIG-03 | Nov 6 | How do you maintain backward compatibility while both architectures coexist? | `P0` | [Contract evolution](./questions/microservices/09-api-event-contract-evolution.md) |
 | SCALE-01 | Nov 6 | How would you build dynamically scaling, high-throughput e-commerce services? | `P0` | [Foundations](./concepts/01-scalability-availability-reliability.md) |
-| PAY-01 | Nov 6 | How would you make checkout and payment highly available without sacrificing correctness? | `P0` | Stateful workflows |
+| PAY-01 | Nov 6 | How would you make checkout and payment highly available without sacrificing correctness? | `P0` | [Resilient architecture](./questions/microservices/06-fault-tolerant-resilient-architecture.md) |
 | CACHE-01 | Nov 6 | Which caching strategy would you choose, and how would you manage consistency? | `P0` | [Caching](./concepts/02-caching-consistency.md) |
-| TXN-01 | Nov 6 | Where would you use a Saga, and how would failures be compensated? | `P0` | Stateful workflows |
+| TXN-01 | Nov 6 | Where would you use a Saga, and how would failures be compensated? | `P0` | [Distributed transactions](./questions/microservices/04-distributed-transactions-and-data-consistency.md) |
 | PRIV-01 | Nov 6 | How can healthcare services share data efficiently while meeting privacy obligations? | `P1` | Privacy/global operation |
 | PRIV-02 | Nov 6 | How can analytics data be anonymized while original identity remains available for billing? | `P1` | Privacy/global operation |
 | GEO-01 | Nov 6 | How do you manage latency and network failure across geographic regions? | `P1` | Privacy/global operation |
 | GEO-02 | Nov 6 | How do cross-region fault tolerance, availability, and data synchronization work together? | `P1` | Privacy/global operation |
-| CAP-01 | Nov 12 | Why can an oversized thread pool cause resource thrashing and context-switch overhead? | `P1` | Capacity/backpressure |
-| MIG-04 | Nov 28 | How would you modernize a pre-Java-6 Spring/Struts/JSP monolith with one database? | `P0` | Migration |
+| CAP-01 | Nov 12 | Why can an oversized thread pool cause resource thrashing and context-switch overhead? | `P1` | [Bulkhead isolation](./questions/microservices/05-bulkhead-isolation.md) |
+| MIG-04 | Nov 28 | How would you modernize a pre-Java-6 Spring/Struts/JSP monolith with one database? | `P0` | [Detailed answer](./questions/microservices/01-decomposing-a-monolith.md) |
 
 ## November answer frameworks
 

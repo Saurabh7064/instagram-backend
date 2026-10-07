@@ -123,6 +123,8 @@ Stop/go: explain how a retried checkout avoids duplicate payment and how the sys
 3. Backward compatibility and contract testing — `TODO`
 4. Observability, canaries, rollback, and cutover — `TODO`
 
+Interview-answer practice: [Microservices Interview Questions](./questions/microservices/README.md).
+
 Stop/go: propose the first service to extract, justify the boundary, describe coexistence, and give a rollback path.
 
 ### Module 6 — Privacy and global operation

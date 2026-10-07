@@ -166,3 +166,19 @@ For every lesson under `docs/interview/01-coding/`:
 14. When the learner completes their own practice solution, run its checks and update that lesson's README with a clickable solution link, the submitted approach, correctness result, complexity, edge-case coverage, and specific issues or refinements. Preserve the learner's approach unless they ask for a rewrite.
 15. Record code completion separately from comprehension and mastery. Passing checks completes the implementation attempt, but checkpoint answers and a plain-language invariant/complexity explanation are still required before advancing the learning status.
 16. Explain every non-obvious line, guard, boundary check, or API call with: what it evaluates, why it is needed, a concrete input and result, what fails without it, and any equivalent clearer form. For arithmetic guards, show the exact overflow or underflow value and explain Java's left-to-right short-circuit behavior.
+
+## System Design Interview Answer Standard
+
+For every question-answer file under `docs/interview/02-system-design/questions/`:
+
+1. Keep one primary interview question per file and display the exact normalized question near the top.
+2. Start with why the problem exists before naming patterns or products.
+3. Use one accurate analogy and explicitly state where the analogy stops matching a distributed system.
+4. Define unfamiliar terms before using them; split overloaded answers into focused sections instead of presenting a buzzword list.
+5. Trace at least one concrete request, event, or failure step by step and show the observable result.
+6. Map the answer to this Instagram backend with clickable code links when a real mapping exists; label proposed components rather than pretending they are implemented.
+7. Explain when to choose each major option, when not to choose it, and the cost or new failure mode introduced.
+8. Include a failure drill covering prediction, symptom/detection, containment, recovery, and prevention.
+9. Include a concise 2–3 minute interview-ready answer after the detailed explanation.
+10. End the file with a `Questions and explained answers` section containing 3–5 expandable `<details>` questions. Put the explained answer inside each question's block and place no lesson content after this section.
+11. Keep artifact readiness separate from comprehension. Mark an answer practiced only after the learner explains it without notes, predicts a failure, and answers the final questions before revealing them.

@@ -30,6 +30,10 @@ Artifact completion and learner understanding are separate. A lesson can be read
 |---|---|---:|---|---|---|
 |  |  |  |  |  |  |
 
+## Microservices question progress
+
+Use the detailed [Microservices Interview Questions](./questions/microservices/README.md) module. All ten answer artifacts are `READY`; comprehension remains `TODO` until the learner gives the answer, predicts a failure, and completes the final questions without reading.
+
 ## Current lesson
 
 - Active lesson: none selected yet.
