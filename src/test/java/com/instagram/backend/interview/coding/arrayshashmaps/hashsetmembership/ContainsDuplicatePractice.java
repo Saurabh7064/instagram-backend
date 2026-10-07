@@ -1,5 +1,7 @@
 package com.instagram.backend.interview.coding.arrayshashmaps.hashsetmembership;
 
+import java.util.HashSet;
+
 /**
  * Editable program for Micro-Lesson 01: HashSet Membership.
  */
@@ -17,7 +19,16 @@ public class ContainsDuplicatePractice {
 
     static boolean containsDuplicate(int[] values) {
         // TODO: Write your solution here.
-        throw new UnsupportedOperationException("Implement containsDuplicate");
+
+        HashSet<Integer> set = new HashSet<>();
+
+        for(int i=0;i<values.length;i++){
+            if(set.contains(values[i])){
+                return true;
+            }
+            set.add(values[i]);
+        }
+        return false;
     }
 
     private static void runChecks() {

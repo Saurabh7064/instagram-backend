@@ -73,21 +73,6 @@ Every non-empty run has exactly one first value whose predecessor is absent. The
 - Additional space: `O(n)` for distinct values.
 - Boundary guards prevent integer overflow at `Integer.MIN_VALUE` and `Integer.MAX_VALUE`.
 
-## Run from Terminal
-
-```bash
-./gradlew testClasses
-java -cp build/classes/java/test \
-  com.instagram.backend.interview.coding.arrayshashmaps.sequenceboundaries.LongestConsecutivePractice
-```
-
-Reference:
-
-```bash
-java -cp build/classes/java/test \
-  com.instagram.backend.interview.coding.arrayshashmaps.sequenceboundaries.LongestConsecutiveSolution
-```
-
 ## Checkpoints
 
 <details>

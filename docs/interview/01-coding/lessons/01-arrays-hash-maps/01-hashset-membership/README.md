@@ -1,6 +1,7 @@
 # Micro-Lesson 01 — HashSet Membership
 
-- Status: `DEFERRED` at learner request on 2026-10-04
+- Learning status: `DEFERRED` at learner request on 2026-10-04; checkpoint explanation still pending
+- Learner implementation: `PASSING` on 2026-10-06
 - Time: 35–45 minutes
 - Primary idea: remember whether a value has appeared
 - New terms: membership, duplicate, invariant
@@ -25,6 +26,42 @@ Target: average `O(n)` time.
 - Reference answer: [ContainsDuplicateSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/hashsetmembership/ContainsDuplicateSolution.java)
 
 In IntelliJ, open the practice file and click the green triangle beside `main`. Change only `containsDuplicate`.
+
+## Learner solution review — 2026-10-06
+
+Submitted implementation: [ContainsDuplicatePractice.java](../../../../../../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/hashsetmembership/ContainsDuplicatePractice.java)
+
+```java
+HashSet<Integer> set = new HashSet<>();
+
+for (int i = 0; i < values.length; i++) {
+    if (set.contains(values[i])) {
+        return true;
+    }
+    set.add(values[i]);
+}
+return false;
+```
+
+Verification result: all supplied checks pass for a duplicate, all-distinct values, an empty array, one value, and a duplicate negative value.
+
+### What is correct
+
+- The set contains values from earlier indexes before the current value is checked.
+- Returning immediately after finding a prior value is correct and avoids unnecessary work.
+- Empty and single-value arrays correctly reach `false`.
+- Average time is `O(n)` and worst-case additional space is `O(n)`.
+
+### Issues and refinements
+
+There is no correctness bug for the problem's non-null input assumption. The improvements are about clarity and avoiding repeated work:
+
+1. `contains` followed by `add` performs two hash-table operations for every new value. `if (!seen.add(value))` combines the membership check and insertion into one operation.
+2. `Set<Integer> seen = new HashSet<>();` communicates both the interface being used and the purpose of the variable more clearly than `HashSet<Integer> set`.
+3. An enhanced loop is enough because the index is never used for the answer.
+4. The completed file still contains the starter `TODO` comment, and the loop spacing does not follow normal Java formatting. These do not affect correctness but should be cleaned in production-quality code.
+
+These are refinements, not a reason to reject the solution in an interview. Explain the invariant and complexity confidently before optimizing the syntax.
 
 ## One idea
 
@@ -63,21 +100,6 @@ static boolean containsDuplicate(int[] values) {
 - Average time: `O(n)` because each element performs one average constant-time set operation.
 - Additional space: `O(n)` in the all-distinct case.
 - Trade-off: extra memory replaces repeated pair comparisons.
-
-## Run from Terminal
-
-```bash
-./gradlew testClasses
-java -cp build/classes/java/test \
-  com.instagram.backend.interview.coding.arrayshashmaps.hashsetmembership.ContainsDuplicatePractice
-```
-
-After your attempt, run the reference:
-
-```bash
-java -cp build/classes/java/test \
-  com.instagram.backend.interview.coding.arrayshashmaps.hashsetmembership.ContainsDuplicateSolution
-```
 
 ## Checkpoints
 

@@ -157,9 +157,11 @@ For every lesson under `docs/interview/01-coding/`:
 5. Provide a clickable link beside the problem to an editable Java practice file under `src/test/java/com/instagram/backend/interview/`; never place runnable Java only under `docs/`, because IntelliJ does not treat that directory as a Java source root.
 6. The practice file must contain a runnable `main` method, sample/edge-case checks, and a clearly marked method where the learner writes the solution.
 7. Provide a separate clickable reference-solution file so the learner can attempt the problem without accidentally reading the answer.
-8. Include exact compile and run commands for both files.
+8. Make both files directly runnable from IntelliJ. Include terminal compile/run commands only when the learner asks for them or they add non-redundant value; do not add routine `Run from Terminal` sections.
 9. Explain the reference approach, invariant, correctness reasoning, time complexity, space complexity, pitfalls, and reasonable alternatives that directly relate to the one primary idea.
 10. Include 2–3 checkpoint questions with explained answers and observable stop/go criteria.
 11. Compile both Java files and run the reference solution before marking the lesson artifact complete.
 12. Keep learning status separate from artifact completeness. A working reference solution does not mean the learner has mastered the problem.
 13. Keep the practice and reference classes in a named package matching their `src/test/java` directory so IntelliJ can run and debug each `main` method directly without adding production code to the application artifact.
+14. When the learner completes their own practice solution, run its checks and update that lesson's README with a clickable solution link, the submitted approach, correctness result, complexity, edge-case coverage, and specific issues or refinements. Preserve the learner's approach unless they ask for a rewrite.
+15. Record code completion separately from comprehension and mastery. Passing checks completes the implementation attempt, but checkpoint answers and a plain-language invariant/complexity explanation are still required before advancing the learning status.
