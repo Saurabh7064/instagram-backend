@@ -244,6 +244,12 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, passing and output-producing Array and HashMap demos, passing Two Sum reference checks, balanced Markdown code fences, and clean diff checks.
 - Docs: [Java Array Cheat Sheet](./interview/01-coding/references/array-cheatsheet.md), [Array Demo](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/ArrayOperationsDemo.java), [Java HashMap Cheat Sheet](./interview/01-coding/references/hashmap-cheatsheet.md), [HashMap Demo](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/HashMapOperationsDemo.java)
 
+46. `b5d2897`
+- Workflow change: configured completed generated code and learning-artifact changes to be pushed to the repository's `origin` remote after they are committed.
+- Concepts: remote publication as a definition-of-done step, protecting unrelated working-tree changes, and explicit reporting for authentication, network, or divergence failures.
+- Verification: target GitHub repository inspected before configuration, remote found without existing branches, and unrelated Kubernetes work excluded from the workflow commit.
+- Docs: [Project Workflow Rules](../AGENTS.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
