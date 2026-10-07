@@ -274,6 +274,13 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, expected starter readiness output, passing reference checks for ordinary, duplicate, empty, negative, lower-boundary, upper-boundary, and separated-extremes cases, balanced Markdown fences, resolved links, and clean diff checks.
 - Docs: [Sequence Boundaries Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Practice Program](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java), [Project Workflow Rules](../AGENTS.md)
 
+51. `779be3d`
+- Learning change: added ten separate microservices interview answers covering incremental monolith decomposition, production observability, communication resilience, distributed transactions, bulkheads, fault-tolerant architecture, service boundaries, idempotency, contract evolution, and safe testing/deployment.
+- Workflow change: system-design answers now start with why, define terms before use, include an analogy with its limits, trace a concrete flow and failure, map honestly to this project, provide trade-offs, include a genuine 2–3 minute spoken answer, and end with explained questions.
+- Concepts: strangler migration, data ownership, metrics/logs/traces, timeout budgets, retry storms, circuit breakers, Saga/outbox/inbox, compensation, reconciliation, resource isolation, SLO/RTO/RPO, safe degradation, backward compatibility, contract tests, canaries, and expand-contract deployment.
+- Verification: all ten files passed question/answer-structure checks, 230–360-word interview-answer checks, balanced-fence checks, local-link resolution, repository-specific technical review, and clean diff checks.
+- Docs: [Microservices Interview Questions](./interview/02-system-design/questions/microservices/README.md), [November–December Question Bank](./interview/02-system-design/question-bank-nov-dec-2024.md), [Learner Progress](./interview/02-system-design/learner-progress.md), [Project Workflow Rules](../AGENTS.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
