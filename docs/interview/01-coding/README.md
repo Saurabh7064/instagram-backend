@@ -2,7 +2,7 @@
 
 Full curriculum: [Coding Micro-Lesson Index](./lesson-index.md)
 
-Syntax rusty? Use the separate [Java Array Cheat Sheet](./references/array-cheatsheet.md) and [Java HashMap Cheat Sheet](./references/hashmap-cheatsheet.md). Each has its own runnable examples, and neither changes your active lesson.
+Syntax rusty? Use the separate [Java Array Cheat Sheet](./references/array-cheatsheet.md), [Java HashSet Cheat Sheet](./references/hashset-cheatsheet.md), and [Java HashMap Cheat Sheet](./references/hashmap-cheatsheet.md). Each has its own runnable examples, and none changes your active lesson.
 
 ## Goal
 

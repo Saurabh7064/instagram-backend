@@ -5,6 +5,8 @@
 - Primary idea: remember whether a value has appeared
 - New terms: membership, duplicate, invariant
 
+Need a syntax and operations review first? Use the supplemental [Java HashSet Cheat Sheet](../../../references/hashset-cheatsheet.md). Returning to the reference does not change this lesson's `DEFERRED` status.
+
 ## Problem
 
 Given a non-null integer array, return `true` if any value appears at least twice. Return `false` when every value is distinct.
