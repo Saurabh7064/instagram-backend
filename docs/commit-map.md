@@ -262,6 +262,12 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, passing output-producing `HashSetOperationsDemo`, expected Contains Duplicate starter output, passing Contains Duplicate reference checks, balanced Markdown fences, resolved local links, and clean diff checks.
 - Docs: [Java HashSet Cheat Sheet](./interview/01-coding/references/hashset-cheatsheet.md), [HashSet Operations Demo](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/HashSetOperationsDemo.java), [HashSet Membership Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md)
 
+49. `e2f0739`
+- Learner solution: recorded and reviewed the learner's passing Contains Duplicate implementation, including correctness, complexity, covered edge cases, and non-blocking clarity/performance refinements.
+- Workflow change: future completed learner solutions must be executed and documented in the lesson README, while routine terminal-run sections are omitted and code completion remains separate from comprehension/mastery.
+- Verification: `./gradlew testClasses`, passing learner practice checks, passing reference-solution checks, resolved lesson links, balanced Markdown fences, and no remaining `Run from Terminal` sections under coding lessons.
+- Docs: [HashSet Membership Lesson and Review](./interview/01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md), [Learner Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/hashsetmembership/ContainsDuplicatePractice.java), [Project Workflow Rules](../AGENTS.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
