@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Runnable reference solution for Lesson 01: Arrays and Hash Maps.
+ * Runnable reference solution for Micro-Lesson 02: Sequence Boundaries.
  */
 public class LongestConsecutiveSolution {
 

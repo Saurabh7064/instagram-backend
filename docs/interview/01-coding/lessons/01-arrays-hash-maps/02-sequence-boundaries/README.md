@@ -3,54 +3,284 @@
 - Status: `LEARNING`
 - Time: 45–60 minutes
 - Prerequisite: [HashSet Membership](../01-hashset-membership/README.md)
-- Primary idea: begin scanning a run only from its first value
-- New terms: predecessor, boundary, consecutive
+- Primary idea: begin scanning a consecutive run only from its first value
+- New terms: predecessor, sequence boundary, integer overflow
 
-Micro-Lesson 01 was deferred at the learner’s request. The only bridge needed here is that a `HashSet` stores unique values and supports average constant-time membership checks. Return to the full prerequisite later.
+The HashSet practice implementation now passes, but its explanation checkpoints remain pending. The only prerequisite needed here is that a `HashSet` stores unique values and provides average `O(1)` membership checks.
 
 ## Problem
 
-Given a non-null, unsorted integer array, return the length of its longest run of consecutive values. Input positions do not matter, and duplicates do not extend a run.
+Given a non-null, unsorted integer array, return the length of its longest run of consecutive values.
+
+Assumptions:
+
+- Input positions do not matter.
+- Duplicate values do not extend a run.
+- Consecutive means each next distinct value is exactly one larger.
+- The array can contain any Java `int`, including `Integer.MIN_VALUE` and `Integer.MAX_VALUE`.
 
 Examples:
 
-- `[100, 4, 200, 1, 3, 2]` → `4`
-- `[1, 2, 0, 1]` → `3`
+- `[100, 4, 200, 1, 3, 2]` → `4` because the run is `1, 2, 3, 4`
+- `[1, 2, 0, 1]` → `3` because duplicates do not extend `0, 1, 2`
 - `[]` → `0`
+- `[Integer.MIN_VALUE, Integer.MAX_VALUE]` → `1`; the two extremes are not consecutive
 
-Target: average `O(n)` time.
+Target: average `O(n)` time and `O(n)` additional space.
 
 ## Runnable code
 
 - Write here: [LongestConsecutivePractice.java](../../../../../../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java)
-- Reference answer: [LongestConsecutiveSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java)
+- Reveal after attempting: [LongestConsecutiveSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java)
 
-## One idea
+Open the practice file in IntelliJ, change only `longestConsecutive`, and run its `main` method.
 
-Putting values in a set gives fast membership checks, but starting a scan from every value can still revisit the same run many times.
+## Why a simple HashSet loop is not enough
 
-A value begins a run only when its predecessor is absent. For example, `1` begins `1, 2, 3, 4` because `0` is absent. Values `2`, `3`, and `4` are skipped as starting points because each has a predecessor.
+Putting values in a set gives fast membership checks, but starting a forward scan from every value repeats work.
 
-This boundary check ensures each run is walked once.
+For the run `1, 2, 3, 4`:
 
-## Reference solution
+- starting at `1` checks `2`, `3`, and `4`;
+- starting at `2` checks `3` and `4` again;
+- starting at `3` checks `4` again;
+- starting at `4` checks nothing.
+
+For a run containing `n` values, that repeated work can approach `n + (n - 1) + ... + 1`, or `O(n²)`.
+
+The fix is to scan only from a sequence boundary: a value whose predecessor is absent.
+
+```text
+Run:          1  2  3  4
+Predecessor:  0  1  2  3
+Start?       yes no no no
+```
+
+`1` is the only start because `0` is absent. Values `2`, `3`, and `4` are not starts because their predecessors are present.
+
+## Step 1 — Build the set
+
+```java
+Set<Integer> unique = new HashSet<>();
+for (int value : values) {
+    unique.add(value);
+}
+```
+
+For input `[1, 2, 0, 1]`, the set contains `{0, 1, 2}`. The duplicate `1` is stored once, so it cannot make the run longer.
+
+Why use a set?
+
+- `unique.contains(number)` is average `O(1)`.
+- duplicates disappear automatically;
+- input order no longer matters.
+
+`HashSet` iteration order is unspecified, but the algorithm does not depend on order. It identifies starts by checking values, not positions.
+
+## Step 2 — Understand Java's integer boundaries
+
+A Java `int` can represent only this closed range:
+
+```text
+Integer.MIN_VALUE = -2,147,483,648
+Integer.MAX_VALUE =  2,147,483,647
+```
+
+There is no smaller `int` before `Integer.MIN_VALUE` and no larger `int` after `Integer.MAX_VALUE`.
+
+Java `int` arithmetic wraps when it crosses the boundary:
+
+```java
+int tooSmall = Integer.MIN_VALUE - 1;
+// tooSmall becomes Integer.MAX_VALUE
+
+int tooLarge = Integer.MAX_VALUE + 1;
+// tooLarge becomes Integer.MIN_VALUE
+```
+
+This wraparound is integer overflow. Mathematically, the minimum and maximum values are extremely far apart; Java must not accidentally treat them as neighbors.
+
+## Step 3 — Decide whether a value has a predecessor
+
+The reference solution uses:
+
+```java
+boolean hasPredecessor = value != Integer.MIN_VALUE
+        && unique.contains(value - 1);
+```
+
+Read the line from left to right:
+
+1. `value != Integer.MIN_VALUE` asks whether subtracting `1` is safe.
+2. `&&` means both conditions must be true.
+3. Java stops after the first condition when it is `false`; it does not evaluate `value - 1`.
+4. Only for a safe value does the set check whether `value - 1` exists.
+
+### Why `!= Integer.MIN_VALUE`?
+
+We are calculating `hasPredecessor`, not `isStart`.
+
+- If `value` is **not equal** to the minimum, `value - 1` is representable and can be checked.
+- If `value` **is equal** to the minimum, no smaller `int` exists, so it cannot have a predecessor inside an `int[]`. `hasPredecessor` must be `false`.
+
+Example with `value = 5`:
+
+```text
+5 != MIN_VALUE             → true
+unique contains 5 - 1 = 4  → depends on the set
+```
+
+Example with `value = Integer.MIN_VALUE`:
+
+```text
+MIN_VALUE != MIN_VALUE     → false
+Java stops here            → value - 1 is never evaluated
+hasPredecessor             → false
+```
+
+You could write the idea using equality if the variable represented the opposite fact:
+
+```java
+boolean isStart = value == Integer.MIN_VALUE
+        || !unique.contains(value - 1);
+```
+
+Both versions are correct:
+
+- `hasPredecessor` uses `value != MIN_VALUE && ...`.
+- `isStart` uses `value == MIN_VALUE || ...`.
+
+The comparison changes because the boolean question changes.
+
+### Why the order of conditions matters
+
+This is safe:
+
+```java
+value != Integer.MIN_VALUE && unique.contains(value - 1)
+```
+
+This does not protect the subtraction:
+
+```java
+unique.contains(value - 1) && value != Integer.MIN_VALUE
+```
+
+In the second version, Java evaluates `value - 1` before it reaches the guard.
+
+## Step 4 — Scan only from starts
+
+```java
+if (!hasPredecessor) {
+```
+
+`!` means “not.” Therefore the block runs only when the value does not have a predecessor.
+
+For `{100, 4, 200, 1, 3, 2}`:
+
+| Value | Predecessor | Present? | Start scanning? |
+|---:|---:|---|---|
+| 100 | 99 | No | Yes |
+| 4 | 3 | Yes | No |
+| 200 | 199 | No | Yes |
+| 1 | 0 | No | Yes |
+| 3 | 2 | Yes | No |
+| 2 | 1 | Yes | No |
+
+Only `1` starts the four-value run. It does not matter which order the set happens to iterate.
+
+## Step 5 — Count the current value first
+
+```java
+int length = 1;
+int current = value;
+```
+
+Why does `length` start at `1` rather than `0`?
+
+The starting value already belongs to the run. If the set contains only `{7}`, the run is `7`, whose length is `1`.
+
+`current` is a cursor. It moves through the current run while `value` remains unchanged as the start chosen by the outer loop.
+
+## Step 6 — Look for the next value safely
+
+```java
+while (current != Integer.MAX_VALUE
+        && unique.contains(current + 1)) {
+    current++;
+    length++;
+}
+```
+
+Read the condition from left to right:
+
+1. `current != Integer.MAX_VALUE` asks whether adding `1` is safe.
+2. If `current` is the maximum, Java stops and does not evaluate `current + 1`.
+3. Otherwise, the set checks for the next integer.
+4. When it exists, both `current` and `length` advance by one.
+
+### Why `!= Integer.MAX_VALUE`?
+
+- If `current` is not the maximum, `current + 1` is representable.
+- If `current` equals the maximum, no larger `int` exists, so the run must stop.
+
+Without this guard, `Integer.MAX_VALUE + 1` wraps to `Integer.MIN_VALUE`.
+
+For input `{Integer.MIN_VALUE, Integer.MAX_VALUE}`, removing both guards could incorrectly connect the two extremes:
+
+```text
+MAX_VALUE + 1 wraps to MIN_VALUE
+The set contains MIN_VALUE
+Incorrect conclusion: the two values are consecutive
+```
+
+The correct answer is `1`, not `2`.
+
+## Step 7 — Keep the best run
+
+```java
+longest = Math.max(longest, length);
+```
+
+`longest` stores the best completed run seen so far.
+
+Example:
+
+```text
+longest before = 1
+current run     = 4
+Math.max(1, 4)  = 4
+longest after   = 4
+```
+
+If a later run has length `2`, `Math.max(4, 2)` keeps `4`.
+
+## Fully annotated reference solution
 
 ```java
 static int longestConsecutive(int[] values) {
+    // Remove duplicates and enable average O(1) membership checks.
     Set<Integer> unique = new HashSet<>();
     for (int value : values) {
         unique.add(value);
     }
 
+    // Empty input correctly returns 0 because no run changes this value.
     int longest = 0;
+
     for (int value : unique) {
+        // MIN_VALUE has no representable predecessor.
+        // Java evaluates the contains call only when subtraction is safe.
         boolean hasPredecessor = value != Integer.MIN_VALUE
                 && unique.contains(value - 1);
 
+        // Scan forward only from the first value of a run.
         if (!hasPredecessor) {
-            int length = 1;
-            int current = value;
+            int length = 1;       // Count the start itself.
+            int current = value;  // Cursor through this run.
 
+            // MAX_VALUE has no representable successor.
+            // Java evaluates current + 1 only when addition is safe.
             while (current != Integer.MAX_VALUE
                     && unique.contains(current + 1)) {
                 current++;
@@ -65,37 +295,133 @@ static int longestConsecutive(int[] values) {
 }
 ```
 
-## Correctness and complexity
+## Complete dry run
 
-Every non-empty run has exactly one first value whose predecessor is absent. The algorithm starts there and counts every member until the first missing successor. Therefore every run is considered and its full length is measured.
+Input:
 
-- Average time: `O(n)`. Building the set is linear, and each distinct value is counted as part of one run.
-- Additional space: `O(n)` for distinct values.
-- Boundary guards prevent integer overflow at `Integer.MIN_VALUE` and `Integer.MAX_VALUE`.
+```text
+[100, 4, 200, 1, 3, 2]
+```
+
+Set contents:
+
+```text
+{1, 2, 3, 4, 100, 200}
+```
+
+The displayed order is only for explanation; actual `HashSet` order can differ.
+
+| Start candidate | Has predecessor? | Values counted | Length | Longest afterward |
+|---:|---|---|---:|---:|
+| 1 | No (`0` absent) | `1, 2, 3, 4` | 4 | 4 |
+| 2 | Yes (`1` present) | skipped | — | 4 |
+| 3 | Yes (`2` present) | skipped | — | 4 |
+| 4 | Yes (`3` present) | skipped | — | 4 |
+| 100 | No (`99` absent) | `100` | 1 | 4 |
+| 200 | No (`199` absent) | `200` | 1 | 4 |
+
+The final result is `4`.
+
+## Boundary dry runs
+
+### Lower boundary
+
+Input:
+
+```text
+[Integer.MIN_VALUE, Integer.MIN_VALUE + 1]
+```
+
+- `MIN_VALUE` has no representable predecessor, so it is a start.
+- Its safe successor is `MIN_VALUE + 1`, which is present.
+- The run length is `2`.
+
+### Upper boundary
+
+Input:
+
+```text
+[Integer.MAX_VALUE - 1, Integer.MAX_VALUE]
+```
+
+- `MAX_VALUE - 1` is a start when its predecessor is absent.
+- It advances to `MAX_VALUE`.
+- The maximum-value guard stops before overflow.
+- The run length is `2`.
+
+### Both extremes
+
+Input:
+
+```text
+[Integer.MIN_VALUE, Integer.MAX_VALUE]
+```
+
+- Both values are separate one-value runs.
+- Neither guard allows wraparound to join them.
+- The answer is `1`.
+
+## Why the nested loops are still average O(n)
+
+The outer loop considers every distinct value once, but the inner loop runs only at starts.
+
+For `1, 2, 3, 4`, only `1` enters the inner loop. Values `2`, `3`, and `4` are skipped as starts. Across all runs, each distinct value is advanced through at most once.
+
+- Building the set: average `O(n)`.
+- Checking possible starts: average `O(n)`.
+- All successful forward steps combined: average `O(n)`.
+- Total: average `O(n)`, not `O(n²)`.
+- Additional space: `O(n)` for the distinct values.
+
+## Correctness reasoning
+
+Every non-empty consecutive run has exactly one first value:
+
+- its predecessor is absent;
+- every later value in that run has a predecessor and is skipped as a start;
+- scanning from the first value counts every successor until the run ends.
+
+Therefore each run is measured once. Taking the maximum of all measured run lengths returns the longest one.
+
+## Common mistakes
+
+- Starting a scan from every value, causing repeated work.
+- Iterating the original array for start candidates, causing duplicates to repeat checks.
+- Starting `length` at `0` and forgetting to count the first value.
+- Removing the minimum/maximum guards and connecting integer extremes through overflow.
+- Putting the overflow guard after the arithmetic expression, which is too late.
+- Sorting even though the target asks for average `O(n)` time; sorting is a valid simpler alternative when `O(n log n)` is acceptable.
 
 ## Checkpoints
 
 <details>
-<summary>1. Why not start counting from every value?</summary>
+<summary>1. Why do we start counting only when the predecessor is absent?</summary>
 
-That can walk the same run repeatedly and degrade toward `O(n²)`. Starting only where the predecessor is absent makes each run begin once.
-
-</details>
-
-<details>
-<summary>2. Why do duplicates not change the answer?</summary>
-
-The set stores each distinct value once. A run’s length is based on distinct consecutive values, so repeated input values add nothing.
+Every run has exactly one value with no predecessor: its first value. Starting only there prevents the same run from being traversed repeatedly and keeps total scanning linear on average.
 
 </details>
 
 <details>
-<summary>3. How can a loop inside another loop still total O(n)?</summary>
+<summary>2. Why is the condition `value != Integer.MIN_VALUE && unique.contains(value - 1)`?</summary>
 
-The inner loop runs only at sequence starts, and a distinct value is traversed as part of only one run. Across the complete algorithm, the successful inner-loop steps are proportional to the number of distinct values.
+The code is calculating whether a predecessor exists. Subtraction is safe only when the value is not the minimum. When it is the minimum, no representable predecessor exists, so the answer is `false`. Java stops evaluating `&&` after the false guard, preventing `MIN_VALUE - 1` from wrapping to `MAX_VALUE`.
+
+</details>
+
+<details>
+<summary>3. How can an inner while loop still produce average O(n) total time?</summary>
+
+The inner loop runs only from sequence starts. Each distinct value is advanced through as part of exactly one run, so all inner-loop progress combined is proportional to the number of distinct values.
 
 </details>
 
 ## Stop/go
 
-Proceed only when you can identify the sequence-start condition, implement it without the reference, explain why values are not repeatedly traversed, and pass the supplied checks.
+Proceed only when you can:
+
+- identify every start value in `{100, 4, 200, 1, 3, 2}`;
+- explain why `length` starts at `1`;
+- explain both integer boundary guards and what wraps without them;
+- explain why Java must evaluate the guard before the arithmetic expression;
+- explain why the nested loops total average `O(n)`;
+- implement the method without viewing the reference and pass all checks.

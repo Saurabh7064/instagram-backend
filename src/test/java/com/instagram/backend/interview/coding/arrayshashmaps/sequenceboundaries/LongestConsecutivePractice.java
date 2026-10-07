@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Editable practice program for Lesson 01: Arrays and Hash Maps.
+ * Editable practice program for Micro-Lesson 02: Sequence Boundaries.
  *
  * Write your implementation only inside longestConsecutive. Keep the main
  * method unchanged initially so the same examples test every attempt.
@@ -44,6 +44,9 @@ public class LongestConsecutivePractice {
         assertEquals(2,
                 longestConsecutive(new int[] {Integer.MIN_VALUE, Integer.MIN_VALUE + 1}),
                 "lower integer boundary");
+        assertEquals(1,
+                longestConsecutive(new int[] {Integer.MIN_VALUE, Integer.MAX_VALUE}),
+                "integer extremes are not adjacent");
     }
 
     private static void assertEquals(int expected, int actual, String scenario) {
