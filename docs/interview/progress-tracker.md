@@ -18,7 +18,7 @@ Update this file once per week. Evidence should link to notes, problem logs, moc
 |---|---:|---:|---|---|
 | Coding patterns mastered | 12 | 0 | LEARNING | Complete [Sequence Boundaries](./01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md) |
 | Problems mastered | 130 | 0 | LEARNING | Implement and explain Longest Consecutive |
-| System designs completed | 15 | 0 | NOT_STARTED | Design URL shortener |
+| System designs completed | 15 | 0 | NOT_STARTED | Attempt [Scalability, Availability, and Reliability](./02-system-design/concepts/01-scalability-availability-reliability.md), then design the Instagram read path |
 | Behavioral stories rehearsed | 8 | 0 | NOT_STARTED | Draft technical challenge story |
 | Project deep-dives ready | 2 | 0 | NOT_STARTED | Select Nike and U.S. Bank examples |
 | Java/JVM topics ready | 10 | 0 | NOT_STARTED | Baseline Java/JVM questions |
