@@ -44,7 +44,7 @@ A problem counts as mastered only when you can solve a fresh variant without hin
 |---|---|---|---|---:|---|---|---|---|
 | 2026-10-04 / 2026-10-06 | Contains duplicate | HashSet membership | Easy |  |  | Correct solution; minor clarity/duplicate-lookup refinements | Checkpoints, 2026-10-07, 2026-10-13, 2026-11-06 | NO — code passes, explanation pending |
 | 2026-10-04 / 2026-10-07 | Longest consecutive run | Sequence boundary | Medium |  | Guided checkpoint retries | Correct solution; initially confused one scan start and exact overflow wording | 2026-10-08, 2026-10-14, 2026-11-07 | NO — initial lesson passed; retrieval pending |
-| 2026-10-07 | Two Sum | Value-to-index map | Easy |  |  | Active lesson |  | NO — learning |
+| 2026-10-07 | Two Sum | Value-to-index map | Easy |  |  | Nested-loop baseline passes but is `O(n²)`; HashMap version required |  | NO — optimization pending |
 
 ## Per-problem note template
 
