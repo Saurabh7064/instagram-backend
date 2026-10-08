@@ -310,6 +310,12 @@ This file maps each commit to:
 - Review plan: scheduled no-notes checks for 2026-10-08, 2026-10-14, and 2026-11-07.
 - Docs: [Sequence Boundaries Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Coding Lesson Index](./interview/01-coding/lesson-index.md), [Interview Progress Tracker](./interview/progress-tracker.md), [Session 02 Plan](./interview/daily/2026-10-04-session-02.md)
 
+57. `d8d8e9f`
+- Learning change: activated the HashMap value-to-index micro-lesson with Two Sum as the single focused problem.
+- Concepts: complement lookup, storing earlier indexes, the map invariant, distinct-index safety through lookup-before-insertion, correctness, and average `O(n)` time with `O(n)` additional space.
+- Verification: `./gradlew testClasses`, expected untouched practice readiness output, passing reference checks for ordinary, duplicate, negative, and zero pairs, one active `LEARNING` coding lesson, and clean diff checks for committed files.
+- Docs: [HashMap Value-to-Index Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/03-value-to-index/README.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/valuetoindex/TwoSumIndexSolution.java), [Session 03 Plan](./interview/daily/2026-10-07-session-03.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
