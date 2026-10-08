@@ -34,6 +34,10 @@ Artifact completion and learner understanding are separate. A lesson can be read
 
 Use the detailed [Microservices Interview Questions](./questions/microservices/README.md) module. All ten answer artifacts are `READY`; comprehension remains `TODO` until the learner gives the answer, predicts a failure, and completes the final questions without reading.
 
+| Question | Answer artifact | Project implementation | Comprehension |
+|---|---|---|---|
+| [Question 2: production observability and debugging](./questions/microservices/02-production-observability-and-debugging.md) | `READY` | `COMPLETE` — the in-process baseline is documented in [Feature 12](../../features/12-production-observability-baseline.md); centralized storage, dashboards, and alerting remain future work | `TODO` — implementation completion does not prove the learner can explain or diagnose it |
+
 ## Current lesson
 
 - Active lesson: none selected yet.

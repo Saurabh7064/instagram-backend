@@ -224,15 +224,109 @@ This example shows why metrics locate the affected population, traces reveal cal
 
 ## Instagram-backend mapping
 
-Current code provides clear API journeys but does not yet show production observability dependencies or instrumentation in [build.gradle](../../../../../build.gradle) or [application.properties](../../../../../src/main/resources/application.properties). The following are proposed learning improvements, not claims about current implementation:
+The project now has an implemented single-service observability baseline. It produces local metrics, structured logs, health signals, and spans; it does **not** yet run the centralized stores shown in the architecture diagram above.
 
-1. Instrument [PostController.java](../../../../../src/main/java/com/instagram/backend/controller/PostController.java) by route rather than by raw URL, so `/api/posts/1/like` and `/api/posts/999/like` do not create separate metric labels.
-2. Trace [PostService.feed(...)](../../../../../src/main/java/com/instagram/backend/service/PostService.java) and its repository work. If it later calls remote profile or ranking services, propagate context into those calls.
-3. Record media upload size buckets, duration, and outcome around [MediaStorageService.java](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java), but never log file contents or bearer tokens.
-4. Add a request filter that accepts or creates trace context and ensures IDs appear in structured logs.
-5. Create journey metrics that match [AuthIntegrationTests.java](../../../../../src/test/java/com/instagram/backend/AuthIntegrationTests.java): registration success, authenticated feed success, create-post success, and media-upload success.
+### What is implemented
 
-The existing integration tests prove known behavior in a controlled environment. Production telemetry answers different questions: which inputs, versions, regions, and resource conditions cause behavior to degrade under real load.
+| Concern | Code or configuration | Actual behavior |
+|---|---|---|
+| Dependencies | [build.gradle](../../../../../build.gradle) | Adds Spring Boot Actuator, the OpenTelemetry starter, and the Prometheus Micrometer registry. |
+| Health and probes | [application.properties](../../../../../src/main/resources/application.properties) | Exposes overall health, liveness, and readiness. `/livez` and `/readyz` are short aliases. Readiness includes the database; liveness deliberately does not, so a database outage does not cause endless application restarts. Health details are hidden. |
+| HTTP and trace instrumentation | [application.properties](../../../../../src/main/resources/application.properties) | Records `http.server.requests` with a latency histogram and `100 ms`, `250 ms`, `500 ms`, `1 s`, and `2 s` service-level buckets. The OpenTelemetry bridge accepts W3C `traceparent` context. Normal trace sampling defaults to `10%`; OTLP export is disabled by default. |
+| Correlation and request log | [RequestCorrelationFilter.java](../../../../../src/main/java/com/instagram/backend/observability/RequestCorrelationFilter.java) | Accepts a safe `X-Correlation-Id` or generates a UUID, echoes it in the response, puts it in MDC while the request runs, and emits one completion event with method, normalized route, status, and duration. It does not record query strings, request bodies, authorization headers, or tokens. |
+| Structured console output | [application.properties](../../../../../src/main/resources/application.properties) | Writes ECS JSON to the console with service name, version, environment, node name, MDC fields, and a bounded stack-trace length. When tracing is active, the tracing integration also puts `traceId` and `spanId` in MDC. |
+| Business journey metrics | [InstagramMetrics.java](../../../../../src/main/java/com/instagram/backend/observability/InstagramMetrics.java), [JourneyMetricsInterceptor.java](../../../../../src/main/java/com/instagram/backend/observability/JourneyMetricsInterceptor.java), and [ObservabilityWebConfig.java](../../../../../src/main/java/com/instagram/backend/observability/ObservabilityWebConfig.java) | Records `instagram.business.operations` with only the bounded `operation` and `outcome` labels. Operations are registration, login, feed, post creation, and media upload; outcomes are success or failure. A response below `400` is counted as success. |
+| Feed timing | [PostService.feed(...)](../../../../../src/main/java/com/instagram/backend/service/PostService.java) | Wraps feed loading in the `instagram.feed.load` observation with the low-cardinality value `operation=feed`. The observation becomes a timer and, for sampled requests, a child span inside the incoming HTTP trace. |
+| Upload size | [MediaStorageService.java](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java) | After a file is stored successfully, records `instagram.media.upload.size` in bytes. The only label is bounded to `image`, `video`, or `other`; file names and user IDs are not metric labels. |
+| Diagnostic endpoint protection | [ObservabilityEndpointAuthenticationFilter.java](../../../../../src/main/java/com/instagram/backend/observability/ObservabilityEndpointAuthenticationFilter.java) and [ObservabilityManagementPortGuard.java](../../../../../src/main/java/com/instagram/backend/observability/ObservabilityManagementPortGuard.java) | Keeps health endpoints public but requires `X-Observability-Token` for other endpoints below the configured Actuator base path (default `/actuator`). It matches inside any application context path, so `/instagram/actuator/prometheus` cannot bypass the check. Missing or wrong tokens return `401`; a blank server-side token fails closed with `503`; an ambiguous root base path is rejected. A separate management port is rejected at startup because it would create another web context without the filter. The comparison is constant-time. Only `health`, `info`, `metrics`, and `prometheus` are exposed. |
+| Executable verification | [ObservabilityIntegrationTests.java](../../../../../src/test/java/com/instagram/backend/ObservabilityIntegrationTests.java), [JourneyMetricsInterceptorTests.java](../../../../../src/test/java/com/instagram/backend/observability/JourneyMetricsInterceptorTests.java), [ObservabilityEndpointAuthenticationFilterTests.java](../../../../../src/test/java/com/instagram/backend/observability/ObservabilityEndpointAuthenticationFilterTests.java), [ObservabilityManagementPortGuardTests.java](../../../../../src/test/java/com/instagram/backend/observability/ObservabilityManagementPortGuardTests.java), and [observability.http](../../../../../http/observability.http) | Tests PostgreSQL-backed health/readiness behavior, endpoint protection including context/base-path/management-port cases, journey and media metric increments, exception outcome classification, correlation-ID rules, the real ECS encoding path, normalized safe logs, and incoming W3C trace context. The HTTP file provides manual probe, scrape, and traced-feed requests. |
+
+Metrics also receive the bounded common tags `application`, `environment`, and `version`. They do not use request ID, user ID, file name, or a raw URL as labels. For example, `/api/posts/1/like` and `/api/posts/999/like` are both observed as the route `/api/posts/{postId}/like` rather than two time series.
+
+### One feed request, step by step
+
+Assume the caller sends:
+
+```text
+GET /api/feed
+Authorization: Bearer <access-token>
+X-Correlation-Id: local-feed-debug-001
+traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01
+```
+
+1. The OpenTelemetry HTTP instrumentation reads the W3C `traceparent`. Its trace ID is `0af7651916cd43dd8448eb211c80319c`. Without valid incoming context, it starts new trace context.
+2. [RequestCorrelationFilter.java](../../../../../src/main/java/com/instagram/backend/observability/RequestCorrelationFilter.java) validates `local-feed-debug-001`, stores it in MDC, and sets the same value on the response header. A missing value or one containing spaces is replaced by a UUID.
+3. Spring maps the request to the normalized route `/api/feed`. The raw access token and query data are not copied into the completion log.
+4. [PostService.feed(...)](../../../../../src/main/java/com/instagram/backend/service/PostService.java) runs the `instagram.feed.load` observation around authentication, repository loading, and response mapping. This records the operation duration and can create a child span.
+5. On completion, [JourneyMetricsInterceptor.java](../../../../../src/main/java/com/instagram/backend/observability/JourneyMetricsInterceptor.java) increments the feed success or failure counter. Spring's HTTP instrumentation records the route latency and status as well.
+6. The request filter writes one ECS JSON completion event. It contains the correlation ID, normalized route, status, and duration; tracing contributes the trace and span IDs through MDC.
+7. An authorized monitoring client can scrape the resulting Prometheus text from `/actuator/prometheus`.
+
+The observable result is one response carrying `X-Correlation-Id: local-feed-debug-001`, a structured completion log searchable by both correlation and trace IDs, HTTP latency metrics, one feed outcome count, and one feed-load timing observation.
+
+### Correlation ID versus trace ID in this code
+
+They are intentionally separate:
+
+- `X-Correlation-Id` is an application-facing debugging handle. This project validates it, echoes it to the caller, and writes it to logs. The accepted form is 1–64 safe characters: letters, digits, `.`, `_`, or `-`, beginning with a letter or digit.
+- `traceId` belongs to OpenTelemetry trace context. W3C `traceparent` can carry it, and the tracing library controls its lifecycle and span relationships. It is the ID to use when navigating a trace backend once one is connected.
+
+Keeping them separate lets customer support quote a readable correlation ID without allowing it to redefine trace topology. A log for one request can contain both. At present this application has no outbound microservice call, so it does not yet demonstrate forwarding either value to another service.
+
+### Metric names and bounded dimensions
+
+Micrometer code uses dotted names; Prometheus renders those names with underscores and suffixes where appropriate.
+
+| Micrometer name | Meaning | Bounded labels |
+|---|---|---|
+| `http.server.requests` | HTTP count and latency distribution | normalized URI, method, status, outcome, plus common application metadata |
+| `instagram.business.operations` | Completed user journeys | `operation`, `outcome` |
+| `instagram.feed.load` | Time spent inside the feed service operation | `operation=feed` |
+| `instagram.media.upload.size` | Successfully stored payload sizes | `media.type=image|video|other` |
+
+For example, Prometheus exposes the business counter as `instagram_business_operations_total`. Avoid adding `userId`, `correlationId`, `traceId`, or original file name to these metrics; those values would create unbounded cardinality.
+
+### Try the implemented debugging path
+
+Set `APP_OBSERVABILITY_METRICS_TOKEN` when starting the application. Then compare these requests, or run the saved requests in [observability.http](../../../../../http/observability.http):
+
+```bash
+# Public and deliberately brief: expected 200 with {"status":"UP"}.
+curl -i http://localhost:8080/actuator/health/readiness
+
+# Protected diagnostic endpoint: expected 401 without the operations token.
+curl -i http://localhost:8080/actuator/prometheus
+
+# Expected 200 when this value matches APP_OBSERVABILITY_METRICS_TOKEN.
+curl -s \
+  -H 'X-Observability-Token: local-observability-token' \
+  http://localhost:8080/actuator/prometheus \
+  | grep -E 'http_server_requests|instagram_business_operations|instagram_feed_load'
+
+# ACCESS_TOKEN must be a real login access token. Inspect the echoed correlation
+# response header, then search the ECS console log for local-feed-debug-001.
+curl -i \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H 'X-Correlation-Id: local-feed-debug-001' \
+  -H 'traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01' \
+  http://localhost:8080/api/feed
+```
+
+The Prometheus scrape verifies that the application is producing metrics; it does not prove that a Prometheus server is collecting or retaining them. Likewise, seeing a `traceId` in a log proves context creation and correlation, not successful export to a trace store.
+
+### Not implemented yet
+
+The boundary matters in an interview and in an incident report:
+
+- There is no Prometheus server, Grafana dashboard, Alertmanager rule, SLO evaluator, or long-term metric retention in this repository.
+- There is no centralized log store such as OpenSearch, Elasticsearch, or Loki. ECS JSON currently goes to the process console.
+- There is no OpenTelemetry Collector or trace backend such as Tempo or Jaeger. OTLP trace export is disabled by default, so spans stay local unless deployment configuration enables an exporter and supplies a destination.
+- There are no outbound service or message-broker calls, so cross-service HTTP propagation, async context propagation, retry spans, and queue-linked traces are not demonstrated.
+- Repository calls do not yet create explicit JDBC query spans. The `instagram.feed.load` observation surrounds the whole service operation but cannot by itself identify which SQL statement was slow.
+- There are no region or instance dashboard dimensions, tail/error-based trace sampling rules, paging policies, or automated incident runbooks.
+- The dedicated header token is a learning baseline, not a complete production perimeter. The application currently rejects a separate management port because its second web context would need its own authentication. A real deployment should add that management-context security together with a private management network, workload identity or stronger authentication, TLS, secret rotation, and access auditing.
+
+The integration tests prove known behavior in a controlled environment. Production telemetry would answer the next layer of questions: which versions, regions, instances, and resource conditions cause behavior to degrade under real load.
 
 ## Trade-offs
 
@@ -250,12 +344,12 @@ The existing integration tests prove known behavior in a controlled environment.
 **Scenario:** users report intermittent `500` responses when liking posts, but no alert fired.
 
 1. **Prediction:** the global error average may be below its threshold even though one version, region, or route is badly affected.
-2. **First query:** inspect error rate for the normalized like route, then break it down by region and version.
-3. **Trace comparison:** choose a failed trace and a successful trace. Find the first failing span.
-4. **Log check:** use the trace ID to inspect the stable error type and safe context; do not search by the full user message alone.
-5. **Dependency check:** inspect database connection waits and the post-like uniqueness path. [PostService.like(...)](../../../../../src/main/java/com/instagram/backend/service/PostService.java) performs existence checking, insertion, counter update, and response construction, so each stage needs distinguishable timing.
-6. **Mitigation:** roll back only if evidence connects the failures to the release; otherwise isolate the failing dependency or route.
-7. **Prevention:** add a route-level SLI, retain error traces, create an integration or concurrency test for the discovered failure, and document the diagnosis in a runbook.
+2. **Symptom and detection:** inspect `http.server.requests` for the normalized `/api/posts/{postId}/like` route and `5xx` status. In the current project this requires a live protected scrape; there is no monitoring store or alert history yet. Region is also not a current metric tag.
+3. **Focused reproduction:** repeat one like request with a known correlation ID and `traceparent`. Confirm that the response echoes the correlation ID and that the ECS completion event has the normalized route, failure status, trace ID, and correlation ID.
+4. **Evidence limit:** an incoming HTTP span can identify the failed request, but the current project has no retained trace backend or JDBC child span. It cannot yet show whether existence checking, insertion, or counter update inside [PostService.like(...)](../../../../../src/main/java/com/instagram/backend/service/PostService.java) consumed the time.
+5. **Containment:** if failures began with a known release, roll it back; otherwise stop or isolate the failing dependency or route. Re-run the same correlated request and verify that its status and route-level metric recover.
+6. **Recovery:** confirm that new like requests succeed, the `5xx` count stops increasing, database readiness remains `UP`, and the completion log contains no new failure for the reproduced path.
+7. **Prevention:** add centralized metric retention and a route-level SLI alert, retain error traces, instrument the relevant database stages, add an integration or concurrency test for the discovered failure, and document the diagnosis in a runbook.
 
 ## A 2–3 minute interview answer
 

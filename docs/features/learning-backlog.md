@@ -47,6 +47,7 @@ Use this file to track product/engineering features for the app.
 | F-033 | Post reporting and moderation queue | TODO | Safety and abuse-handling baseline |  |
 | F-034 | Rate limiting and abuse protection | TODO | Protect auth and content APIs under load or attack |  |
 | F-035 | Production auth hardening | TODO | Session revocation, device sessions, and stronger security controls |  |
+| F-036 | Production observability baseline | DONE | Correlate safe logs, bounded metrics, traces, and health signals during production debugging | [Feature 12](./12-production-observability-baseline.md) |
 
 ## Next 3 recommended
 

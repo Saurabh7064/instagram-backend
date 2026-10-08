@@ -16,6 +16,9 @@ import com.instagram.backend.repository.PostLikeRepository;
 import com.instagram.backend.repository.PostRepository;
 import com.instagram.backend.repository.UserAccountRepository;
 
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+
 @Service
 public class PostService {
 
@@ -25,24 +28,32 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserAccountRepository userAccountRepository;
     private final TokenService tokenService;
+    private final ObservationRegistry observationRegistry;
 
     public PostService(
             PostLikeRepository postLikeRepository,
             PostRepository postRepository,
             UserAccountRepository userAccountRepository,
-            TokenService tokenService) {
+            TokenService tokenService,
+            ObservationRegistry observationRegistry) {
         this.postLikeRepository = postLikeRepository;
         this.postRepository = postRepository;
         this.userAccountRepository = userAccountRepository;
         this.tokenService = tokenService;
+        this.observationRegistry = observationRegistry;
     }
 
     @Transactional(readOnly = true)
     public List<FeedPostResponse> feed(String authorizationHeader) {
-        var viewer = requireViewer(authorizationHeader);
-        return postRepository.findAllByOrderByCreatedAtDesc().stream()
-                .map(post -> toResponse(post, viewer))
-                .toList();
+        return Observation.createNotStarted("instagram.feed.load", observationRegistry)
+                .contextualName("load-feed")
+                .lowCardinalityKeyValue("operation", "feed")
+                .observe(() -> {
+                    var viewer = requireViewer(authorizationHeader);
+                    return postRepository.findAllByOrderByCreatedAtDesc().stream()
+                            .map(post -> toResponse(post, viewer))
+                            .toList();
+                });
     }
 
     @Transactional

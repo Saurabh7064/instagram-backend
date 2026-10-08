@@ -1,0 +1,36 @@
+@baseUrl = http://localhost:8080
+@observabilityToken = replace-with-APP_OBSERVABILITY_METRICS_TOKEN
+@accessToken = replace-with-access-token-from-login
+
+### Overall health (public and intentionally hides component details)
+GET {{baseUrl}}/actuator/health
+
+### Liveness: should this process be restarted? (public)
+GET {{baseUrl}}/actuator/health/liveness
+
+### Readiness: should this process receive traffic? (public)
+GET {{baseUrl}}/actuator/health/readiness
+
+### Kubernetes-style liveness alias (public)
+GET {{baseUrl}}/livez
+
+### Kubernetes-style readiness alias (public)
+GET {{baseUrl}}/readyz
+
+### Diagnostic endpoint without the operations token (expected 401)
+GET {{baseUrl}}/actuator/prometheus
+
+### Prometheus metrics (protected with a separate operations token)
+GET {{baseUrl}}/actuator/prometheus
+X-Observability-Token: {{observabilityToken}}
+
+### Actuator metric names (protected)
+GET {{baseUrl}}/actuator/metrics
+X-Observability-Token: {{observabilityToken}}
+
+### Feed request with caller-supplied correlation and W3C trace context
+# Get accessToken from the Login request in auth.http first.
+GET {{baseUrl}}/api/feed
+Authorization: Bearer {{accessToken}}
+X-Correlation-Id: local-feed-debug-001
+traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01

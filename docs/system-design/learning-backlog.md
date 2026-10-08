@@ -20,7 +20,7 @@ Use this file to track architecture/system design concepts to learn with this pr
 | SD-006 | Rate limiting and abuse protection | TODO | Reliability and security |  |
 | SD-007 | Database indexing and query planning | TODO | Scalable data access |  |
 | SD-008 | Asynchronous processing and queues | TODO | Decoupling and throughput |  |
-| SD-009 | Observability (logs, metrics, traces) | TODO | Debugging and operations |  |
+| SD-009 | Observability (logs, metrics, traces) | IN_PROGRESS | Debugging and operations | Instrumentation baseline implemented in [Feature 12](../features/12-production-observability-baseline.md) and mapped in the [production observability interview answer](../interview/02-system-design/questions/microservices/02-production-observability-and-debugging.md); centralized backends and learner comprehension remain pending |
 | SD-010 | Deployment topology and rollback strategy | TODO | Production safety |  |
 
 ## Next 3 recommended

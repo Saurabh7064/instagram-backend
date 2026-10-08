@@ -22,6 +22,7 @@ This section tracks feature implementation notes in a numbered sequence, similar
 - [09 - Delete Own Post API/UI](./09-delete-own-post-api-ui.md)
 - [10 - Edit Own Post API/UI](./10-edit-own-post-api-ui.md)
 - [11 - Persist Real Feed Media Uploads](./11-persist-real-feed-media-uploads.md)
+- [12 - Production Observability Baseline](./12-production-observability-baseline.md)
 
 ## Backlog
 

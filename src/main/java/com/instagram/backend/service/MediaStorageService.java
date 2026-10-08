@@ -18,18 +18,22 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.instagram.backend.dto.MediaUploadResponse;
+import com.instagram.backend.observability.InstagramMetrics;
 
 @Service
 public class MediaStorageService {
 
     private final Path storageDirectory;
     private final TokenService tokenService;
+    private final InstagramMetrics instagramMetrics;
 
     public MediaStorageService(
             @Value("${app.media.storage-dir:${java.io.tmpdir}/instagram-backend-uploads}") String storageDirectory,
-            TokenService tokenService) {
+            TokenService tokenService,
+            InstagramMetrics instagramMetrics) {
         this.storageDirectory = Path.of(storageDirectory);
         this.tokenService = tokenService;
+        this.instagramMetrics = instagramMetrics;
     }
 
     public MediaUploadResponse store(String authorizationHeader, MultipartFile file) {
@@ -51,6 +55,7 @@ public class MediaStorageService {
             }
 
             String contentType = file.getContentType() == null ? "application/octet-stream" : file.getContentType();
+            instagramMetrics.recordMediaUpload(file.getSize(), contentType);
             return new MediaUploadResponse(storedFileName, "/uploads/" + storedFileName, contentType);
         } catch (IOException exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to store media", exception);
