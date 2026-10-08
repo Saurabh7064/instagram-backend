@@ -316,6 +316,12 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, expected untouched practice readiness output, passing reference checks for ordinary, duplicate, negative, and zero pairs, one active `LEARNING` coding lesson, and clean diff checks for committed files.
 - Docs: [HashMap Value-to-Index Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/03-value-to-index/README.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/valuetoindex/TwoSumIndexSolution.java), [Session 03 Plan](./interview/daily/2026-10-07-session-03.md)
 
+58. `6dee035`
+- Learner attempt: recorded the functionally passing nested-loop Two Sum baseline without rewriting the learner's approach.
+- Assessment: correctness and `O(1)` additional space pass, but worst-case `O(n²)` time does not meet the lesson's average `O(n)` HashMap target, so the lesson remains `LEARNING`.
+- Verification: `./gradlew testClasses`, all learner practice checks, all reference-solution checks, and clean diff checks for committed files.
+- Docs: [Two Sum Attempt Review](./interview/01-coding/lessons/01-arrays-hash-maps/03-value-to-index/README.md), [Learner Baseline](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java), [Interview Progress Tracker](./interview/progress-tracker.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
