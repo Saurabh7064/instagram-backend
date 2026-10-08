@@ -80,6 +80,16 @@ Result: `RETRY_NEEDED`; this does not change the passing code result.
 
 Before advancing, retry the three checkpoints in plain language without reading the explained answers.
 
+### Checkpoint retry 2 — 2026-10-07
+
+Result: `RETRY_NEEDED`; one checkpoint now passes and two need one missing detail each.
+
+- Start identification still needs correction: `100`, `200`, and `1` start scans. `4` does not start because its predecessor `3` is present. The rule is to scan when the predecessor is absent, not merely whenever subtraction is possible.
+- The short-circuit explanation now passes: Java evaluates the right side of `&&` only when the left side is `true`. The answer still needs to state the two exact wraparound results to demonstrate both boundary guards.
+- The complexity explanation passes: only sequence starts enter the inner loop, and each distinct value is traversed by an inner loop at most once across all runs.
+
+Before advancing, retry only start identification and the two exact integer wraparound results.
+
 ## Why a simple HashSet loop is not enough
 
 Putting values in a set gives fast membership checks, but starting a forward scan from every value repeats work.
