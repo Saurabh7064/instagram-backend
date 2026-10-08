@@ -70,6 +70,16 @@ There is no correctness bug. These are optional Java-style refinements and are n
 
 The implementation attempt is complete. The lesson remains `LEARNING` until the learner explains the invariant, boundary guards, and average `O(n)` analysis without relying on the revealed answers.
 
+### Checkpoint attempt — 2026-10-07
+
+Result: `RETRY_NEEDED`; this does not change the passing code result.
+
+- Start identification was partial: `1` starts the four-value run, but `100` and `200` also start their own one-value runs because `99` and `199` are absent. The explanation that `length` starts at `1` because the starting value already belongs to the run was correct.
+- The guard purpose was partially identified, but the exact overflow results and short-circuit behavior were not yet explained. `Integer.MIN_VALUE - 1` wraps to `Integer.MAX_VALUE`, while `Integer.MAX_VALUE + 1` wraps to `Integer.MIN_VALUE`. For `a && b`, Java evaluates `a` first and evaluates `b` only when `a` is `true`.
+- The complexity intuition was on the right path, but the accounting was incomplete. Only run starts enter the forward scan, so every distinct value is traversed by an inner loop at most once across the entire algorithm. The outer work is average `O(n)` and all inner-loop work combined is average `O(n)`.
+
+Before advancing, retry the three checkpoints in plain language without reading the explained answers.
+
 ## Why a simple HashSet loop is not enough
 
 Putting values in a set gives fast membership checks, but starting a forward scan from every value repeats work.
