@@ -21,7 +21,7 @@ The core path contains 72 primary problems. Reviews, unseen variations, mock-int
 |---|---|---|---|---|
 | C01.01 | Membership with a set | [Contains Duplicate](https://leetcode.com/problems/contains-duplicate/) | Easy | `DEFERRED` |
 | C01.02 | Start only at a sequence boundary | [Longest Consecutive Sequence](https://leetcode.com/problems/longest-consecutive-sequence/) | Medium | `PRACTICING` |
-| C01.03 | Store value-to-index relationships | [Two Sum](https://leetcode.com/problems/two-sum/) | Easy | `TODO` |
+| C01.03 | Store value-to-index relationships | [Two Sum](https://leetcode.com/problems/two-sum/) | Easy | `LEARNING` |
 | C01.04 | Count occurrences | [Valid Anagram](https://leetcode.com/problems/valid-anagram/) | Easy | `TODO` |
 | C01.05 | Group by a canonical key | [Group Anagrams](https://leetcode.com/problems/group-anagrams/) | Medium | `TODO` |
 

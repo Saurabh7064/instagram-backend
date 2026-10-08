@@ -16,8 +16,8 @@ Update this file once per week. Evidence should link to notes, problem logs, moc
 
 | Area | Target | Current | Status | Next action |
 |---|---:|---:|---|---|
-| Coding patterns mastered | 12 | 0 | PRACTICING | Recheck [Sequence Boundaries](./01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md) without notes on 2026-10-08 |
-| Problems mastered | 130 | 0 | PRACTICING | Solve or explain Longest Consecutive again during spaced review |
+| Coding patterns mastered | 12 | 0 | LEARNING | Complete [HashMap Value-to-Index Lookup](./01-coding/lessons/01-arrays-hash-maps/03-value-to-index/README.md) |
+| Problems mastered | 130 | 0 | LEARNING | Implement and explain Two Sum; review Longest Consecutive on 2026-10-08 |
 | System designs completed | 15 | 0 | NOT_STARTED | Attempt [Scalability, Availability, and Reliability](./02-system-design/concepts/01-scalability-availability-reliability.md), then design the Instagram read path |
 | Behavioral stories rehearsed | 8 | 0 | NOT_STARTED | Draft technical challenge story |
 | Project deep-dives ready | 2 | 0 | NOT_STARTED | Select Nike and U.S. Bank examples |
@@ -31,11 +31,10 @@ Status values: `NOT_STARTED`, `LEARNING`, `PRACTICING`, `INTERVIEW_READY`, `RETA
 
 ## Active lesson
 
-- Session: [2026-10-04 — Sequence Boundaries](./daily/2026-10-04-session-02.md)
-- Status: `PRACTICING`
-- Code evidence: learner implementation passed all supplied checks on 2026-10-07.
-- Explanation evidence: all checkpoints passed after focused coaching on 2026-10-07.
-- Mastery requires: successful retrieval without the answers on 2026-10-08, 2026-10-14, and 2026-11-07.
+- Session: [2026-10-07 — HashMap Value-to-Index Lookup](./daily/2026-10-07-session-03.md)
+- Status: `LEARNING`
+- Completion requires: passing Two Sum code, all 3 checkpoints, a correct map invariant, and a distinct-index explanation.
+- Review due: recheck [Sequence Boundaries](./01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md) without answers on 2026-10-08.
 - Deferred: [HashSet Membership](./01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md) — learner requested return later; not counted as mastered.
 
 ## Weekly review template
