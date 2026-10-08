@@ -16,8 +16,8 @@ Update this file once per week. Evidence should link to notes, problem logs, moc
 
 | Area | Target | Current | Status | Next action |
 |---|---:|---:|---|---|
-| Coding patterns mastered | 12 | 0 | LEARNING | Explain the [Sequence Boundaries](./01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md) checkpoints |
-| Problems mastered | 130 | 0 | LEARNING | Explain the passing Longest Consecutive solution and schedule reviews |
+| Coding patterns mastered | 12 | 0 | PRACTICING | Recheck [Sequence Boundaries](./01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md) without notes on 2026-10-08 |
+| Problems mastered | 130 | 0 | PRACTICING | Solve or explain Longest Consecutive again during spaced review |
 | System designs completed | 15 | 0 | NOT_STARTED | Attempt [Scalability, Availability, and Reliability](./02-system-design/concepts/01-scalability-availability-reliability.md), then design the Instagram read path |
 | Behavioral stories rehearsed | 8 | 0 | NOT_STARTED | Draft technical challenge story |
 | Project deep-dives ready | 2 | 0 | NOT_STARTED | Select Nike and U.S. Bank examples |
@@ -32,9 +32,10 @@ Status values: `NOT_STARTED`, `LEARNING`, `PRACTICING`, `INTERVIEW_READY`, `RETA
 ## Active lesson
 
 - Session: [2026-10-04 — Sequence Boundaries](./daily/2026-10-04-session-02.md)
-- Status: `LEARNING`
+- Status: `PRACTICING`
 - Code evidence: learner implementation passed all supplied checks on 2026-10-07.
-- Completion requires: passing code, all 3 checkpoints answered before reveal, a correct boundary explanation, and scheduled spaced reviews.
+- Explanation evidence: all checkpoints passed after focused coaching on 2026-10-07.
+- Mastery requires: successful retrieval without the answers on 2026-10-08, 2026-10-14, and 2026-11-07.
 - Deferred: [HashSet Membership](./01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md) — learner requested return later; not counted as mastered.
 
 ## Weekly review template
@@ -59,4 +60,4 @@ Copy this section for each week.
 
 | Topic or question | Why it was missed | Review +1 day | Review +1 week | Review +1 month | Mastered? |
 |---|---|---|---|---|---|
-|  |  |  |  |  |  |
+| Sequence boundaries / Longest Consecutive | Needed coaching on one scan start and exact overflow wording | 2026-10-08 | 2026-10-14 | 2026-11-07 | NO |

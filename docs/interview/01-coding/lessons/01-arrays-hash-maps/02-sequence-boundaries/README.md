@@ -1,13 +1,13 @@
 # Micro-Lesson 02 — Sequence Boundaries
 
-- Learning status: `LEARNING`; checkpoint explanation still pending
+- Learning status: `PRACTICING`; initial implementation and checkpoint explanation passed on 2026-10-07
 - Learner implementation: `PASSING` on 2026-10-07
 - Time: 45–60 minutes
 - Prerequisite: [HashSet Membership](../01-hashset-membership/README.md)
 - Primary idea: begin scanning a consecutive run only from its first value
 - New terms: predecessor, sequence boundary, integer overflow
 
-The HashSet practice implementation now passes, but its explanation checkpoints remain pending. The only prerequisite needed here is that a `HashSet` stores unique values and provides average `O(1)` membership checks.
+The HashSet practice implementation and initial explanation checkpoints pass. Spaced review is still required before this problem counts as mastered. The only prerequisite needed here is that a `HashSet` stores unique values and provides average `O(1)` membership checks.
 
 ## Problem
 
@@ -89,6 +89,16 @@ Result: `RETRY_NEEDED`; one checkpoint now passes and two need one missing detai
 - The complexity explanation passes: only sequence starts enter the inner loop, and each distinct value is traversed by an inner loop at most once across all runs.
 
 Before advancing, retry only start identification and the two exact integer wraparound results.
+
+### Checkpoint retry 3 — 2026-10-07
+
+Result: `PASSING_WITH_COACHING`; advance is allowed, but spaced review remains required for mastery.
+
+- Start identification passes: `100`, `200`, and `1` start scans; every other value has a predecessor in the set and is skipped.
+- Boundary reasoning passes: `Integer.MIN_VALUE - 1` wraps to the positive `Integer.MAX_VALUE`, and `Integer.MAX_VALUE + 1` wraps to the negative `Integer.MIN_VALUE`.
+- The earlier answers already established correct `&&` short-circuit behavior and the combined average `O(n)` complexity argument.
+
+Scheduled retrieval checks: 2026-10-08, 2026-10-14, and 2026-11-07. The learner must solve or explain the idea again without these answers before the status can advance beyond `PRACTICING`.
 
 ## Why a simple HashSet loop is not enough
 

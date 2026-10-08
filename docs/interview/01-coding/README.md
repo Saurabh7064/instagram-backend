@@ -29,7 +29,7 @@ The pattern list above is the high-level order. The lesson index expands it into
 
 1. [Arrays and Hash-Based Lookup](./lessons/01-arrays-hash-maps/README.md) — module
    - [Micro-Lesson 01: HashSet Membership](./lessons/01-arrays-hash-maps/01-hashset-membership/README.md) — `DEFERRED`
-   - [Micro-Lesson 02: Sequence Boundaries](./lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md) — `LEARNING`
+   - [Micro-Lesson 02: Sequence Boundaries](./lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md) — `PRACTICING`
 
 Current session: [Session 02 — Sequence Boundaries](../daily/2026-10-04-session-02.md)
 
@@ -42,7 +42,7 @@ A problem counts as mastered only when you can solve a fresh variant without hin
 | Date | Problem/link | Pattern | Difficulty | Time | Hint? | Main mistake | Review dates | Mastered? |
 |---|---|---|---|---:|---|---|---|---|
 | 2026-10-04 / 2026-10-06 | Contains duplicate | HashSet membership | Easy |  |  | Correct solution; minor clarity/duplicate-lookup refinements | Checkpoints, 2026-10-07, 2026-10-13, 2026-11-06 | NO — code passes, explanation pending |
-| 2026-10-04 / 2026-10-07 | Longest consecutive run | Sequence boundary | Medium |  |  | Correct solution; only Java-style refinements | After checkpoints: +1 day, +1 week, +1 month | NO — code passes, explanation pending |
+| 2026-10-04 / 2026-10-07 | Longest consecutive run | Sequence boundary | Medium |  | Guided checkpoint retries | Correct solution; initially confused one scan start and exact overflow wording | 2026-10-08, 2026-10-14, 2026-11-07 | NO — initial lesson passed; retrieval pending |
 
 ## Per-problem note template
 
