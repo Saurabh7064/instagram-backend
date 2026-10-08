@@ -1,6 +1,7 @@
 # Micro-Lesson 02 — Sequence Boundaries
 
-- Status: `LEARNING`
+- Learning status: `LEARNING`; checkpoint explanation still pending
+- Learner implementation: `PASSING` on 2026-10-07
 - Time: 45–60 minutes
 - Prerequisite: [HashSet Membership](../01-hashset-membership/README.md)
 - Primary idea: begin scanning a consecutive run only from its first value
@@ -34,6 +35,40 @@ Target: average `O(n)` time and `O(n)` additional space.
 - Reveal after attempting: [LongestConsecutiveSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java)
 
 Open the practice file in IntelliJ, change only `longestConsecutive`, and run its `main` method.
+
+## Learner solution review — 2026-10-07
+
+Submitted implementation: [LongestConsecutivePractice.java](../../../../../../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java)
+
+The submitted approach:
+
+1. copies every input value into a `HashSet`, removing duplicates;
+2. treats a value as a sequence start only when its predecessor is absent;
+3. scans forward from each start while successors remain in the set;
+4. tracks the longest completed run;
+5. guards both ends of Java's `int` range before subtracting or adding one.
+
+Verification result: `./gradlew testClasses` succeeded, and both the learner program and reference program passed all supplied checks. The covered cases are an unordered run, duplicates, empty input, one value, negative values, a run ending at `Integer.MAX_VALUE`, a run starting at `Integer.MIN_VALUE`, and separated minimum/maximum values that must not be joined through overflow.
+
+### Correctness and complexity
+
+- The solution is correct for the problem's non-null input assumption.
+- A run is scanned only from its unique first value, so the same run is not repeatedly traversed.
+- `length = 1` correctly counts the sequence start before successor scanning begins.
+- The minimum and maximum guards prevent integer wraparound from making the two extremes appear adjacent.
+- Average time is `O(n)`: set construction and all membership checks/forward steps combined are linear on average.
+- Additional space is `O(n)` for the distinct input values.
+
+### Issues and refinements
+
+There is no correctness bug. These are optional Java-style refinements and are not reasons to reject the answer in an interview:
+
+1. `public static` is the conventional modifier order instead of `static public`.
+2. `new HashSet<>()` can use the diamond operator instead of repeating `Integer`.
+3. `for (int num : unique)` avoids explicitly writing the wrapper type when the loop body uses primitive arithmetic.
+4. Standard spacing around operators and after `for`/`while` improves readability.
+
+The implementation attempt is complete. The lesson remains `LEARNING` until the learner explains the invariant, boundary guards, and average `O(n)` analysis without relying on the revealed answers.
 
 ## Why a simple HashSet loop is not enough
 

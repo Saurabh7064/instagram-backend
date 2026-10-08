@@ -21,10 +21,37 @@ public class LongestConsecutivePractice {
         }
     }
 
-    static int longestConsecutive(int[] values) {
-        // TODO: Write your solution here.
-        // Target: O(n) average time and O(n) additional space.
-        throw new UnsupportedOperationException("Implement longestConsecutive");
+    static public int longestConsecutive(int[] nums) {
+        Set<Integer> unique = new HashSet<Integer>();
+
+        for(int num : nums){
+            unique.add(num);
+        }
+
+        int longest = 0;
+
+
+        for(Integer num:unique){
+
+            boolean hasPredecessor = num!=Integer.MIN_VALUE && unique.contains(num-1);
+
+            if(!hasPredecessor){
+
+                int current = num;
+                int length = 1;
+
+                while(current!=Integer.MAX_VALUE && unique.contains(current+1)){
+                    current++;
+                    length++;
+                }
+
+                longest = Math.max(longest,length);
+            }
+
+
+        }
+
+        return longest;
     }
 
     private static void runChecks() {

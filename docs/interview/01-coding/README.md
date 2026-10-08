@@ -42,7 +42,7 @@ A problem counts as mastered only when you can solve a fresh variant without hin
 | Date | Problem/link | Pattern | Difficulty | Time | Hint? | Main mistake | Review dates | Mastered? |
 |---|---|---|---|---:|---|---|---|---|
 | 2026-10-04 / 2026-10-06 | Contains duplicate | HashSet membership | Easy |  |  | Correct solution; minor clarity/duplicate-lookup refinements | Checkpoints, 2026-10-07, 2026-10-13, 2026-11-06 | NO — code passes, explanation pending |
-| 2026-10-04 | Longest consecutive run | Sequence boundary | Medium |  |  |  | 2026-10-05, 2026-10-11, 2026-11-04 | NO |
+| 2026-10-04 / 2026-10-07 | Longest consecutive run | Sequence boundary | Medium |  |  | Correct solution; only Java-style refinements | After checkpoints: +1 day, +1 week, +1 month | NO — code passes, explanation pending |
 
 ## Per-problem note template
 
