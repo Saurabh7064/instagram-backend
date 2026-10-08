@@ -281,6 +281,13 @@ This file maps each commit to:
 - Verification: all ten files passed question/answer-structure checks, 230–360-word interview-answer checks, balanced-fence checks, local-link resolution, repository-specific technical review, and clean diff checks.
 - Docs: [Microservices Interview Questions](./interview/02-system-design/questions/microservices/README.md), [November–December Question Bank](./interview/02-system-design/question-bank-nov-dec-2024.md), [Learner Progress](./interview/02-system-design/learner-progress.md), [Project Workflow Rules](../AGENTS.md)
 
+52. `7f9140e`
+- Feature: implemented a production observability baseline with safe health probes, protected diagnostics, Prometheus metrics, OpenTelemetry trace context, ECS JSON request logs, validated correlation IDs, bounded business/upload metrics, and a timed feed observation.
+- Security and correctness: protected configurable Actuator paths behind a dedicated operations token, rejected unsafe separate management-port configuration, prevented duplicate ECS fields, normalized logged routes, omitted request secrets, and classified unhandled journey exceptions as failures.
+- Concepts: complementary logs/metrics/traces, liveness versus readiness, W3C trace context versus correlation IDs, low-cardinality labels, histogram/SLO buckets, management endpoint isolation, and honest boundaries between in-process instrumentation and centralized observability infrastructure.
+- Verification: `./gradlew test --rerun-tasks`, PostgreSQL Testcontainers integration coverage, real Boot ECS encoding, public probe and protected Prometheus `curl` checks, traced authenticated feed request, metric scrape inspection, separate-management-port fail-closed startup check, resolved documentation links, balanced Markdown fences, and clean diff checks.
+- Docs: [Feature 12](./features/12-production-observability-baseline.md), [Production Observability and Debugging](./interview/02-system-design/questions/microservices/02-production-observability-and-debugging.md), [Manual HTTP Requests](../http/observability.http)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`

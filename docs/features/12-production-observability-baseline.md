@@ -86,7 +86,7 @@ The dedicated Actuator token is a useful project-level control, not the complete
 
 ## 6) Commit pointers
 
-- Backend commit: `pending this change`
+- Backend commit: `7f9140e`
 - UI commit: not applicable; this change is backend-only.
 
 ## 7) Pitfalls and fixes
