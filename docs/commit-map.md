@@ -322,6 +322,13 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, all learner practice checks, all reference-solution checks, and clean diff checks for committed files.
 - Docs: [Two Sum Attempt Review](./interview/01-coding/lessons/01-arrays-hash-maps/03-value-to-index/README.md), [Learner Baseline](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java), [Interview Progress Tracker](./interview/progress-tracker.md)
 
+59. `9d29f3c`
+- Learning change: verified the learner's optimized average `O(n)` Two Sum implementation and initialized the next two indexed problems without activating them early.
+- Prepared lessons: Valid Anagram for frequency counting and Group Anagrams for canonical-key grouping, each with a focused lesson, editable practice program, separate reference solution, checkpoints, and direct LeetCode link.
+- Navigation: added direct LeetCode links to every initialized Arrays and Hash-Based Lookup lesson while preserving Two Sum as the only `LEARNING` lesson and keeping both new lessons `TODO`.
+- Verification: `./gradlew testClasses`, passing optimized Two Sum checks, expected starter output for both new practices, passing reference checks for Valid Anagram and Group Anagrams, one active `LEARNING` row, direct lesson links, and clean diff checks for committed files.
+- Docs: [Frequency Counting](./interview/01-coding/lessons/01-arrays-hash-maps/04-frequency-counting/README.md), [Valid Anagram Practice](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/frequencycounting/ValidAnagramPractice.java), [Canonical Grouping](./interview/01-coding/lessons/01-arrays-hash-maps/05-canonical-grouping/README.md), [Group Anagrams Practice](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/canonicalgrouping/GroupAnagramsPractice.java), [Two Sum Practice](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
