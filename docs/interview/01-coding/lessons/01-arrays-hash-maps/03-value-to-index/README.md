@@ -1,11 +1,12 @@
 # Micro-Lesson 03 — HashMap Value-to-Index Lookup
 
 - Learning status: `LEARNING`
-- Learner attempt: `FUNCTIONALLY_PASSING`; average `O(n)` HashMap implementation still required
+- Learner implementation: `PASSING` with the average `O(n)` HashMap approach on 2026-10-09; checkpoints pending
 - Time: 35–45 minutes
 - Prerequisite: basic array indexing and `HashMap` lookup
 - Primary idea: remember the index of each earlier value so its matching partner can find it
 - New terms: complement, value-to-index map, loop invariant
+- LeetCode: [Two Sum](https://leetcode.com/problems/two-sum/)
 
 ## Problem
 
@@ -73,6 +74,19 @@ Lookup must happen before insertion so `[3, 3]` returns `[0, 1]` rather than all
 - The result array can be created only when the pair is found: `return new int[] {i, j};`.
 
 Preserve this nested-loop solution as the correct baseline in your explanation, but update the practice method yourself to meet the average `O(n)` target before attempting the checkpoints.
+
+### Optimized learner solution review — 2026-10-09
+
+The learner replaced the nested loops with the intended one-pass value-to-index map in [TwoSumIndexPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java).
+
+- Each index calculates its complement and performs one average `O(1)` map lookup.
+- Lookup occurs before insertion, so the current index cannot match itself.
+- `[3, 3]` correctly finds index `0` while processing index `1`.
+- The map contains earlier values only, which establishes the required loop invariant.
+- Average time is `O(n)` and additional space is `O(n)`.
+- All supplied ordinary, duplicate, negative, and zero-pair checks pass.
+
+The implementation requirement is complete. The lesson remains `LEARNING` until the learner answers the three checkpoints without relying on the explained answers.
 
 ## Why the problem exists
 

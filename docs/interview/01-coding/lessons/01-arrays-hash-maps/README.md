@@ -11,8 +11,8 @@ If basic Java syntax feels rusty, pause for the supplemental [Java Array Cheat S
 | 1 | [HashSet Membership](./01-hashset-membership/README.md) | Remember whether a value has appeared | `DEFERRED` |
 | 2 | [Sequence Boundaries](./02-sequence-boundaries/README.md) | Start work only at the beginning of a run | `PRACTICING` |
 | 3 | [HashMap Value-to-Index Lookup](./03-value-to-index/README.md) | Remember information associated with a value | `LEARNING` |
-| 4 | Frequency counting | Map a value to its count | `TODO` |
-| 5 | Grouping by canonical key | Map equivalent items to one group | `TODO` |
+| 4 | [Frequency Counting](./04-frequency-counting/README.md) | Map a value to its count | `TODO` |
+| 5 | [Grouping by a Canonical Key](./05-canonical-grouping/README.md) | Map equivalent items to one group | `TODO` |
 | 6 | Java hash-key correctness | Keep equality and hash behavior stable | `TODO` |
 
 ## Progress rule

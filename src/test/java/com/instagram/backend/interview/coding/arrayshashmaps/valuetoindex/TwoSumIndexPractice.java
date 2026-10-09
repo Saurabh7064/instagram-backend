@@ -1,6 +1,8 @@
 package com.instagram.backend.interview.coding.arrayshashmaps.valuetoindex;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Editable practice program for Micro-Lesson 03: HashMap Value-to-Index Lookup.
@@ -20,18 +22,21 @@ public class TwoSumIndexPractice {
         }
     }
 
-    static public int[] twoSum(int[] nums, int target) {
-        int[] arr = new int[2];
-        for(int i = 0; i<nums.length; i++){
-            for(int j = i+1; j< nums.length;j++){
-                if(nums[i]+nums[j]==target){
-                    arr[0]=i;
-                    arr[1]=j;
-                    return arr;
-                }
+    static int[] twoSum(int[] numbers, int target) {
+        Map<Integer, Integer> earlierIndexByValue = new HashMap<>();
+
+        for (int index = 0; index < numbers.length; index++) {
+            int complement = target - numbers[index];
+            Integer earlierIndex = earlierIndexByValue.get(complement);
+
+            if (earlierIndex != null) {
+                return new int[] {earlierIndex, index};
             }
+
+            earlierIndexByValue.put(numbers[index], index);
         }
-        return arr;
+
+        throw new IllegalArgumentException("Expected exactly one valid pair");
     }
 
     private static void runChecks() {

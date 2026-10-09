@@ -5,6 +5,7 @@
 - Time: 35–45 minutes
 - Primary idea: remember whether a value has appeared
 - New terms: membership, duplicate, invariant
+- LeetCode: [Contains Duplicate](https://leetcode.com/problems/contains-duplicate/)
 
 Need a syntax and operations review first? Use the supplemental [Java HashSet Cheat Sheet](../../../references/hashset-cheatsheet.md). Returning to the reference does not change this lesson's `DEFERRED` status.
 

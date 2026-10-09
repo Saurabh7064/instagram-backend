@@ -17,7 +17,7 @@ Update this file once per week. Evidence should link to notes, problem logs, moc
 | Area | Target | Current | Status | Next action |
 |---|---:|---:|---|---|
 | Coding patterns mastered | 12 | 0 | LEARNING | Complete [HashMap Value-to-Index Lookup](./01-coding/lessons/01-arrays-hash-maps/03-value-to-index/README.md) |
-| Problems mastered | 130 | 0 | LEARNING | Replace the passing `O(n²)` Two Sum baseline with the average `O(n)` HashMap approach |
+| Problems mastered | 130 | 0 | LEARNING | Explain the passing average `O(n)` Two Sum solution and answer its checkpoints |
 | System designs completed | 15 | 0 | NOT_STARTED | Attempt [Scalability, Availability, and Reliability](./02-system-design/concepts/01-scalability-availability-reliability.md), then design the Instagram read path |
 | Behavioral stories rehearsed | 8 | 0 | NOT_STARTED | Draft technical challenge story |
 | Project deep-dives ready | 2 | 0 | NOT_STARTED | Select Nike and U.S. Bank examples |
@@ -33,7 +33,7 @@ Status values: `NOT_STARTED`, `LEARNING`, `PRACTICING`, `INTERVIEW_READY`, `RETA
 
 - Session: [2026-10-07 — HashMap Value-to-Index Lookup](./daily/2026-10-07-session-03.md)
 - Status: `LEARNING`
-- Attempt evidence: nested-loop implementation passed all functional checks on 2026-10-07 but does not meet the average `O(n)` target.
+- Code evidence: the optimized one-pass HashMap implementation passes all supplied checks as of 2026-10-09.
 - Completion requires: passing Two Sum code, all 3 checkpoints, a correct map invariant, and a distinct-index explanation.
 - Review due: recheck [Sequence Boundaries](./01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md) without answers on 2026-10-08.
 - Deferred: [HashSet Membership](./01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md) — learner requested return later; not counted as mastered.

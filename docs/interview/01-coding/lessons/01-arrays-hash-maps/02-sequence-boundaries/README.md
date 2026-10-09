@@ -6,6 +6,7 @@
 - Prerequisite: [HashSet Membership](../01-hashset-membership/README.md)
 - Primary idea: begin scanning a consecutive run only from its first value
 - New terms: predecessor, sequence boundary, integer overflow
+- LeetCode: [Longest Consecutive Sequence](https://leetcode.com/problems/longest-consecutive-sequence/)
 
 The HashSet practice implementation and initial explanation checkpoints pass. Spaced review is still required before this problem counts as mastered. The only prerequisite needed here is that a `HashSet` stores unique values and provides average `O(1)` membership checks.
 
