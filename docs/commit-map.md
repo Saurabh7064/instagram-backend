@@ -329,6 +329,13 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, passing optimized Two Sum checks, expected starter output for both new practices, passing reference checks for Valid Anagram and Group Anagrams, one active `LEARNING` row, direct lesson links, and clean diff checks for committed files.
 - Docs: [Frequency Counting](./interview/01-leetcode/lessons/01-arrays-hash-maps/04-frequency-counting/README.md), [Valid Anagram Practice](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/frequencycounting/ValidAnagramPractice.java), [Canonical Grouping](./interview/01-leetcode/lessons/01-arrays-hash-maps/05-canonical-grouping/README.md), [Group Anagrams Practice](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/canonicalgrouping/GroupAnagramsPractice.java), [Two Sum Practice](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java)
 
+60. `ea594a9`
+- Curriculum organization: renamed the generic `01-coding` curriculum to `01-leetcode` and the matching Java package from `interview.coding` to `interview.leetcode`, updating all historical links, daily plans, package declarations, and workflow rules.
+- New Java tracks: initialized Functional Programming Coding Skills and Multithreading from Scratch with ordered backlogs, learning rules, first micro-lessons, editable practice programs, and separate runnable references.
+- Concepts: pure stream transformations without input mutation; deterministic thread lifecycle using `start` and `join` without sleep-based coordination.
+- Verification: `./gradlew testClasses`, passing renamed Two Sum practice, expected readiness output for both new practices, passing functional-programming and multithreading references, zero stale old-path references, all local Markdown links resolved, and clean diff checks for committed files.
+- Docs: [LeetCode Practice](./interview/01-leetcode/README.md), [Functional Programming Coding](./interview/04-java/01-functional-programming-coding/README.md), [Pure Transformations](./interview/04-java/01-functional-programming-coding/lessons/01-pure-transformations/README.md), [Multithreading from Scratch](./interview/04-java/02-multithreading-from-scratch/README.md), [Starting and Joining One Worker](./interview/04-java/02-multithreading-from-scratch/lessons/01-start-and-join/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
