@@ -72,7 +72,90 @@ static List<List<String>> groupAnagrams(String[] words) {
 }
 ```
 
-## Build the canonical key
+## Block-by-block code walkthrough
+
+### Block 1 — Create one list per future canonical key
+
+```java
+Map<String, List<String>> wordsByKey = new HashMap<>();
+```
+
+**What it evaluates:** an empty map is created where each sorted-letter key will point to a mutable list of original words.
+
+**Why it is needed:** one key must retain several values; a `Map<String, String>` could keep only one word per group.
+
+**Concrete result:** after processing `"eat"` and `"tea"`, the entry is `"aet" -> ["eat", "tea"]`.
+
+**What fails without it:** the method has no shared place to find and extend an earlier group.
+
+**Equivalent clearer form:** `HashMap<String, List<String>> wordsByKey` works, but the `Map` interface states the required behavior more clearly.
+
+### Block 2 — Process each original word exactly once
+
+```java
+for (String word : words) {
+```
+
+**What it evaluates:** the enhanced loop visits words from left to right. For an empty input array, it runs zero times.
+
+**Why it is needed:** every input word must appear exactly once in the output.
+
+**What fails without it:** skipping a word omits it from the result; a nested comparison against every other word repeats work.
+
+**Equivalent clearer form:** an index loop is equivalent but unnecessary because output does not require original indexes.
+
+### Block 3 — Convert the word into a canonical key
+
+```java
+char[] characters = word.toCharArray();
+Arrays.sort(characters);
+String key = new String(characters);
+```
+
+**What it evaluates:** the immutable string becomes a mutable character copy, the copy is sorted, and a string key is created from that sorted order.
+
+**Concrete result:** `"tea" → ['t','e','a'] → ['a','e','t'] → "aet"`.
+
+**Why it is needed:** every anagram must produce the same hash-map key while words with different counts must produce different keys.
+
+**What fails without it:** using `word` directly gives `"eat"` and `"tea"` separate entries. Sorting without copying is impossible because `String` is immutable.
+
+**Equivalent clearer form:** a 26-count signature can build a linear-time key for lowercase English letters, but it is more complex than sorted text.
+
+### Block 4 — Create or reuse the group, then append
+
+```java
+wordsByKey.computeIfAbsent(key, ignored -> new ArrayList<>())
+        .add(word);
+```
+
+**What it evaluates:** the mapping function runs only when `key` lacks a non-null value. The returned existing or new list then receives `word`.
+
+**Concrete result:** `"eat"` creates the `"aet"` list; `"tea"` retrieves the same list and appends to it.
+
+**Why it is needed:** each key needs exactly one shared mutable group.
+
+**What fails without it:** calling `wordsByKey.get(key).add(word)` on the first word returns `null` and throws `NullPointerException`. Returning `null` from the mapping lambda would also make `.add` fail.
+
+**Equivalent clearer form:** the longer `get`/null-check/`put` version below is identical and may be easier when group creation requires several statements.
+
+### Block 5 — Return a detached outer result list
+
+```java
+return new ArrayList<>(wordsByKey.values());
+```
+
+**What it evaluates:** `values()` exposes the map’s collection of group lists; the constructor copies those group references into the required `List<List<String>>` outer container.
+
+**Concrete result:** a map with keys `"aet"` and `"ant"` returns an outer list containing their two groups. Order is unspecified because `HashMap` order is unspecified.
+
+**Why it is needed:** the method contract returns grouped lists, not the key-to-group map or a live `Collection` view.
+
+**What fails without it:** returning `wordsByKey.values()` does not match the declared return type and remains backed by the map.
+
+**Equivalent clearer form:** create an empty result list and call `result.addAll(wordsByKey.values())`; the constructor is shorter.
+
+## Additional trace: build the canonical key
 
 ```java
 char[] characters = word.toCharArray();
@@ -90,7 +173,7 @@ For `"tea"`:
 
 Without a consistent transformation, the map would treat `"eat"` and `"tea"` as different keys.
 
-## Short lesson: how `computeIfAbsent` works
+## Additional API lesson: how `computeIfAbsent` works
 
 ```java
 V value = map.computeIfAbsent(key, mappingKey -> createValueFor(mappingKey));

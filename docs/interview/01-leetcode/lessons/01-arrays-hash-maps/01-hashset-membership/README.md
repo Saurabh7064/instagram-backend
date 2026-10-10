@@ -66,6 +66,79 @@ static boolean containsDuplicate(int[] values) {
 
 `Set.add` returns `false` when the value was already present, so one operation performs the membership check and insertion.
 
+## Block-by-block code walkthrough
+
+### Block 1 — Create the memory of earlier values
+
+```java
+Set<Integer> seen = new HashSet<>();
+```
+
+**What it evaluates:** `new HashSet<>()` creates an empty set, and `seen` exposes only the `Set` operations needed by this method.
+
+**Why it is needed:** the algorithm must remember values from earlier positions. For `[1, 2, 1]`, the set changes from `{}` to `{1}` to `{1, 2}` before the last `1` is processed.
+
+**What fails without it:** nothing records earlier values, so the method would need to rescan the array with a nested loop.
+
+**Equivalent clearer form:** `HashSet<Integer> seen = new HashSet<>();` behaves the same, but declaring the `Set` interface communicates that only membership behavior matters.
+
+### Block 2 — Process every array value once
+
+```java
+for (int value : values) {
+```
+
+**What it evaluates:** the enhanced loop assigns each array element to `value` from left to right. For `[4, 7]`, the iterations use `value = 4`, then `value = 7`.
+
+**Why it is needed:** every value must either be remembered or identified as a duplicate. The index is unnecessary because the answer is only a boolean.
+
+**What fails without it:** examining only part of the array misses a duplicate near the end, such as the final `1` in `[1, 2, 3, 1]`.
+
+**Equivalent clearer form:** `for (int index = 0; index < values.length; index++) { int value = values[index]; }` is equivalent but adds an unused index.
+
+### Block 3 — Let insertion detect the duplicate
+
+```java
+if (!seen.add(value)) {
+    return true;
+}
+```
+
+**What it evaluates:** `seen.add(value)` returns `true` when the value was absent and is inserted. It returns `false` when the value already exists. The `!` reverses that result, so the `if` body runs only for a duplicate.
+
+**Concrete result:** while processing the last value of `[1, 2, 1]`, the set already contains `1`; `seen.add(1)` returns `false`, `!false` becomes `true`, and the method returns `true`.
+
+**Why it is needed:** a failed insertion proves the current value matches an earlier value, so no later work can change the answer.
+
+**What fails without it:** blindly adding every value loses the moment when repetition is discovered and would make every input reach `false`.
+
+**Equivalent clearer form:**
+
+```java
+if (seen.contains(value)) {
+    return true;
+}
+seen.add(value);
+```
+
+This is easier to read initially but performs a lookup followed by a separate insertion for new values.
+
+### Block 4 — Reject duplication only after the scan finishes
+
+```java
+return false;
+```
+
+**What it evaluates:** reaching this line means every `add` succeeded, so every input value was new when encountered.
+
+**Concrete results:** `[]`, `[7]`, and `[1, 2, 3]` all return `false`.
+
+**Why it is needed:** the method must report the all-distinct case, including an empty array where the loop runs zero times.
+
+**What fails without it:** the method would not compile because not every control path returns a boolean.
+
+**Equivalent clearer form:** a separate `boolean duplicateFound` flag is possible, but the early return expresses the proof more directly.
+
 ## Complexity
 
 - Average time: `O(n)` because each element performs one average constant-time set operation.

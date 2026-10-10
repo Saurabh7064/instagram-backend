@@ -66,7 +66,11 @@ Start?       yes no no no
 
 `1` is the only start because `0` is absent. Values `2`, `3`, and `4` are not starts because their predecessors are present.
 
-## Step 1 — Build the set
+## Block-by-block code walkthrough
+
+The nine blocks below explain what each block evaluates, why it is required, a concrete result, what breaks without it, and a clearer equivalent where one exists.
+
+### Block 1 — Build the set
 
 ```java
 Set<Integer> unique = new HashSet<>();
@@ -74,6 +78,10 @@ for (int value : values) {
     unique.add(value);
 }
 ```
+
+**What it evaluates:** it visits every input value and stores each distinct value once.
+
+**Why it is needed:** the algorithm needs average `O(1)` predecessor and successor membership checks while ignoring duplicates.
 
 For input `[1, 2, 0, 1]`, the set contains `{0, 1, 2}`. The duplicate `1` is stored once, so it cannot make the run longer.
 
@@ -85,7 +93,27 @@ Why use a set?
 
 `HashSet` iteration order is unspecified, but the algorithm does not depend on order. It identifies starts by checking values, not positions.
 
-## Step 2 — Understand Java's integer boundaries
+**What fails without it:** searching the array for every predecessor and successor can repeat linear work and become `O(n²)`.
+
+**Equivalent clearer form:** `Set<Integer> unique = new HashSet<>(values.length);` can pre-size the set but does not change the algorithm.
+
+### Block 2 — Initialize the best completed length
+
+```java
+int longest = 0;
+```
+
+**What it evaluates:** before any run is measured, the best known length is zero.
+
+**Why it is needed:** empty input contains no run, and later calls to `Math.max` need an initialized previous best.
+
+**Concrete result:** for `[]`, both loops perform zero iterations and the final answer remains `0`.
+
+**What fails without it:** Java does not allow an uninitialized local variable to be read by `Math.max` or returned.
+
+**Equivalent clearer form:** no different initialization is clearer; starting at `1` would be wrong for empty input.
+
+### Supporting concept — Understand Java's integer boundaries
 
 A Java `int` can represent only this closed range:
 
@@ -108,7 +136,23 @@ int tooLarge = Integer.MAX_VALUE + 1;
 
 This wraparound is integer overflow. Mathematically, the minimum and maximum values are extremely far apart; Java must not accidentally treat them as neighbors.
 
-## Step 3 — Decide whether a value has a predecessor
+### Block 3 — Consider every distinct value as a possible start
+
+```java
+for (int value : unique) {
+```
+
+**What it evaluates:** each distinct value becomes a start candidate exactly once; set iteration order does not matter.
+
+**Why it is needed:** every consecutive run has one start, and the method must discover all runs before choosing the longest.
+
+**Concrete result:** for input `[1, 1, 2]`, the candidates are `1` and `2`, not three array positions.
+
+**What fails without it:** iterating only one chosen value can miss a longer run elsewhere. Iterating the original array remains correct but repeats start checks for duplicates.
+
+**Equivalent clearer form:** `for (Integer boxedValue : unique) { int value = boxedValue; }` is equivalent but makes Java's unboxing visible unnecessarily.
+
+### Block 4 — Decide whether a value has a predecessor
 
 The reference solution uses:
 
@@ -176,7 +220,9 @@ unique.contains(value - 1) && value != Integer.MIN_VALUE
 
 In the second version, Java evaluates `value - 1` before it reaches the guard.
 
-## Step 4 — Scan only from starts
+Without the predecessor decision, the method would scan from every value and repeat the same run, approaching `O(n²)`. The `isStart` expression above is the equivalent clearer form when the surrounding branch is phrased positively.
+
+### Block 5 — Scan only from starts
 
 ```java
 if (!hasPredecessor) {
@@ -197,7 +243,9 @@ For `{100, 4, 200, 1, 3, 2}`:
 
 Only `1` starts the four-value run. It does not matter which order the set happens to iterate.
 
-## Step 5 — Count the current value first
+Without this guard, `1`, `2`, `3`, and `4` would all rescan suffixes of the same run. An equivalent positive form is `if (isStart)`, using the boolean expression shown in Block 4.
+
+### Block 6 — Count the current value first
 
 ```java
 int length = 1;
@@ -210,7 +258,9 @@ The starting value already belongs to the run. If the set contains only `{7}`, t
 
 `current` is a cursor. It moves through the current run while `value` remains unchanged as the start chosen by the outer loop.
 
-## Step 6 — Look for the next value safely
+Without `length = 1`, a one-value run would be reported as zero; without a separate cursor, advancing would destroy the stable start value used by the outer iteration. There is no clearer equivalent; the two initializations directly state that the start is already counted and that scanning begins there.
+
+### Block 7 — Look for the next value safely
 
 ```java
 while (current != Integer.MAX_VALUE
@@ -244,7 +294,9 @@ Incorrect conclusion: the two values are consecutive
 
 The correct answer is `1`, not `2`.
 
-## Step 7 — Keep the best run
+Without `current++`, the same successor remains present forever; without `length++`, the traversal occurs but the reported size never grows. A clearer expanded equivalent stores `int next = current + 1`, checks `unique.contains(next)`, then assigns `current = next`.
+
+### Block 8 — Keep the best run
 
 ```java
 longest = Math.max(longest, length);
@@ -262,6 +314,24 @@ longest after   = 4
 ```
 
 If a later run has length `2`, `Math.max(4, 2)` keeps `4`.
+
+Without this update, the method forgets completed runs and always returns its initial value. The equivalent explicit form is `if (length > longest) { longest = length; }`.
+
+### Block 9 — Return the best run after every candidate is considered
+
+```java
+return longest;
+```
+
+**What it evaluates:** after every distinct start candidate has been checked, the maintained maximum becomes the answer.
+
+**Why it is needed:** a later run may be longer than an earlier run, so returning from the first start is unsafe.
+
+**Concrete result:** for `[100, 1, 2, 3]`, a one-value run may be encountered before the three-value run; the final result is still `3`.
+
+**What fails without it:** the method would not compile because its successful completion path has no result.
+
+**Equivalent clearer form:** none; `longest` is the maintained answer.
 
 ## Fully annotated reference solution
 

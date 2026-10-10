@@ -94,7 +94,17 @@ static int[] twoSum(int[] numbers, int target) {
 }
 ```
 
-### Why use an index loop?
+## Block-by-block code walkthrough
+
+### Block 1 — Create the value-to-index map
+
+```java
+Map<Integer, Integer> earlierIndexByValue = new HashMap<>();
+```
+
+This creates an empty map whose key is an earlier array value and whose value is that value's index. It is needed because the answer must return indexes, not just report that a complement exists. For `[2, 7]`, processing index `0` later produces `{2 -> 0}`. Without the map, the method would have to search earlier values again and could take `O(n²)` time. A longer but equivalent declaration is `HashMap<Integer, Integer> earlierIndexByValue = new HashMap<Integer, Integer>();`; the interface type and diamond operator are clearer here.
+
+### Block 2 — Traverse indexes from left to right
 
 ```java
 for (int index = 0; index < numbers.length; index++) {
@@ -114,7 +124,9 @@ index = 4: 4 < 4 -> false, stop
 
 Using `index <= numbers.length` would eventually try `numbers[numbers.length]`, which is one position beyond the last valid index and would throw `ArrayIndexOutOfBoundsException`.
 
-## Calculate the complement
+An equivalent `while` loop could initialize `index = 0` and increment it after each iteration, but the `for` loop keeps the initialization, boundary, and update together.
+
+### Block 3 — Calculate the complement
 
 ```java
 int complement = target - numbers[index];
@@ -135,7 +147,9 @@ complement = 6 - 4 = 2
 
 The stated numeric constraints make this subtraction safe in a Java `int`. Without such constraints, wider `long` arithmetic or an explicit range decision would be needed.
 
-## Read a previously stored index
+Without this transformation, the map would not know which key to search for. The equivalent equation is `numbers[index] + complement == target`; subtraction directly produces the lookup key.
+
+### Block 4 — Read a previously stored index
 
 ```java
 Integer earlierIndex = earlierIndexByValue.get(complement);
@@ -152,7 +166,9 @@ map is {3 -> 0}, complement is 2 -> get returns null
 
 This map never stores `null` values, so `null` unambiguously means the complement has not appeared.
 
-## Return when the complement exists
+Without this lookup, storing earlier values provides no benefit. An equivalent but more verbose form is `containsKey(complement)` followed by `get(complement)`; one `get` avoids performing two map operations.
+
+### Block 5 — Return when the complement exists
 
 ```java
 if (earlierIndex != null) {
@@ -172,7 +188,9 @@ return [0, 1]
 
 Returning immediately is safe because the problem guarantees exactly one solution.
 
-## Why lookup happens before insertion
+Without the null guard, Java would unbox a missing `Integer` when constructing the result and throw `NullPointerException`. The clearer equivalent using two map calls is `if (earlierIndexByValue.containsKey(complement)) { return new int[] {earlierIndexByValue.get(complement), index}; }`.
+
+### Block 6 — Store the current value only after lookup
 
 ```java
 earlierIndexByValue.put(numbers[index], index);
@@ -187,6 +205,16 @@ For `[3, 3]` with target `6`:
 3. Return `[0, 1]`; two distinct positions are used.
 
 If insertion happened first, index `0` could find itself when current value `3` has complement `3`, producing the invalid answer `[0, 0]`.
+
+`put` also replaces an older index when the same value appears again. That is safe because any stored occurrence is earlier than the current index. There is no clearer equivalent: a separate presence check followed by either `replace` or `put` would only expand the same insert-or-replace behavior.
+
+### Block 7 — Reject input that violates the stated guarantee
+
+```java
+throw new IllegalArgumentException("Expected exactly one valid pair");
+```
+
+This line runs only if the loop finishes without finding a pair. Under the problem assumptions it is unreachable; for `[1, 2]` with target `10`, it throws a clear exception instead of returning a fabricated answer. Without it, Java would reject the method because not every control path returns an `int[]`, or a placeholder return could silently lie. An equivalent choice is `throw new IllegalStateException(...)`; `IllegalArgumentException` more clearly says the supplied input broke the method's contract.
 
 ## Loop invariant
 

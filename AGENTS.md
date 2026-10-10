@@ -170,6 +170,7 @@ For every lesson under `docs/interview/01-leetcode/`:
 14. When the learner completes their own practice solution, run its checks and update that lesson's README with a clickable solution link, the submitted approach, correctness result, complexity, edge-case coverage, and specific issues or refinements. Preserve the learner's approach unless they ask for a rewrite.
 15. Record code completion separately from comprehension and mastery. Passing checks completes the implementation attempt, but checkpoint answers and a plain-language invariant/complexity explanation are still required before advancing the learning status.
 16. Explain every non-obvious line, guard, boundary check, or API call with: what it evaluates, why it is needed, a concrete input and result, what fails without it, and any equivalent clearer form. For arithmetic guards, show the exact overflow or underflow value and explain Java's left-to-right short-circuit behavior.
+17. Every lesson containing reference-method code must include a `## Block-by-block code walkthrough` immediately before or after that reference code. Cover initialization, loop conditions, guards, transformations, API calls, branches, state or pointer updates, and the terminal return or exception. For every block, explicitly state what it evaluates, why it is needed, a concrete input and result, what fails without it, and an equivalent clearer form when one exists. Treat the lesson artifact as incomplete if any reference block is unexplained.
 
 ## System Design Interview Answer Standard
 
