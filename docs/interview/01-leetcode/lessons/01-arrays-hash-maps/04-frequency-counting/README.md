@@ -84,6 +84,28 @@ static boolean isAnagram(String first, String second) {
 }
 ```
 
+## Sort-based alternative
+
+A simpler but slower approach sorts both strings and compares the resulting arrays.
+
+```java
+static boolean isAnagramBySort(String first, String second) {
+    if (first.length() != second.length()) {
+        return false;
+    }
+
+    char[] firstCharacters = first.toCharArray();
+    char[] secondCharacters = second.toCharArray();
+
+    Arrays.sort(firstCharacters);
+    Arrays.sort(secondCharacters);
+
+    return Arrays.equals(firstCharacters, secondCharacters);
+}
+```
+
+This preserves the exact same character multiset, but the work is `O(n log n)` because sorting dominates the runtime. It is still valid when a simpler implementation is preferred and the problem does not require the faster linear-time strategy.
+
 ## Count the first string
 
 ```java

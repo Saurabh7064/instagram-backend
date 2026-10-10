@@ -1,5 +1,6 @@
 package com.instagram.backend.interview.leetcode.arrayshashmaps.frequencycounting;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +16,10 @@ public class ValidAnagramSolution {
         assertEquals(true, isAnagram("", ""), "empty strings");
         assertEquals(true, isAnagram("a", "a"), "one character");
         assertEquals(false, isAnagram("ab", "a"), "different lengths");
+
+        assertEquals(true, isAnagramBySort("anagram", "nagaram"), "sorted anagram variant");
+        assertEquals(false, isAnagramBySort("rat", "car"), "sorted different characters");
+        assertEquals(true, isAnagramBySort("", ""), "sorted empty strings");
 
         System.out.println("All reference-solution checks passed.");
     }
@@ -44,6 +49,20 @@ public class ValidAnagramSolution {
         }
 
         return remainingByCharacter.isEmpty();
+    }
+
+    static boolean isAnagramBySort(String first, String second) {
+        if (first.length() != second.length()) {
+            return false;
+        }
+
+        char[] firstCharacters = first.toCharArray();
+        char[] secondCharacters = second.toCharArray();
+
+        Arrays.sort(firstCharacters);
+        Arrays.sort(secondCharacters);
+
+        return Arrays.equals(firstCharacters, secondCharacters);
     }
 
     private static void assertEquals(boolean expected, boolean actual, String scenario) {

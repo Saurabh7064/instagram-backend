@@ -1,5 +1,7 @@
 package com.instagram.backend.interview.leetcode.arrayshashmaps.frequencycounting;
 
+import java.util.Arrays;
+
 /**
  * Editable practice program for Micro-Lesson 04: Frequency Counting.
  */
@@ -19,6 +21,20 @@ public class ValidAnagramPractice {
         // TODO: Compare exact character frequencies.
         // Target: average O(n) time and O(n) additional space.
         throw new UnsupportedOperationException("Implement isAnagram");
+    }
+
+    static boolean isAnagramBySort(String first, String second) {
+        if (first.length() != second.length()) {
+            return false;
+        }
+
+        char[] firstCharacters = first.toCharArray();
+        char[] secondCharacters = second.toCharArray();
+
+        Arrays.sort(firstCharacters);
+        Arrays.sort(secondCharacters);
+
+        return Arrays.equals(firstCharacters, secondCharacters);
     }
 
     private static void runChecks() {
