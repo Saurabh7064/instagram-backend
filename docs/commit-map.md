@@ -343,6 +343,11 @@ This file maps each commit to:
 - Verification: all seven initialized micro-lessons passed structural checks, no legacy `Problem` or early `Runnable code` headings remain, all local Markdown links resolve, and clean diff checks passed for committed files.
 - Docs: [LeetCode Module](./interview/01-leetcode/lessons/01-arrays-hash-maps/README.md), [Two Sum Concepts](./interview/01-leetcode/lessons/01-arrays-hash-maps/03-value-to-index/README.md), [Pure Transformations](./interview/04-java/01-functional-programming-coding/lessons/01-pure-transformations/README.md), [Starting and Joining One Worker](./interview/04-java/02-multithreading-from-scratch/lessons/01-start-and-join/README.md), [Project Workflow Rules](../AGENTS.md)
 
+62. `da5b292`
+- Learning improvement: added a short, traced lesson on `Map.computeIfAbsent`, showing lazy creation, reuse of an existing value, grouping into lists or sets, and caching a value calculated from its key.
+- Concepts: key-to-value mapping functions, append-after-retrieval, and behavior when the mapping function returns `null`.
+- Docs: [Grouping by a Canonical Key](./interview/01-leetcode/lessons/01-arrays-hash-maps/05-canonical-grouping/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
