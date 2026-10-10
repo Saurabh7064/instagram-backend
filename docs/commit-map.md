@@ -189,60 +189,60 @@ This file maps each commit to:
 36. `6bf8728`
 - Learning change: initialized the first deep interview lesson with a timed coding baseline, Arrays/HashMap/HashSet mental models, Java implementation guidance, deliberate practice, checkpoints, and spaced reviews.
 - Concepts: repeated-search elimination, membership versus key-value lookup, loop invariants, average-case hash complexity, Java collection correctness, honest baseline measurement, and retention-based progression.
-- Docs: [Day 1 Plan](./interview/daily/2026-10-04-day-01.md), [Arrays and Hash-Based Lookup Module](./interview/01-coding/lessons/01-arrays-hash-maps/README.md), [Interview Progress Tracker](./interview/progress-tracker.md)
+- Docs: [Day 1 Plan](./interview/daily/2026-10-04-day-01.md), [Arrays and Hash-Based Lookup Module](./interview/01-leetcode/lessons/01-arrays-hash-maps/README.md), [Interview Progress Tracker](./interview/progress-tracker.md)
 
 37. `ec12d0a`
 - Learning fix: made runnable starter and reference Java programs mandatory for every interview coding lesson and retrofitted Lesson 01 with both artifacts.
 - Concepts: executable learning materials, solution discoverability, attempt-versus-answer separation, repeatable edge-case checks, and artifact verification independent of learner mastery.
-- Docs: [Interview Coding Lesson Standard](../AGENTS.md), [Sequence Boundaries Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java)
+- Docs: [Interview Coding Lesson Standard](../AGENTS.md), [Sequence Boundaries Lesson](./interview/01-leetcode/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java)
 
 38. `b513f48`
 - Learning fix: moved interview Java programs into IntelliJ’s recognized test source root, added matching packages, documented IDE execution, and made the unimplemented starter run with a clear readiness message.
 - Concepts: Gradle/IntelliJ source sets, package-to-directory alignment, non-production learning code, IDE run configuration discovery, and friendly starter-program behavior.
 - Verification: `./gradlew testClasses`, runnable practice main, and passing reference-solution checks.
-- Docs: [Sequence Boundaries Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java)
+- Docs: [Sequence Boundaries Lesson](./interview/01-leetcode/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java)
 
 39. `5a14ce1`
 - Learning refactor: replaced the overloaded Arrays/HashMap lesson with focused micro-lessons and made HashSet membership the only active topic.
 - Concepts: one-primary-idea lessons, prerequisite ordering, limited terminology, explicit stop/go gates, and matching one-problem Java packages.
 - Verification: Gradle test-source compilation plus runnable starter and passing reference programs for HashSet membership and sequence boundaries.
-- Docs: [Arrays and Hash-Based Lookup Module](./interview/01-coding/lessons/01-arrays-hash-maps/README.md), [HashSet Membership](./interview/01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md), [Day 1 Plan](./interview/daily/2026-10-04-day-01.md)
+- Docs: [Arrays and Hash-Based Lookup Module](./interview/01-leetcode/lessons/01-arrays-hash-maps/README.md), [HashSet Membership](./interview/01-leetcode/lessons/01-arrays-hash-maps/01-hashset-membership/README.md), [Day 1 Plan](./interview/daily/2026-10-04-day-01.md)
 
 40. `65e9658`
 - Learning state change: deferred HashSet Membership at the learner’s request without awarding mastery and activated Sequence Boundaries as the only current lesson.
 - Concepts: explicit deferral versus completion, learner-controlled sequencing, prerequisite bridge, and preserving honest progress evidence.
 - Verification: runnable Longest Consecutive starter, passing reference solution, and resolved documentation links.
-- Docs: [Sequence Boundaries](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Session 02 Plan](./interview/daily/2026-10-04-session-02.md), [Interview Progress Tracker](./interview/progress-tracker.md)
+- Docs: [Sequence Boundaries](./interview/01-leetcode/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Session 02 Plan](./interview/daily/2026-10-04-session-02.md), [Interview Progress Tracker](./interview/progress-tracker.md)
 
 41. `2e4b79e`
 - Learning change: added a 72-problem coding micro-lesson index across 14 prerequisite-ordered modules, with one focused idea and an official LeetCode link per lesson.
 - Concepts: curriculum visibility without premature content expansion, one-active-lesson discipline, core-path versus reinforcement counts, and explicit learning-state tracking.
 - Verification: 72 unique lesson rows, exactly one `LEARNING` row, one `DEFERRED` row, official LeetCode links, and resolved local documentation links.
-- Docs: [Coding Micro-Lesson Index](./interview/01-coding/lesson-index.md), [Coding and LeetCode Path](./interview/01-coding/README.md)
+- Docs: [Coding Micro-Lesson Index](./interview/01-leetcode/lesson-index.md), [Coding and LeetCode Path](./interview/01-leetcode/README.md)
 
 42. `a3504d0`
 - Learning change: added a supplemental Java Array + HashMap cheat sheet with a focused Two Sum warm-up, editable practice program, and separate reference solution without changing the active lesson's mastery state.
 - Concepts: indexed array traversal, value-to-index lookup, complements, loop invariants, and the time-space trade-off of replacing a nested scan with a hash map.
 - Verification: `./gradlew testClasses`, expected starter readiness output, passing reference-solution checks across standard, duplicate-value, and negative-value cases, and resolved local documentation links.
-- Docs: [Array + HashMap Refresher](./interview/01-coding/references/array-hashmap-cheatsheet.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/TwoSumPractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/TwoSumSolution.java)
+- Docs: [Array + HashMap Refresher](./interview/01-leetcode/references/array-hashmap-cheatsheet.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/refresher/TwoSumPractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/refresher/TwoSumSolution.java)
 
 43. `918ace2`
 - Learning change: expanded the Array + HashMap reference into a broad Java operation catalog and added a runnable demonstration of representative operations.
 - Concepts: array creation, traversal, copying, filling, sorting, binary search, reversal, streams, list conversion, map CRUD, `computeIfAbsent`, `computeIfPresent`, `compute`, `merge`, grouping, frequency counting, map iteration, collection selection, and complexity trade-offs.
 - Verification: `./gradlew testClasses`, passing `ArrayHashMapOperationsDemo`, balanced Markdown code fences, resolved runnable-demo link, and clean diff checks.
-- Docs: [Array and HashMap Reference Index](./interview/01-coding/references/array-hashmap-cheatsheet.md)
+- Docs: [Array and HashMap Reference Index](./interview/01-leetcode/references/array-hashmap-cheatsheet.md)
 
 44. `a381050`
 - Learning refactor: separated the combined reference and executable example into independent Array and HashMap cheat sheets with focused runnable demos.
 - Concepts: single-topic reference design, array operations and patterns, map operations and patterns, independent retrieval practice, and backward-compatible documentation navigation.
 - Verification: `./gradlew testClasses`, passing `ArrayOperationsDemo`, passing `HashMapOperationsDemo`, expected Two Sum starter output, passing Two Sum reference checks, balanced Markdown code fences, and resolved local links.
-- Docs: [Java Array Cheat Sheet](./interview/01-coding/references/array-cheatsheet.md), [Array Demo](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/ArrayOperationsDemo.java), [Java HashMap Cheat Sheet](./interview/01-coding/references/hashmap-cheatsheet.md), [HashMap Demo](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/HashMapOperationsDemo.java)
+- Docs: [Java Array Cheat Sheet](./interview/01-leetcode/references/array-cheatsheet.md), [Array Demo](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/refresher/ArrayOperationsDemo.java), [Java HashMap Cheat Sheet](./interview/01-leetcode/references/hashmap-cheatsheet.md), [HashMap Demo](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/refresher/HashMapOperationsDemo.java)
 
 45. `120a3bc`
 - Learning improvement: rewrote Array and HashMap examples to show starting state, operation meaning, exact result, mutation behavior, and the reason each result occurs.
 - Concepts: half-open ranges, mutating versus value-returning operations, concrete execution tracing, array aliasing and copying, binary-search insertion points, map update semantics, lazy collection creation, and frequency merging.
 - Verification: `./gradlew testClasses`, passing and output-producing Array and HashMap demos, passing Two Sum reference checks, balanced Markdown code fences, and clean diff checks.
-- Docs: [Java Array Cheat Sheet](./interview/01-coding/references/array-cheatsheet.md), [Array Demo](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/ArrayOperationsDemo.java), [Java HashMap Cheat Sheet](./interview/01-coding/references/hashmap-cheatsheet.md), [HashMap Demo](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/HashMapOperationsDemo.java)
+- Docs: [Java Array Cheat Sheet](./interview/01-leetcode/references/array-cheatsheet.md), [Array Demo](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/refresher/ArrayOperationsDemo.java), [Java HashMap Cheat Sheet](./interview/01-leetcode/references/hashmap-cheatsheet.md), [HashMap Demo](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/refresher/HashMapOperationsDemo.java)
 
 46. `b5d2897`
 - Workflow change: configured completed generated code and learning-artifact changes to be pushed to the repository's `origin` remote after they are committed.
@@ -260,19 +260,19 @@ This file maps each commit to:
 - Learning change: added a standalone Java HashSet refresher with explicit input/output explanations, a runnable operations demo, and navigation to the existing Contains Duplicate practice.
 - Concepts: membership, uniqueness, boolean mutation results, union/intersection/difference, bulk operations, ordering variants, conversions, value equality and hashing, duplicate detection, visited sets, and average-case complexity.
 - Verification: `./gradlew testClasses`, passing output-producing `HashSetOperationsDemo`, expected Contains Duplicate starter output, passing Contains Duplicate reference checks, balanced Markdown fences, resolved local links, and clean diff checks.
-- Docs: [Java HashSet Cheat Sheet](./interview/01-coding/references/hashset-cheatsheet.md), [HashSet Operations Demo](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/refresher/HashSetOperationsDemo.java), [HashSet Membership Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md)
+- Docs: [Java HashSet Cheat Sheet](./interview/01-leetcode/references/hashset-cheatsheet.md), [HashSet Operations Demo](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/refresher/HashSetOperationsDemo.java), [HashSet Membership Lesson](./interview/01-leetcode/lessons/01-arrays-hash-maps/01-hashset-membership/README.md)
 
 49. `e2f0739`
 - Learner solution: recorded and reviewed the learner's passing Contains Duplicate implementation, including correctness, complexity, covered edge cases, and non-blocking clarity/performance refinements.
 - Workflow change: future completed learner solutions must be executed and documented in the lesson README, while routine terminal-run sections are omitted and code completion remains separate from comprehension/mastery.
 - Verification: `./gradlew testClasses`, passing learner practice checks, passing reference-solution checks, resolved lesson links, balanced Markdown fences, and no remaining `Run from Terminal` sections under coding lessons.
-- Docs: [HashSet Membership Lesson and Review](./interview/01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md), [Learner Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/hashsetmembership/ContainsDuplicatePractice.java), [Project Workflow Rules](../AGENTS.md)
+- Docs: [HashSet Membership Lesson and Review](./interview/01-leetcode/lessons/01-arrays-hash-maps/01-hashset-membership/README.md), [Learner Solution](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/hashsetmembership/ContainsDuplicatePractice.java), [Project Workflow Rules](../AGENTS.md)
 
 50. `04bffa7`
 - Learning improvement: expanded Sequence Boundaries into a line-by-line explanation with normal and integer-boundary dry runs, exact overflow results, boolean naming alternatives, guard-order reasoning, correctness proof, complexity accounting, and common failure modes.
 - Workflow change: non-obvious code guards and API calls now require concrete inputs/results, the failure without the line, equivalent forms, and short-circuit/overflow explanations when applicable.
 - Verification: `./gradlew testClasses`, expected starter readiness output, passing reference checks for ordinary, duplicate, empty, negative, lower-boundary, upper-boundary, and separated-extremes cases, balanced Markdown fences, resolved links, and clean diff checks.
-- Docs: [Sequence Boundaries Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Practice Program](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java), [Project Workflow Rules](../AGENTS.md)
+- Docs: [Sequence Boundaries Lesson](./interview/01-leetcode/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Practice Program](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java), [Project Workflow Rules](../AGENTS.md)
 
 51. `779be3d`
 - Learning change: added ten separate microservices interview answers covering incremental monolith decomposition, production observability, communication resilience, distributed transactions, bulkheads, fault-tolerant architecture, service boundaries, idempotency, contract evolution, and safe testing/deployment.
@@ -292,42 +292,42 @@ This file maps each commit to:
 - Learner solution: recorded and reviewed the passing Longest Consecutive implementation while preserving the learner's sequence-boundary approach.
 - Learning state: code completion is `PASSING`; comprehension remains `LEARNING` until the learner explains the start condition, integer guards, and average linear-time analysis.
 - Verification: `./gradlew testClasses`, all learner practice checks, all reference-solution checks, covered duplicate/empty/negative/integer-boundary cases, and clean diff checks for the committed files.
-- Docs: [Sequence Boundaries Lesson and Review](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Learner Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java), [Interview Progress Tracker](./interview/progress-tracker.md), [Session 02 Plan](./interview/daily/2026-10-04-session-02.md)
+- Docs: [Sequence Boundaries Lesson and Review](./interview/01-leetcode/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Learner Solution](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java), [Interview Progress Tracker](./interview/progress-tracker.md), [Session 02 Plan](./interview/daily/2026-10-04-session-02.md)
 
 54. `25b0ad4`
 - Learning evidence: recorded the learner's first Sequence Boundaries checkpoint attempt without conflating passing code with demonstrated comprehension.
 - Assessment: start identification, overflow/short-circuit reasoning, and aggregate complexity accounting each require a focused retry; the correct `length = 1` explanation was retained.
-- Docs: [Sequence Boundaries Checkpoint Record](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Session 02 Plan](./interview/daily/2026-10-04-session-02.md)
+- Docs: [Sequence Boundaries Checkpoint Record](./interview/01-leetcode/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Session 02 Plan](./interview/daily/2026-10-04-session-02.md)
 
 55. `ea7e1f2`
 - Learning evidence: recorded the second Sequence Boundaries checkpoint attempt.
 - Assessment: aggregate average `O(n)` reasoning and `&&` evaluation order now pass; scan-start identification and the exact integer wraparound results remain for a focused retry.
-- Docs: [Sequence Boundaries Checkpoint Record](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Session 02 Plan](./interview/daily/2026-10-04-session-02.md)
+- Docs: [Sequence Boundaries Checkpoint Record](./interview/01-leetcode/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Session 02 Plan](./interview/daily/2026-10-04-session-02.md)
 
 56. `5f7a8d2`
 - Learning evidence: completed the initial Sequence Boundaries lesson after the learner correctly identified every scan start and both exact integer wraparound results.
 - Learning state: advanced from `LEARNING` to `PRACTICING`; code and coached checkpoints pass, while mastery remains pending until successful spaced retrieval.
 - Review plan: scheduled no-notes checks for 2026-10-08, 2026-10-14, and 2026-11-07.
-- Docs: [Sequence Boundaries Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Coding Lesson Index](./interview/01-coding/lesson-index.md), [Interview Progress Tracker](./interview/progress-tracker.md), [Session 02 Plan](./interview/daily/2026-10-04-session-02.md)
+- Docs: [Sequence Boundaries Lesson](./interview/01-leetcode/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md), [Coding Lesson Index](./interview/01-leetcode/lesson-index.md), [Interview Progress Tracker](./interview/progress-tracker.md), [Session 02 Plan](./interview/daily/2026-10-04-session-02.md)
 
 57. `d8d8e9f`
 - Learning change: activated the HashMap value-to-index micro-lesson with Two Sum as the single focused problem.
 - Concepts: complement lookup, storing earlier indexes, the map invariant, distinct-index safety through lookup-before-insertion, correctness, and average `O(n)` time with `O(n)` additional space.
 - Verification: `./gradlew testClasses`, expected untouched practice readiness output, passing reference checks for ordinary, duplicate, negative, and zero pairs, one active `LEARNING` coding lesson, and clean diff checks for committed files.
-- Docs: [HashMap Value-to-Index Lesson](./interview/01-coding/lessons/01-arrays-hash-maps/03-value-to-index/README.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/valuetoindex/TwoSumIndexSolution.java), [Session 03 Plan](./interview/daily/2026-10-07-session-03.md)
+- Docs: [HashMap Value-to-Index Lesson](./interview/01-leetcode/lessons/01-arrays-hash-maps/03-value-to-index/README.md), [Editable Practice Program](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/valuetoindex/TwoSumIndexSolution.java), [Session 03 Plan](./interview/daily/2026-10-07-session-03.md)
 
 58. `6dee035`
 - Learner attempt: recorded the functionally passing nested-loop Two Sum baseline without rewriting the learner's approach.
 - Assessment: correctness and `O(1)` additional space pass, but worst-case `O(n²)` time does not meet the lesson's average `O(n)` HashMap target, so the lesson remains `LEARNING`.
 - Verification: `./gradlew testClasses`, all learner practice checks, all reference-solution checks, and clean diff checks for committed files.
-- Docs: [Two Sum Attempt Review](./interview/01-coding/lessons/01-arrays-hash-maps/03-value-to-index/README.md), [Learner Baseline](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java), [Interview Progress Tracker](./interview/progress-tracker.md)
+- Docs: [Two Sum Attempt Review](./interview/01-leetcode/lessons/01-arrays-hash-maps/03-value-to-index/README.md), [Learner Baseline](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java), [Interview Progress Tracker](./interview/progress-tracker.md)
 
 59. `9d29f3c`
 - Learning change: verified the learner's optimized average `O(n)` Two Sum implementation and initialized the next two indexed problems without activating them early.
 - Prepared lessons: Valid Anagram for frequency counting and Group Anagrams for canonical-key grouping, each with a focused lesson, editable practice program, separate reference solution, checkpoints, and direct LeetCode link.
 - Navigation: added direct LeetCode links to every initialized Arrays and Hash-Based Lookup lesson while preserving Two Sum as the only `LEARNING` lesson and keeping both new lessons `TODO`.
 - Verification: `./gradlew testClasses`, passing optimized Two Sum checks, expected starter output for both new practices, passing reference checks for Valid Anagram and Group Anagrams, one active `LEARNING` row, direct lesson links, and clean diff checks for committed files.
-- Docs: [Frequency Counting](./interview/01-coding/lessons/01-arrays-hash-maps/04-frequency-counting/README.md), [Valid Anagram Practice](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/frequencycounting/ValidAnagramPractice.java), [Canonical Grouping](./interview/01-coding/lessons/01-arrays-hash-maps/05-canonical-grouping/README.md), [Group Anagrams Practice](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/canonicalgrouping/GroupAnagramsPractice.java), [Two Sum Practice](../src/test/java/com/instagram/backend/interview/coding/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java)
+- Docs: [Frequency Counting](./interview/01-leetcode/lessons/01-arrays-hash-maps/04-frequency-counting/README.md), [Valid Anagram Practice](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/frequencycounting/ValidAnagramPractice.java), [Canonical Grouping](./interview/01-leetcode/lessons/01-arrays-hash-maps/05-canonical-grouping/README.md), [Group Anagrams Practice](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/canonicalgrouping/GroupAnagramsPractice.java), [Two Sum Practice](../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java)
 
 ## UI Repo: `instagram-ui`
 

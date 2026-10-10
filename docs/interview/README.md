@@ -8,16 +8,16 @@ Keep four primary tracks. The remaining folders support those tracks rather than
 
 | Track | Weekly time | Readiness outcome |
 |---|---:|---|
-| [Coding](./01-coding/README.md) | 40% | Solve and explain an unseen medium problem in 30–35 minutes |
+| [LeetCode](./01-leetcode/README.md) | 40% | Solve and explain an unseen medium problem in 30–35 minutes |
 | [System design](./02-system-design/README.md) | 30% | Lead a 45–60 minute senior-level design discussion |
 | [Behavioral](./03-behavioral/README.md) and [project deep-dives](./09-resume-project-deep-dives/README.md) | 20% | Tell concise, evidence-backed stories that show senior scope and impact |
-| [Role-specific knowledge](./04-java/README.md) and [Spring/Hibernate](./05-spring-hibernate/README.md) | 10% | Answer likely language and framework questions and connect answers to real experience |
+| [Java](./04-java/README.md), [functional-programming coding](./04-java/01-functional-programming-coding/README.md), [multithreading](./04-java/02-multithreading-from-scratch/README.md), and [Spring/Hibernate](./05-spring-hibernate/README.md) | 10% | Answer likely language and framework questions and connect answers to executable examples |
 
 Do not split time equally across every folder. Low-level design, fundamentals, cloud/DevOps, mocks, company research, and job-search work should be pulled in when a target role or a weak mock interview justifies them.
 
 ## Folder map
 
-1. [Coding and LeetCode](./01-coding/README.md)
+1. [LeetCode](./01-leetcode/README.md)
 2. [System design](./02-system-design/README.md)
 3. [Behavioral stories](./03-behavioral/README.md)
 4. [Java](./04-java/README.md)

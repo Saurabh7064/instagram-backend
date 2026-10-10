@@ -146,9 +146,9 @@ Reference:
   - next improvements
 - For all code references, use clickable Markdown file links (not plain text paths).
 
-## Interview Coding Lesson Standard
+## LeetCode Lesson Standard
 
-For every lesson under `docs/interview/01-coding/`:
+For every lesson under `docs/interview/01-leetcode/`:
 
 1. Organize material as module -> micro-lesson. A module landing page may list the sequence, but each micro-lesson directory must teach one primary idea through one focused problem.
 2. Introduce no more than three new terms in a micro-lesson. If a second pattern, transformation, or unrelated Java pitfall appears, move it to another micro-lesson.

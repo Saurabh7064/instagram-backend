@@ -2,6 +2,13 @@
 
 Prioritize explanation and production examples over trivia.
 
+## Java coding tracks
+
+- [Functional Programming Coding Skills](./01-functional-programming-coding/README.md) — pure transformations, streams, collectors, composition, and safe parallelism
+- [Multithreading from Scratch](./02-multithreading-from-scratch/README.md) — threads, coordination, shared-state safety, executors, futures, and concurrent design
+
+Both tracks are initialized but inactive. Activate one micro-lesson at a time and keep implementation completion separate from demonstrated understanding.
+
 ## Java and JVM priority list
 
 - Object contracts: equality, hashing, immutability, records

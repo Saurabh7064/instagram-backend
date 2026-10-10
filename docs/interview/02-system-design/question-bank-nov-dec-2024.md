@@ -243,7 +243,7 @@ No three prompts literally cover every scenario. These provide broad transfer; u
 | Explain `groupingBy(Employee::getGender, maxBy(...salary...))` | Java | Library practice |
 | What is a downstream collector? | Java | Library concept |
 | How does `collectingAndThen` find the highest-salary employee by department? | Java | Library practice |
-| Find the largest island area in a 2D grid | [Coding](../01-coding/README.md) | Graph/grid traversal |
+| Find the largest island area in a 2D grid | [Coding](../01-leetcode/README.md) | Graph/grid traversal |
 | Write the largest-island code | Coding | Implementation exercise |
 | Compare BFS and DFS time/space for largest island | Coding | Algorithm analysis |
 | Return the largest connected-component sum for arbitrary numbers | Coding | Graph/grid variation |

@@ -16,12 +16,12 @@ Update this file once per week. Evidence should link to notes, problem logs, moc
 
 | Area | Target | Current | Status | Next action |
 |---|---:|---:|---|---|
-| Coding patterns mastered | 12 | 0 | LEARNING | Complete [HashMap Value-to-Index Lookup](./01-coding/lessons/01-arrays-hash-maps/03-value-to-index/README.md) |
+| Coding patterns mastered | 12 | 0 | LEARNING | Complete [HashMap Value-to-Index Lookup](./01-leetcode/lessons/01-arrays-hash-maps/03-value-to-index/README.md) |
 | Problems mastered | 130 | 0 | LEARNING | Explain the passing average `O(n)` Two Sum solution and answer its checkpoints |
 | System designs completed | 15 | 0 | NOT_STARTED | Attempt [Scalability, Availability, and Reliability](./02-system-design/concepts/01-scalability-availability-reliability.md), then design the Instagram read path |
 | Behavioral stories rehearsed | 8 | 0 | NOT_STARTED | Draft technical challenge story |
 | Project deep-dives ready | 2 | 0 | NOT_STARTED | Select Nike and U.S. Bank examples |
-| Java/JVM topics ready | 10 | 0 | NOT_STARTED | Baseline Java/JVM questions |
+| Java/JVM topics ready | 10 | 0 | NOT_STARTED | After the active LeetCode lesson, choose [Functional Programming Coding](./04-java/01-functional-programming-coding/README.md) or [Multithreading from Scratch](./04-java/02-multithreading-from-scratch/README.md) |
 | Spring/Hibernate topics ready | 10 | 0 | NOT_STARTED | Baseline framework/ORM questions |
 | Low-level designs completed | 6 | 0 | NOT_STARTED | Design parking lot or elevator |
 | Full mock interviews | 8 | 0 | NOT_STARTED | Schedule first mock |
@@ -35,8 +35,8 @@ Status values: `NOT_STARTED`, `LEARNING`, `PRACTICING`, `INTERVIEW_READY`, `RETA
 - Status: `LEARNING`
 - Code evidence: the optimized one-pass HashMap implementation passes all supplied checks as of 2026-10-09.
 - Completion requires: passing Two Sum code, all 3 checkpoints, a correct map invariant, and a distinct-index explanation.
-- Review due: recheck [Sequence Boundaries](./01-coding/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md) without answers on 2026-10-08.
-- Deferred: [HashSet Membership](./01-coding/lessons/01-arrays-hash-maps/01-hashset-membership/README.md) — learner requested return later; not counted as mastered.
+- Review due: recheck [Sequence Boundaries](./01-leetcode/lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md) without answers on 2026-10-08.
+- Deferred: [HashSet Membership](./01-leetcode/lessons/01-arrays-hash-maps/01-hashset-membership/README.md) — learner requested return later; not counted as mastered.
 
 ## Weekly review template
 
