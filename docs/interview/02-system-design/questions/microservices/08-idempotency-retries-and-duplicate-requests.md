@@ -2,6 +2,8 @@
 
 > **Interview question:** How do you make retries safe and prevent duplicate requests or events from applying the same business operation more than once?
 
+> [One-page revision card](../../revision-cards/microservices/08-idempotency-retries-and-duplicate-requests.md)
+
 - Status: `READY`; comprehension not yet demonstrated
 - Time: 20–25 minutes
 - Primary idea: a retry is safe only when repeated delivery produces one intended business effect

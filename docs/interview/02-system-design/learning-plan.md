@@ -83,11 +83,15 @@ Study one micro-lesson at a time. Later rows remain `TODO` until the current sto
 ### Module 1 — Foundations
 
 1. [Scalability, Availability, and Reliability](./concepts/01-scalability-availability-reliability.md) — `READY`
-2. Load balancing and stateless services — `TODO`
-3. Latency, throughput, and capacity estimates — `TODO`
-4. Consistency and durability — `TODO`
+2. [Load Balancing and Stateless Services](./concepts/05-load-balancing-and-stateless-services.md) — `READY`
+3. [Latency, Throughput, and Saturation](./concepts/06-latency-throughput-and-saturation.md) — `READY`
+4. [Tail Latency, Percentiles, and Queueing](./concepts/07-tail-latency-percentiles-and-queueing.md) — `READY`
+5. [Backpressure and Load Shedding](./concepts/08-backpressure-and-load-shedding.md) — `READY`
+6. Consistency and durability — `TODO`
 
 Stop/go: explain why “highly scalable” and “highly available” are different claims, then identify which one a proposed change improves.
+
+Focused diagnosis practice: [Production Troubleshooting Scenarios](./questions/production-scenarios/README.md). Use the [revision cards](./revision-cards/README.md) for retrieval only after attempting the detailed answer.
 
 ### Module 2 — Data placement
 

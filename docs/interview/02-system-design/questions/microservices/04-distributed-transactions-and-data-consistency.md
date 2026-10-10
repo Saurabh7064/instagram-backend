@@ -2,6 +2,8 @@
 
 > **Question:** How are distributed transactions handled in microservices, and discuss patterns for ensuring data consistency.
 
+> [One-page revision card](../../revision-cards/microservices/04-distributed-transactions-and-data-consistency.md)
+
 ## Why is this question important?
 
 Inside one application and one database, a transaction can make several changes succeed or fail together. In microservices, an order, inventory reservation, payment, and shipment normally belong to different services and different databases. No single local database transaction covers the complete business operation.

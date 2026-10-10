@@ -2,6 +2,8 @@
 
 > **Question:** Explain bulkhead isolation.
 
+> [One-page revision card](../../revision-cards/microservices/05-bulkhead-isolation.md)
+
 ## Why does this pattern exist?
 
 A service often handles critical and non-critical work with the same finite resources: request threads, database connections, memory, CPU, outbound sockets, or queue workers. If one slow dependency consumes all of a shared resource, unrelated operations fail even though their own code and dependencies are healthy.

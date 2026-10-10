@@ -2,6 +2,8 @@
 
 > **Question:** Designing a fault-tolerant and resilient microservices architecture involves building ways for services to fail gracefully and recover quickly. How would you design a fault-tolerant and resilient microservices architecture?
 
+> [One-page revision card](../../revision-cards/microservices/06-fault-tolerant-resilient-architecture.md)
+
 ## Why is this question important?
 
 Microservices replace some in-process calls with networks, separate deployments, queues, and independently owned databases. That creates partial failure: the caller can be healthy while one dependency is slow, unreachable, restarting, or returning an ambiguous result.

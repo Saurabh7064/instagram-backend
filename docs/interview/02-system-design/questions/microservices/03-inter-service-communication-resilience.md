@@ -2,6 +2,8 @@
 
 > **Question: How would you address inter-service communication issues like latency, timeouts, and cascading failures in a microservices architecture?**
 
+> [One-page revision card](../../revision-cards/microservices/03-inter-service-communication-resilience.md)
+
 ## Why does this problem exist?
 
 An in-process Java method call either returns or throws within the same process. A network call has more states:

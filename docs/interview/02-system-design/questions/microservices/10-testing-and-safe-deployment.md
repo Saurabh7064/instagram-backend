@@ -2,6 +2,8 @@
 
 > **Interview question:** How would you test microservices and deploy changes safely without relying on a fragile, slow end-to-end test suite?
 
+> [One-page revision card](../../revision-cards/microservices/10-testing-and-safe-deployment.md)
+
 - Status: `READY`; comprehension not yet demonstrated
 - Time: 25–30 minutes
 - Primary idea: test each risk at the cheapest reliable boundary, then limit and observe production exposure

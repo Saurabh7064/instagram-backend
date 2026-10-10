@@ -2,6 +2,8 @@
 
 This module answers one interview question per file. Do not memorize the architecture as a script. Study one question, close the file, explain it aloud, predict a failure, and then answer the final questions before moving on.
 
+For interview-week retrieval after learning the material, use the [≤400-word revision cards](../../revision-cards/README.md).
+
 ## Learning sequence
 
 | Order | Interview question | Why it matters | Artifact | Comprehension |

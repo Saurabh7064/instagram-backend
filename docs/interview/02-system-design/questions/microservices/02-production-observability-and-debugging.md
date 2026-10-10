@@ -2,6 +2,8 @@
 
 > **Question: How would you monitor and debug microservices in production?**
 
+> [One-page revision card](../../revision-cards/microservices/02-production-observability-and-debugging.md)
+
 ## Why does this problem exist?
 
 In a monolith, one debugger and one stack trace may cover an entire request. In microservices, a single “load feed” request can cross a gateway, feed service, identity service, post store, cache, and message broker. Those components may run on different machines and deploy independently.

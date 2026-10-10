@@ -2,6 +2,8 @@
 
 > **Interview question:** How would you identify good microservice boundaries in a monolith, and how should data ownership work after the split?
 
+> [One-page revision card](../../revision-cards/microservices/07-service-boundaries-and-data-ownership.md)
+
 - Status: `READY`; comprehension not yet demonstrated
 - Time: 20–25 minutes
 - Primary idea: split around business responsibilities and invariants, then give one service authority to change each piece of data

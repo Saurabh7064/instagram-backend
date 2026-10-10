@@ -2,6 +2,8 @@
 
 > **Interview question:** How would you evolve APIs and event schemas without breaking older consumers while microservices deploy independently?
 
+> [One-page revision card](../../revision-cards/microservices/09-api-event-contract-evolution.md)
+
 - Status: `READY`; comprehension not yet demonstrated
 - Time: 20–25 minutes
 - Primary idea: expand a contract compatibly, migrate consumers, observe adoption, and only then remove the old shape

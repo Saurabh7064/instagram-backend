@@ -8,5 +8,9 @@ Study one micro-lesson at a time. The files being present means only that the le
 | 2 | [Caching and Consistency](./02-caching-consistency.md) | A faster copy creates freshness decisions | `READY` |
 | 3 | [Partitioning, Replication, and Hot Keys](./03-partitioning-replication-hot-keys.md) | Split load and copy data for different reasons | `READY` |
 | 4 | [Monolith-to-Microservices Migration](./04-monolith-to-microservices-migration.md) | Migrate behavior incrementally behind stable contracts | `READY` |
+| 5 | [Load Balancing and Stateless Services](./05-load-balancing-and-stateless-services.md) | Any healthy instance can serve the next request | `READY` |
+| 6 | [Latency, Throughput, and Saturation](./06-latency-throughput-and-saturation.md) | Waiting grows when demand reaches constrained capacity | `READY` |
+| 7 | [Tail Latency, Percentiles, and Queueing](./07-tail-latency-percentiles-and-queueing.md) | Slow cohorts require percentiles and stage timing | `READY` |
+| 8 | [Backpressure and Load Shedding](./08-backpressure-and-load-shedding.md) | Bound accepted work to preserve useful service | `READY` |
 
 Use the reusable [Concept Template](../_concept-template.md) for future lessons and record actual understanding in [Learner Progress](../learner-progress.md).

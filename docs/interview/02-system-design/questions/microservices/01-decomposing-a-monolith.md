@@ -4,6 +4,8 @@
 >
 > **How would you approach decomposing this monolith into microservices, and what steps would you take to minimize risk and maintain functionality during the transition?**
 
+> [One-page revision card](../../revision-cards/microservices/01-decomposing-a-monolith.md)
+
 ## Why does this problem exist?
 
 A mature monolith usually contains more knowledge than its diagrams show:
