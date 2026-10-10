@@ -355,6 +355,14 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, expected readiness output for all five untouched starters, passing checks for all five reference solutions, one active `LEARNING` lesson, all local Markdown links resolved, lesson-structure checks, and clean diff checks for committed files.
 - Docs: [Two Pointers Module](./interview/01-leetcode/lessons/02-two-pointers/README.md), [Valid Palindrome](./interview/01-leetcode/lessons/02-two-pointers/01-valid-palindrome/README.md), [Two Sum II](./interview/01-leetcode/lessons/02-two-pointers/02-two-sum-ii/README.md), [Container With Most Water](./interview/01-leetcode/lessons/02-two-pointers/03-container-most-water/README.md), [3Sum](./interview/01-leetcode/lessons/02-two-pointers/04-three-sum/README.md), [Maximum Average Subarray I](./interview/01-leetcode/lessons/03-sliding-window/01-maximum-average-subarray/README.md)
 
+64. `6b69ff8`
+- Learning change: added four focused system-design concepts covering stateless load balancing, latency/throughput/saturation, tail latency/queueing, and backpressure/load shedding.
+- Practice change: added eight manager-style production scenarios for peak latency, post-deployment regression, high p99, database-pool saturation, retry storms, queue backlog, cache stampede, and regional failure.
+- Revision system: converted all ten existing microservices answers and all eight new scenarios into separate interview cards capped at 400 words, with a reusable template and three unrevealed recall questions per card.
+- Learning state: artifacts are `READY`; comprehension remains `TODO` until no-notes explanation, failure prediction, mitigation choice, and trade-off evidence are demonstrated.
+- Verification: 18 question files end with 3–5 explained questions; all 18 cards contain the required sections, end with exactly three unrevealed questions, and are 372–400 words; local links resolve, Markdown structures balance, and diff checks pass.
+- Docs: [System Design Interview Path](./interview/02-system-design/README.md), [Concept Lessons](./interview/02-system-design/concepts/README.md), [Production Scenarios](./interview/02-system-design/questions/production-scenarios/README.md), [One-Page Revision Cards](./interview/02-system-design/revision-cards/README.md), [Learner Progress](./interview/02-system-design/learner-progress.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
