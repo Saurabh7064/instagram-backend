@@ -11,12 +11,14 @@ Build practical Java functional-programming skill through small runnable problem
 
 ## Working rules
 
-1. Activate only one lesson in this track at a time.
-2. Keep practice and reference programs separate and directly runnable from IntelliJ.
-3. Prefer deterministic examples; do not use parallel streams until mutation and thread-safety risks have been taught.
-4. State whether input is mutated and whether the returned collection is modifiable.
-5. Explain when a loop is clearer than a stream instead of treating streams as automatically better.
-6. Record code completion separately from checkpoint understanding and later retrieval.
+1. Begin each micro-lesson with only its exact question, followed by explicit `What you will learn` concept outcomes.
+2. Teach the mental model, data flow, invariants, trade-offs, and failure modes before directing the learner to the practice file.
+3. Activate only one lesson in this track at a time.
+4. Keep practice and reference programs separate and directly runnable from IntelliJ.
+5. Prefer deterministic examples; do not use parallel streams until mutation and thread-safety risks have been taught.
+6. State whether input is mutated and whether the returned collection is modifiable.
+7. Explain when a loop is clearer than a stream instead of treating streams as automatically better.
+8. Record code completion separately from checkpoint understanding and later retrieval.
 
 ## Ordered path
 

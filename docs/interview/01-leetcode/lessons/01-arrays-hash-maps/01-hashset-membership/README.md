@@ -1,17 +1,30 @@
 # Micro-Lesson 01 — HashSet Membership
 
+## Question
+
+> Given a non-null integer array, return `true` if any value appears at least twice. Return `false` when every value is distinct.
+
+Practice source: [Contains Duplicate on LeetCode](https://leetcode.com/problems/contains-duplicate/)
+
+## What you will learn
+
+- why remembering earlier values removes the need to compare every pair;
+- how a `HashSet` models the question “have I seen this value?”;
+- the loop invariant that makes an early `true` return correct;
+- why the solution is average `O(n)` time with `O(n)` additional space;
+- when `Set.add` can combine lookup and insertion.
+
+## Lesson status
+
 - Learning status: `DEFERRED` at learner request on 2026-10-04; checkpoint explanation still pending
 - Learner implementation: `PASSING` on 2026-10-06
 - Time: 35–45 minutes
 - Primary idea: remember whether a value has appeared
 - New terms: membership, duplicate, invariant
-- LeetCode: [Contains Duplicate](https://leetcode.com/problems/contains-duplicate/)
 
 Need a syntax and operations review first? Use the supplemental [Java HashSet Cheat Sheet](../../../references/hashset-cheatsheet.md). Returning to the reference does not change this lesson's `DEFERRED` status.
 
-## Problem
-
-Given a non-null integer array, return `true` if any value appears at least twice. Return `false` when every value is distinct.
+## Inputs, examples, and target
 
 Examples:
 
@@ -20,49 +33,6 @@ Examples:
 - `[]` → `false`
 
 Target: average `O(n)` time.
-
-## Runnable code
-
-- Write here: [ContainsDuplicatePractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/hashsetmembership/ContainsDuplicatePractice.java)
-- Reference answer: [ContainsDuplicateSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/hashsetmembership/ContainsDuplicateSolution.java)
-
-In IntelliJ, open the practice file and click the green triangle beside `main`. Change only `containsDuplicate`.
-
-## Learner solution review — 2026-10-06
-
-Submitted implementation: [ContainsDuplicatePractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/hashsetmembership/ContainsDuplicatePractice.java)
-
-```java
-HashSet<Integer> set = new HashSet<>();
-
-for (int i = 0; i < values.length; i++) {
-    if (set.contains(values[i])) {
-        return true;
-    }
-    set.add(values[i]);
-}
-return false;
-```
-
-Verification result: all supplied checks pass for a duplicate, all-distinct values, an empty array, one value, and a duplicate negative value.
-
-### What is correct
-
-- The set contains values from earlier indexes before the current value is checked.
-- Returning immediately after finding a prior value is correct and avoids unnecessary work.
-- Empty and single-value arrays correctly reach `false`.
-- Average time is `O(n)` and worst-case additional space is `O(n)`.
-
-### Issues and refinements
-
-There is no correctness bug for the problem's non-null input assumption. The improvements are about clarity and avoiding repeated work:
-
-1. `contains` followed by `add` performs two hash-table operations for every new value. `if (!seen.add(value))` combines the membership check and insertion into one operation.
-2. `Set<Integer> seen = new HashSet<>();` communicates both the interface being used and the purpose of the variable more clearly than `HashSet<Integer> set`.
-3. An enhanced loop is enough because the index is never used for the answer.
-4. The completed file still contains the starter `TODO` comment, and the loop spacing does not follow normal Java formatting. These do not affect correctness but should be cleaned in production-quality code.
-
-These are refinements, not a reason to reject the solution in an interview. Explain the invariant and complexity confidently before optimizing the syntax.
 
 ## One idea
 
@@ -101,6 +71,50 @@ static boolean containsDuplicate(int[] values) {
 - Average time: `O(n)` because each element performs one average constant-time set operation.
 - Additional space: `O(n)` in the all-distinct case.
 - Trade-off: extra memory replaces repeated pair comparisons.
+
+
+## Learner solution review — 2026-10-06
+
+Submitted implementation: [ContainsDuplicatePractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/hashsetmembership/ContainsDuplicatePractice.java)
+
+```java
+HashSet<Integer> set = new HashSet<>();
+
+for (int i = 0; i < values.length; i++) {
+    if (set.contains(values[i])) {
+        return true;
+    }
+    set.add(values[i]);
+}
+return false;
+```
+
+Verification result: all supplied checks pass for a duplicate, all-distinct values, an empty array, one value, and a duplicate negative value.
+
+### What is correct
+
+- The set contains values from earlier indexes before the current value is checked.
+- Returning immediately after finding a prior value is correct and avoids unnecessary work.
+- Empty and single-value arrays correctly reach `false`.
+- Average time is `O(n)` and worst-case additional space is `O(n)`.
+
+### Issues and refinements
+
+There is no correctness bug for the problem's non-null input assumption. The improvements are about clarity and avoiding repeated work:
+
+1. `contains` followed by `add` performs two hash-table operations for every new value. `if (!seen.add(value))` combines the membership check and insertion into one operation.
+2. `Set<Integer> seen = new HashSet<>();` communicates both the interface being used and the purpose of the variable more clearly than `HashSet<Integer> set`.
+3. An enhanced loop is enough because the index is never used for the answer.
+4. The completed file still contains the starter `TODO` comment, and the loop spacing does not follow normal Java formatting. These do not affect correctness but should be cleaned in production-quality code.
+
+These are refinements, not a reason to reject the solution in an interview. Explain the invariant and complexity confidently before optimizing the syntax.
+
+## Practice after learning the concept
+
+- Write here: [ContainsDuplicatePractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/hashsetmembership/ContainsDuplicatePractice.java)
+- Reference answer: [ContainsDuplicateSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/hashsetmembership/ContainsDuplicateSolution.java)
+
+In IntelliJ, open the practice file and click the green triangle beside `main`. Change only `containsDuplicate`.
 
 ## Checkpoints
 

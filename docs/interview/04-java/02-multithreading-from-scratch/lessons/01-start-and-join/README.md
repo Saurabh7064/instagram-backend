@@ -1,12 +1,26 @@
 # Micro-Lesson 01 — Starting and Joining One Worker
 
+## Question
+
+> How can a Java method calculate a square on a named worker thread and wait for the worker's result without guessing with `Thread.sleep`?
+
+## What you will learn
+
+- what a thread represents inside one running Java program;
+- why constructing a `Thread` does not start its task;
+- the difference between calling `start()` and calling `run()` directly;
+- how `join()` coordinates completion before the caller reads a result;
+- why sleeping is a timing guess rather than a correctness mechanism.
+
+## Lesson status
+
 - Learning status: `TODO`; initialized but not active
 - Primary idea: `start` begins work on another thread and `join` waits for that work to finish
 - New terms: thread, `start`, `join`
 
-## Problem
+## Inputs, examples, and target
 
-Implement `squareOnWorker(int number)` so that a named worker thread calculates the square and the calling thread waits for the result.
+Implement `squareOnWorker(int number)` under these conditions:
 
 Assumptions:
 
@@ -19,11 +33,6 @@ Examples:
 - `squareOnWorker(7)` → `49`
 - `squareOnWorker(-4)` → `16`
 - `squareOnWorker(0)` → `0`
-
-## Runnable code
-
-- Write here: [StartAndJoinPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/multithreading/startandjoin/StartAndJoinPractice.java)
-- Reveal after attempting: [StartAndJoinSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/multithreading/startandjoin/StartAndJoinSolution.java)
 
 ## Reference approach
 
@@ -61,6 +70,12 @@ Explanation: completion is coordinated explicitly by `join`; correctness does no
 - Work: `O(1)` for one multiplication.
 - Additional space: `O(1)`.
 - Coordination cost: one thread creation and one wait; real applications normally reuse executor-managed threads for many tasks.
+
+
+## Practice after learning the concept
+
+- Write here: [StartAndJoinPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/multithreading/startandjoin/StartAndJoinPractice.java)
+- Reveal after attempting: [StartAndJoinSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/multithreading/startandjoin/StartAndJoinSolution.java)
 
 ## Questions and explained answers
 

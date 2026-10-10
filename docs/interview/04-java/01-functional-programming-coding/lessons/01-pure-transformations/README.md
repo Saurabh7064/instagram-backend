@@ -1,12 +1,26 @@
 # Micro-Lesson 01 — Pure Transformations
 
+## Question
+
+> Given a list of words, how can you trim them, discard blanks, lowercase the survivors, preserve their order, and return a new list without changing the input?
+
+## What you will learn
+
+- what makes a transformation pure from the caller's point of view;
+- how `map`, `filter`, and `toList` form a stream pipeline;
+- why pipeline stage order changes the result;
+- why `Locale.ROOT` makes machine-oriented case normalization predictable;
+- when an ordinary loop is clearer than a stream.
+
+## Lesson status
+
 - Learning status: `TODO`; initialized but not active
 - Primary idea: describe a sequence of transformations without changing the input list
 - New terms: pure function, stream pipeline, lambda
 
-## Problem
+## Inputs, examples, and target
 
-Given a non-null list of non-null words:
+The input is a non-null list of non-null words. The transformation must:
 
 1. trim surrounding whitespace;
 2. discard empty results;
@@ -20,11 +34,6 @@ Examples:
 - `[]` → `[]`
 
 Target: `O(c)` time for `c` total input characters and `O(c)` output space.
-
-## Runnable code
-
-- Write here: [NormalizeWordsPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/functionalprogramming/puretransformations/NormalizeWordsPractice.java)
-- Reveal after attempting: [NormalizeWordsSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/functionalprogramming/puretransformations/NormalizeWordsSolution.java)
 
 ## Reference approach
 
@@ -56,6 +65,12 @@ The input is never modified because strings are immutable and no operation write
 - A loop is valid and can be clearer when debugging or checked exceptions dominate.
 - Do not use `peek` to mutate external state; that hides a side effect inside a transformation pipeline.
 - Do not call `toLowerCase()` without an explicit locale for machine-independent normalization.
+
+
+## Practice after learning the concept
+
+- Write here: [NormalizeWordsPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/functionalprogramming/puretransformations/NormalizeWordsPractice.java)
+- Reveal after attempting: [NormalizeWordsSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/functionalprogramming/puretransformations/NormalizeWordsSolution.java)
 
 ## Questions and explained answers
 

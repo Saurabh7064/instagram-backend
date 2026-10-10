@@ -2,6 +2,8 @@
 
 This module is intentionally split into small lessons. Study only the active lesson; do not read the later solution files early.
 
+Every micro-lesson starts with one interview question, then teaches what the question is meant to reveal: the pattern signal, data-structure model, invariant, correctness, complexity, boundaries, and trade-offs. The code is practice evidence for those concepts, not the whole lesson.
+
 If basic Java syntax feels rusty, pause for the supplemental [Java Array Cheat Sheet](../../references/array-cheatsheet.md), [Java HashSet Cheat Sheet](../../references/hashset-cheatsheet.md), or [Java HashMap Cheat Sheet](../../references/hashmap-cheatsheet.md). They are references and warm-ups, not mastery-state changes.
 
 ## Lesson sequence

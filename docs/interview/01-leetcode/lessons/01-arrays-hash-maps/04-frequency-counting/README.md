@@ -1,17 +1,30 @@
 # Micro-Lesson 04 — Frequency Counting
 
+## Question
+
+> Given two non-null strings, return whether the second string is an anagram of the first.
+
+Practice source: [Valid Anagram on LeetCode](https://leetcode.com/problems/valid-anagram/)
+
+## What you will learn
+
+- why membership alone is insufficient when duplicate counts matter;
+- how to build a frequency map from one input and consume it with another;
+- how the remaining-count invariant proves correctness;
+- when removing a zero-count key makes the final condition clearer;
+- when a fixed-size array is a reasonable alternative to a map.
+
+## Lesson status
+
 - Learning status: `TODO`; initialized on 2026-10-09 but not yet active
 - Time: 35–45 minutes
 - Prerequisite: HashMap lookup and insertion
 - Primary idea: map each character to how many unmatched copies remain
 - New terms: frequency, anagram, balance
-- LeetCode: [Valid Anagram](https://leetcode.com/problems/valid-anagram/)
 
 Do not begin this lesson while HashMap Value-to-Index Lookup remains `LEARNING`.
 
-## Problem
-
-Given two non-null strings `first` and `second`, return `true` when `second` is an anagram of `first` and `false` otherwise.
+## Inputs, examples, and target
 
 An anagram uses exactly the same characters with exactly the same counts, possibly in a different order.
 
@@ -29,13 +42,6 @@ Examples:
 - `""`, `""` → `true`
 
 Target: average `O(n)` time and `O(n)` additional space, where `n` is the combined input length.
-
-## Runnable code
-
-- Write here: [ValidAnagramPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/frequencycounting/ValidAnagramPractice.java)
-- Reveal after attempting: [ValidAnagramSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/frequencycounting/ValidAnagramSolution.java)
-
-When this lesson becomes active, change only `isAnagram` and run the practice class from IntelliJ.
 
 ## Why the problem exists
 
@@ -133,6 +139,14 @@ This explains why a missing character fails immediately and why an empty map at 
 - A `HashSet` loses counts and cannot distinguish `"aacc"` from `"ccac"`.
 - Sorting both strings works in `O(n log n)` time but changes the time target.
 - An `int[26]` is a good constant-space alternative under the lowercase-English constraint, but the HashMap version teaches reusable frequency counting.
+
+
+## Practice after learning the concept
+
+- Write here: [ValidAnagramPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/frequencycounting/ValidAnagramPractice.java)
+- Reveal after attempting: [ValidAnagramSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/frequencycounting/ValidAnagramSolution.java)
+
+When this lesson becomes active, change only `isAnagram` and run the practice class from IntelliJ.
 
 ## Questions and explained answers
 

@@ -150,6 +150,10 @@ Reference:
 
 For every lesson under `docs/interview/01-leetcode/`:
 
+- Put `## Question` immediately after the lesson title. Ask the exact problem there; do not place status metadata, setup instructions, or an answer before it.
+- Follow it with `## What you will learn`, containing concrete concept outcomes. After that, teach the concepts and reasoning; treat the coding problem as the exercise that demonstrates the lesson, not as the lesson itself.
+- Put runnable practice instructions after the learner has been given the conceptual model needed to make a meaningful attempt.
+
 1. Organize material as module -> micro-lesson. A module landing page may list the sequence, but each micro-lesson directory must teach one primary idea through one focused problem.
 2. Introduce no more than three new terms in a micro-lesson. If a second pattern, transformation, or unrelated Java pitfall appears, move it to another micro-lesson.
 3. In chat and in the active daily plan, teach only one micro-lesson at a time. Keep later lessons `TODO` until the learner completes the current stop/go check.

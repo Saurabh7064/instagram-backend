@@ -1,17 +1,30 @@
 # Micro-Lesson 05 — Grouping by a Canonical Key
 
+## Question
+
+> Given an array of lowercase English words, group all anagrams together. Group order and word order inside groups may vary.
+
+Practice source: [Group Anagrams on LeetCode](https://leetcode.com/problems/group-anagrams/)
+
+## What you will learn
+
+- what a canonical key is and why equivalent values need the same representation;
+- why sorting letters produces the same key for every anagram in a group;
+- how a map changes from one-value lookup to one-key/many-values grouping;
+- how `computeIfAbsent` creates a group only when needed;
+- how key construction determines the overall time complexity.
+
+## Lesson status
+
 - Learning status: `TODO`; initialized on 2026-10-09 but not yet active
 - Time: 45–60 minutes
 - Prerequisite: frequency counting and HashMap value storage
 - Primary idea: transform equivalent values into the same key, then group by that key
 - New terms: canonical key, equivalence group, `computeIfAbsent`
-- LeetCode: [Group Anagrams](https://leetcode.com/problems/group-anagrams/)
 
 Do not begin this lesson while an earlier module lesson remains `LEARNING`.
 
-## Problem
-
-Given a non-null array of lowercase English words, group all anagrams together and return the groups. The groups and words inside each group may appear in any order.
+## Inputs, examples, and target
 
 Assumptions:
 
@@ -25,13 +38,6 @@ Examples:
 - `["eat", "tea", "tan", "ate", "nat", "bat"]` → groups equivalent to `[["eat", "tea", "ate"], ["tan", "nat"], ["bat"]]`
 - `[""]` → `[[""]]`
 - `["a"]` → `[["a"]]`
-
-## Runnable code
-
-- Write here: [GroupAnagramsPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/canonicalgrouping/GroupAnagramsPractice.java)
-- Reveal after attempting: [GroupAnagramsSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/canonicalgrouping/GroupAnagramsSolution.java)
-
-When this lesson becomes active, change only `groupAnagrams` and run the practice class from IntelliJ.
 
 ## Why the problem exists
 
@@ -133,6 +139,14 @@ For `w` words of maximum length `k`:
 - Using only a `HashSet<Character>` as the key loses duplicate counts.
 - A 26-count signature can reduce key construction to `O(k)` per word under the lowercase-English constraint, but sorted strings are the clearer first canonical-key technique.
 - Output order is unspecified, so tests must compare normalized groups rather than raw list order.
+
+
+## Practice after learning the concept
+
+- Write here: [GroupAnagramsPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/canonicalgrouping/GroupAnagramsPractice.java)
+- Reveal after attempting: [GroupAnagramsSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/canonicalgrouping/GroupAnagramsSolution.java)
+
+When this lesson becomes active, change only `groupAnagrams` and run the practice class from IntelliJ.
 
 ## Questions and explained answers
 

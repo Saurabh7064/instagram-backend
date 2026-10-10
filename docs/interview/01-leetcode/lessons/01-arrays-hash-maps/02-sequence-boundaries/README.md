@@ -1,18 +1,31 @@
 # Micro-Lesson 02 — Sequence Boundaries
 
+## Question
+
+> Given a non-null, unsorted integer array, return the length of its longest run of consecutive values.
+
+Practice source: [Longest Consecutive Sequence on LeetCode](https://leetcode.com/problems/longest-consecutive-sequence/)
+
+## What you will learn
+
+- how to recognize the first value of a consecutive run by testing its predecessor;
+- why scanning only from run boundaries prevents repeated work;
+- how a set removes duplicates and provides average constant-time membership checks;
+- how Java integer wraparound can incorrectly connect `MIN_VALUE` and `MAX_VALUE`;
+- why the nested loops still perform only average `O(n)` total work.
+
+## Lesson status
+
 - Learning status: `PRACTICING`; initial implementation and checkpoint explanation passed on 2026-10-07
 - Learner implementation: `PASSING` on 2026-10-07
 - Time: 45–60 minutes
 - Prerequisite: [HashSet Membership](../01-hashset-membership/README.md)
 - Primary idea: begin scanning a consecutive run only from its first value
 - New terms: predecessor, sequence boundary, integer overflow
-- LeetCode: [Longest Consecutive Sequence](https://leetcode.com/problems/longest-consecutive-sequence/)
 
 The HashSet practice implementation and initial explanation checkpoints pass. Spaced review is still required before this problem counts as mastered. The only prerequisite needed here is that a `HashSet` stores unique values and provides average `O(1)` membership checks.
 
-## Problem
-
-Given a non-null, unsorted integer array, return the length of its longest run of consecutive values.
+## Inputs, examples, and target
 
 Assumptions:
 
@@ -29,77 +42,6 @@ Examples:
 - `[Integer.MIN_VALUE, Integer.MAX_VALUE]` → `1`; the two extremes are not consecutive
 
 Target: average `O(n)` time and `O(n)` additional space.
-
-## Runnable code
-
-- Write here: [LongestConsecutivePractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java)
-- Reveal after attempting: [LongestConsecutiveSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java)
-
-Open the practice file in IntelliJ, change only `longestConsecutive`, and run its `main` method.
-
-## Learner solution review — 2026-10-07
-
-Submitted implementation: [LongestConsecutivePractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java)
-
-The submitted approach:
-
-1. copies every input value into a `HashSet`, removing duplicates;
-2. treats a value as a sequence start only when its predecessor is absent;
-3. scans forward from each start while successors remain in the set;
-4. tracks the longest completed run;
-5. guards both ends of Java's `int` range before subtracting or adding one.
-
-Verification result: `./gradlew testClasses` succeeded, and both the learner program and reference program passed all supplied checks. The covered cases are an unordered run, duplicates, empty input, one value, negative values, a run ending at `Integer.MAX_VALUE`, a run starting at `Integer.MIN_VALUE`, and separated minimum/maximum values that must not be joined through overflow.
-
-### Correctness and complexity
-
-- The solution is correct for the problem's non-null input assumption.
-- A run is scanned only from its unique first value, so the same run is not repeatedly traversed.
-- `length = 1` correctly counts the sequence start before successor scanning begins.
-- The minimum and maximum guards prevent integer wraparound from making the two extremes appear adjacent.
-- Average time is `O(n)`: set construction and all membership checks/forward steps combined are linear on average.
-- Additional space is `O(n)` for the distinct input values.
-
-### Issues and refinements
-
-There is no correctness bug. These are optional Java-style refinements and are not reasons to reject the answer in an interview:
-
-1. `public static` is the conventional modifier order instead of `static public`.
-2. `new HashSet<>()` can use the diamond operator instead of repeating `Integer`.
-3. `for (int num : unique)` avoids explicitly writing the wrapper type when the loop body uses primitive arithmetic.
-4. Standard spacing around operators and after `for`/`while` improves readability.
-
-The implementation attempt is complete. The lesson remains `LEARNING` until the learner explains the invariant, boundary guards, and average `O(n)` analysis without relying on the revealed answers.
-
-### Checkpoint attempt — 2026-10-07
-
-Result: `RETRY_NEEDED`; this does not change the passing code result.
-
-- Start identification was partial: `1` starts the four-value run, but `100` and `200` also start their own one-value runs because `99` and `199` are absent. The explanation that `length` starts at `1` because the starting value already belongs to the run was correct.
-- The guard purpose was partially identified, but the exact overflow results and short-circuit behavior were not yet explained. `Integer.MIN_VALUE - 1` wraps to `Integer.MAX_VALUE`, while `Integer.MAX_VALUE + 1` wraps to `Integer.MIN_VALUE`. For `a && b`, Java evaluates `a` first and evaluates `b` only when `a` is `true`.
-- The complexity intuition was on the right path, but the accounting was incomplete. Only run starts enter the forward scan, so every distinct value is traversed by an inner loop at most once across the entire algorithm. The outer work is average `O(n)` and all inner-loop work combined is average `O(n)`.
-
-Before advancing, retry the three checkpoints in plain language without reading the explained answers.
-
-### Checkpoint retry 2 — 2026-10-07
-
-Result: `RETRY_NEEDED`; one checkpoint now passes and two need one missing detail each.
-
-- Start identification still needs correction: `100`, `200`, and `1` start scans. `4` does not start because its predecessor `3` is present. The rule is to scan when the predecessor is absent, not merely whenever subtraction is possible.
-- The short-circuit explanation now passes: Java evaluates the right side of `&&` only when the left side is `true`. The answer still needs to state the two exact wraparound results to demonstrate both boundary guards.
-- The complexity explanation passes: only sequence starts enter the inner loop, and each distinct value is traversed by an inner loop at most once across all runs.
-
-Before advancing, retry only start identification and the two exact integer wraparound results.
-
-### Checkpoint retry 3 — 2026-10-07
-
-Result: `PASSING_WITH_COACHING`; advance is allowed, but spaced review remains required for mastery.
-
-- Start identification passes: `100`, `200`, and `1` start scans; every other value has a predecessor in the set and is skipped.
-- Boundary reasoning passes: `Integer.MIN_VALUE - 1` wraps to the positive `Integer.MAX_VALUE`, and `Integer.MAX_VALUE + 1` wraps to the negative `Integer.MIN_VALUE`.
-- The earlier answers already established correct `&&` short-circuit behavior and the combined average `O(n)` complexity argument.
-
-Scheduled retrieval checks: 2026-10-08, 2026-10-14, and 2026-11-07. The learner must solve or explain the idea again without these answers before the status can advance beyond `PRACTICING`.
 
 ## Why a simple HashSet loop is not enough
 
@@ -457,6 +399,78 @@ Therefore each run is measured once. Taking the maximum of all measured run leng
 - Removing the minimum/maximum guards and connecting integer extremes through overflow.
 - Putting the overflow guard after the arithmetic expression, which is too late.
 - Sorting even though the target asks for average `O(n)` time; sorting is a valid simpler alternative when `O(n log n)` is acceptable.
+
+
+## Learner solution review — 2026-10-07
+
+Submitted implementation: [LongestConsecutivePractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java)
+
+The submitted approach:
+
+1. copies every input value into a `HashSet`, removing duplicates;
+2. treats a value as a sequence start only when its predecessor is absent;
+3. scans forward from each start while successors remain in the set;
+4. tracks the longest completed run;
+5. guards both ends of Java's `int` range before subtracting or adding one.
+
+Verification result: `./gradlew testClasses` succeeded, and both the learner program and reference program passed all supplied checks. The covered cases are an unordered run, duplicates, empty input, one value, negative values, a run ending at `Integer.MAX_VALUE`, a run starting at `Integer.MIN_VALUE`, and separated minimum/maximum values that must not be joined through overflow.
+
+### Correctness and complexity
+
+- The solution is correct for the problem's non-null input assumption.
+- A run is scanned only from its unique first value, so the same run is not repeatedly traversed.
+- `length = 1` correctly counts the sequence start before successor scanning begins.
+- The minimum and maximum guards prevent integer wraparound from making the two extremes appear adjacent.
+- Average time is `O(n)`: set construction and all membership checks/forward steps combined are linear on average.
+- Additional space is `O(n)` for the distinct input values.
+
+### Issues and refinements
+
+There is no correctness bug. These are optional Java-style refinements and are not reasons to reject the answer in an interview:
+
+1. `public static` is the conventional modifier order instead of `static public`.
+2. `new HashSet<>()` can use the diamond operator instead of repeating `Integer`.
+3. `for (int num : unique)` avoids explicitly writing the wrapper type when the loop body uses primitive arithmetic.
+4. Standard spacing around operators and after `for`/`while` improves readability.
+
+The implementation attempt is complete. The lesson remains `LEARNING` until the learner explains the invariant, boundary guards, and average `O(n)` analysis without relying on the revealed answers.
+
+### Checkpoint attempt — 2026-10-07
+
+Result: `RETRY_NEEDED`; this does not change the passing code result.
+
+- Start identification was partial: `1` starts the four-value run, but `100` and `200` also start their own one-value runs because `99` and `199` are absent. The explanation that `length` starts at `1` because the starting value already belongs to the run was correct.
+- The guard purpose was partially identified, but the exact overflow results and short-circuit behavior were not yet explained. `Integer.MIN_VALUE - 1` wraps to `Integer.MAX_VALUE`, while `Integer.MAX_VALUE + 1` wraps to `Integer.MIN_VALUE`. For `a && b`, Java evaluates `a` first and evaluates `b` only when `a` is `true`.
+- The complexity intuition was on the right path, but the accounting was incomplete. Only run starts enter the forward scan, so every distinct value is traversed by an inner loop at most once across the entire algorithm. The outer work is average `O(n)` and all inner-loop work combined is average `O(n)`.
+
+Before advancing, retry the three checkpoints in plain language without reading the explained answers.
+
+### Checkpoint retry 2 — 2026-10-07
+
+Result: `RETRY_NEEDED`; one checkpoint now passes and two need one missing detail each.
+
+- Start identification still needs correction: `100`, `200`, and `1` start scans. `4` does not start because its predecessor `3` is present. The rule is to scan when the predecessor is absent, not merely whenever subtraction is possible.
+- The short-circuit explanation now passes: Java evaluates the right side of `&&` only when the left side is `true`. The answer still needs to state the two exact wraparound results to demonstrate both boundary guards.
+- The complexity explanation passes: only sequence starts enter the inner loop, and each distinct value is traversed by an inner loop at most once across all runs.
+
+Before advancing, retry only start identification and the two exact integer wraparound results.
+
+### Checkpoint retry 3 — 2026-10-07
+
+Result: `PASSING_WITH_COACHING`; advance is allowed, but spaced review remains required for mastery.
+
+- Start identification passes: `100`, `200`, and `1` start scans; every other value has a predecessor in the set and is skipped.
+- Boundary reasoning passes: `Integer.MIN_VALUE - 1` wraps to the positive `Integer.MAX_VALUE`, and `Integer.MAX_VALUE + 1` wraps to the negative `Integer.MIN_VALUE`.
+- The earlier answers already established correct `&&` short-circuit behavior and the combined average `O(n)` complexity argument.
+
+Scheduled retrieval checks: 2026-10-08, 2026-10-14, and 2026-11-07. The learner must solve or explain the idea again without these answers before the status can advance beyond `PRACTICING`.
+
+## Practice after learning the concept
+
+- Write here: [LongestConsecutivePractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/sequenceboundaries/LongestConsecutivePractice.java)
+- Reveal after attempting: [LongestConsecutiveSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/sequenceboundaries/LongestConsecutiveSolution.java)
+
+Open the practice file in IntelliJ, change only `longestConsecutive`, and run its `main` method.
 
 ## Checkpoints
 

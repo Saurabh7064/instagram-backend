@@ -1,16 +1,29 @@
 # Micro-Lesson 03 — HashMap Value-to-Index Lookup
 
+## Question
+
+> Given a non-null integer array and a target, return the indexes of two distinct elements whose values add to the target.
+
+Practice source: [Two Sum on LeetCode](https://leetcode.com/problems/two-sum/)
+
+## What you will learn
+
+- how to turn an addition problem into a complement lookup;
+- why a map stores earlier values as keys and their indexes as values;
+- the invariant that every stored index is earlier than the current index;
+- why lookup must happen before insertion to avoid reusing one position;
+- how one pass changes the baseline from `O(n²)` to average `O(n)` time.
+
+## Lesson status
+
 - Learning status: `LEARNING`
 - Learner implementation: `PASSING` with the average `O(n)` HashMap approach on 2026-10-09; checkpoints pending
 - Time: 35–45 minutes
 - Prerequisite: basic array indexing and `HashMap` lookup
 - Primary idea: remember the index of each earlier value so its matching partner can find it
 - New terms: complement, value-to-index map, loop invariant
-- LeetCode: [Two Sum](https://leetcode.com/problems/two-sum/)
 
-## Problem
-
-Given a non-null integer array `numbers` and an integer `target`, return the indexes of the two distinct elements whose values add to `target`.
+## Inputs, examples, and target
 
 Assumptions:
 
@@ -28,65 +41,6 @@ Examples:
 - `numbers = [-3, 4, 3, 90]`, `target = 0` → `[0, 2]`
 
 Target: average `O(n)` time and `O(n)` additional space.
-
-## Runnable code
-
-- Write here: [TwoSumIndexPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java)
-- Reveal after attempting: [TwoSumIndexSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/valuetoindex/TwoSumIndexSolution.java)
-
-Open the practice file in IntelliJ, change only `twoSum`, and run its `main` method. Do not open the reference solution until your attempt passes or you have spent 30 focused minutes.
-
-## Learner solution review — 2026-10-07
-
-Submitted implementation: [TwoSumIndexPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java)
-
-The submitted approach compares each index `i` with every later index `j`. It returns `[i, j]` as soon as `numbers[i] + numbers[j]` equals the target.
-
-Verification result: `./gradlew testClasses` succeeded, and both the learner program and reference program passed all supplied checks. The learner code correctly handles a pair at the beginning, a pair after an unused value, equal values at distinct indexes, a negative complement, and two zeros at distinct indexes.
-
-### What is correct
-
-- `j` begins at `i + 1`, so the same array position is never used twice.
-- Every unordered pair is eventually checked until the valid pair is found.
-- Returning immediately after finding the guaranteed unique pair is correct.
-- Under the stated constraints, adding two input values stays within Java's `int` range.
-- Time is `O(n²)` and additional space is `O(1)`.
-
-### Why the lesson is not complete
-
-The result is functionally correct, but the problem explicitly targets average `O(n)` time and the lesson's primary idea is a value-to-index `HashMap`. For an input of length `n`, the nested loops can inspect approximately `n × (n - 1) / 2` pairs. That grows quadratically.
-
-The next attempt must replace the inner scan with this one-pass plan:
-
-1. Create a map from each earlier value to its index.
-2. At the current index, calculate `complement = target - numbers[index]`.
-3. Look up the complement in the map.
-4. If found, return the earlier index and current index.
-5. Otherwise, store the current value and index, then continue.
-
-Lookup must happen before insertion so `[3, 3]` returns `[0, 1]` rather than allowing index `0` to match itself.
-
-### Other refinements
-
-- `public static` is the conventional modifier order instead of `static public`.
-- Standard spacing around operators and after `for`/`if` improves readability.
-- Because the problem guarantees a solution, returning the initially allocated `[0, 0]` is unreachable for valid input. Throwing an exception after the loop communicates a violated assumption more clearly.
-- The result array can be created only when the pair is found: `return new int[] {i, j};`.
-
-Preserve this nested-loop solution as the correct baseline in your explanation, but update the practice method yourself to meet the average `O(n)` target before attempting the checkpoints.
-
-### Optimized learner solution review — 2026-10-09
-
-The learner replaced the nested loops with the intended one-pass value-to-index map in [TwoSumIndexPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java).
-
-- Each index calculates its complement and performs one average `O(1)` map lookup.
-- Lookup occurs before insertion, so the current index cannot match itself.
-- `[3, 3]` correctly finds index `0` while processing index `1`.
-- The map contains earlier values only, which establishes the required loop invariant.
-- Average time is `O(n)` and additional space is `O(n)`.
-- All supplied ordinary, duplicate, negative, and zero-pair checks pass.
-
-The implementation requirement is complete. The lesson remains `LEARNING` until the learner answers the three checkpoints without relying on the explained answers.
 
 ## Why the problem exists
 
@@ -266,6 +220,66 @@ The lookup occurs before insertion, so `i` and `j` cannot be the same index.
 - Returning the values instead of their indexes answers a different question.
 - A nested-loop solution is simpler but takes `O(n²)` time.
 - Sorting can support a two-pointer search in `O(n log n)` time, but original indexes must be carried through the sort; it is unnecessary for this target.
+
+
+## Learner solution review — 2026-10-07
+
+Submitted implementation: [TwoSumIndexPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java)
+
+The submitted approach compares each index `i` with every later index `j`. It returns `[i, j]` as soon as `numbers[i] + numbers[j]` equals the target.
+
+Verification result: `./gradlew testClasses` succeeded, and both the learner program and reference program passed all supplied checks. The learner code correctly handles a pair at the beginning, a pair after an unused value, equal values at distinct indexes, a negative complement, and two zeros at distinct indexes.
+
+### What is correct
+
+- `j` begins at `i + 1`, so the same array position is never used twice.
+- Every unordered pair is eventually checked until the valid pair is found.
+- Returning immediately after finding the guaranteed unique pair is correct.
+- Under the stated constraints, adding two input values stays within Java's `int` range.
+- Time is `O(n²)` and additional space is `O(1)`.
+
+### Why the lesson is not complete
+
+The result is functionally correct, but the problem explicitly targets average `O(n)` time and the lesson's primary idea is a value-to-index `HashMap`. For an input of length `n`, the nested loops can inspect approximately `n × (n - 1) / 2` pairs. That grows quadratically.
+
+The next attempt must replace the inner scan with this one-pass plan:
+
+1. Create a map from each earlier value to its index.
+2. At the current index, calculate `complement = target - numbers[index]`.
+3. Look up the complement in the map.
+4. If found, return the earlier index and current index.
+5. Otherwise, store the current value and index, then continue.
+
+Lookup must happen before insertion so `[3, 3]` returns `[0, 1]` rather than allowing index `0` to match itself.
+
+### Other refinements
+
+- `public static` is the conventional modifier order instead of `static public`.
+- Standard spacing around operators and after `for`/`if` improves readability.
+- Because the problem guarantees a solution, returning the initially allocated `[0, 0]` is unreachable for valid input. Throwing an exception after the loop communicates a violated assumption more clearly.
+- The result array can be created only when the pair is found: `return new int[] {i, j};`.
+
+Preserve this nested-loop solution as the correct baseline in your explanation, but update the practice method yourself to meet the average `O(n)` target before attempting the checkpoints.
+
+### Optimized learner solution review — 2026-10-09
+
+The learner replaced the nested loops with the intended one-pass value-to-index map in [TwoSumIndexPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java).
+
+- Each index calculates its complement and performs one average `O(1)` map lookup.
+- Lookup occurs before insertion, so the current index cannot match itself.
+- `[3, 3]` correctly finds index `0` while processing index `1`.
+- The map contains earlier values only, which establishes the required loop invariant.
+- Average time is `O(n)` and additional space is `O(n)`.
+- All supplied ordinary, duplicate, negative, and zero-pair checks pass.
+
+The implementation requirement is complete. The lesson remains `LEARNING` until the learner answers the three checkpoints without relying on the explained answers.
+
+## Practice after learning the concept
+
+- Write here: [TwoSumIndexPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/valuetoindex/TwoSumIndexPractice.java)
+- Reveal after attempting: [TwoSumIndexSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/arrayshashmaps/valuetoindex/TwoSumIndexSolution.java)
+
+Open the practice file in IntelliJ, change only `twoSum`, and run its `main` method. Do not open the reference solution until your attempt passes or you have spent 30 focused minutes.
 
 ## Questions and explained answers
 
