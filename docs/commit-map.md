@@ -363,6 +363,13 @@ This file maps each commit to:
 - Verification: 18 question files end with 3–5 explained questions; all 18 cards contain the required sections, end with exactly three unrevealed questions, and are 372–400 words; local links resolve, Markdown structures balance, and diff checks pass.
 - Docs: [System Design Interview Path](./interview/02-system-design/README.md), [Concept Lessons](./interview/02-system-design/concepts/README.md), [Production Scenarios](./interview/02-system-design/questions/production-scenarios/README.md), [One-Page Revision Cards](./interview/02-system-design/revision-cards/README.md), [Learner Progress](./interview/02-system-design/learner-progress.md)
 
+65. `e104bfd`
+- Learning fix: expanded Valid Palindrome with a block-by-block explanation of pointer initialization, loop boundaries, left/right skipping, case normalization, mismatch detection, pointer movement, and the final success return.
+- Explanation standard: each block now states what it evaluates, why it is needed, a concrete input and result, what fails without it, and an equivalent clearer form; three dry runs and the runnable test harness are also explained.
+- Learning state: the lesson remains `TODO`; artifact improvement does not imply learner comprehension.
+- Verification: `./gradlew testClasses`, expected untouched-practice readiness output, passing reference-solution checks, balanced Markdown structures, resolved lesson links, and clean diff checks.
+- Docs: [Valid Palindrome](./interview/01-leetcode/lessons/02-two-pointers/01-valid-palindrome/README.md), [Practice Program](../src/test/java/com/instagram/backend/interview/leetcode/twopointers/validpalindrome/ValidPalindromePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/leetcode/twopointers/validpalindrome/ValidPalindromeSolution.java)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
