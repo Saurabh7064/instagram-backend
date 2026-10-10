@@ -370,6 +370,13 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, expected untouched-practice readiness output, passing reference-solution checks, balanced Markdown structures, resolved lesson links, and clean diff checks.
 - Docs: [Valid Palindrome](./interview/01-leetcode/lessons/02-two-pointers/01-valid-palindrome/README.md), [Practice Program](../src/test/java/com/instagram/backend/interview/leetcode/twopointers/validpalindrome/ValidPalindromePractice.java), [Reference Solution](../src/test/java/com/instagram/backend/interview/leetcode/twopointers/validpalindrome/ValidPalindromeSolution.java)
 
+66. `f8dbec8`
+- Learning fix: added a block-by-block reference-code walkthrough to every other initialized LeetCode micro-lesson, bringing all ten lessons to the same explanation standard.
+- Concepts: collection initialization, loop boundaries, guards, Java collection APIs, pointer and window updates, return paths, exceptions, duplicate control, and exact integer-boundary behavior.
+- Workflow change: future LeetCode artifacts are incomplete until initialization, loops, guards, transformations, branches, state updates, and terminal paths are each explained with a concrete trace, failure mode, and clearer equivalent where one exists.
+- Verification: `./gradlew testClasses`, all ten reference programs passed, completed learner programs passed, untouched starter programs reported readiness, all ten lesson READMEs contain the required walkthrough, Markdown fences balance, and diff checks pass.
+- Docs: [LeetCode Interview Path](./interview/01-leetcode/README.md), [Arrays and Hash Maps](./interview/01-leetcode/lessons/01-arrays-hash-maps/README.md), [Two Pointers](./interview/01-leetcode/lessons/02-two-pointers/README.md), [Sliding Window](./interview/01-leetcode/lessons/03-sliding-window/README.md), [Project Workflow Rules](../AGENTS.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
