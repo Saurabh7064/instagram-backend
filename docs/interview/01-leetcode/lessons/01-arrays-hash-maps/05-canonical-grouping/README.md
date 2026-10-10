@@ -90,29 +90,77 @@ For `"tea"`:
 
 Without a consistent transformation, the map would treat `"eat"` and `"tea"` as different keys.
 
-## Create or reuse a group
+## Short lesson: how `computeIfAbsent` works
+
+```java
+V value = map.computeIfAbsent(key, mappingKey -> createValueFor(mappingKey));
+```
+
+`computeIfAbsent` means: “For this key, return its current non-null value; if it has none, use this function to create and store one.” The lambda receives the key and supplies the value. The method returns either the existing value or the newly created one.
+
+In the Group Anagrams solution, the value is a list:
 
 ```java
 wordsByKey.computeIfAbsent(key, ignored -> new ArrayList<>())
         .add(word);
 ```
 
-`computeIfAbsent` checks whether the key already has a list:
+The first word with key `"aet"` creates and stores an empty list, then appends `"eat"`. When `"tea"` arrives with the same key, the map returns that existing list; no new list is created, and `"tea"` is appended to it.
 
-- if absent, it creates and stores a new empty list;
-- if present, it reuses the existing list;
-- it returns the list, and `add(word)` appends the original word.
+### Example 1: trace the existing group
 
-For the first `"eat"`, key `"aet"` creates a list. Later `"tea"` and `"ate"` reuse that list.
+Suppose the map starts empty and these words are processed:
 
-An equivalent longer form is:
+| Word | Key | What `computeIfAbsent` returns | Map after appending |
+|---|---|---|---|
+| `"eat"` | `"aet"` | Creates and stores a new list | `"aet" -> ["eat"]` |
+| `"tea"` | `"aet"` | Reuses that list | `"aet" -> ["eat", "tea"]` |
+| `"tan"` | `"ant"` | Creates and stores a different list | `"ant" -> ["tan"]`, `"aet" -> ["eat", "tea"]` |
+
+`add(word)` runs after `computeIfAbsent` returns, so it appends to whichever list was returned.
+
+### Example 2: group values by a different key
+
+The value does not have to be a `List`. For example, collect tags by post ID:
 
 ```java
-if (!wordsByKey.containsKey(key)) {
-    wordsByKey.put(key, new ArrayList<>());
-}
-wordsByKey.get(key).add(word);
+Map<Long, Set<String>> tagsByPost = new HashMap<>();
+
+tagsByPost.computeIfAbsent(postId, ignored -> new HashSet<>())
+        .add(tag);
 ```
+
+The first tag for a post creates its set; later tags for that post reuse the same set. A different post ID gets a different set.
+
+### Example 3: cache a value calculated from its key
+
+The method can also create one non-collection value:
+
+```java
+Map<String, Integer> lengthByWord = new HashMap<>();
+int length = lengthByWord.computeIfAbsent("instagram", word -> word.length());
+```
+
+If `"instagram"` has no value yet, the lambda receives that string, calculates `9`, and stores `"instagram" -> 9`. A later call for `"instagram"` returns the stored `9` without calculating it again.
+
+### Compare with the longer form
+
+An equivalent version for the list example is:
+
+```java
+List<String> group = wordsByKey.get(key);
+if (group == null) {
+    group = new ArrayList<>();
+    wordsByKey.put(key, group);
+}
+group.add(word);
+```
+
+Use `computeIfAbsent` when the missing value can be created in one clear expression. The longer form can be easier to read when creation needs several steps.
+
+### Important detail
+
+The mapping function runs only when the key is absent or currently maps to `null`. It should return a non-null value: if it returns `null`, nothing is stored and `computeIfAbsent` returns `null`. In the examples above, each function returns a new collection or a calculated length.
 
 ## Loop invariant
 
