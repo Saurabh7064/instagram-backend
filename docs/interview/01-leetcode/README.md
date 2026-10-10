@@ -33,6 +33,13 @@ The pattern list above is the high-level order. The lesson index expands it into
    - [Micro-Lesson 03: HashMap Value-to-Index Lookup](./lessons/01-arrays-hash-maps/03-value-to-index/README.md) — `LEARNING`
    - [Micro-Lesson 04: Frequency Counting](./lessons/01-arrays-hash-maps/04-frequency-counting/README.md) — `TODO`
    - [Micro-Lesson 05: Grouping by a Canonical Key](./lessons/01-arrays-hash-maps/05-canonical-grouping/README.md) — `TODO`
+2. [Two Pointers](./lessons/02-two-pointers/README.md) — initialized module
+   - [Micro-Lesson 01: Valid Palindrome](./lessons/02-two-pointers/01-valid-palindrome/README.md) — `TODO`
+   - [Micro-Lesson 02: Two Sum II](./lessons/02-two-pointers/02-two-sum-ii/README.md) — `TODO`
+   - [Micro-Lesson 03: Container With Most Water](./lessons/02-two-pointers/03-container-most-water/README.md) — `TODO`
+   - [Micro-Lesson 04: 3Sum](./lessons/02-two-pointers/04-three-sum/README.md) — `TODO`
+3. [Sliding Window](./lessons/03-sliding-window/README.md) — partially initialized module
+   - [Micro-Lesson 01: Maximum Average Subarray I](./lessons/03-sliding-window/01-maximum-average-subarray/README.md) — `TODO`
 
 Current session: [Session 03 — HashMap Value-to-Index Lookup](../daily/2026-10-07-session-03.md)
 

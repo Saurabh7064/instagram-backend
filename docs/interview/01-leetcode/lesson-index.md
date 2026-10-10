@@ -19,26 +19,26 @@ The core path contains 72 primary problems. Reviews, unseen variations, mock-int
 
 | ID | Focused idea | Primary practice | Difficulty | Status |
 |---|---|---|---|---|
-| C01.01 | Membership with a set | [Contains Duplicate](https://leetcode.com/problems/contains-duplicate/) | Easy | `DEFERRED` |
-| C01.02 | Start only at a sequence boundary | [Longest Consecutive Sequence](https://leetcode.com/problems/longest-consecutive-sequence/) | Medium | `PRACTICING` |
-| C01.03 | Store value-to-index relationships | [Two Sum](https://leetcode.com/problems/two-sum/) | Easy | `LEARNING` |
-| C01.04 | Count occurrences | [Valid Anagram](https://leetcode.com/problems/valid-anagram/) | Easy | `TODO` |
-| C01.05 | Group by a canonical key | [Group Anagrams](https://leetcode.com/problems/group-anagrams/) | Medium | `TODO` |
+| C01.01 | [Membership with a set](./lessons/01-arrays-hash-maps/01-hashset-membership/README.md) | [Contains Duplicate](https://leetcode.com/problems/contains-duplicate/) | Easy | `DEFERRED` |
+| C01.02 | [Start only at a sequence boundary](./lessons/01-arrays-hash-maps/02-sequence-boundaries/README.md) | [Longest Consecutive Sequence](https://leetcode.com/problems/longest-consecutive-sequence/) | Medium | `PRACTICING` |
+| C01.03 | [Store value-to-index relationships](./lessons/01-arrays-hash-maps/03-value-to-index/README.md) | [Two Sum](https://leetcode.com/problems/two-sum/) | Easy | `LEARNING` |
+| C01.04 | [Count occurrences](./lessons/01-arrays-hash-maps/04-frequency-counting/README.md) | [Valid Anagram](https://leetcode.com/problems/valid-anagram/) | Easy | `TODO` |
+| C01.05 | [Group by a canonical key](./lessons/01-arrays-hash-maps/05-canonical-grouping/README.md) | [Group Anagrams](https://leetcode.com/problems/group-anagrams/) | Medium | `TODO` |
 
 ## Module 02 — Two Pointers
 
 | ID | Focused idea | Primary practice | Difficulty | Status |
 |---|---|---|---|---|
-| C02.01 | Move inward while a condition holds | [Valid Palindrome](https://leetcode.com/problems/valid-palindrome/) | Easy | `TODO` |
-| C02.02 | Converge on a target in sorted data | [Two Sum II](https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/) | Medium | `TODO` |
-| C02.03 | Discard a dominated boundary | [Container With Most Water](https://leetcode.com/problems/container-with-most-water/) | Medium | `TODO` |
-| C02.04 | Deduplicate combinations after sorting | [3Sum](https://leetcode.com/problems/3sum/) | Medium | `TODO` |
+| C02.01 | [Move inward while a condition holds](./lessons/02-two-pointers/01-valid-palindrome/README.md) | [Valid Palindrome](https://leetcode.com/problems/valid-palindrome/) | Easy | `TODO` |
+| C02.02 | [Converge on a target in sorted data](./lessons/02-two-pointers/02-two-sum-ii/README.md) | [Two Sum II](https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/) | Medium | `TODO` |
+| C02.03 | [Discard a dominated boundary](./lessons/02-two-pointers/03-container-most-water/README.md) | [Container With Most Water](https://leetcode.com/problems/container-with-most-water/) | Medium | `TODO` |
+| C02.04 | [Deduplicate combinations after sorting](./lessons/02-two-pointers/04-three-sum/README.md) | [3Sum](https://leetcode.com/problems/3sum/) | Medium | `TODO` |
 
 ## Module 03 — Sliding Window
 
 | ID | Focused idea | Primary practice | Difficulty | Status |
 |---|---|---|---|---|
-| C03.01 | Maintain a fixed-size window | [Maximum Average Subarray I](https://leetcode.com/problems/maximum-average-subarray-i/) | Easy | `TODO` |
+| C03.01 | [Maintain a fixed-size window](./lessons/03-sliding-window/01-maximum-average-subarray/README.md) | [Maximum Average Subarray I](https://leetcode.com/problems/maximum-average-subarray-i/) | Easy | `TODO` |
 | C03.02 | Shrink a window after a duplicate | [Longest Substring Without Repeating Characters](https://leetcode.com/problems/longest-substring-without-repeating-characters/) | Medium | `TODO` |
 | C03.03 | Track a replacement budget | [Longest Repeating Character Replacement](https://leetcode.com/problems/longest-repeating-character-replacement/) | Medium | `TODO` |
 | C03.04 | Match counts in a fixed window | [Permutation in String](https://leetcode.com/problems/permutation-in-string/) | Medium | `TODO` |
