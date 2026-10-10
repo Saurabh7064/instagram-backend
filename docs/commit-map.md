@@ -348,6 +348,13 @@ This file maps each commit to:
 - Concepts: key-to-value mapping functions, append-after-retrieval, and behavior when the mapping function returns `null`.
 - Docs: [Grouping by a Canonical Key](./interview/01-leetcode/lessons/01-arrays-hash-maps/05-canonical-grouping/README.md)
 
+63. `756d1cb`
+- Learning change: initialized the next five unbuilt LeetCode lessons without activating them: Valid Palindrome, Two Sum II, Container With Most Water, 3Sum, and Maximum Average Subarray I.
+- Concepts: inward boundary comparison, sorted-order candidate elimination, dominated-boundary proofs, anchor-plus-two-pointer deduplication, and fixed-size rolling-window aggregation.
+- Artifacts: each lesson uses the question-first/concept-first format and includes a linked LeetCode problem, conceptual outcomes, invariant/correctness reasoning, complexity and trade-offs, an editable runnable practice class, and a separate reference solution.
+- Verification: `./gradlew testClasses`, expected readiness output for all five untouched starters, passing checks for all five reference solutions, one active `LEARNING` lesson, all local Markdown links resolved, lesson-structure checks, and clean diff checks for committed files.
+- Docs: [Two Pointers Module](./interview/01-leetcode/lessons/02-two-pointers/README.md), [Valid Palindrome](./interview/01-leetcode/lessons/02-two-pointers/01-valid-palindrome/README.md), [Two Sum II](./interview/01-leetcode/lessons/02-two-pointers/02-two-sum-ii/README.md), [Container With Most Water](./interview/01-leetcode/lessons/02-two-pointers/03-container-most-water/README.md), [3Sum](./interview/01-leetcode/lessons/02-two-pointers/04-three-sum/README.md), [Maximum Average Subarray I](./interview/01-leetcode/lessons/03-sliding-window/01-maximum-average-subarray/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
