@@ -377,6 +377,13 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, all ten reference programs passed, completed learner programs passed, untouched starter programs reported readiness, all ten lesson READMEs contain the required walkthrough, Markdown fences balance, and diff checks pass.
 - Docs: [LeetCode Interview Path](./interview/01-leetcode/README.md), [Arrays and Hash Maps](./interview/01-leetcode/lessons/01-arrays-hash-maps/README.md), [Two Pointers](./interview/01-leetcode/lessons/02-two-pointers/README.md), [Sliding Window](./interview/01-leetcode/lessons/03-sliding-window/README.md), [Project Workflow Rules](../AGENTS.md)
 
+67. `b436be4`
+- Learning fix: derived every Container With Most Water example instead of presenting unexplained outputs, including the exact index, width, limiting-height, and area calculation that produces `49`.
+- Trace: documented every two-pointer iteration for the standard example and showed why `bestArea` remains `49`; also derived the `1` and `16` examples.
+- Workflow change: future LeetCode lessons must show named intermediate values and exact arithmetic or state transitions for example outputs.
+- Verification: `./gradlew testClasses`, passing Container With Most Water reference checks, balanced Markdown fences, and clean diff checks.
+- Docs: [Container With Most Water](./interview/01-leetcode/lessons/02-two-pointers/03-container-most-water/README.md), [Project Workflow Rules](../AGENTS.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
