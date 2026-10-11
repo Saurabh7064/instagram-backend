@@ -384,6 +384,13 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, passing Container With Most Water reference checks, balanced Markdown fences, and clean diff checks.
 - Docs: [Container With Most Water](./interview/01-leetcode/lessons/02-two-pointers/03-container-most-water/README.md), [Project Workflow Rules](../AGENTS.md)
 
+68. `8dd8cdb`
+- Learning fix: added a labeled side-view diagram showing the two selected walls, the water line, the seven-unit width, the seven-unit limiting height, and the resulting `49` square units.
+- Clarification: explained why the taller wall's extra unit cannot hold more water and why interior zero-thickness lines do not subtract from the selected container's area.
+- Workflow change: future spatial LeetCode lessons must include a labeled text diagram rather than relying on arithmetic alone.
+- Verification: `./gradlew testClasses`, passing Container With Most Water reference checks, balanced Markdown fences, and clean diff checks.
+- Docs: [Container With Most Water](./interview/01-leetcode/lessons/02-two-pointers/03-container-most-water/README.md), [Project Workflow Rules](../AGENTS.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
