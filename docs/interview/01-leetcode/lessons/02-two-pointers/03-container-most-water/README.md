@@ -36,6 +36,60 @@ Examples:
 
 Target: `O(n)` time and `O(1)` additional space.
 
+## How the example results are calculated
+
+Array positions are indexes, starting at `0`:
+
+```text
+index:   0  1  2  3  4  5  6  7  8
+height:  1  8  6  2  5  4  8  3  7
+            ^                    ^
+          left                 right
+```
+
+The best pair uses the lines at indexes `1` and `8`:
+
+```text
+left index       = 1, height = 8
+right index      = 8, height = 7
+width            = right - left = 8 - 1 = 7
+limiting height  = min(8, 7) = 7
+area             = width × limiting height = 7 × 7 = 49
+```
+
+The width is `7`, not `8`: width is the distance between indexes `1` and `8`. The usable height is `7`, not `8`, because water would spill over the shorter right line.
+
+The two-pointer scan proves that no checked pair has a larger area:
+
+| Left index/height | Right index/height | Width | Limiting height | Area | Best so far | Pointer moved |
+|---|---|---:|---:|---:|---:|---|
+| `0 / 1` | `8 / 7` | `8` | `1` | `8 × 1 = 8` | `8` | left |
+| `1 / 8` | `8 / 7` | `7` | `7` | `7 × 7 = 49` | `49` | right |
+| `1 / 8` | `7 / 3` | `6` | `3` | `6 × 3 = 18` | `49` | right |
+| `1 / 8` | `6 / 8` | `5` | `8` | `5 × 8 = 40` | `49` | left |
+| `2 / 6` | `6 / 8` | `4` | `6` | `4 × 6 = 24` | `49` | left |
+| `3 / 2` | `6 / 8` | `3` | `2` | `3 × 2 = 6` | `49` | left |
+| `4 / 5` | `6 / 8` | `2` | `5` | `2 × 5 = 10` | `49` | left |
+| `5 / 4` | `6 / 8` | `1` | `4` | `1 × 4 = 4` | `49` | left; stop |
+
+`bestArea` becomes `49` on the second row and stays `49` because every later area is smaller.
+
+The smaller examples use the same formula:
+
+```text
+[1, 1]
+indexes 0 and 1: width = 1 - 0 = 1
+height = min(1, 1) = 1
+area = 1 × 1 = 1
+
+[4, 3, 2, 1, 4]
+indexes 0 and 4: width = 4 - 0 = 4
+height = min(4, 4) = 4
+area = 4 × 4 = 16
+```
+
+For the last example, no pair can beat `16`: the greatest possible width is `4`, and no line is taller than `4`.
+
 ## Concept: area has two factors
 
 ```text
