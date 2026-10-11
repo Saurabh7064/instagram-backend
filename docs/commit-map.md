@@ -397,6 +397,12 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, passing Container With Most Water reference checks, confirmed diagram removal, balanced Markdown fences, and clean diff checks.
 - Docs: [Container With Most Water](./interview/01-leetcode/lessons/02-two-pointers/03-container-most-water/README.md), [Project Workflow Rules](../AGENTS.md)
 
+70. `097d2c1`
+- Learning fix: derived all three 3Sum example outputs from sorted input, with exact anchor, left, right, sum, and pointer-movement decisions.
+- Duplicate explanation: showed why the repeated `-1` anchor is skipped and why `[0, 0, 0]` is returned once as a unique value combination rather than once per index combination.
+- Verification: `./gradlew testClasses`, passing 3Sum reference checks, balanced Markdown fences, and clean diff checks.
+- Docs: [3Sum](./interview/01-leetcode/lessons/02-two-pointers/04-three-sum/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
