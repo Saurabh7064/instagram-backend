@@ -37,6 +37,66 @@ Examples:
 
 Target: `O(n²)` time, excluding output, after `O(n log n)` sorting.
 
+## How the example results are calculated
+
+### Example 1 — Two valid triplets
+
+```text
+input:  [-1, 0, 1, 2, -1, -4]
+sorted: [-4, -1, -1, 0, 1, 2]
+index:    0   1   2  3  4  5
+```
+
+The result contains values, not their indexes. Fix one `anchor`, then move `left` and `right` through the values after it.
+
+| Anchor | Left | Right | Sum | Decision |
+|---|---|---|---:|---|
+| `-4` at `0` | `-1` at `1` | `2` at `5` | `-3` | Too small; move `left` right |
+| `-4` at `0` | `-1` at `2` | `2` at `5` | `-3` | Too small; move `left` right |
+| `-4` at `0` | `0` at `3` | `2` at `5` | `-2` | Too small; move `left` right |
+| `-4` at `0` | `1` at `4` | `2` at `5` | `-1` | Too small; pointers meet, so no triplet starts with `-4` |
+| `-1` at `1` | `-1` at `2` | `2` at `5` | `0` | Add `[-1, -1, 2]`; move both pointers |
+| `-1` at `1` | `0` at `3` | `1` at `4` | `0` | Add `[-1, 0, 1]`; move both pointers |
+| `-1` at `2` | — | — | — | Skip: it duplicates the previous anchor `-1` |
+| `0` at `3` | `1` at `4` | `2` at `5` | `3` | Too large; move `right` left, then pointers meet |
+
+Therefore:
+
+```text
+-1 + -1 + 2 = 0  → [-1, -1, 2]
+-1 +  0 + 1 = 0  → [-1, 0, 1]
+
+result = [[-1, -1, 2], [-1, 0, 1]]
+```
+
+The second `-1` is not allowed to repeat the anchor search because it would rediscover the same value combinations. The algorithm removes duplicate value triplets, even though the equal values may come from different indexes.
+
+### Example 2 — No valid triplet
+
+```text
+input and sorted: [0, 1, 1]
+
+anchor = 0 at index 0
+left   = 1 at index 1
+right  = 1 at index 2
+sum    = 0 + 1 + 1 = 2
+```
+
+The sum is positive, so `right` moves left. The pointers then meet, no zero-sum triplet was recorded, and the result is `[]`.
+
+### Example 3 — Three zeroes form one unique triplet
+
+```text
+input and sorted: [0, 0, 0]
+
+anchor = 0 at index 0
+left   = 0 at index 1
+right  = 0 at index 2
+sum    = 0 + 0 + 0 = 0
+```
+
+The algorithm records `[0, 0, 0]`, moves both pointers, and stops when they cross. The result is `[[0, 0, 0]]` because the answer contains unique value combinations, not every possible combination of indexes.
+
 ## Concept: reduce three values to two
 
 After sorting, choose `sorted[anchor]`. The remaining problem is:
