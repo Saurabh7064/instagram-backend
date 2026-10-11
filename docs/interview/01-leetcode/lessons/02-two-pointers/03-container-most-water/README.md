@@ -59,6 +59,31 @@ area             = width × limiting height = 7 × 7 = 49
 
 The width is `7`, not `8`: width is the distance between indexes `1` and `8`. The usable height is `7`, not `8`, because water would spill over the shorter right line.
 
+### Visual: where the `49` units of water are stored
+
+```text
+height
+  8      │                         ← left wall reaches height 8
+  7      │~~~~~~~~~~~~~~~~~~~~~~~~│ ← water stops at right wall's height 7
+  6      │~~~~~~~~~~~~~~~~~~~~~~~~│
+  5      │~~~~~~~~~~~~~~~~~~~~~~~~│       ~ = water
+  4      │~~~~~~~~~~~~~~~~~~~~~~~~│       │ = chosen wall
+  3      │~~~~~~~~~~~~~~~~~~~~~~~~│
+  2      │~~~~~~~~~~~~~~~~~~~~~~~~│
+  1      │~~~~~~~~~~~~~~~~~~~~~~~~│
+  0      └────────────────────────┘
+         index 1     width 7      index 8
+         height 8                 height 7
+```
+
+Think of the water as a rectangle between the two chosen vertical lines:
+
+```text
+7 horizontal units × 7 vertical units = 49 square units
+```
+
+The left wall has one extra unit above the water. It does not increase the stored water because the right wall is only `7` units high. The lines at indexes `2` through `7` are other possible boundaries, but they have zero width and do not subtract from the area between the selected outer walls.
+
 The two-pointer scan proves that no checked pair has a larger area:
 
 | Left index/height | Right index/height | Width | Limiting height | Area | Best so far | Pointer moved |
