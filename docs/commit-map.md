@@ -391,6 +391,12 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, passing Container With Most Water reference checks, balanced Markdown fences, and clean diff checks.
 - Docs: [Container With Most Water](./interview/01-leetcode/lessons/02-two-pointers/03-container-most-water/README.md), [Project Workflow Rules](../AGENTS.md)
 
+69. `9be820c`
+- Learning correction: removed the Container With Most Water ASCII diagram because it was less clear than the worked calculation and pointer trace.
+- Workflow correction: visuals are now optional and must be accurate and materially clearer than the accompanying derivation; ASCII diagrams are not forced.
+- Verification: `./gradlew testClasses`, passing Container With Most Water reference checks, confirmed diagram removal, balanced Markdown fences, and clean diff checks.
+- Docs: [Container With Most Water](./interview/01-leetcode/lessons/02-two-pointers/03-container-most-water/README.md), [Project Workflow Rules](../AGENTS.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
