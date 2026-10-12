@@ -39,6 +39,12 @@ Examples:
 - `[""]` → `[[""]]`
 - `["a"]` → `[["a"]]`
 
+:::simulation
+type: group-anagrams
+language: java
+words: ["eat", "tea", "tan", "ate", "nat", "bat", "tab"]
+:::
+
 ## Why the problem exists
 
 The input may contain many words, and directly comparing every word with every other word repeats work. A grouping map needs a key that is identical for anagrams and different for non-anagrams.

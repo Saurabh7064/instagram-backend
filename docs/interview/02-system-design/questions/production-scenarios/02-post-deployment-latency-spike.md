@@ -65,6 +65,17 @@ Assume version `v42` adds an extra repository lookup while building each feed it
 
 The rollback is both mitigation and an experiment: recovery after traffic leaves `v42` is evidence, though shared-system recovery may lag while queues drain.
 
+## Interactive incident flow
+
+Use **Next** to rehearse the containment sequence. The diagram is intentionally a decision-order reminder; the detailed evidence and rollback caveats remain in the surrounding answer.
+
+:::simulation
+type: request-flow
+title: Deployment latency incident sequence
+nodes: ["Latency alert", "Pause rollout", "Compare v41 and v42", "Check shared dependencies", "Choose reversible mitigation", "Verify recovery"]
+edges: [["Latency alert", "Pause rollout"], ["Pause rollout", "Compare v41 and v42"], ["Compare v41 and v42", "Check shared dependencies"], ["Check shared dependencies", "Choose reversible mitigation"], ["Choose reversible mitigation", "Verify recovery"]]
+:::
+
 ## Instagram-backend mapping
 
 The service exposes bounded `application`, `environment`, and `version` metric tags and observations through [application.properties](../../../../../src/main/resources/application.properties). The same configuration puts service version into structured ECS logs. [RequestCorrelationFilter.java](../../../../../src/main/java/com/instagram/backend/observability/RequestCorrelationFilter.java) records normalized route, status, and duration for each completed request, while [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) times feed loading.

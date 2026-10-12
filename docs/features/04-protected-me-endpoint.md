@@ -49,6 +49,17 @@ Add a JWT-protected endpoint so the app can prove authenticated identity end-to-
 - `/api/me` returns identity/profile fields only (`id`, `fullName`, `username`, `email`, `createdAt`).
 - Token validation is stateless and based on JWT signature + claims.
 
+## Interactive request flow
+
+Use **Next** to follow one authenticated request through the implemented components. This architecture view shows ownership and order; it does not execute the backend.
+
+:::simulation
+type: request-flow
+title: GET /api/me authenticated request
+nodes: ["Browser", "ProfileController", "TokenService", "ProfileService", "UserAccountRepository", "JSON response"]
+edges: [["Browser", "ProfileController"], ["ProfileController", "TokenService"], ["TokenService", "ProfileService"], ["ProfileService", "UserAccountRepository"], ["UserAccountRepository", "JSON response"]]
+:::
+
 ## Related system design notes
 
 - [01 - Stateless Auth and Horizontal Scaling](../system-design/01-stateless-auth-and-horizontal-scaling.md)

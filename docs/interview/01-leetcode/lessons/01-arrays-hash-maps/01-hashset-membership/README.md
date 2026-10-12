@@ -34,6 +34,12 @@ Examples:
 
 Target: average `O(n)` time.
 
+:::simulation
+type: contains-duplicate-set
+language: java
+values: [4, 7, 2, 11, 6, 3, 7]
+:::
+
 ## One idea
 
 A nested-loop solution compares every pair and takes `O(n²)` time. The repeated question is:

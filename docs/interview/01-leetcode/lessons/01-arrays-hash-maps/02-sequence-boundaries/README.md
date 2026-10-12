@@ -43,6 +43,12 @@ Examples:
 
 Target: average `O(n)` time and `O(n)` additional space.
 
+:::simulation
+type: longest-consecutive-set
+language: java
+values: [100, 4, 200, 1, 3, 2, 2]
+:::
+
 ## Why a simple HashSet loop is not enough
 
 Putting values in a set gives fast membership checks, but starting a forward scan from every value repeats work.

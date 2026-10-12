@@ -42,6 +42,14 @@ Examples:
 
 Target: average `O(n)` time and `O(n)` additional space.
 
+:::simulation
+type: two-sum-hashmap
+language: java
+nums: [4, 7, 2, 11, 6, 3, 9, 5]
+target: 14
+expectedIndices: [3, 5]
+:::
+
 ## Why the problem exists
 
 At each index, the question is:

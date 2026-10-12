@@ -37,6 +37,13 @@ Examples:
 
 Target: `O(n)` time and `O(1)` additional space.
 
+:::simulation
+type: fixed-window-average
+language: java
+nums: [1, 12, -5, -6, 50, 3, 7]
+k: 4
+:::
+
 ## Why recomputing every window repeats work
 
 For `k = 4`, adjacent windows overlap in three positions:

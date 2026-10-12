@@ -38,6 +38,12 @@ Examples:
 
 Target: `O(n)` time and `O(1)` additional space.
 
+:::simulation
+type: valid-palindrome
+language: java
+text: A man, a plan, a canal: Panama
+:::
+
 ## Concept: compare only meaningful boundaries
 
 Start `left` at the first character and `right` at the last. Before comparing:

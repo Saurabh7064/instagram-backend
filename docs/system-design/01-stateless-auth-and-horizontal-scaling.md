@@ -28,6 +28,17 @@ Stateless auth solves this:
 
 Result: easier horizontal scaling and less sticky-session dependency.
 
+## Interactive request flow
+
+Use **Next** to follow one protected request. The load balancer may choose either backend instance because each instance validates the signed token rather than depending on server-local session memory.
+
+:::simulation
+type: request-flow
+title: Stateless authentication across backend instances
+nodes: ["Browser with JWT", "Load balancer", "Backend instance B", "Token validation", "Protected API", "Response"]
+edges: [["Browser with JWT", "Load balancer"], ["Load balancer", "Backend instance B"], ["Backend instance B", "Token validation"], ["Token validation", "Protected API"], ["Protected API", "Response"]]
+:::
+
 ## How this maps to your project
 
 Current:

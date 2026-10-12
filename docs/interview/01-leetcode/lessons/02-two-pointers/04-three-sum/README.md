@@ -1,6 +1,7 @@
 # Micro-Lesson 04 — 3Sum
 
 ## Question
+https://chatgpt.com/c/6acc39fd-b5f8-83e8-a692-91d13640a5b6
 
 > Given an integer array, return every unique triplet whose values sum to zero, without returning duplicate triplets.
 
@@ -36,6 +37,12 @@ Examples:
 - `[0, 0, 0]` → `[[0, 0, 0]]`
 
 Target: `O(n²)` time, excluding output, after `O(n log n)` sorting.
+
+:::simulation
+type: three-sum
+language: java
+nums: [-1, 0, 1, 2, -1, -4, 3, -3]
+:::
 
 ## How the example results are calculated
 

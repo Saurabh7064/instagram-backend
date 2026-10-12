@@ -43,6 +43,13 @@ Examples:
 
 Target: average `O(n)` time and `O(n)` additional space, where `n` is the combined input length.
 
+:::simulation
+type: valid-anagram-frequency
+language: java
+first: anagram
+second: nagaram
+:::
+
 ## Why the problem exists
 
 Checking only whether both strings contain the same distinct letters is insufficient. `"aacc"` and `"ccac"` both contain `a` and `c`, but their counts differ.

@@ -38,6 +38,13 @@ Examples:
 
 Target: `O(n)` time and `O(1)` additional space.
 
+:::simulation
+type: two-sum-sorted
+language: java
+nums: [1, 2, 3, 4, 6, 8, 11]
+target: 10
+:::
+
 ## Concept: sorted order eliminates candidates
 
 Start with the smallest and largest values. Their sum has three meanings:

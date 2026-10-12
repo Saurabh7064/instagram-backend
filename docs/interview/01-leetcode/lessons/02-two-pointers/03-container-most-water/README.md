@@ -36,6 +36,12 @@ Examples:
 
 Target: `O(n)` time and `O(1)` additional space.
 
+:::simulation
+type: container-water
+language: java
+values: [1, 8, 6, 2, 5, 4, 8, 3, 7]
+:::
+
 ## How the example results are calculated
 
 Array positions are indexes, starting at `0`:
