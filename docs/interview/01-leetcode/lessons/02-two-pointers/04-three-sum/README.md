@@ -39,7 +39,7 @@ Target: `O(n²)` time, excluding output, after `O(n log n)` sorting.
 
 ## How the example results are calculated
 
-The first example becomes ordered before any anchor is chosen:
+First, sort the example before fixing any value:
 
 ```text
 input:  [-1, 0, 1, 2, -1, -4]
@@ -47,9 +47,30 @@ sorted: [-4, -1, -1, 0, 1, 2]
 index:    0   1   2  3  4  5
 ```
 
-### Why choose an anchor first?
+### Step 1 — Choose one value and call it the anchor
 
-Searching for three changing values at once gives too many combinations. Fixing one value turns the question into a simpler two-value question:
+We need three values whose sum is zero. Start by choosing one value and keeping it fixed while searching for the other two. This fixed value is called the **anchor**.
+
+Begin with the first sorted value:
+
+```text
+anchor index = 0
+anchor value = -4
+```
+
+The two other values must come from positions after the anchor:
+
+```text
+anchor index < left index < right index
+```
+
+This gives three different indexes. It also gives every sorted triplet one consistent order instead of finding the same values in several arrangements.
+
+After checking all pairs for `-4`, move the anchor to index `1`, whose value is `-1`, and search again. Continue while at least two positions remain after the anchor.
+
+### Step 2 — Calculate what the remaining pair must provide
+
+Fixing the anchor changes the three-value question into a two-value question:
 
 ```text
 anchor + left + right = 0
@@ -58,25 +79,34 @@ therefore:
 left + right = -anchor
 ```
 
-After sorting, every triplet has a leftmost value. The algorithm temporarily fixes that value as the `anchor` and searches only the positions to its right:
+For anchor `-4`, the remaining pair must add to positive `4`:
 
 ```text
-anchor index < left index < right index
+required pair sum = -(-4) = 4
 ```
 
-This ordering guarantees three different indexes and prevents finding the same three values again in a different order. We begin with anchor index `0` because it is the first possible leftmost value. After searching all pairs for it, we move the anchor to index `1`, then index `2`, and so on.
+### Step 3 — Place two pointers and compare the first candidate
 
-For the first anchor `-4`:
+Place `left` immediately after the anchor and `right` at the final index:
 
 ```text
 anchor = -4
-required pair sum = -anchor = 4
+left   = -1
+right  = 2
 
 left + right = -1 + 2 = 1
 full sum = -4 + -1 + 2 = -3
 ```
 
-The pair gives only `1`, but it needs to give `4`. The full sum is therefore too small. Because the values are sorted, moving `left` rightward is the only move that can increase the sum. Moving `right` leftward would choose a value no larger than `2` and make the sum stay the same or decrease.
+The pair provides only `1`, but the anchor needs a pair sum of `4`. The full sum is therefore too small. Because the values are sorted, move `left` rightward to obtain a value that is equal or larger. Moving `right` leftward would select a value equal or smaller than `2`, which cannot increase the sum.
+
+The decision rule is now:
+
+```text
+full sum < 0  → move left rightward to increase the sum
+full sum > 0  → move right leftward to decrease the sum
+full sum = 0  → record the triplet and move both pointers
+```
 
 ### Example 1 — Two valid triplets
 
