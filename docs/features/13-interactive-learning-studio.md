@@ -49,7 +49,7 @@ No backend API contract changed, so no new Spring endpoint or backend integratio
 ## 7) Commit pointers
 
 - Backend commit: `5e6b00d` (`Document interactive learning simulations`)
-- UI commit: `79974c9` (`Add interactive Markdown learning studio`)
+- UI commits: `79974c9` (`Add interactive Markdown learning studio`), `e56ff7e` (`Sync generated learning catalog`)
 
 ## 8) Pitfalls and fixes
 

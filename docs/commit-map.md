@@ -529,9 +529,10 @@ This file maps each commit to:
 - Concepts: staged frontend mutations (upload then create), file-input driven UX, and reducing mock dependencies in the product surface.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [UI Feature Roadmap](../../instagram-ui/docs/ui-feature-roadmap.md), [Feature 11](./features/11-persist-real-feed-media-uploads.md)
 
-22. `79974c9`
+22. `79974c9`, `e56ff7e`
 - Feature: added the `/learn` route to the existing React application, a build-time Markdown catalog, reusable deterministic simulation adapters and visualizers, responsive accessible controls, and screenshot-proof automation.
 - Tests: 7 Vitest tests and 4 Playwright tests cover exact Two Sum behavior, duplicate and edge cases, every configured directive, backward/restart/keyboard navigation, existing Markdown rendering, and mobile catalog behavior.
+- Generated catalog: synchronized the committed 129-document snapshot after the feature note received its final commit pointers.
 - Docs: [Feature 13](./features/13-interactive-learning-studio.md), [UI Docs Index](../../instagram-ui/docs/index.md), [UI Feature Roadmap](../../instagram-ui/docs/ui-feature-roadmap.md)
 
 ## Rule
