@@ -416,6 +416,12 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, passing 3Sum reference checks, balanced Markdown fences, and clean diff checks.
 - Docs: [3Sum](./interview/01-leetcode/lessons/02-two-pointers/04-three-sum/README.md), [Project Workflow Rules](../AGENTS.md)
 
+73. `5e6b00d`
+- Feature: documented the interactive Markdown learning studio, added trusted directives to ten algorithm lessons and three request/incident flows, and preserved the original lesson content and paths.
+- Workflow: future LeetCode and system-design lessons now add deterministic simulations only when state or component flow benefits from them.
+- Verification: 7 Vitest tests, 4 Playwright tests, UI production build, `./gradlew testClasses`, 10 passing Java reference programs, HTTP 200 route check, and inspected browser proof.
+- Docs: [Feature 13](./features/13-interactive-learning-studio.md), [Simulation Authoring Guide](./interview/interactive-simulation-authoring.md), [Browser Proof](./demo-proofs/2026-10-11/01-interactive-two-sum-final.png)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -522,6 +528,11 @@ This file maps each commit to:
 - Feature: UI post creation now requires a selected media file, uploads it first, uses the returned real media URL, and updates the UI roadmap to mark media previews as no longer mocked.
 - Concepts: staged frontend mutations (upload then create), file-input driven UX, and reducing mock dependencies in the product surface.
 - Docs: [UI Docs Index](../../instagram-ui/docs/index.md), [UI Feature Roadmap](../../instagram-ui/docs/ui-feature-roadmap.md), [Feature 11](./features/11-persist-real-feed-media-uploads.md)
+
+22. `79974c9`
+- Feature: added the `/learn` route to the existing React application, a build-time Markdown catalog, reusable deterministic simulation adapters and visualizers, responsive accessible controls, and screenshot-proof automation.
+- Tests: 7 Vitest tests and 4 Playwright tests cover exact Two Sum behavior, duplicate and edge cases, every configured directive, backward/restart/keyboard navigation, existing Markdown rendering, and mobile catalog behavior.
+- Docs: [Feature 13](./features/13-interactive-learning-studio.md), [UI Docs Index](../../instagram-ui/docs/index.md), [UI Feature Roadmap](../../instagram-ui/docs/ui-feature-roadmap.md)
 
 ## Rule
 

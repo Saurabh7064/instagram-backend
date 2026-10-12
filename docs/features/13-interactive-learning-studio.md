@@ -48,7 +48,7 @@ No backend API contract changed, so no new Spring endpoint or backend integratio
 
 ## 7) Commit pointers
 
-- Backend commit: added after commit creation in [commit-map.md](../commit-map.md)
+- Backend commit: `5e6b00d` (`Document interactive learning simulations`)
 - UI commit: `79974c9` (`Add interactive Markdown learning studio`)
 
 ## 8) Pitfalls and fixes
