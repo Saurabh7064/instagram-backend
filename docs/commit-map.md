@@ -410,6 +410,12 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, passing 3Sum reference checks, balanced Markdown fences, and clean diff checks.
 - Docs: [3Sum](./interview/01-leetcode/lessons/02-two-pointers/04-three-sum/README.md)
 
+72. `272eb8e`
+- Learning correction: replaced the premature “why choose an anchor?” explanation with prerequisite-ordered steps that first choose a fixed value, define it as the anchor, calculate the remaining pair target, and then place and move the pointers.
+- Workflow change: future LeetCode lessons must introduce an action and define its term before asking why it is used; answer-finding logic must precede traces and reference code.
+- Verification: `./gradlew testClasses`, passing 3Sum reference checks, balanced Markdown fences, and clean diff checks.
+- Docs: [3Sum](./interview/01-leetcode/lessons/02-two-pointers/04-three-sum/README.md), [Project Workflow Rules](../AGENTS.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
