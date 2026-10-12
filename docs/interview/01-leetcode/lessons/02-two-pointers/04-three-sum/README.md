@@ -39,7 +39,7 @@ Target: `O(n²)` time, excluding output, after `O(n log n)` sorting.
 
 ## How the example results are calculated
 
-### Example 1 — Two valid triplets
+The first example becomes ordered before any anchor is chosen:
 
 ```text
 input:  [-1, 0, 1, 2, -1, -4]
@@ -47,18 +47,51 @@ sorted: [-4, -1, -1, 0, 1, 2]
 index:    0   1   2  3  4  5
 ```
 
-The result contains values, not their indexes. Fix one `anchor`, then move `left` and `right` through the values after it.
+### Why choose an anchor first?
 
-| Anchor | Left | Right | Sum | Decision |
-|---|---|---|---:|---|
-| `-4` at `0` | `-1` at `1` | `2` at `5` | `-3` | Too small; move `left` right |
-| `-4` at `0` | `-1` at `2` | `2` at `5` | `-3` | Too small; move `left` right |
-| `-4` at `0` | `0` at `3` | `2` at `5` | `-2` | Too small; move `left` right |
-| `-4` at `0` | `1` at `4` | `2` at `5` | `-1` | Too small; pointers meet, so no triplet starts with `-4` |
-| `-1` at `1` | `-1` at `2` | `2` at `5` | `0` | Add `[-1, -1, 2]`; move both pointers |
-| `-1` at `1` | `0` at `3` | `1` at `4` | `0` | Add `[-1, 0, 1]`; move both pointers |
-| `-1` at `2` | — | — | — | Skip: it duplicates the previous anchor `-1` |
-| `0` at `3` | `1` at `4` | `2` at `5` | `3` | Too large; move `right` left, then pointers meet |
+Searching for three changing values at once gives too many combinations. Fixing one value turns the question into a simpler two-value question:
+
+```text
+anchor + left + right = 0
+
+therefore:
+left + right = -anchor
+```
+
+After sorting, every triplet has a leftmost value. The algorithm temporarily fixes that value as the `anchor` and searches only the positions to its right:
+
+```text
+anchor index < left index < right index
+```
+
+This ordering guarantees three different indexes and prevents finding the same three values again in a different order. We begin with anchor index `0` because it is the first possible leftmost value. After searching all pairs for it, we move the anchor to index `1`, then index `2`, and so on.
+
+For the first anchor `-4`:
+
+```text
+anchor = -4
+required pair sum = -anchor = 4
+
+left + right = -1 + 2 = 1
+full sum = -4 + -1 + 2 = -3
+```
+
+The pair gives only `1`, but it needs to give `4`. The full sum is therefore too small. Because the values are sorted, moving `left` rightward is the only move that can increase the sum. Moving `right` leftward would choose a value no larger than `2` and make the sum stay the same or decrease.
+
+### Example 1 — Two valid triplets
+
+The result contains values, not their indexes. For each anchor, the required pair sum is `-anchor`.
+
+| Anchor | Required pair sum | Left | Right | Full sum | Decision |
+|---|---:|---|---|---:|---|
+| `-4` at `0` | `4` | `-1` at `1` | `2` at `5` | `-3` | Too small; move `left` right |
+| `-4` at `0` | `4` | `-1` at `2` | `2` at `5` | `-3` | Too small; move `left` right |
+| `-4` at `0` | `4` | `0` at `3` | `2` at `5` | `-2` | Too small; move `left` right |
+| `-4` at `0` | `4` | `1` at `4` | `2` at `5` | `-1` | Too small; pointers meet, so no triplet starts with `-4` |
+| `-1` at `1` | `1` | `-1` at `2` | `2` at `5` | `0` | Add `[-1, -1, 2]`; move both pointers |
+| `-1` at `1` | `1` | `0` at `3` | `1` at `4` | `0` | Add `[-1, 0, 1]`; move both pointers |
+| `-1` at `2` | `1` | — | — | — | Skip: it duplicates the previous anchor `-1` |
+| `0` at `3` | `0` | `1` at `4` | `2` at `5` | `3` | Too large; move `right` left, then pointers meet |
 
 Therefore:
 
