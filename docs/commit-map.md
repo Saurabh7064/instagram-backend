@@ -403,6 +403,13 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, passing 3Sum reference checks, balanced Markdown fences, and clean diff checks.
 - Docs: [3Sum](./interview/01-leetcode/lessons/02-two-pointers/04-three-sum/README.md)
 
+71. `8049856`
+- Learning improvement: moved the 3Sum mental model ahead of the execution table and explained why fixing an anchor converts three changing values into a two-value target.
+- Reasoning trace: established `anchor index < left index < right index`, explained why the first sorted value is considered first, and derived why the `-4` anchor's `-3` sum requires moving `left` rather than `right`.
+- Table improvement: added the required pair sum for every anchor so pointer decisions can be compared directly with the target.
+- Verification: `./gradlew testClasses`, passing 3Sum reference checks, balanced Markdown fences, and clean diff checks.
+- Docs: [3Sum](./interview/01-leetcode/lessons/02-two-pointers/04-three-sum/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
