@@ -41,7 +41,7 @@ Manually prefixing source lines with numbers would make copied Java invalid and 
 
 ## 7) Commit pointers
 
-- Backend commit: recorded after commit creation in [commit-map.md](../commit-map.md)
+- Backend commit: `edc676f` (`Document numbered reference solutions`)
 - UI commit: `e7d8a92` (`Number Markdown reference code lines`)
 
 ## 8) Pitfalls and fixes

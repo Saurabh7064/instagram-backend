@@ -434,6 +434,11 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, passing Maximum Average reference checks, regenerated 134-document catalog, and 5 passing Playwright tests.
 - Docs: [Maximum Average Subarray I](./interview/01-leetcode/lessons/03-sliding-window/01-maximum-average-subarray/README.md)
 
+76. `edc676f`
+- Learning standard: every lesson must show a complete linked reference method, while the shared UI renders one-based line numbers without changing copyable Markdown or Java.
+- Verification: 11 Vitest tests, 6 Playwright tests including exact lines 1–16, successful 135-document build, HTTP 200 route check, and inspected browser proof.
+- Docs: [Feature 15](./features/15-numbered-reference-solutions.md), [Project Workflow Rules](../AGENTS.md), [Browser Proof](./demo-proofs/2026-10-12/01-numbered-reference-solution.png)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -551,6 +556,11 @@ This file maps each commit to:
 - Feature: added four algorithm-derived sliding-window adapters, trusted directive types, simulation edge tests, browser integration coverage, and reusable proof automation.
 - Verification: 11 Vitest tests, 5 Playwright tests, successful production build, and zero new lint errors.
 - Docs: [Feature 14](./features/14-interactive-sliding-window-curriculum.md), [UI Docs Index](../../instagram-ui/docs/index.md), [UI Feature Roadmap](../../instagram-ui/docs/ui-feature-roadmap.md)
+
+24. `e7d8a92`
+- Feature: the shared Markdown renderer now adds stable, non-selectable one-based line numbers to every multiline code block while preserving raw source for copying.
+- Verification: 6 Playwright tests, successful production build, and a proof script that asserts the complete Maximum Average reference method has lines 1–16.
+- Docs: [Feature 15](./features/15-numbered-reference-solutions.md), [UI Docs Index](../../instagram-ui/docs/index.md), [UI Feature Roadmap](../../instagram-ui/docs/ui-feature-roadmap.md)
 
 ## Rule
 
