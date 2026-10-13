@@ -16,7 +16,7 @@ The source of truth remains the existing `.md` files. A build-time generator rea
 
 Keeping lessons in Markdown preserves the current URLs, Git review workflow, and readable notes. Mounting `/learn` in the existing Vite application avoids a second product. Algorithm-specific adapters calculate real intermediate states, while generic array, map, pointer, stack, queue, linked-list, tree, graph, binary-search, dynamic-programming, and request-flow renderers keep the UI reusable.
 
-The generated catalog currently renders **128 documents**. Thirteen appropriate lessons contain simulations: ten algorithm traces and three architecture/request flows. Other lessons remain normal Markdown because a visualization is only added when it improves the explanation.
+The generated catalog initially rendered 129 documents and now renders **134 documents** after the sliding-window expansion and its feature note. Seventeen appropriate lessons contain simulations: fourteen algorithm traces and three architecture/request flows. Other lessons remain normal Markdown because a visualization is only added when it improves the explanation.
 
 ## 4) Implementation notes
 
@@ -39,8 +39,8 @@ The generated catalog currently renders **128 documents**. Thirteen appropriate 
 
 ## 6) Verification evidence
 
-- `npm run test:unit`: 7 passing tests, including the exact Two Sum `[3, 5]` result, duplicates, no-solution, negative-window input, every configured directive, and every generic structure type.
-- `npm run test:e2e:learning`: 4 passing Playwright tests for Markdown/directive integration, deterministic navigation, restart, keyboard navigation, document navigation, and narrow-screen catalog behavior.
+- `npm run test:unit`: 11 passing tests, including the exact Two Sum `[3, 5]` result, duplicates, no-solution, sliding-window edges, every configured directive, and every generic structure type.
+- `npm run test:e2e:learning`: 5 passing Playwright tests for Markdown/directive integration, deterministic navigation, restart, keyboard navigation, document navigation, narrow-screen behavior, and the expanded sliding-window module.
 - `curl --head http://127.0.0.1:5173/learn?...`: `HTTP/1.1 200 OK`.
 - Browser proof, inspected after capture: [Two Sum final state](../demo-proofs/2026-10-11/01-interactive-two-sum-final.png).
 

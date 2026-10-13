@@ -39,10 +39,10 @@ The core path contains 72 primary problems. Reviews, unseen variations, mock-int
 | ID | Focused idea | Primary practice | Difficulty | Status |
 |---|---|---|---|---|
 | C03.01 | [Maintain a fixed-size window](./lessons/03-sliding-window/01-maximum-average-subarray/README.md) | [Maximum Average Subarray I](https://leetcode.com/problems/maximum-average-subarray-i/) | Easy | `TODO` |
-| C03.02 | Shrink a window after a duplicate | [Longest Substring Without Repeating Characters](https://leetcode.com/problems/longest-substring-without-repeating-characters/) | Medium | `TODO` |
-| C03.03 | Track a replacement budget | [Longest Repeating Character Replacement](https://leetcode.com/problems/longest-repeating-character-replacement/) | Medium | `TODO` |
-| C03.04 | Match counts in a fixed window | [Permutation in String](https://leetcode.com/problems/permutation-in-string/) | Medium | `TODO` |
-| C03.05 | Find the smallest covering window | [Minimum Window Substring](https://leetcode.com/problems/minimum-window-substring/) | Hard | `TODO` |
+| C03.02 | [Shrink a window after a duplicate](./lessons/03-sliding-window/02-longest-substring-without-repeating/README.md) | [Longest Substring Without Repeating Characters](https://leetcode.com/problems/longest-substring-without-repeating-characters/) | Medium | `TODO` |
+| C03.03 | [Track a replacement budget](./lessons/03-sliding-window/03-longest-repeating-character-replacement/README.md) | [Longest Repeating Character Replacement](https://leetcode.com/problems/longest-repeating-character-replacement/) | Medium | `TODO` |
+| C03.04 | [Match counts in a fixed window](./lessons/03-sliding-window/04-permutation-in-string/README.md) | [Permutation in String](https://leetcode.com/problems/permutation-in-string/) | Medium | `TODO` |
+| C03.05 | [Find the smallest covering window](./lessons/03-sliding-window/05-minimum-window-substring/README.md) | [Minimum Window Substring](https://leetcode.com/problems/minimum-window-substring/) | Hard | `TODO` |
 
 ## Module 04 — Prefix/Suffix State and Intervals
 

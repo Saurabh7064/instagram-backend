@@ -38,8 +38,12 @@ The pattern list above is the high-level order. The lesson index expands it into
    - [Micro-Lesson 02: Two Sum II](./lessons/02-two-pointers/02-two-sum-ii/README.md) — `TODO`
    - [Micro-Lesson 03: Container With Most Water](./lessons/02-two-pointers/03-container-most-water/README.md) — `TODO`
    - [Micro-Lesson 04: 3Sum](./lessons/02-two-pointers/04-three-sum/README.md) — `TODO`
-3. [Sliding Window](./lessons/03-sliding-window/README.md) — partially initialized module
+3. [Sliding Window](./lessons/03-sliding-window/README.md) — initialized module
    - [Micro-Lesson 01: Maximum Average Subarray I](./lessons/03-sliding-window/01-maximum-average-subarray/README.md) — `TODO`
+   - [Micro-Lesson 02: Longest Substring Without Repeating Characters](./lessons/03-sliding-window/02-longest-substring-without-repeating/README.md) — `TODO`
+   - [Micro-Lesson 03: Longest Repeating Character Replacement](./lessons/03-sliding-window/03-longest-repeating-character-replacement/README.md) — `TODO`
+   - [Micro-Lesson 04: Permutation in String](./lessons/03-sliding-window/04-permutation-in-string/README.md) — `TODO`
+   - [Micro-Lesson 05: Minimum Window Substring](./lessons/03-sliding-window/05-minimum-window-substring/README.md) — `TODO`
 
 Current session: [Session 03 — HashMap Value-to-Index Lookup](../daily/2026-10-07-session-03.md)
 

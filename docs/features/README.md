@@ -24,6 +24,7 @@ This section tracks feature implementation notes in a numbered sequence, similar
 - [11 - Persist Real Feed Media Uploads](./11-persist-real-feed-media-uploads.md)
 - [12 - Production Observability Baseline](./12-production-observability-baseline.md)
 - [13 - Interactive Markdown Learning Studio](./13-interactive-learning-studio.md)
+- [14 - Interactive Sliding Window Curriculum](./14-interactive-sliding-window-curriculum.md)
 
 ## Backlog
 

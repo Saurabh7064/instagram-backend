@@ -49,6 +49,7 @@ Use this file to track product/engineering features for the app.
 | F-035 | Production auth hardening | TODO | Session revocation, device sessions, and stronger security controls |  |
 | F-036 | Production observability baseline | DONE | Correlate safe logs, bounded metrics, traces, and health signals during production debugging | [Feature 12](./12-production-observability-baseline.md) |
 | F-037 | Interactive Markdown learning studio | DONE | Turn existing lessons into deterministic, visual, testable learning experiences without replacing Markdown | [Feature 13](./13-interactive-learning-studio.md) |
+| F-038 | Interactive sliding-window curriculum | DONE | Teach fixed and variable windows through four additional concept-first lessons and derived simulations | [Feature 14](./14-interactive-sliding-window-curriculum.md) |
 
 ## Next 3 recommended
 
