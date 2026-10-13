@@ -25,6 +25,7 @@ This section tracks feature implementation notes in a numbered sequence, similar
 - [12 - Production Observability Baseline](./12-production-observability-baseline.md)
 - [13 - Interactive Markdown Learning Studio](./13-interactive-learning-studio.md)
 - [14 - Interactive Sliding Window Curriculum](./14-interactive-sliding-window-curriculum.md)
+- [15 - Numbered Reference Solutions](./15-numbered-reference-solutions.md)
 
 ## Backlog
 

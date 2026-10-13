@@ -22,6 +22,7 @@
 - [Feature 12: Production Observability Baseline](./features/12-production-observability-baseline.md)
 - [Feature 13: Interactive Markdown Learning Studio](./features/13-interactive-learning-studio.md)
 - [Feature 14: Interactive Sliding Window Curriculum](./features/14-interactive-sliding-window-curriculum.md)
+- [Feature 15: Numbered Reference Solutions](./features/15-numbered-reference-solutions.md)
 - [Interactive Simulation Authoring Guide](./interview/interactive-simulation-authoring.md)
 - [Testing Strategy](./testing-strategy.md)
 - [Demo Proofs](./demo-proofs/README.md)

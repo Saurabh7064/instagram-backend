@@ -23,4 +23,4 @@ Store screenshot evidence for UI + backend integration demos.
 - [2026-03-01 home feed + post + edit + like + delete proof](./2026-03-01/)
 - [2026-03-02 real media upload proof](./2026-03-02/)
 - [2026-10-11 interactive learning studio proof](./2026-10-11/)
-- [2026-10-12 sliding-window simulation proof](./2026-10-12/)
+- [2026-10-12 sliding-window and numbered-reference proofs](./2026-10-12/)
