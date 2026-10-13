@@ -422,6 +422,12 @@ This file maps each commit to:
 - Verification: 7 Vitest tests, 4 Playwright tests, UI production build, `./gradlew testClasses`, 10 passing Java reference programs, HTTP 200 route check, and inspected browser proof.
 - Docs: [Feature 13](./features/13-interactive-learning-studio.md), [Simulation Authoring Guide](./interview/interactive-simulation-authoring.md), [Browser Proof](./demo-proofs/2026-10-11/01-interactive-two-sum-final.png)
 
+74. `548f0a8`
+- Learning feature: initialized four prerequisite-ordered sliding-window micro-lessons with concepts, exact result derivations, simulations, block walkthroughs, pitfalls, checkpoints, and stop/go gates.
+- Java practice: added separate editable and reference runners for longest unique substring, character replacement, permutation matching, and minimum covering window; all reference checks pass.
+- Verification: `./gradlew testClasses`, four passing Java reference programs, 11 Vitest tests, 5 Playwright tests, UI build, HTTP 200 route check, and inspected browser proof.
+- Docs: [Feature 14](./features/14-interactive-sliding-window-curriculum.md), [Sliding Window Module](./interview/01-leetcode/lessons/03-sliding-window/README.md), [Browser Proof](./demo-proofs/2026-10-12/01-longest-unique-substring-final.png)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
@@ -534,6 +540,11 @@ This file maps each commit to:
 - Tests: 7 Vitest tests and 4 Playwright tests cover exact Two Sum behavior, duplicate and edge cases, every configured directive, backward/restart/keyboard navigation, existing Markdown rendering, and mobile catalog behavior.
 - Generated catalog: runs automatically before development, build, lint, and test commands and is intentionally untracked so Markdown changes cannot leave a stale snapshot in Git.
 - Docs: [Feature 13](./features/13-interactive-learning-studio.md), [UI Docs Index](../../instagram-ui/docs/index.md), [UI Feature Roadmap](../../instagram-ui/docs/ui-feature-roadmap.md)
+
+23. `73496dd`
+- Feature: added four algorithm-derived sliding-window adapters, trusted directive types, simulation edge tests, browser integration coverage, and reusable proof automation.
+- Verification: 11 Vitest tests, 5 Playwright tests, successful production build, and zero new lint errors.
+- Docs: [Feature 14](./features/14-interactive-sliding-window-curriculum.md), [UI Docs Index](../../instagram-ui/docs/index.md), [UI Feature Roadmap](../../instagram-ui/docs/ui-feature-roadmap.md)
 
 ## Rule
 

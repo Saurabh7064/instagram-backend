@@ -49,7 +49,7 @@ The sequence grows one idea at a time: uniqueness after fixed-window mechanics, 
 
 ## 7) Commit pointers
 
-- Backend commit: recorded after commit creation in [commit-map.md](../commit-map.md)
+- Backend commit: `548f0a8` (`Initialize sliding window micro-lessons`)
 - UI commit: `73496dd` (`Add interactive sliding window lessons`)
 
 ## 8) Pitfalls and fixes
