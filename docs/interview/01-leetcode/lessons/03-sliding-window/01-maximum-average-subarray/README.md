@@ -100,6 +100,31 @@ return bestSum / (double) windowSize;
 
 All windows have the same positive denominator `k`. Therefore the window with the largest sum also has the largest average. Casting the denominator to `double` prevents integer division: `51 / 4` would be `12`, while `51 / 4.0` is `12.75`.
 
+## Complete reference solution
+
+Runnable file: [MaximumAverageSubarraySolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/slidingwindow/fixedaverage/MaximumAverageSubarraySolution.java)
+
+```java
+static double findMaxAverage(int[] numbers, int windowSize) {
+    long windowSum = 0;
+    for (int index = 0; index < windowSize; index++) {
+        windowSum += numbers[index];
+    }
+
+    long bestSum = windowSum;
+    for (int right = windowSize; right < numbers.length; right++) {
+        int outgoingIndex = right - windowSize;
+        windowSum += numbers[right];
+        windowSum -= numbers[outgoingIndex];
+        bestSum = Math.max(bestSum, windowSum);
+    }
+
+    return bestSum / (double) windowSize;
+}
+```
+
+Read it as three operations: build the first complete window, slide by adding one value and removing one value, then convert the largest sum to an average. The next section explains every block and boundary in this method.
+
 ## Block-by-block code walkthrough
 
 ### Block 1 — Create the rolling sum
