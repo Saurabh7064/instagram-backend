@@ -428,6 +428,12 @@ This file maps each commit to:
 - Verification: `./gradlew testClasses`, four passing Java reference programs, 11 Vitest tests, 5 Playwright tests, UI build, HTTP 200 route check, and inspected browser proof.
 - Docs: [Feature 14](./features/14-interactive-sliding-window-curriculum.md), [Sliding Window Module](./interview/01-leetcode/lessons/03-sliding-window/README.md), [Browser Proof](./demo-proofs/2026-10-12/01-longest-unique-substring-final.png)
 
+75. `bb9bc5d`
+- Learning fix: added the complete Maximum Average Subarray reference method directly to the lesson instead of showing only separate fragments.
+- Navigation: added a direct clickable link to the runnable Java reference file immediately above the full method.
+- Verification: `./gradlew testClasses`, passing Maximum Average reference checks, regenerated 134-document catalog, and 5 passing Playwright tests.
+- Docs: [Maximum Average Subarray I](./interview/01-leetcode/lessons/03-sliding-window/01-maximum-average-subarray/README.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
