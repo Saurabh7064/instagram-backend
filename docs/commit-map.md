@@ -439,6 +439,13 @@ This file maps each commit to:
 - Verification: 11 Vitest tests, 6 Playwright tests including exact lines 1–16, successful 135-document build, HTTP 200 route check, and inspected browser proof.
 - Docs: [Feature 15](./features/15-numbered-reference-solutions.md), [Project Workflow Rules](../AGENTS.md), [Browser Proof](./demo-proofs/2026-10-12/01-numbered-reference-solution.png)
 
+77. `7e23dec`
+- Learning change: added 20 indexed, manager-style system-design questions with concise but complete answers spanning requirements, scaling, data, caching, media, feeds, messaging, correctness, security, search, ranking, notifications, observability, disaster recovery, and schema evolution.
+- Answer standard: every drill includes the problem, bounded vocabulary, analogy and limitation, concrete flow, honest Instagram-backend mapping, decision trade-offs, a five-part failure drill, a two-to-three-minute answer, and three explained checkpoints.
+- Learning state: all 20 artifacts are `READY`; comprehension remains `TODO` until the learner answers without notes, traces the flow, predicts the failure, and defends a trade-off.
+- Verification: 20 numbered answers and 20 index rows, all required sections present, exactly three final checkpoint blocks per answer, all local Markdown links resolved, and clean diff checks.
+- Docs: [Short System Design Questions and Answers](./interview/02-system-design/questions/short-questions-and-answers/README.md), [System Design Interview Path](./interview/02-system-design/README.md), [Learner Progress](./interview/02-system-design/learner-progress.md), [System Design Learning Backlog](./system-design/learning-backlog.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
