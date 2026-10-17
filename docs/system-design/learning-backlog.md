@@ -29,3 +29,7 @@ Use this file to track architecture/system design concepts to learn with this pr
 1. `SD-003` Token lifecycle (access + refresh)
 2. `SD-004` API versioning and compatibility
 3. `SD-006` Rate limiting and abuse protection
+
+## Interview artifact update — 2026-10-17
+
+Added ready interview answers on concurrent likes, idempotency keys, and deadline budgets in the [question index](../interview/02-system-design/questions/short-questions-and-answers/README.md). This documentation update does not complete an implementation milestone or demonstrate learner comprehension; existing statuses remain unchanged.

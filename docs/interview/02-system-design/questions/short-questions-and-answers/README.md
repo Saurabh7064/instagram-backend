@@ -1,6 +1,6 @@
 # Short System Design Questions and Answers
 
-These 20 manager-style prompts cover the main decisions expected in a senior backend system-design discussion. Each answer is deliberately shorter than a full design lesson while still explaining the problem, request or failure flow, project mapping, trade-offs, and recovery.
+These 23 manager-style prompts cover the main decisions expected in a senior backend system-design discussion. Each answer is deliberately shorter than a full design lesson while still explaining the problem, request or failure flow, project mapping, trade-offs, and recovery.
 
 The two sample prompts about a [peak-hour latency spike](../production-scenarios/01-peak-hour-latency-spike.md) and a [post-deployment latency spike](../production-scenarios/02-post-deployment-latency-spike.md) already have detailed answers in the production-scenarios module. This set adds breadth without duplicating those two drills.
 
@@ -28,6 +28,9 @@ The two sample prompts about a [peak-hour latency spike](../production-scenarios
 | 18 | How would you define SLOs and observability for the main user journeys? | SLIs, error budgets, logs/metrics/traces | [Answer](./18-slos-and-observability.md) | `TODO` |
 | 19 | How would you survive a region failure, and how would you choose RTO and RPO? | Disaster recovery, fencing, failover | [Answer](./19-multi-region-disaster-recovery.md) | `TODO` |
 | 20 | How would you change a large database schema without downtime? | Expand–migrate–contract, backfills, compatibility | [Answer](./20-zero-downtime-schema-evolution.md) | `TODO` |
+| 21 | How do you prevent two concurrent requests from creating duplicate likes? | Unique constraints, transactions, concurrent writes | [Answer](./21-concurrent-writes-and-database-constraints.md) | `TODO` |
+| 22 | How should a create-post API handle a retry when the first response was lost? | Idempotency keys, ambiguous outcomes, atomic result recording | [Answer](./22-idempotency-keys-and-ambiguous-timeouts.md) | `TODO` |
+| 23 | How do you assign timeouts and retries across a chain of dependent services? | Deadline propagation, retry budgets, jitter | [Answer](./23-deadline-budgets-and-bounded-retries.md) | `TODO` |
 
 ## Practice rule
 

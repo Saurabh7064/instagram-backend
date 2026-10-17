@@ -596,3 +596,11 @@ For every new feature or learning concept:
 1. commit code changes
 2. update docs
 3. append an entry to this map
+
+## Additional system-design interview answers — 2026-10-17
+
+- Change: questions 21–23 cover concurrent writes, ambiguous create timeouts, and deadline/retry budgets.
+- Concepts: database invariants, atomic idempotency records, and bounded dependency work.
+- Docs: [Question index](./interview/02-system-design/questions/short-questions-and-answers/README.md).
+- Verification: three complete answers, nine explained checkpoints, correct final-section ordering, and resolving local code links. Documentation only; no API or application behavior changed.
+- Commit: recorded after creating the artifact commit.

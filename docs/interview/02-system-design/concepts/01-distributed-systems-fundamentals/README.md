@@ -6,6 +6,10 @@
 
 No dedicated lesson artifacts yet. The topics below are planned coverage.
 
+## Related interview practice
+
+- [How should a create-post API handle a retry when the first response was lost?](../../questions/short-questions-and-answers/22-idempotency-keys-and-ambiguous-timeouts.md) — artifact `READY`, comprehension `TODO`.
+
 ## Topic roadmap
 
 These topic numbers preserve the original index; listing a topic does not imply it is fully covered by an existing lesson.

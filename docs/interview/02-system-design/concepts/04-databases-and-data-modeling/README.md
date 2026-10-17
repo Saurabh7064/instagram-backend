@@ -6,6 +6,10 @@
 
 - [Partitioning Replication Hot Keys](./03-partitioning-replication-hot-keys.md) — artifact `READY`; comprehension tracked separately.
 
+## Related interview practice
+
+- [How do you prevent two concurrent requests from creating duplicate likes?](../../questions/short-questions-and-answers/21-concurrent-writes-and-database-constraints.md) — artifact `READY`, comprehension `TODO`.
+
 ## Topic roadmap
 
 These topic numbers preserve the original index; listing a topic does not imply it is fully covered by an existing lesson.

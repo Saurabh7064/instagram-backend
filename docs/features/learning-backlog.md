@@ -57,3 +57,7 @@ Use this file to track product/engineering features for the app.
 1. `F-016` Multi-post feed rendering
 2. `F-017` Comments create/read API/UI
 3. `F-018` Save/unsave posts API/UI
+
+## Interview artifact update — 2026-10-17
+
+Added ready interview answers on concurrent likes, idempotency keys, and deadline budgets in the [question index](../interview/02-system-design/questions/short-questions-and-answers/README.md). This documentation update does not complete an implementation milestone or demonstrate learner comprehension; existing statuses remain unchanged.
