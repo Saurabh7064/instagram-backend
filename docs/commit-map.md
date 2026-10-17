@@ -618,3 +618,10 @@ For every new feature or learning concept:
 - Docs: [Question index](./interview/02-system-design/questions/short-questions-and-answers/README.md).
 - Verification: three complete answers, nine explained checkpoints, correct final-section ordering, and resolving local code links. Documentation only; no API or application behavior changed.
 - Commit: `26fce39` — additional concurrency, idempotency, and deadline interview answers.
+
+## Character replacement debugger trace — 2026-10-17
+
+- Commit: `b2ab870` — full `AABABBA`, `k = 1` debugger trace.
+- Concepts: sliding-window boundaries, all 26 frequency cells after every mutation, historical maximum, and local-variable timing.
+- Docs and code pointers: [lesson and trace](./interview/01-leetcode/lessons/03-sliding-window/03-longest-repeating-character-replacement/README.md), [reference method](../src/test/java/com/instagram/backend/interview/leetcode/slidingwindow/characterreplacement/CharacterReplacementSolution.java).
+- Verification: compiled practice and reference Java files; ran the reference runner successfully; `git diff --check` passed. Documentation-only change; no API or UI behavior changed. Feature/concept backlog and learner status remain unchanged because this expands an existing lesson without completing a new feature or demonstrating comprehension.
