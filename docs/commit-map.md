@@ -585,7 +585,7 @@ This file maps each commit to:
 
 ## Concept folder organization — 2026-10-17
 
-- Commit: see the commit titled `docs: organize system design concepts by index categories`; its hash is recorded below after creation.
+- Commit: `95dca28` — `docs: organize system design concepts by index categories`.
 - Change: organized eight existing lessons under the 16 categories from the supplied index, retaining all 380 roadmap topics and updating lesson, progress, and backlog links.
 - Docs: [Concept index](./interview/02-system-design/concepts/index.md), [existing lesson sequence](./interview/02-system-design/concepts/README.md).
 - Verification: 120 local concept links resolve; all 380 topic numbers remain ordered and eight lesson artifacts remain. Documentation-only change; application behavior and learner statuses are unchanged.
