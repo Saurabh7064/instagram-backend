@@ -40,4 +40,4 @@ The files being `READY` does not mean the topics are understood; learner evidenc
 
 ## Printable morning pack
 
-For dense A4 revision, use the [System Design Morning Print Pack](./toprint/README.md). It contains 132 compact concept questions, 200 production-scenario interview drills, a separate 380-concept learning tracker, printable PDFs, and editable source files. This print pack intentionally does not use the full lesson format.
+For dense A4 revision, use the [System Design Morning Print Pack](./toprint/README.md). It contains 132 compact concept questions, a 120-concept handbook with examples, 200 production-scenario interview drills, a separate 380-concept learning tracker, printable PDFs, and editable source files. This print pack intentionally does not use the full lesson format.
