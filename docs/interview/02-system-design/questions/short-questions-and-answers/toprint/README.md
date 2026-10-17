@@ -5,11 +5,11 @@ This directory is intentionally different from the detailed lesson format. It co
 ## Files
 
 - `system-design-morning-cheat-sheet.pdf`: printable A4 booklet with 132 compact questions and answers.
-- `system-design-scenario-drills.pdf`: printable A4 booklet with 100 production-meeting scenarios, exact interview questions, and spoken-answer models.
+- `system-design-scenario-drills.pdf`: printable A4 booklet with 200 production-meeting scenarios, exact interview questions, and spoken-answer models.
 - `system-design-learning-tracker.pdf`: printable A4 progress tracker for all 380 concepts in `index.md`.
 - `index.md`: master numbered coverage index for the 380 concepts.
 - `system-design-morning-cheat-sheet.md`: editable source for the question bank.
-- `system-design-scenario-drills.md`: editable source for the scenario question bank.
+- `system-design-scenario-drills.md`: editable source for the 200-scenario question bank.
 - `system-design-learning-tracker.md`: editable one-row-per-concept digital tracker generated from `index.md`.
 - `generate_print_pack.py`: deterministic PDF generator.
 - `generate_scenario_drills.py`: deterministic scenario-booklet PDF generator.

@@ -14,6 +14,8 @@ from reportlab.platypus import (
     BaseDocTemplate,
     Frame,
     KeepTogether,
+    NextPageTemplate,
+    PageBreak,
     PageTemplate,
     Paragraph,
     Spacer,
@@ -97,12 +99,12 @@ def parse_source() -> list[ScenarioDrill]:
             raise ValueError(f"Unexpected content in {drill_id}: {raw_line}")
     flush()
 
-    expected_ids = [f"S{index:03d}" for index in range(1, 101)]
+    expected_ids = [f"S{index:03d}" for index in range(1, 201)]
     actual_ids = [drill.drill_id for drill in drills]
     if actual_ids != expected_ids:
-        raise ValueError(f"Expected sequential S001-S100, got {actual_ids[:3]}...{actual_ids[-3:]}")
-    if len(dict.fromkeys(drill.category for drill in drills)) != 10:
-        raise ValueError("Expected exactly 10 scenario categories")
+        raise ValueError(f"Expected sequential S001-S200, got {actual_ids[:3]}...{actual_ids[-3:]}")
+    if len(dict.fromkeys(drill.category for drill in drills)) != 20:
+        raise ValueError("Expected exactly 20 scenario categories")
     return drills
 
 
@@ -216,7 +218,7 @@ def draw_page(canvas, doc) -> None:
     canvas.line(width / 2, 11 * mm, width / 2, height - 10 * mm)
     canvas.setFont("Helvetica", 6.4)
     canvas.setFillColor(MID_GRAY)
-    canvas.drawString(8.5 * mm, 6.5 * mm, "System Design Scenario Drills - 100 Interview Questions")
+    canvas.drawString(8.5 * mm, 6.5 * mm, "System Design Scenario Drills - 200 Interview Questions")
     page_text = f"Page {doc.page}"
     canvas.drawString(width - 8.5 * mm - stringWidth(page_text, "Helvetica", 6.4), 6.5 * mm, page_text)
     canvas.restoreState()
@@ -234,6 +236,14 @@ def build_pdf(drills: list[ScenarioDrill]) -> None:
         Frame(margin_x, margin_bottom, column_width, frame_height, leftPadding=0, rightPadding=0),
         Frame(margin_x + column_width + gap, margin_bottom, column_width, frame_height, leftPadding=0, rightPadding=0),
     ]
+    full_width_frame = Frame(
+        margin_x,
+        margin_bottom,
+        width - (2 * margin_x),
+        frame_height,
+        leftPadding=0,
+        rightPadding=0,
+    )
 
     document = BaseDocTemplate(
         str(OUTPUT),
@@ -242,10 +252,15 @@ def build_pdf(drills: list[ScenarioDrill]) -> None:
         rightMargin=margin_x,
         topMargin=margin_top,
         bottomMargin=margin_bottom,
-        title="System Design Scenario Drills - 100 Interview Questions",
+        title="System Design Scenario Drills - 200 Interview Questions",
         author="Instagram Backend Learning Project",
     )
-    document.addPageTemplates(PageTemplate(id="TwoColumn", frames=frames, onPage=draw_page))
+    document.addPageTemplates(
+        [
+            PageTemplate(id="TwoColumn", frames=frames, onPage=draw_page),
+            PageTemplate(id="FullWidth", frames=[full_width_frame], onPage=draw_page),
+        ]
+    )
     page_styles = styles()
     story = [
         Paragraph("SYSTEM DESIGN SCENARIO DRILLS", page_styles["title"]),
@@ -291,11 +306,11 @@ def build_pdf(drills: list[ScenarioDrill]) -> None:
             Paragraph("/5", page_styles["review_header"]),
         ]
     ]
-    review_rows.extend([["", "", "", ""] for _ in range(15)])
+    review_rows.extend([["", "", "", ""] for _ in range(22)])
     review_table = Table(
         review_rows,
-        colWidths=[18 * mm, 25 * mm, 43 * mm, 9 * mm],
-        rowHeights=[5.5 * mm] + [9.5 * mm] * 15,
+        colWidths=[24 * mm, 32 * mm, 123 * mm, 14 * mm],
+        rowHeights=[5.5 * mm] + [9.5 * mm] * 22,
         repeatRows=1,
     )
     review_table.setStyle(
@@ -313,6 +328,7 @@ def build_pdf(drills: list[ScenarioDrill]) -> None:
             ]
         )
     )
+    story.extend([NextPageTemplate("FullWidth"), PageBreak()])
     story.append(
         KeepTogether(
             [

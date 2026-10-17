@@ -721,3 +721,723 @@ Use these as spoken interview drills. Read the scenario and question, answer alo
 **Interview question:** "What is your high-level design and graceful-degradation strategy?"
 
 **Answer:** I would keep post creation durable in the primary store, publish changes through an outbox, and build feed candidates using hybrid fan-out: push for normal accounts and pull for celebrities. The read service merges candidates, applies visibility rules, ranks them, hydrates metadata in batches, and serves media through a CDN. Caches reduce repeated reads, while cursor pagination bounds work. Ranking has a chronological or cached fallback; analytics and notifications are asynchronous and cannot block reads. Timeouts, circuit breakers, idempotent consumers, lag metrics, and replay support contain failures. The critical promise is a safe usable feed, not that every enhancement is always fresh.
+
+## 11. Coordination, Locks, and Distributed State
+
+### S101 - Distributed lock expires during work
+**Scenario:** A worker holds a distributed lock, pauses for garbage collection, and continues writing after its lease has expired and another worker acquired it.
+
+**Interview question:** "Why is the lock not enough, and how would you protect the resource?"
+
+**Answer:** The old worker cannot know that its lease expired while it was paused, so mutual exclusion at acquisition time is insufficient. I would attach a monotonically increasing fencing token to every lease and require the protected storage system to reject writes carrying an older token. The task should also be idempotent and periodically verify lease ownership, but that check alone has a race before the write. I would measure pause duration and renewal failures, bound task length, and test forced expiry. Correctness comes from the resource validating freshness, not from trusting the worker's local belief.
+
+### S102 - Scheduled job runs on every replica
+**Scenario:** A nightly cleanup job is embedded in a service with ten replicas, and all ten execute it simultaneously.
+
+**Interview question:** "How would you ensure the job runs safely?"
+
+**Answer:** I would first make the cleanup idempotent so duplicate execution cannot corrupt data. Then I would choose one ownership mechanism: a dedicated scheduler, a broker-delivered job with one consumer group, or leader election with a lease and fencing token. A simple in-memory flag cannot coordinate replicas. I would record a stable job-run ID, start and completion state, processed range, and retry history so interrupted work can resume. If the job can be partitioned safely, parallel workers may be better than a singleton, but ownership of each partition must still be explicit.
+
+### S103 - Clock skew breaks expiry logic
+**Scenario:** Two servers disagree about time by 90 seconds, causing one to accept an expired token and another to reject a valid one.
+
+**Interview question:** "How would you design around clock differences?"
+
+**Answer:** I would synchronize hosts with a reliable time service and alert on clock offset, but I would not assume clocks are perfectly equal. Authentication checks can allow a small bounded skew for issued-at and expiry claims while keeping token lifetimes short. For measuring durations and timeouts inside one process, I would use a monotonic clock rather than wall time. Distributed ordering should use versions, sequence numbers, or logical timestamps instead of comparing server clocks. If exact legal or financial timestamps matter, one authoritative service records them and downstream systems preserve that source value.
+
+### S104 - Quorum cannot be reached
+**Scenario:** A replicated datastore requires a majority of nodes for writes, but a network partition leaves each side without enough votes.
+
+**Interview question:** "Would you lower the quorum to restore availability?"
+
+**Answer:** Lowering quorum during a partition can allow conflicting writes and destroy the consistency guarantee the system was chosen to provide. I would confirm which nodes and links failed, restore connectivity or capacity, and keep the minority side read-only or unavailable for protected writes. If the product can tolerate weaker consistency, that should be a predesigned mode for specific data, not an emergency configuration change made under pressure. I would communicate the availability trade-off, preserve evidence, and test quorum-loss recovery. Critical state should fail clearly rather than accept writes that cannot later be reconciled safely.
+
+### S105 - Lease renewal fails intermittently
+**Scenario:** A leader renews its lease through a coordination service, but brief network delays cause frequent leadership changes.
+
+**Interview question:** "How would you reduce flapping without hiding real failure?"
+
+**Answer:** I would compare lease duration, renewal interval, observed network latency, process pauses, and coordination-service health. The leader should renew well before expiry and stop protected work when it cannot prove ownership. A modestly longer lease or retry window can absorb expected jitter, but it also delays failover, so I would choose it from measured worst-case behavior and recovery objectives. Fencing tokens protect against overlap if an old leader resumes. I would add jitter to elections, alert on churn, and avoid placing the coordination service behind overloaded dependencies that the leader itself controls.
+
+### S106 - Concurrent username registration
+**Scenario:** Two requests attempt to register the same username at nearly the same time on different application instances.
+
+**Interview question:** "Where should uniqueness be enforced?"
+
+**Answer:** I would treat the database uniqueness constraint as the final authority because application-level check-then-insert logic races across instances. Each request can perform an early availability check for user experience, but the insert must still handle a uniqueness violation and return a clear conflict. Normalization rules such as case folding must be identical in lookup and constraint keys. If usernames are sharded, all variants of one normalized name must route to the same owner or use a dedicated reservation service. Failed or abandoned reservations need explicit expiry so names are not lost indefinitely.
+
+### S107 - Inventory reservation expires
+**Scenario:** Checkout reserves the last item, payment takes several minutes, and the reservation expires just before payment succeeds.
+
+**Interview question:** "How would you prevent selling unavailable inventory?"
+
+**Answer:** I would model reservation as an explicit state with an owner, quantity, expiry, and version rather than decrementing and hoping payment finishes. Payment completion must atomically verify that the reservation is still valid before converting it to a sale. If it expired, the workflow should void or refund the payment and notify the user instead of creating negative inventory. A sweeper releases abandoned reservations idempotently. The reservation duration balances conversion against stock utilization, and the UI should show the deadline. Reconciliation compares inventory, reservations, orders, and provider payments to repair rare boundary failures.
+
+### S108 - Lock service is unavailable
+**Scenario:** A critical workflow depends on a distributed lock service that becomes unavailable.
+
+**Interview question:** "Should the application continue without the lock?"
+
+**Answer:** If the lock protects correctness, silently continuing is unsafe because multiple workers may modify the same resource. I would fail closed for those operations, return a retryable status, and preserve read-only or unrelated functions. Existing lease holders must obey expiry and fencing rules; local cached ownership is not proof. If product requirements demand availability, the workflow needs a different design, such as partitioned ownership, optimistic concurrency, or idempotent operations, decided before the outage. I would restore the coordination quorum, limit retries, and verify no overlapping work occurred before resuming full traffic.
+
+### S109 - Consensus writes are too slow
+**Scenario:** A strongly consistent replicated store meets correctness needs but write latency is too high for every user interaction.
+
+**Interview question:** "How would you reduce latency without discarding correctness everywhere?"
+
+**Answer:** I would separate data by consistency requirement. Account ownership, payments, and uniqueness may still need quorum writes, while analytics, counters, feed ranking, and presence can use asynchronous or local updates. I would also inspect replica placement, network latency, batching, payload size, and whether every transaction performs unnecessary consensus rounds. Moving a quorum closer improves latency for one region but changes disaster tolerance. The goal is not to weaken the entire database setting; it is to keep strong coordination only on the small state transitions whose correctness justifies the latency and availability cost.
+
+### S110 - User moves between replicas and sees older data
+**Scenario:** A user reads a new profile value from one replica, then a later request reaches a lagging replica and shows the previous value.
+
+**Interview question:** "How would you provide monotonic reads?"
+
+**Answer:** I would return or retain a data version from the first read and require subsequent reads for that session to use a replica that has applied at least that version. A simpler option is temporary session affinity, though failover can break it and unevenly distribute load. For recent writes, routing the user to the primary for a bounded period may provide both read-your-writes and monotonic behavior. I would apply this only where the product needs it because version-aware routing increases complexity. Replication-lag metrics and a defined fallback determine whether to wait, switch replicas, or use the primary.
+
+## 12. Service Discovery, Routing, and Gateways
+
+### S111 - Service discovery returns dead instances
+**Scenario:** Clients continue sending traffic to instances that terminated several minutes ago.
+
+**Interview question:** "Where would you investigate the stale routing information?"
+
+**Answer:** I would trace registration, health reporting, discovery propagation, client caching, and load-balancer removal separately. The registry may be correct while a client keeps an old endpoint list beyond its TTL, or shutdown may not deregister before termination. I would shorten unsafe cache periods, add active health checks, and make clients retry another endpoint only within a bounded request deadline. Graceful shutdown should fail readiness before process exit. Discovery data can be briefly stale, so connection failures must be expected. I would alert on traffic to terminated instance IDs and measure removal time end to end.
+
+### S112 - DNS change does not take effect
+**Scenario:** Traffic should move to a new endpoint, but some clients keep using the old address for hours.
+
+**Interview question:** "Why can DNS-based failover be slow?"
+
+**Answer:** DNS records have TTLs, but resolvers, operating systems, JVMs, proxies, and applications may cache answers differently or ignore the intended period. Existing TCP connections also continue using the old address after a fresh lookup would change. I would inspect effective client caching and connection lifetimes, keep the old endpoint healthy during transition, and reduce TTL well before planned migration. Emergency DNS changes are not instantaneous. For faster failover, a stable anycast, load-balancer, or service-mesh address can move backends without depending on every client refreshing DNS at the same moment.
+
+### S113 - API gateway becomes the bottleneck
+**Scenario:** Backend services have spare capacity, but all requests slow down at the shared API gateway.
+
+**Interview question:** "How would you confirm and remove the bottleneck?"
+
+**Answer:** I would compare gateway connection count, CPU, memory, event-loop or worker saturation, TLS cost, request buffering, authentication latency, logging, and upstream timing. Traces should show whether delay occurs before routing or in a backend. Immediate containment may scale gateway instances, disable expensive optional filters, reduce verbose logging, and cap large requests. I would preserve rate limiting and authorization even in degraded mode. Long term, I would benchmark each plugin, distribute gateways across failure domains, keep routing stateless, and ensure gateway autoscaling uses concurrency and connection metrics rather than backend CPU.
+
+### S114 - Health check marks unhealthy service as healthy
+**Scenario:** A load balancer checks `/health`, which returns 200 even when the service cannot reach its database.
+
+**Interview question:** "How would you redesign health checks?"
+
+**Answer:** I would separate liveness from readiness. Liveness answers whether the process should be restarted; readiness answers whether it can currently serve routed traffic. Readiness should cover the minimum critical dependencies for that endpoint class, using short cached checks or real request signals so health probing does not overload the database. It should use hysteresis to avoid flapping during brief dependency errors. Some endpoints may remain useful without the database, so separate pools or degraded routing can preserve them. A shallow process check alone creates false success and keeps known-bad instances in rotation.
+
+### S115 - Proxy and application both retry
+**Scenario:** A proxy retries each failed request twice, and the application client also retries twice, producing up to nine downstream attempts.
+
+**Interview question:** "How would you control retry amplification?"
+
+**Answer:** I would assign retry ownership to one layer for each dependency path and enforce a shared end-to-end deadline. Intermediate proxies should usually avoid retrying non-idempotent operations and expose attempt metadata so hidden retries are visible. The chosen retry layer uses a small budget, exponential backoff, jitter, and idempotency for writes. I would inspect traces for repeated attempt IDs and calculate worst-case multiplication across the call graph. Circuit breakers and concurrency limits protect the dependency during failure. A successful retry rate is not automatically good if those retries consume the remaining capacity.
+
+### S116 - Load balancer sends traffic during shutdown
+**Scenario:** A service fails readiness, but new requests continue arriving for 20 seconds while the load balancer updates.
+
+**Interview question:** "How would you make deployments safe during this propagation delay?"
+
+**Answer:** The shutdown sequence must account for the load balancer's removal delay. I would first mark the instance unready, wait longer than observed propagation while still accepting in-flight traffic, then stop accepting new work and drain existing requests within the platform grace period. The process should not close listeners immediately after readiness changes. Long-lived streams need explicit migration or reconnect behavior. I would measure the actual last-new-request time during deployment and align pre-stop hooks, deregistration delay, and termination timeout. Hard shutdown remains the final bound for stuck requests.
+
+### S117 - Choosing gRPC or REST between services
+**Scenario:** A team proposes replacing all internal REST calls with gRPC to improve performance.
+
+**Interview question:** "How would you decide whether the migration is justified?"
+
+**Answer:** I would measure current serialization, network, and application time before assuming protocol overhead is the bottleneck. gRPC provides typed contracts, efficient binary messages, streaming, and code generation, but adds tooling, proxy compatibility, debugging, and browser-boundary considerations. REST remains simple and widely observable for resource-oriented calls. I might choose gRPC for high-volume low-latency internal communication or streaming while retaining REST at public boundaries. The migration should include deadlines, error mapping, version compatibility, load tests, and incremental rollout. Changing protocol does not fix slow database queries or poorly bounded payloads.
+
+### S118 - Webhook traffic arrives in bursts
+**Scenario:** An external provider sends hundreds of thousands of callbacks immediately after recovering from its own outage.
+
+**Interview question:** "How would you protect the webhook endpoint and downstream services?"
+
+**Answer:** I would authenticate requests, enforce payload and rate limits, and acknowledge quickly only after durably storing each callback. Slow business processing moves to a queue, where idempotent consumers absorb the burst at controlled concurrency. Provider event IDs prevent duplicate effects, and timestamp checks reject stale replay attacks according to policy. If ingress capacity is threatened, I would coordinate provider backoff or return a retryable response while preserving enough headroom for normal traffic. Queue age, storage growth, and signature failures need alerts. Recovery drains gradually so the burst is not merely shifted downstream.
+
+### S119 - Tenant routing sends requests to the wrong database
+**Scenario:** A routing-cache bug maps a tenant to another tenant's database shard.
+
+**Interview question:** "How would you contain the incident and harden routing?"
+
+**Answer:** I would stop affected operations, invalidate the routing cache, and verify whether any cross-tenant reads or writes occurred using audit logs. Routing alone must not be the only isolation boundary: each database query or credential should also be scoped to the authenticated tenant. I would store shard mappings in a versioned authoritative directory, include tenant identity in connection selection, and reject mismatches at the database or repository layer. Updates require atomic version changes and safe cache invalidation. Cross-tenant integration tests and canary routing changes should attempt the exact failure rather than checking only successful tenants.
+
+### S120 - Global traffic manager routes to the nearest region
+**Scenario:** A latency-based global router sends users to the nearest region, but that region's database is overloaded.
+
+**Interview question:** "Should proximity remain the only routing signal?"
+
+**Answer:** No. Routing should consider regional health, capacity, dependency readiness, data residency, and session consistency in addition to network latency. I would reduce traffic to the overloaded region gradually while confirming alternate regions have capacity and access to sufficiently fresh data. Sticky sessions may need controlled breakage or version-aware reads. A global router should use stable health signals with hysteresis so it does not oscillate traffic between regions. I would test evacuation regularly and reserve headroom; nearest-region routing is valuable only while that region can serve the complete request safely.
+
+## 13. Storage Systems and Data Lifecycle
+
+### S121 - Object upload succeeds but metadata write fails
+**Scenario:** A photo reaches object storage, but the database transaction that records its owner and status fails.
+
+**Interview question:** "How would you prevent permanent orphaned objects?"
+
+**Answer:** I would upload under a temporary session key and finalize visibility only after the metadata transaction commits. A durable workflow records upload intent, object checksum, owner, and expiry. If metadata fails, the object remains private and a cleanup job deletes abandoned temporary objects after a safe window. If metadata commits but finalization fails, an idempotent retry completes it. Direct client uploads should use narrowly scoped credentials tied to the session. Reconciliation compares temporary objects with upload records so neither storage listing nor database state alone is trusted as complete truth.
+
+### S122 - Storage volume reaches capacity
+**Scenario:** A stateful service reports 95 percent disk usage and write latency is rising.
+
+**Interview question:** "What would you do before the disk becomes full?"
+
+**Answer:** I would identify what is growing, the growth rate, safe deletion candidates, replication status, and how the storage engine behaves near full capacity. Immediate actions may add capacity, throttle writes, pause compaction or backfills if they consume temporary space, and remove only verified disposable data. Deleting active files manually can corrupt the store. I would preserve enough free space for recovery, snapshots, and compaction. Long term, I would alert on time-to-full rather than a fixed percentage, enforce retention, test expansion, and keep emergency headroom because many databases fail before reaching exactly 100 percent.
+
+### S123 - Compaction causes latency spikes
+**Scenario:** An LSM-based datastore has predictable latency spikes whenever background compaction runs.
+
+**Interview question:** "How would you reduce user impact?"
+
+**Answer:** I would correlate compaction throughput, pending bytes, disk bandwidth, CPU, and write amplification with request latency. Compaction is necessary to merge files and reclaim space, so disabling it indefinitely only postpones a larger failure. I would tune compaction concurrency and rate limits, provide faster or separate storage bandwidth, reduce excessive small writes, and schedule heavy maintenance away from peak load where possible. Admission control protects foreground requests when debt is high. I would alert on compaction backlog and test recovery after bursts, because a system that meets peak writes but never catches up remains unstable.
+
+### S124 - Millions of records expire simultaneously
+**Scenario:** A retention policy gives every session the same midnight expiry, producing a large deletion spike.
+
+**Interview question:** "How would you smooth the workload?"
+
+**Answer:** I would avoid synchronized physical deletion. Expiry times can include jitter, and logical expiration should make records invisible immediately while background workers delete them in bounded batches. Partitioning by time may let the database drop an old partition more efficiently than deleting individual rows. I would rate-limit cleanup according to database headroom and monitor tombstones, storage reclamation, and replication lag. If exact midnight invalidation is required for correctness, reads still enforce that timestamp, but physical cleanup can occur later. The retention contract and the storage-reclamation schedule are related but do not need to be identical.
+
+### S125 - Moving old media to cold storage
+**Scenario:** Most photos older than two years are rarely accessed, and storage cost is growing quickly.
+
+**Interview question:** "How would you introduce archival storage without breaking reads?"
+
+**Answer:** I would measure access frequency, restore latency tolerance, retrieval cost, and legal retention before choosing an archive tier. Metadata keeps the object's current storage class and state, while a lifecycle job moves eligible immutable objects and records completion idempotently. Reads either restore asynchronously with a processing status or use a tier that supports acceptable direct retrieval. Popular or recently requested objects can be promoted again. I would verify checksums after movement, preserve redundancy, and test deletion separately. Cost estimates must include retrieval and egress, not only the lower monthly storage price.
+
+### S126 - Silent data corruption is suspected
+**Scenario:** A media file exists and returns HTTP 200, but users report that some images are visibly corrupted.
+
+**Interview question:** "How would you detect and repair corruption?"
+
+**Answer:** I would compare the stored object's checksum with the checksum recorded at successful upload and with replicas or backups. HTTP success proves retrieval, not integrity. Affected objects should be quarantined from normal delivery while the system attempts repair from a known-good copy or regenerates derived variants from the original. I would inspect whether corruption occurred during upload, processing, storage, or transfer by validating checksums at each boundary. Background scrubbing can detect dormant corruption before access. Redundancy helps only when replicas are independently verified and bad data is not automatically copied over good data.
+
+### S127 - Append-only log grows without bound
+**Scenario:** An audit or event log is retained forever on expensive primary storage.
+
+**Interview question:** "How would you control growth without losing required evidence?"
+
+**Answer:** I would classify records by legal, security, replay, and analytical value and assign explicit retention periods. Recent data can remain on fast searchable storage, while older immutable segments move to compressed archive storage with an index for discovery. Deletion must respect holds and be auditable. If the log supports replay, snapshots or materialized checkpoints can reduce how much history consumers need online. I would monitor daily growth, compression ratio, and restore time. Keeping everything forever is not automatically safer; it increases cost, privacy exposure, and the amount of data that must be protected.
+
+### S128 - Blob and metadata become inconsistent
+**Scenario:** The database says a video is ready, but the referenced object does not exist in storage.
+
+**Interview question:** "How would you make publication reliable?"
+
+**Answer:** I would separate upload, processing, and published states. The system publishes the metadata reference only after verifying the final object and checksum. Since the database and object store do not share a transaction, a durable workflow or outbox tracks each transition and retries idempotently. Readers treat only `READY` objects as available and use a fallback for missing media. Reconciliation scans database references and storage manifests to find missing or orphaned objects. The fix should also identify whether deletion, lifecycle rules, or failed copy operations removed the object after publication, because each needs different prevention.
+
+### S129 - Time-series metrics database is overloaded
+**Scenario:** Monitoring storage cannot keep up because every request includes user ID, URL, and request ID as metric labels.
+
+**Interview question:** "Why is label cardinality dangerous?"
+
+**Answer:** Each unique label combination creates a separate time series, so unbounded values such as user or request IDs can multiply memory, index, storage, and query cost. I would remove high-cardinality dimensions from metrics and keep them in sampled logs or traces. Metrics should use bounded labels such as endpoint template, status class, region, and service version. During the incident, I would drop or relabel the offending series at ingestion and protect the monitoring system from further growth. Cardinality budgets and linting should block unsafe instrumentation before deployment, because observability must not become a production dependency failure.
+
+### S130 - Data retention conflicts with analytics needs
+**Scenario:** Privacy policy requires deleting raw user events after 30 days, but analysts want year-over-year trends.
+
+**Interview question:** "How would you preserve useful insight while respecting retention?"
+
+**Answer:** I would identify which long-term questions need aggregates rather than individual events. Before raw data expires, a governed pipeline can produce sufficiently coarse, non-identifying summaries with documented dimensions and minimum group sizes. The raw events and direct identifiers are then deleted on schedule across primary, derived, and backup systems according to policy. I would prevent analysts from reconstructing individuals through overly detailed combinations and review whether the aggregates still count as personal data. Retention enforcement, lineage, and deletion evidence should be automated so an analytical convenience does not silently override the approved privacy boundary.
+
+## 14. Stream Processing and Analytics
+
+### S131 - Late events change completed windows
+**Scenario:** Mobile clients upload activity hours late, after an hourly analytics window has already been published.
+
+**Interview question:** "How would you handle late-arriving events?"
+
+**Answer:** I would process by event time and define an allowed lateness using watermarks rather than assuming arrival time equals occurrence time. Windows remain revisable until the watermark passes; later events can update results, enter a correction stream, or be dropped according to product requirements. Every event needs a stable ID for deduplication. Dashboards should indicate whether values are preliminary or final. A very long lateness allowance improves completeness but increases retained state and delays finality, so I would choose it from observed client behavior and the business value of correcting old results.
+
+### S132 - Analytics pipeline double-counts events
+**Scenario:** A stream processor restarts and some engagement events appear twice in daily totals.
+
+**Interview question:** "How would you make the aggregation accurate?"
+
+**Answer:** I would determine whether duplicates originate at production, broker redelivery, replay, or state recovery. Events need stable IDs, and the processor can deduplicate within a bounded window or write idempotent upserts keyed by event and aggregation bucket. Exactly-once framework guarantees help only within their supported sources, state, and sinks; an external database may still duplicate a nontransactional write. I would checkpoint offsets and aggregation state together, then reconcile daily totals against an authoritative raw-event set. The acceptable deduplication window and storage cost depend on how late duplicates can arrive.
+
+### S133 - One stream partition is far behind
+**Scenario:** Most Kafka partitions have no lag, but one partition is millions of events behind.
+
+**Interview question:** "What would you investigate before adding consumers?"
+
+**Answer:** I would compare event rate, key distribution, record size, processing errors, and downstream calls for the lagging partition. One hot key or poison sequence can serialize all work there, and additional consumers cannot process the same partition concurrently within one group. Immediate containment may isolate the problematic key, increase processing efficiency, or temporarily route non-order-sensitive work through more partitions. Repartitioning changes ordering and requires a migration plan. I would monitor per-partition lag and oldest-event age, because cluster-wide averages hide the exact hotspot that controls completion time.
+
+### S134 - Real-time count changes after correction
+**Scenario:** A dashboard shows 10,000 active users, then later revises the number downward after duplicate removal.
+
+**Interview question:** "How would you explain and design for changing results?"
+
+**Answer:** Real-time results often trade final accuracy for speed. I would define whether the dashboard is approximate, preliminary, or final and show the freshness time. Stable event IDs and bounded deduplication reduce corrections, while a later batch reconciliation can publish an authoritative number. Consumers must accept upserts or retractions rather than only additive counts. If users require immutable numbers for billing, I would not use the provisional stream result as the invoice source. The system should expose the semantic difference clearly so a corrected metric is not mistaken for data loss or an unexplained outage.
+
+### S135 - Backfill overlaps live processing
+**Scenario:** A historical replay runs while the live pipeline continues, and both write the same daily aggregates.
+
+**Interview question:** "How would you avoid double-counting or overwriting newer results?"
+
+**Answer:** I would isolate the backfill using a separate run ID, output table, or versioned namespace rather than writing directly into live aggregates. The backfill reads a fixed input range and produces deterministic results, which are validated before an atomic pointer or partition swap. If both must write one sink, idempotent keys include the window and version, and a coordinator defines which result wins. Live events after the backfill boundary remain separate. I would document source offsets and timestamps so the team can reproduce the exact dataset and safely resume an interrupted run.
+
+### S136 - Event schema changes break consumers
+**Scenario:** A producer renames a required field, and several independent consumers fail after deployment.
+
+**Interview question:** "How would you evolve event contracts safely?"
+
+**Answer:** I would restore compatibility, then treat event schemas as long-lived contracts. Changes should be additive: introduce the new field, keep the old field during migration, and let consumers tolerate unknown fields and sensible defaults. A schema registry or compatibility check can block breaking publication. Consumers migrate and expose usage before the producer removes deprecated data. For meaning changes, I would use a new field or event version rather than reusing the old name. Historical replay must remain possible, so deserializers and transformation tools need to understand older schemas, not only today's producer output.
+
+### S137 - Event time and processing time disagree
+**Scenario:** A purchase occurred at 11:59 PM but arrived at the server at 12:03 AM.
+
+**Interview question:** "Which day should receive the event?"
+
+**Answer:** The answer depends on the business definition. User-behavior analytics may group by event time, while operational load metrics use processing time, and financial records may use the authoritative server acceptance time. I would store both timestamps plus their source and timezone, validate unreasonable client clocks, and document which field each calculation uses. Event-time windows need lateness handling and possible corrections. I would not silently use the device timestamp for money or compliance decisions because users can change it. One event can legitimately belong to different dates in different reports when their semantics differ.
+
+### S138 - Deduplication state becomes too large
+**Scenario:** A consumer stores every processed event ID forever to prevent duplicates, and the deduplication table is now enormous.
+
+**Interview question:** "How would you bound the state?"
+
+**Answer:** I would determine the maximum realistic redelivery or replay window and retain deduplication IDs only for that period, partitioned by time for efficient expiry. If business effects must never repeat beyond that window, the durable entity state should enforce a uniqueness key instead of relying on a global event-history table. Bloom filters can reduce lookups but have false positives and cannot be the sole correctness mechanism. I would separate short-term transport deduplication from permanent business invariants. Metrics on duplicate age reveal whether the chosen window is adequate before old IDs are removed.
+
+### S139 - Dashboard is ten minutes behind
+**Scenario:** Executives expect near-real-time metrics, but the dashboard consistently lags by ten minutes.
+
+**Interview question:** "How would you find where freshness is lost?"
+
+**Answer:** I would attach timestamps at event creation, broker ingestion, processor completion, warehouse load, query materialization, and dashboard refresh, then calculate lag at each boundary. The bottleneck could be consumer backlog, micro-batch cadence, warehouse commit time, cached queries, or the UI refresh interval. I would fix the dominant stage rather than making every interval smaller, which can increase cost and contention. The dashboard should display its data-through time. A freshness service-level objective and oldest-event-age alerts make delay visible before an executive notices a stale chart.
+
+### S140 - Stateful stream processor loses a node
+**Scenario:** A stream-processing worker crashes while holding local aggregation state for several partitions.
+
+**Interview question:** "How should processing recover without losing or duplicating results?"
+
+**Answer:** State and input progress must be checkpointed consistently to durable storage. On failure, another worker restores the latest checkpoint, reclaims the partitions, and replays events after the stored offsets. Outputs need transactional or idempotent semantics because replay repeats work after the checkpoint. I would monitor checkpoint age, duration, and restore time and keep enough broker retention to cover the recovery window. Very large state may require incremental checkpoints or a remote state store. A successful worker restart is not proof of correctness; reconciliation should compare recovered aggregates with source events for a sampled range.
+
+## 15. Search, Ranking, and Machine Learning Systems
+
+### S141 - Search suddenly returns zero results
+**Scenario:** Search traffic is normal, but result count drops to zero for many common queries after an index deployment.
+
+**Interview question:** "How would you contain and diagnose the issue?"
+
+**Answer:** I would compare the new and previous index aliases, document counts, shard health, query analyzer versions, filters, and sample query plans. If the new index is clearly wrong, I would atomically point traffic back to the previous verified index rather than attempting in-place repair. The source database remains authoritative, so I would check whether indexing failed or querying changed. I would preserve the broken index for diagnosis, then rebuild and validate counts, fields, and representative queries before switching. Canary queries and minimum-result guardrails should block future index promotion when common searches collapse.
+
+### S142 - Rebuilding a search index without downtime
+**Scenario:** A schema change requires reindexing hundreds of millions of documents.
+
+**Interview question:** "How would you migrate traffic safely?"
+
+**Answer:** I would build a new versioned index from a consistent snapshot while continuing to capture live changes through an event stream or change log. After the bulk load, the new index catches up to a recorded boundary. I would validate document counts, sampled content, query relevance, latency, and permission filters, then send a small canary percentage or shadow queries before atomically switching an alias. The old index remains available for rollback until confidence is high. Writers should not dual-write two indexes without a repair strategy, because partial failures can silently make them diverge.
+
+### S143 - Autocomplete service is overwhelmed by trending queries
+**Scenario:** A breaking-news event causes millions of users to type the same prefixes, saturating autocomplete servers.
+
+**Interview question:** "How would you serve suggestions efficiently?"
+
+**Answer:** I would cache popular prefix results at the edge or application layer and coalesce concurrent misses so one computation serves many requests. Suggestions can be precomputed from a trie or search index and refreshed asynchronously, with short TTLs for trends and longer TTLs for stable prefixes. The client should debounce keystrokes and cancel obsolete requests. Rate limits protect against automation. If the ranking service fails, a cached or static popular list is an acceptable fallback. I would monitor top prefixes and cache concentration because the same popularity that creates load also makes caching highly effective.
+
+### S144 - Model rollout harms one user group
+**Scenario:** Overall engagement improves after a ranking-model launch, but a regional subgroup sees much worse results.
+
+**Interview question:** "How would you detect and respond to this regression?"
+
+**Answer:** Aggregate success can hide segment harm, so I would monitor quality, latency, safety, and retention across predeclared regions, languages, device classes, and new-user cohorts while protecting privacy. I would pause or roll back the model for the affected group using a feature flag, then compare feature availability, training representation, and serving behavior. Statistical significance matters, but severe safety or usability harm does not require waiting for a perfect experiment. Future launches need segment guardrails and minimum sample checks. The durable fix may require better data, features, calibration, or a separate model for that context.
+
+### S145 - Online features differ from training features
+**Scenario:** A model performs well offline but poorly in production because feature values are calculated differently at serving time.
+
+**Interview question:** "How would you prevent training-serving skew?"
+
+**Answer:** I would define features once and reuse the same transformation logic or managed feature definitions for offline training and online serving. Each prediction should record feature versions and freshness so bad outcomes can be reproduced. I would compare sampled online vectors with offline recomputation and alert on distribution drift, missing values, and default rates. Backfills must use event-time-correct data to avoid leakage from the future. A feature store can help but does not guarantee consistency if teams bypass it. Model rollout should include shadow predictions against production traffic before decisions affect users.
+
+### S146 - Vector search latency grows with corpus size
+**Scenario:** Semantic search was fast at one million embeddings but exceeds the latency budget at one hundred million.
+
+**Interview question:** "What trade-offs would you evaluate?"
+
+**Answer:** I would measure index build, memory, recall, query latency, filter selectivity, and shard distribution. Approximate nearest-neighbor indexes trade some recall for speed and require tuning parameters such as search breadth. I might partition by a safe coarse attribute, use a smaller candidate index, compress vectors, or retrieve candidates semantically and rerank a limited set. Filters must be applied without destroying index efficiency or leaking unauthorized items. More replicas improve read capacity but not one-query complexity. I would choose settings using relevance evaluation and a latency target rather than optimizing benchmark recall in isolation.
+
+### S147 - New user has no ranking history
+**Scenario:** A newly registered user has no follows, clicks, or watch history, so personalization has little signal.
+
+**Interview question:** "How would you handle the cold-start problem?"
+
+**Answer:** I would use signals available immediately: selected interests, locale, language, device context, broadly popular content, and editorial or safety constraints. The onboarding flow can ask for a small number of high-value preferences without creating excessive friction. Early interactions update the profile quickly, while exploration intentionally shows diverse candidates to learn interests. A chronological or regional feed is a clear fallback. I would measure time to useful personalization and avoid overfitting to the first click. New-user ranking must still enforce privacy and quality; lack of history is not permission to show risky content.
+
+### S148 - A/B test groups become contaminated
+**Scenario:** Users switch devices and sometimes receive both control and treatment behavior during one experiment.
+
+**Interview question:** "How would you make experiment assignment stable?"
+
+**Answer:** I would choose a durable assignment unit aligned with the hypothesis, usually authenticated user ID, and compute treatment deterministically from experiment and subject IDs. Anonymous users may use a device or cookie key, but the migration after login must be defined. Assignment should happen in one service or shared library and be logged with exposure, not merely eligibility. Cross-service flags must use the same value. I would exclude bots and internal traffic where appropriate and analyze contamination explicitly. Stable assignment prevents carryover effects from being mistaken for treatment impact.
+
+### S149 - Safety model exceeds latency budget
+**Scenario:** A content-safety classifier adds 800 ms to every post upload and occasionally times out.
+
+**Interview question:** "Would you make moderation asynchronous?"
+
+**Answer:** I would separate fast mandatory checks from slower deep analysis based on risk. The upload can remain quarantined or visible only to the owner until required moderation completes, then publish after an asynchronous classifier decision. For lower-risk edits, a fast model may allow provisional visibility with later review, but unsafe exposure must match policy. Timeouts should fail to the safer state, not automatically approve. I would batch GPU work, cache identical media fingerprints, and monitor queue age. The product must show processing status so safety latency does not appear as a mysterious failed upload.
+
+### S150 - Search must handle spelling mistakes
+**Scenario:** Users frequently misspell names, but aggressive fuzzy matching returns irrelevant or unsafe results.
+
+**Interview question:** "How would you balance recall and precision?"
+
+**Answer:** I would normalize case and accents, use prefix and edit-distance matching with limits based on query length, and rank exact or popular matches above fuzzy ones. Candidate generation and final ranking should be separate so the system can retrieve broadly but apply language, popularity, safety, and authorization filters before display. Very short queries need stricter rules because one edit changes meaning significantly. I would evaluate with real anonymized query-result judgments, including languages and names, and expose a correction hint rather than silently rewriting every query. Zero-result rate alone is not a sufficient success metric.
+
+## 16. Networking, Protocols, and Connections
+
+### S151 - DNS resolution failures spike
+**Scenario:** Application instances are healthy, but outbound calls fail because service hostnames intermittently cannot be resolved.
+
+**Interview question:** "How would you diagnose and contain a DNS dependency failure?"
+
+**Answer:** I would compare resolver error codes, latency, cache hit rate, affected zones, and whether failures occur at the host, container, or upstream DNS service. Existing connections may still work, so connection reuse can preserve limited traffic while new lookups fail. I would avoid tight application retries that overload resolvers and use bounded caching according to record TTL and failure policy. If a backup resolver is approved, failover should be tested rather than improvised. Long term, I would monitor DNS as a real dependency, distribute resolvers across failure domains, and capacity-test them during instance churn.
+
+### S152 - TLS certificate is about to expire
+**Scenario:** Monitoring shows that a public API certificate expires in 18 hours, and automatic renewal has failed.
+
+**Interview question:** "What would you do, and how would you prevent recurrence?"
+
+**Answer:** I would confirm the certificate, domain coverage, serving endpoints, and renewal failure, then use the approved emergency issuance path before making unrelated changes. Deployment must include the complete chain and preserve private-key security. I would test the new certificate from multiple networks and verify old connections and all load balancers have rotated. Prevention includes automated renewal with enough lead time, alerts at several thresholds, ownership, inventory of every endpoint, and a safe manual fallback. A successful certificate file update is not sufficient until the externally served certificate and handshake are verified.
+
+### S153 - Connection pool contains stale sockets
+**Scenario:** After a database failover, many pooled connections point to the old primary and requests fail until instances restart.
+
+**Interview question:** "How would you make the pool recover automatically?"
+
+**Answer:** I would configure connection validation, maximum lifetime, and failure-based eviction so broken sockets leave the pool quickly. The database endpoint or driver must support primary discovery or a stable proxy, and the application should open new connections gradually to avoid a reconnection storm. Short bounded retries can hide a transient failover only for idempotent operations. I would inspect DNS caching and driver topology refresh because a pool cannot recover if new connections still target the old address. A failover test should verify detection time, transaction errors, pool recovery, and the absence of duplicate writes.
+
+### S154 - Large packets disappear on one network path
+**Scenario:** Small API requests succeed, but large responses hang only for users behind a particular network provider.
+
+**Interview question:** "What network problem would you suspect and how would you verify it?"
+
+**Answer:** I would suspect an MTU or path-MTU-discovery problem where fragmented or oversized packets are dropped, especially if required ICMP messages are blocked. I would compare packet captures, response sizes, TCP retransmissions, and tests with smaller maximum segment sizes across affected and healthy paths. Compression or smaller responses may contain impact, but the network path or tunnel configuration needs correction. I would also rule out proxy body limits and timeouts because they create similar size-dependent symptoms. Monitoring by payload size and provider can reveal a failure hidden by overall success metrics.
+
+### S155 - HTTP/2 connection carries many slow streams
+**Scenario:** Hundreds of requests share one HTTP/2 connection, and packet loss causes several otherwise independent streams to slow down.
+
+**Interview question:** "Why can multiplexing still suffer shared latency?"
+
+**Answer:** HTTP/2 removes application-layer request ordering on one connection, but all streams still share the same TCP loss recovery and congestion window. A lost packet can delay bytes needed by multiple streams. I would verify retransmissions, connection concentration, and whether a few connections carry excessive traffic. More connections or HTTP/3 over QUIC may reduce transport-level head-of-line effects, but add operational and compatibility considerations. I would first fix packet loss and avoid assuming a protocol switch solves an unhealthy network. Load tests should include loss and latency, not only a clean high-bandwidth link.
+
+### S156 - Large responses saturate network bandwidth
+**Scenario:** CPU and database metrics are healthy, but service latency rises as outbound network throughput reaches its limit.
+
+**Interview question:** "How would you reduce the bandwidth bottleneck?"
+
+**Answer:** I would identify endpoints and fields responsible for bytes, then reduce payloads through pagination, bounded summaries, appropriate compression, and avoiding repeated metadata. Static media should move to object storage and a CDN rather than passing through application servers. Compression trades CPU for bandwidth, so I would measure both and avoid recompressing already compressed formats. Streaming can reduce memory and time to first byte but not total bytes. I would set response-size budgets, monitor percentile payload size, and scale network capacity only after removing unnecessary transfer. Client caching can eliminate repeated downloads when freshness permits.
+
+### S157 - NAT port exhaustion
+**Scenario:** Thousands of containers share a small set of outbound addresses and begin failing new connections to external APIs.
+
+**Interview question:** "How would you recognize and fix source-port exhaustion?"
+
+**Answer:** I would look for connection failures despite healthy destinations, high translation-table usage, many short-lived outbound connections, and sockets in `TIME_WAIT`. Immediate mitigation includes connection pooling and keep-alive, reducing retry churn, spreading traffic across more egress addresses, and raising safe platform limits. I would verify that clients actually reuse connections and that idle settings do not close them too aggressively. Long term, I would capacity-plan ports from concurrent destinations and connection lifetime, monitor NAT utilization, and avoid routing unrelated high-volume workloads through one small egress boundary.
+
+### S158 - Chat messages are slow across regions
+**Scenario:** Users in Asia send chat messages through a primary service in North America and experience noticeable delay.
+
+**Interview question:** "How would you reduce latency while preserving conversation order?"
+
+**Answer:** I would place connection gateways near users but assign each conversation or participant pair an authoritative ordering owner. Regional gateways accept authenticated messages, attach stable IDs, and forward them over persistent links to that owner, which assigns sequence numbers and durably stores the message. Delivery fans out from nearby regions. Moving ownership closer can reduce latency but requires a controlled handoff so two regions do not assign overlapping order. I would define whether total order is needed per conversation or only per sender. Offline delivery and deduplication must use IDs rather than connection state.
+
+### S159 - WebSocket fleet needs to scale
+**Scenario:** Millions of clients maintain long-lived WebSocket connections, and rolling deployments disconnect too many users at once.
+
+**Interview question:** "How would you operate this connection-heavy service?"
+
+**Answer:** I would separate connection gateways from durable messaging state and route messages through a broker or ownership directory rather than storing important state only in process memory. Autoscaling should use connection count, memory, and event-loop lag, not request rate. Deployments drain a small percentage of gateways at a time, stop new connections, and give clients randomized reconnect backoff. Load balancers need suitable idle timeouts and health checks. Presence is eventually consistent and rebuilt after disconnects. Capacity planning includes reconnect storms because a regional restart can create more load than normal steady-state traffic.
+
+### S160 - Proxy timeout is shorter than application timeout
+**Scenario:** The application allows a request to run for 60 seconds, but the gateway closes the client connection after 30 seconds.
+
+**Interview question:** "What problems does this create and how would you align timeouts?"
+
+**Answer:** The application may continue expensive work after the caller has already received a timeout, and the caller may retry, producing duplicate load or writes. I would set an end-to-end deadline and propagate the remaining budget downstream. Inner timeouts should be shorter than outer timeouts so failures return while the caller can still respond. Cancellation should stop work where safe, while writes use idempotency because cancellation cannot prove nothing committed. I would document timeout ownership across client, gateway, service, and database and test the total worst case including retries rather than configuring each layer independently.
+
+## 17. Multi-Region Systems and Global Consistency
+
+### S161 - Active-active regions update the same profile
+**Scenario:** A user changes their biography in two regions during a network partition, creating conflicting values.
+
+**Interview question:** "How would you resolve the conflict?"
+
+**Answer:** I would first decide whether last-write-wins is acceptable for this field and which timestamp can be trusted. For profile text, a versioned last-writer policy or user-visible conflict may be reasonable; for money or permissions it would not be. Regions should attach versions and preserve both conflicting operations until resolution instead of silently discarding one. A home-region owner can avoid most conflicts at the cost of cross-region latency and reduced partition availability. I would choose conflict semantics per data type, test partitions, and expose repair metrics because replication technology cannot invent the business rule.
+
+### S162 - Region-specific ID generators collide
+**Scenario:** Two regions generate the same numeric order ID after operating independently during a partition.
+
+**Interview question:** "How would you generate globally unique IDs without central coordination on every request?"
+
+**Answer:** I would use an ID scheme that encodes enough independent entropy or ownership, such as random UUIDs or time-based IDs containing a region or worker component. If IDs must be roughly ordered, clock rollback and worker-ID assignment need protection. Allocating disjoint numeric ranges per region is another option but requires range management. A central sequence guarantees order but becomes a latency and availability dependency. I would distinguish uniqueness from gap-free or globally ordered requirements because the latter are far more expensive and rarely necessary for external identifiers.
+
+### S163 - Global username uniqueness
+**Scenario:** Users can register in multiple regions, but each username must be globally unique.
+
+**Interview question:** "What consistency trade-off would you make?"
+
+**Answer:** Global uniqueness requires one serialization point per normalized username. I could route all reservations through a globally consistent store or deterministically assign each name to a home partition, accepting cross-region latency and reduced availability during certain partitions. A purely local active-active write can create duplicates that need painful user-visible conflict resolution. I would use a short reservation followed by account creation, with idempotent completion and expiry for abandoned claims. Availability is preserved for browsing and unrelated actions, while this narrow operation pays the coordination cost because duplicate identity would violate a core invariant.
+
+### S164 - Read-your-writes after regional failover
+**Scenario:** A user updates a setting in one region, that region fails, and the secondary region has not applied the write yet.
+
+**Interview question:** "What can the system promise?"
+
+**Answer:** The promise depends on synchronous replication and the recovery point objective. If the write was acknowledged only after durable replication to the failover region, read-your-writes can continue at higher latency and lower availability. With asynchronous replication, some acknowledged writes may be missing after regional loss. I would expose a version or receipt so the secondary can wait, recover from a durable log, or tell the user the update is pending rather than showing silent reversal. Product and business owners must choose the data-loss window before failure; the system cannot retroactively provide stronger durability than its acknowledgement policy.
+
+### S165 - Cross-region replication lag increases
+**Scenario:** WAN congestion causes replication lag to grow from seconds to twenty minutes.
+
+**Interview question:** "How would you protect users and recovery objectives?"
+
+**Answer:** I would identify whether bandwidth, packet loss, write volume, or apply capacity is limiting replication, then prioritize critical logs and pause nonessential bulk transfers. Read routing should avoid lagging replicas for operations requiring freshness, and failover may be unsafe if it would exceed the recovery point objective. I would alert on both lag time and bytes remaining, because a quiet period can make time lag look misleading. If sustained traffic exceeds replication capacity, the long-term fix is more bandwidth, better compression or batching, reduced write amplification, or a different regional data placement strategy.
+
+### S166 - Data must remain within one country
+**Scenario:** A new market requires personal data to stay within national boundaries while the product uses global services.
+
+**Interview question:** "How would you design for data residency?"
+
+**Answer:** I would classify which fields and derived data are regulated, then route those users to an approved regional data plane with local databases, object storage, backups, logs, support access, and processing. Global control-plane metadata should contain only permitted identifiers and routing information. Analytics, search, notifications, and disaster recovery must follow the same boundary; storing the primary record locally while exporting raw events would still violate the requirement. I would use policy-aware infrastructure, audited access, and tests that trace data lineage. Residency changes architecture and operations, not just the database region setting.
+
+### S167 - Payment writes split across regions
+**Scenario:** During a partition, two active regions both accept withdrawals from the same balance.
+
+**Interview question:** "How would you prevent overspending?"
+
+**Answer:** A balance invariant cannot safely accept independent conflicting writes and reconcile later. I would assign each account to one authoritative region or use a globally consistent ledger that serializes debits for that account. Other regions may accept an intent but must wait for authorization before confirming success. During loss of the owner, the system may become unavailable for withdrawals rather than risk creating money. Credits or informational reads can have different policies. An immutable ledger, idempotency keys, fencing during failover, and reconciliation protect the boundary, but the core decision is choosing consistency over partition-time write availability.
+
+### S168 - Evacuating a region overloads the backup
+**Scenario:** Traffic shifts away from a failing region, but the secondary reaches saturation and begins failing too.
+
+**Interview question:** "How would you avoid cascading regional failure?"
+
+**Answer:** I would shift traffic gradually while monitoring secondary concurrency, database connections, cache hit rate, queue depth, and dependency quotas. Noncritical features should degrade or shed load before core operations fail. Reserved failover headroom and pre-warmed caches are necessary; an active secondary running at normal peak capacity cannot absorb another region. I would prioritize local users and critical writes according to policy rather than sending all traffic blindly. Global routing uses capacity-aware weights and hysteresis. Regular evacuation drills should measure how much traffic the backup can actually sustain, not assume theoretical instance limits.
+
+### S169 - Moving users to a new home region
+**Scenario:** To reduce latency, millions of user accounts must migrate from one regional database to another.
+
+**Interview question:** "How would you migrate without losing writes?"
+
+**Answer:** I would migrate in cohorts using a versioned routing directory. For each cohort, take a consistent snapshot or bulk copy, capture ongoing changes through a log, and validate counts and checksums while the old region remains authoritative. At cutover, briefly fence or queue writes, apply the remaining delta, change the routing version atomically, and monitor. Requests carrying an old version should be redirected safely rather than writing to both homes. I would retain rollback data and test one small cohort first. Dual writes without ordering and repair rules can create divergence that is harder than the original move.
+
+### S170 - Global rate limit across regions
+**Scenario:** An API key should allow 1,000 requests per minute worldwide, but traffic enters through five regions.
+
+**Interview question:** "How would you enforce the limit without adding a global round trip to every request?"
+
+**Answer:** I would decide whether the limit must be exact. For abuse protection, approximate regional budgets can allocate portions of the global quota and periodically rebalance based on demand. Local token buckets stay fast, while a coordinator adjusts allocations and detects overshoot. A strict financial or contractual quota may require a globally consistent counter or centralized owner, accepting latency and availability cost. I would define burst behavior, fail-open versus fail-closed policy, and what happens when regions cannot coordinate. Metrics should report both local decisions and estimated global consumption so approximation error is visible.
+
+## 18. Cost, Efficiency, and Capacity Economics
+
+### S171 - Cloud cost doubles without traffic growth
+**Scenario:** Monthly infrastructure cost doubles even though request volume is flat.
+
+**Interview question:** "How would you investigate the increase?"
+
+**Answer:** I would break cost down by service, account, region, resource type, tag, and unit such as cost per request or stored gigabyte. Then I would compare the change date with deployments, autoscaling minimums, retention changes, data transfer, logging, replicas, and idle resources. A flat request count can still hide larger payloads or more work per request. I would stop obvious waste only after confirming ownership and safety. Long term, cost dashboards need allocation tags, anomaly alerts, and unit economics so efficiency regressions appear beside latency and reliability, not weeks later on an invoice.
+
+### S172 - Cache costs more than the database savings
+**Scenario:** A large distributed cache has a high hit rate but costs more than the database capacity it replaced.
+
+**Interview question:** "Would you remove it?"
+
+**Answer:** I would compare total cost and risk, not hit rate alone. The cache may still reduce latency, protect the database during bursts, or avoid expensive downstream work. I would identify low-value keys, oversized values, duplicate copies, fragmentation, TTLs, and memory reserved but unused. Compression, smaller objects, eviction policy, tiered local caching, or a smaller cluster may preserve benefits. I would load-test the origin before reducing capacity and add fallback limits. If the cache provides neither necessary latency nor protection at lower cost, removing it simplifies the system, but the decision needs measured failure and performance impact.
+
+### S173 - Cross-region egress bill is unexpectedly high
+**Scenario:** Services exchange large internal payloads across regions, creating a major network bill.
+
+**Interview question:** "How would you reduce egress without harming resilience?"
+
+**Answer:** I would use flow and billing data to identify top service pairs, payload types, and transfer direction. Then I would colocate chatty components, send compact events instead of full objects, batch or compress transfers, cache immutable data locally, and avoid repeated reads across regions. Replication and backups remain necessary, so I would not remove redundancy blindly. The architecture should distinguish a global control plane from regional data planes and keep user requests local where possible. I would measure cost per operation and verify that optimizations do not create stale authorization data or weaken disaster recovery.
+
+### S174 - Team wants zero spare capacity
+**Scenario:** Finance asks the platform team to run every service near 90 percent utilization to reduce cost.
+
+**Interview question:** "How would you explain the reliability risk?"
+
+**Answer:** High average utilization leaves little room for bursts, failures, deployments, cache misses, or regional evacuation. Queueing delay rises sharply as saturated resources approach their limit, so a small traffic increase can create a large latency increase. I would show load-test curves and define headroom from the service-level objective, scaling speed, and failure model rather than choosing one global percentage. Predictable batch workloads can run hotter than latency-sensitive APIs. Reserved capacity is not automatically waste; it buys response time. Cost optimization should target idle misconfiguration and inefficient work before removing the safety margin required for recovery.
+
+### S175 - Using spot instances for queue workers
+**Scenario:** The team wants cheaper interruptible instances for image-processing workers.
+
+**Interview question:** "When is this safe?"
+
+**Answer:** It is safe when jobs are durably queued, idempotent, checkpointable or short enough to retry, and acknowledgement occurs only after durable completion. Workers must handle termination notice by stopping new work and returning unfinished jobs. I would mix capacity types or providers so one interruption event does not remove the entire fleet and keep minimum reliable capacity for deadlines. Autoscaling should consider queue age and interruption rate. Spot capacity is a poor fit for unique in-memory state or work with expensive nonrepeatable side effects. Savings must include extra retries, slower completion, and operational complexity.
+
+### S176 - Storage tiering saves money but slows recovery
+**Scenario:** Moving backups to a deep archive tier greatly reduces cost but may take hours to restore.
+
+**Interview question:** "How would you decide the right storage tier?"
+
+**Answer:** I would compare retrieval delay and throughput with the recovery time objective, and backup age with the recovery point objective. Frequently needed recent backups can remain on faster storage while older versions move to deep archive. A disaster plan may require a warm replica plus archived backups for different failure types. I would include retrieval fees, parallel restore limits, encryption keys, and provider-region failures in the test. The cheapest monthly storage is unacceptable if recovery cannot meet the business promise. Regular restore drills should measure the complete application recovery, not only archive download time.
+
+### S177 - Observability bill grows faster than application bill
+**Scenario:** Logs, traces, and metrics now cost more than several production services combined.
+
+**Interview question:** "How would you reduce cost without becoming blind?"
+
+**Answer:** I would classify telemetry by operational value. Metrics retain bounded high-level signals, traces use head or tail sampling while preserving errors and slow requests, and logs keep structured security and diagnostic events without repetitive success noise. High-cardinality fields move from metrics to sampled traces or indexed logs with controlled retention. I would remove duplicate ingestion and expensive unused indexes, then measure query usage before shortening retention. Cost budgets and instrumentation review belong in development. The goal is not maximum telemetry volume; it is enough evidence to detect impact, isolate cause, audit risk, and learn from incidents.
+
+### S178 - Expensive customer queries threaten shared capacity
+**Scenario:** A reporting API lets users run filters that trigger full-table scans and large exports.
+
+**Interview question:** "How would you add cost guardrails?"
+
+**Answer:** I would estimate query cost before execution using allowed filters, date range, expected rows, and database plans. Interactive endpoints get strict limits and pagination, while large exports become asynchronous jobs on isolated replicas or warehouses with tenant quotas. I would cancel runaway queries, cap concurrency, and return clear guidance rather than letting one report exhaust the transactional database. Common reports can be precomputed. Audit metrics should show cost by tenant and query shape. Guardrails must be part of the API contract, because scaling the database does not make arbitrary unbounded work safe.
+
+### S179 - Queue workers scale too aggressively
+**Scenario:** Queue depth rises, autoscaling launches hundreds of workers, and the database becomes overloaded.
+
+**Interview question:** "How would you make queue-based autoscaling dependency-aware?"
+
+**Answer:** Queue depth is only one signal; consumers must not exceed the safe concurrency of their slowest dependency. I would scale from oldest-message age and processing rate while enforcing a global database or API concurrency limit. New workers ramp gradually, and the controller observes whether throughput actually improves before adding more. Backpressure, producer limits, and priority queues protect critical work. I would calculate the sustainable service rate and maximum useful workers through load tests. An autoscaler that removes the queue bottleneck by moving it to the database has not increased system capacity.
+
+### S180 - Build or buy a managed service
+**Scenario:** The team must choose between operating its own search cluster and using a managed search service.
+
+**Interview question:** "How would you make the decision?"
+
+**Answer:** I would compare required features, scale, compliance, latency, integration, failure control, portability, staff expertise, on-call burden, and total cost, including engineers and downtime. A managed service accelerates delivery and handles routine operations but introduces vendor limits, pricing, and dependency risk. Self-hosting offers control but requires upgrades, backups, security, scaling, and incident ownership. I would run a representative proof with data volume, queries, recovery, and cost projections. The decision should include an exit or migration plan, but avoiding all lock-in is not free and can delay the product unnecessarily.
+
+## 19. Architecture Evolution and Migrations
+
+### S181 - Splitting a growing monolith
+**Scenario:** A monolith deploys slowly and several teams block each other, so leadership asks for microservices.
+
+**Interview question:** "Where would you start instead of splitting by technical layers?"
+
+**Answer:** I would identify a business capability with clear ownership, high change pressure, and a boundary that can own its data and API. I would measure whether deployment coupling, scaling, or reliability truly improves by extracting it. Splitting controllers, services, and repositories into separate network services preserves the same coupling and adds latency. The first extraction should use a stable contract, independent deployment, observability, and a rollback path, while the monolith remains functional. Microservices trade code coupling for operational and data consistency complexity, so I would keep modules together when that trade does not buy a clear outcome.
+
+### S182 - Microservices share one database schema
+**Scenario:** Five services deploy independently but directly read and write the same tables.
+
+**Interview question:** "What problems does the shared schema create?"
+
+**Answer:** Independent deployment is weakened because any service can depend on another service's internal columns, locks, and migration timing. A change can break unknown readers, and ownership during incidents is unclear. I would assign table ownership, route new access through the owning service or published events, and use expand-and-contract migrations while removing direct dependencies gradually. A shared database may be acceptable early, but boundaries should still be enforced in code and permissions. Moving every table immediately would create risk; I would start with the highest-coupling writes and add contract tests and access auditing.
+
+### S183 - Strangler migration from legacy API
+**Scenario:** A critical legacy service must be replaced without a single high-risk cutover.
+
+**Interview question:** "How would you use the strangler pattern?"
+
+**Answer:** I would place stable routing in front of the legacy system and move one well-bounded capability at a time to a new implementation. Requests for migrated cases go to the new service, while the rest continue to legacy. I would compare shadow responses where safe, migrate data through a controlled ownership plan, and keep rollback routing until metrics and reconciliation pass. The new service should not call back into legacy for every operation or the old coupling remains. Each slice needs success criteria, observability, and a retirement step so temporary duplication does not become permanent.
+
+### S184 - Long synchronous service chain
+**Scenario:** One user request calls eight services in sequence, and reliability falls as the chain grows.
+
+**Interview question:** "How would you shorten the critical path?"
+
+**Answer:** I would trace the request and classify each call as required for the immediate response, parallelizable, cacheable, precomputable, or asynchronous. Independent calls can run in parallel within a shared deadline, while analytics, notifications, and indexing move to events. Repeated reference data can be cached or embedded in a purpose-built read model. I would avoid simply increasing timeouts because availability multiplies across required dependencies. The remaining synchronous chain gets bounded timeouts, fallbacks where correct, and bulkheads. Fewer network hops also reduce version coupling and make ownership during failures clearer.
+
+### S185 - Event-driven system is difficult to debug
+**Scenario:** A user action triggers twelve asynchronous consumers, and support cannot explain why one outcome is missing.
+
+**Interview question:** "How would you make the workflow observable?"
+
+**Answer:** I would propagate a correlation or causation ID from the original command through every event, retry, and derived event. Each consumer records received, started, completed, failed, and dead-letter states with event ID, schema version, and attempt count. A workflow view can reconstruct the causal graph without relying on log order. Business states such as pending, complete, and failed should be queryable directly. I would avoid pretending asynchronous work is one distributed transaction; compensation and replay remain explicit. Operational tools must respect privacy and not expose full sensitive payloads merely for convenience.
+
+### S186 - Dual writes during migration diverge
+**Scenario:** An application writes both the old and new databases, and occasional failures leave different values in each.
+
+**Interview question:** "How would you migrate without unreliable dual writes?"
+
+**Answer:** I would keep one authoritative write and replicate changes to the new store through a durable change log or outbox. The new store is backfilled from a snapshot, then catches up from a recorded boundary. Reads can be shadowed and compared before gradually switching. Every replicated change is idempotent and versioned, and reconciliation reports differences. If temporary dual writes are unavoidable, failures need durable repair records rather than best-effort logging. At cutover, ownership changes once, with fencing that prevents both stores from independently accepting authoritative writes. Rollback preserves the change stream and known boundary.
+
+### S187 - API gateway owns business logic
+**Scenario:** Authentication, pricing, product rules, response composition, and database calls have accumulated in the API gateway.
+
+**Interview question:** "Why is this risky and how would you unwind it?"
+
+**Answer:** A gateway should handle cross-cutting edge concerns, but business logic there creates a shared deployment bottleneck and unclear domain ownership. Failure or release risk affects every service, and rules may diverge from backend behavior. I would identify logic by owning capability, add or strengthen service APIs, and move rules incrementally while keeping gateway routing compatible. Authentication, coarse rate limiting, request size, and protocol translation may remain. Response aggregation can stay when it is a thin composition layer with bounded calls. Tests should confirm behavior before removing each gateway branch, because a big-bang rewrite would recreate the same risk.
+
+### S188 - Microservices form a distributed monolith
+**Scenario:** Thirty services must be deployed in a fixed order, share releases, and fail together.
+
+**Interview question:** "What would you change first?"
+
+**Answer:** I would map synchronous dependencies, shared databases, incompatible contracts, and coordinated release steps to find the tightest coupling. Services need backward-compatible APIs and events, independent data ownership, and tolerance for mixed versions. I would remove unnecessary synchronous calls, introduce read models or asynchronous integration where appropriate, and combine services that have no meaningful independent boundary. The goal is not preserving service count; it is restoring independent change and failure isolation. Deployment metrics, contract tests, and controlled fault injection show whether a boundary is real. A well-modularized monolith may be better than many inseparable processes.
+
+### S189 - Replacing a legacy message broker
+**Scenario:** The current broker is unsupported, but hundreds of producers and consumers depend on it.
+
+**Interview question:** "How would you migrate with low risk?"
+
+**Answer:** I would inventory topics, schemas, delivery guarantees, ordering, retention, throughput, and consumer ownership before choosing the target. A bridge can copy messages from the old broker to the new one with stable IDs, while selected consumers shadow or migrate gradually. I would compare counts, lag, ordering, and business outcomes and keep consumers idempotent because bridging can duplicate messages. Producers switch only after the new path proves capacity and replay. I would avoid uncontrolled bidirectional bridging, which creates loops. Retirement requires proving no active producers, consumers, or recovery runbooks still depend on the old system.
+
+### S190 - Breaking service contract is unavoidable
+**Scenario:** A service must change a field's meaning, and old consumers cannot interpret the new semantics.
+
+**Interview question:** "How would you introduce the change?"
+
+**Answer:** I would create a new field, endpoint, event version, or media type rather than silently reusing the existing contract. The provider supports both forms during a measured migration window and publishes examples, defaults, and error behavior. Consumer usage is observable so owners can be contacted and completion can be proven. Adapters may translate temporarily, but they need an expiry plan. Contract tests run against known old and new consumers. After usage reaches zero and rollback risk passes, the old contract is removed. Versioning is a cost, but hidden semantic changes create much larger correctness failures.
+
+## 20. Incident Leadership and Open-Ended Design Decisions
+
+### S191 - Requirements are vague in a design interview
+**Scenario:** An interviewer says, "Design a social-media platform," without giving scale or required features.
+
+**Interview question:** "How would you begin?"
+
+**Answer:** I would narrow the problem before drawing components. I would ask which core actions matter, expected users and peak traffic, media types, latency and availability targets, consistency needs, privacy, and which feature to prioritize. Then I would state reasonable assumptions and estimate read, write, storage, and bandwidth scale. I would design the critical path first, name the source of truth, and expand only where bottlenecks justify it. If time is limited, I would explicitly defer chat, ads, or analytics. Clarifying scope demonstrates judgment; attempting to design every feature produces a shallow list of technologies.
+
+### S192 - Product asks for five nines everywhere
+**Scenario:** A product manager requests 99.999 percent availability for every endpoint without discussing cost or user impact.
+
+**Interview question:** "How would you turn that request into an engineering target?"
+
+**Answer:** I would identify the user journeys that truly require that objective, define success from the user's perspective, and calculate the allowed downtime and error budget. Login, feed browsing, analytics export, and profile decoration do not necessarily need identical targets. Higher availability requires redundancy, simpler dependencies, tested failover, operational staffing, and cost, and may conflict with strong consistency. I would propose tiered service-level objectives and graceful degradation for optional features. The final target should reflect business loss and recovery expectations, not an impressive number applied uniformly without an architecture or budget to support it.
+
+### S193 - Roll back or fix forward
+**Scenario:** A release causes elevated errors, but the team believes a one-line fix can be ready in fifteen minutes.
+
+**Interview question:** "How would you choose between rollback and fix forward?"
+
+**Answer:** I would compare current customer impact, rollback safety and speed, data or schema compatibility, confidence in the proposed fix, and the risk of another deployment. If rollback is known safe and impact is meaningful, I would restore service first rather than keep users waiting for an untested patch. Fix forward is reasonable when rollback would corrupt data, the fault is fully understood, and the change can be validated quickly behind a flag or canary. One incident leader should make the decision with a time bound. Investigation continues after stabilization regardless of which path restores service.
+
+### S194 - Too many people issue commands during an incident
+**Scenario:** Several senior engineers independently change configurations while others investigate, and the system state becomes unclear.
+
+**Interview question:** "How would you organize the response?"
+
+**Answer:** I would establish an incident commander who owns priorities and approves risky changes, an operations lead who executes, investigators for hypotheses, and a communications owner. The team keeps a timestamped log of observations, decisions, commands, results, and current system state. Only one change is made at a time when possible so cause and effect remain visible. A shared channel carries facts; side discussions report back. The commander sets the next checkpoint and stops unproductive work. Clear roles do not require the commander to be the deepest technical expert; they protect coordination while experts focus.
+
+### S195 - Data corruption may be spreading
+**Scenario:** A new worker appears to write malformed records, and downstream systems are copying them.
+
+**Interview question:** "What are your first priorities?"
+
+**Answer:** I would stop or isolate the suspected writer and pause propagation or compaction paths that could overwrite good copies. Preserving evidence and a known-good backup takes priority over immediate cleanup. I would identify the earliest bad version, affected keys, and whether reads can safely filter or route around them. Repair should be scripted, reviewed, idempotent, and tested on a copy; manual edits during uncertainty can spread damage. After containment, I would restore from authoritative sources or reconstruct events, validate checksums and invariants, then resume consumers gradually. Recovery must not destroy the evidence needed to determine scope.
+
+### S196 - Silent correctness bug has no errors
+**Scenario:** A service returns HTTP 200 and normal latency, but a business report shows that some discounts were calculated incorrectly for weeks.
+
+**Interview question:** "How would you detect and repair a silent failure?"
+
+**Answer:** Technical health metrics cannot detect every wrong answer. I would define business invariants and outcome metrics, such as expected price ranges, reconciliation totals, and comparison against an independent calculation. To investigate, I would identify the affected rule version, inputs, time range, and customer cohort, then stop further incorrect decisions through a flag or rollback. Repair may require recalculation, refunds, and clear communication, with an immutable audit trail. I would add rule-version logging, sampled shadow evaluation, and canary comparisons. Success means correct outcomes, not merely successful requests and healthy servers.
+
+### S197 - Third-party provider outage has no ETA
+**Scenario:** A critical external identity provider is down and cannot provide a recovery time.
+
+**Interview question:** "How would you operate and communicate during the outage?"
+
+**Answer:** I would confirm the provider failure, open the escalation channel, and stop retry storms with circuit breakers and bounded backoff. Existing authenticated sessions may continue if locally verifiable and policy permits, while new login or recovery clearly reports degraded service. I would activate any tested secondary provider or manual path only if identity and security semantics remain correct. Communications should state user impact, available workarounds, and the next update time without inventing an ETA. I would monitor provider recovery and ramp traffic gradually. Afterward, I would review dependency concentration, contract terms, and tested alternatives.
+
+### S198 - Writing a useful post-incident review
+**Scenario:** Service has recovered after a major outage, and leadership asks for a postmortem.
+
+**Interview question:** "What should the review contain?"
+
+**Answer:** I would build a factual timeline from detection through recovery, quantify user and business impact, explain the technical and organizational contributing conditions, and identify why existing safeguards did not prevent or limit the event. The review separates root causes from triggers and avoids blaming individuals for reasonable actions in a flawed system. Action items need owners, priorities, and due dates and should cover prevention, detection, containment, and recovery. I would record what worked as well. The document should be understandable to someone outside the incident and later verify whether promised improvements actually reduced risk.
+
+### S199 - Go or no-go before a major launch
+**Scenario:** A launch is scheduled tomorrow, but load testing found a database bottleneck only 20 percent above expected peak traffic.
+
+**Interview question:** "Would you launch?"
+
+**Answer:** I would not decide from the 20 percent number alone. I would review forecast uncertainty, burst shape, scaling time, failure behavior, rollback or feature-disable options, database headroom, and which features can degrade. If expected traffic can plausibly exceed the tested limit and no safe containment exists, I would delay or reduce rollout. A staged launch with strict guardrails, pre-provisioned capacity, and a kill switch may be acceptable. The decision and risk owner should be explicit. Launch pressure does not change queueing behavior, and an avoidable overload is harder to justify after the fact.
+
+### S200 - Summarizing a complete system design
+**Scenario:** You have two minutes left after discussing an Instagram-like architecture in detail.
+
+**Interview question:** "How would you close the interview answer clearly?"
+
+**Answer:** I would summarize the critical user flows, authoritative stores, and the main scaling choices rather than repeat every component. Post creation durably stores metadata and media, then publishes reliable events. Feed reads use hybrid fan-out, caches, cursor pagination, batched hydration, ranking, and CDN media. Idempotency, timeouts, backpressure, and graceful degradation protect failures, while metrics, traces, replay, backups, and tested failover support operations. I would restate the deliberate trade-offs: eventual consistency for feeds and counters, stronger consistency for identity and permissions, and added asynchronous complexity in exchange for lower latency and better isolation.
