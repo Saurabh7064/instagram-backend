@@ -603,4 +603,4 @@ For every new feature or learning concept:
 - Concepts: database invariants, atomic idempotency records, and bounded dependency work.
 - Docs: [Question index](./interview/02-system-design/questions/short-questions-and-answers/README.md).
 - Verification: three complete answers, nine explained checkpoints, correct final-section ordering, and resolving local code links. Documentation only; no API or application behavior changed.
-- Commit: recorded after creating the artifact commit.
+- Commit: `26fce39` — additional concurrency, idempotency, and deadline interview answers.
