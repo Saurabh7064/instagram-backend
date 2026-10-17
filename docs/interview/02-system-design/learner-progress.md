@@ -56,6 +56,12 @@ All detailed answers and [one-page revision cards](./revision-cards/README.md) a
 | Cache stampede | [Detailed](./questions/production-scenarios/07-cache-stampede-on-hot-key.md) | [≤400 words](./revision-cards/production-scenarios/07-cache-stampede-on-hot-key.md) | `TODO` |
 | Single-region latency | [Detailed](./questions/production-scenarios/08-single-region-latency-spike.md) | [≤400 words](./revision-cards/production-scenarios/08-single-region-latency-spike.md) | `TODO` |
 
+## Short question progress
+
+All 20 artifacts in [Short System Design Questions and Answers](./questions/short-questions-and-answers/README.md) are `READY`. Every question remains `TODO` for comprehension until the learner gives the two-to-three-minute answer without notes, traces the request or failure, and answers the three final questions before revealing them.
+
+Use the numbered index as the progress table; update one row only after evidence is demonstrated rather than when the file is read.
+
 ## Current lesson
 
 - Active lesson: none selected yet.

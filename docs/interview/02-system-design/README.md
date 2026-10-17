@@ -8,9 +8,10 @@ Use the project’s [system-design mastery roadmap](../../system-design/mastery-
 2. Study only the first selected [Concept Micro-Lesson](./concepts/README.md).
 3. Practice one answer at a time from the [Microservices Interview Questions](./questions/microservices/README.md).
 4. Practice realistic diagnosis in [Production Troubleshooting Scenarios](./questions/production-scenarios/README.md).
-5. Use [One-Page Revision Cards](./revision-cards/README.md) only after learning the underlying idea.
-6. Use the [November–December 2024 Question Bank](./question-bank-nov-dec-2024.md) for historical prompts and answer frameworks.
-7. Record explanations, predictions, failure diagnoses, and spaced reviews in [Learner Progress](./learner-progress.md).
+5. Build broad interview coverage with [20 Short System Design Questions and Answers](./questions/short-questions-and-answers/README.md).
+6. Use [One-Page Revision Cards](./revision-cards/README.md) only after learning the underlying idea.
+7. Use the [November–December 2024 Question Bank](./question-bank-nov-dec-2024.md) for historical prompts and answer frameworks.
+8. Record explanations, predictions, failure diagnoses, and spaced reviews in [Learner Progress](./learner-progress.md).
 
 The lesson format is: **why → analogy → plain-language model → concrete flow → project mapping → decision/trade-off → failure drill → questions → teach-back**. A lesson file being complete does not mean the learner understands it.
 

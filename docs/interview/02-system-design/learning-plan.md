@@ -93,6 +93,8 @@ Stop/go: explain why “highly scalable” and “highly available” are differ
 
 Focused diagnosis practice: [Production Troubleshooting Scenarios](./questions/production-scenarios/README.md). Use the [revision cards](./revision-cards/README.md) for retrieval only after attempting the detailed answer.
 
+Broad short-answer practice: use the [20-question index](./questions/short-questions-and-answers/README.md) to rehearse one decision at a time across requirements, data, scale, messaging, security, product systems, and operations.
+
 ### Module 2 — Data placement
 
 1. [Partitioning, Replication, and Hot Keys](./concepts/03-partitioning-replication-hot-keys.md) — `READY`
