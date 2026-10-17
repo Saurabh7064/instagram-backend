@@ -446,6 +446,13 @@ This file maps each commit to:
 - Verification: 20 numbered answers and 20 index rows, all required sections present, exactly three final checkpoint blocks per answer, all local Markdown links resolved, and clean diff checks.
 - Docs: [Short System Design Questions and Answers](./interview/02-system-design/questions/short-questions-and-answers/README.md), [System Design Interview Path](./interview/02-system-design/README.md), [Learner Progress](./interview/02-system-design/learner-progress.md), [System Design Learning Backlog](./system-design/learning-backlog.md)
 
+78. `4b1ab3c`
+- Learning change: added a dense print-first system-design revision pack with 132 concise questions and answers across 13 categories.
+- Coverage tracking: added a separate printable tracker for all 380 concepts in the master index, with `Learned`, `+1`, `+7`, and `Explain` recall checkpoints plus a morning review log.
+- Print artifacts: generated a five-page A4 cheat sheet and a nine-page A4 learning tracker from editable Markdown using a deterministic ReportLab generator.
+- Verification: validated sequential question and concept IDs, exact PDF coverage, A4 dimensions, page counts, extracted PDF text, ASCII-safe source, clean diff checks, and visually inspected every generated page.
+- Docs: [System Design Morning Print Pack](./interview/02-system-design/questions/short-questions-and-answers/toprint/README.md), [Morning Cheat Sheet](./interview/02-system-design/questions/short-questions-and-answers/toprint/system-design-morning-cheat-sheet.md), [Learning Tracker](./interview/02-system-design/questions/short-questions-and-answers/toprint/system-design-learning-tracker.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
