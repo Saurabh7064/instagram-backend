@@ -34,3 +34,7 @@ The two sample prompts about a [peak-hour latency spike](../production-scenarios
 Practice one row at a time. Read only the question, answer aloud for two to three minutes, then compare your response with the file. Mark comprehension only after you can trace the concrete flow, predict the failure, choose a mitigation, and explain one trade-off before opening the final answers.
 
 The files being `READY` does not mean the topics are understood; learner evidence remains separate in [System Design Learner Progress](../../learner-progress.md).
+
+## Printable morning pack
+
+For dense A4 revision, use the [System Design Morning Print Pack](./toprint/README.md). It contains 132 compact questions and answers, a separate 380-concept learning tracker, printable PDFs, and editable source files. This print pack intentionally does not use the full lesson format.

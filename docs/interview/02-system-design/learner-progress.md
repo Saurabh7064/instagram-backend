@@ -62,6 +62,8 @@ All 20 artifacts in [Short System Design Questions and Answers](./questions/shor
 
 Use the numbered index as the progress table; update one row only after evidence is demonstrated rather than when the file is read.
 
+For dense morning revision, use the [380-concept printable tracker](./questions/short-questions-and-answers/toprint/system-design-learning-tracker.md) with the 132-question core booklet. Its `Learned`, `+1`, `+7`, and `Explain` columns remain blank until the corresponding recall evidence is completed.
+
 ## Current lesson
 
 - Active lesson: none selected yet.
