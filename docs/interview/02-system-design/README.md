@@ -17,6 +17,10 @@ The lesson format is: **why → analogy → plain-language model → concrete fl
 
 The revision format is deliberately shorter: **problem → requirements → scale → components → flow → data → three trade-offs → three failures → spoken answer → three unrevealed questions**. Every card is at most 400 words and links back to its detailed source.
 
+## API design practice
+
+Follow [API Design with Spring Boot](./api-design/README.md) for 15 ordered lessons, project code mappings, request traces, failure drills, and explained checkpoints. Learning starts at lesson 01; artifact readiness is tracked separately from comprehension.
+
 ## Interview structure
 
 1. Clarify functional and non-functional requirements.

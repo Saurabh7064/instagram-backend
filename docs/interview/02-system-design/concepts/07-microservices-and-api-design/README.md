@@ -6,6 +6,10 @@
 
 - [Monolith To Microservices Migration](./04-monolith-to-microservices-migration.md) — artifact `READY`; comprehension tracked separately.
 
+## API contract practice
+
+[15 API Design with Spring Boot lessons](../../api-design/README.md) cover resource paths, methods, statuses, validation, errors, ownership, pagination, filtering, idempotency, conditional updates, caching, compatibility, asynchronous work, and contract tests. Proposed extensions are labelled; learning remains TODO until demonstrated.
+
 ## Topic roadmap
 
 These topic numbers preserve the original index; listing a topic does not imply it is fully covered by an existing lesson.

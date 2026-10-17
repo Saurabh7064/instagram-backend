@@ -61,3 +61,7 @@ Use this file to track product/engineering features for the app.
 ## Interview artifact update — 2026-10-17
 
 Added ready interview answers on concurrent likes, idempotency keys, and deadline budgets in the [question index](../interview/02-system-design/questions/short-questions-and-answers/README.md). This documentation update does not complete an implementation milestone or demonstrate learner comprehension; existing statuses remain unchanged.
+
+## API design lesson artifacts — 2026-10-17
+
+Created [15 API Design with Spring Boot lessons](../interview/02-system-design/api-design/README.md), with [separate learner evidence](../interview/02-system-design/api-design/learner-progress.md). Artifacts are READY; comprehension remains TODO. Proposed exercises map to F-010/F-014/F-016/F-017/F-022/F-030 and SD-004 compatibility. No feature implementation or concept mastery status changes are claimed.
