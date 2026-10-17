@@ -65,6 +65,65 @@ For `"AABABBA"`, `k = 1`:
 
 For `"AAAA"`, `k = 0`, every active character already matches: `4 - 4 = 0`. Result: `4`.
 
+## Debugger trace — `AABABBA`, replacement budget `1`
+
+This trace follows the reference method below and the runnable [reference solution](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/slidingwindow/characterreplacement/CharacterReplacementSolution.java). Indexes `0..6` contain `A, A, B, A, B, B, A`. Throughout the run, `text = "AABABBA"` and `replacementsAllowed = 1`.
+
+Initially, `left = 0`, `bestLength = 0`, `maxFrequency = 0`, and all 26 frequency cells are zero. `right` starts at `0`; the other local variables are assigned inside the loop.
+
+### Before the budget check
+
+Each row is immediately after adding the incoming character and updating `maxFrequency`, then calculating `replacementsNeeded`. `bestLength` here is the value from the previous iteration.
+
+| `right` | Incoming | `incomingIndex` | `left` | Window | A count | B count | `maxFrequency` | `replacementsNeeded = right - left + 1 - maxFrequency` | `bestLength` | `> 1`? |
+|---:|:---:|---:|---:|:---|---:|---:|---:|:---|---:|:---:|
+| 0 | A | 0 | 0 | `A` | 1 | 0 | 1 | `0 - 0 + 1 - 1 = 0` | 0 | false |
+| 1 | A | 0 | 0 | `AA` | 2 | 0 | 2 | `1 - 0 + 1 - 2 = 0` | 1 | false |
+| 2 | B | 1 | 0 | `AAB` | 2 | 1 | 2 | `2 - 0 + 1 - 2 = 1` | 2 | false |
+| 3 | A | 0 | 0 | `AABA` | 3 | 1 | 3 | `3 - 0 + 1 - 3 = 1` | 3 | false |
+| 4 | B | 1 | 0 | `AABAB` | 3 | 2 | 3 | `4 - 0 + 1 - 3 = 2` | 4 | true |
+| 5 | B | 1 | 1 | `ABABB` | 2 | 3 | 3 | `5 - 1 + 1 - 3 = 2` | 4 | true |
+| 6 | A | 0 | 2 | `BABBA` | 2 | 3 | 3 | `6 - 2 + 1 - 3 = 2` | 4 | true |
+
+### Full frequency array after every mutation
+
+`frequency[0]` counts `A`, `frequency[1]` counts `B`, and indexes `2..25` count `C..Z`. For example, `'A' - 'A' = 0` and `'B' - 'A' = 1`. Every row below contains all 26 cells in index order; only the first two change for this input.
+
+| Debugger step | Exact operation | Full `frequency` array |
+|:---|:---|:---|
+| Initial | `new int[26]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=0: add A | `frequency[0]++` | `[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=1: add A | `frequency[0]++` | `[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=2: add B | `frequency[1]++` | `[2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=3: add A | `frequency[0]++` | `[3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=4: add B | `frequency[1]++` | `[3,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| Remove A at left=0 | `frequency[0]--` | `[2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=5: add B | `frequency[1]++` | `[2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| Remove A at left=1 | `frequency[0]--` | `[1,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=6: add A | `frequency[0]++` | `[2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| Remove B at left=2 | `frequency[1]--` | `[2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+
+### After removal and the best-length update
+
+`outgoingIndex` exists only inside the `if` block. A dash means the block did not run; it does not mean the variable contains `-1`.
+
+| `right` | Removed | `outgoingIndex` | `left` after | Window after | `maxFrequency` | Stored `replacementsNeeded` | `bestLength = max(previous best, right - left + 1)` |
+|---:|:---|---:|---:|:---|---:|---:|:---|
+| 0 | — | — | 0 | `A` | 1 | 0 | `max(0, 1) = 1` |
+| 1 | — | — | 0 | `AA` | 2 | 0 | `max(1, 2) = 2` |
+| 2 | — | — | 0 | `AAB` | 2 | 1 | `max(2, 3) = 3` |
+| 3 | — | — | 0 | `AABA` | 3 | 1 | `max(3, 4) = 4` |
+| 4 | A at index 0 | 0 | 1 | `ABAB` | 3 | 2 | `max(4, 4) = 4` |
+| 5 | A at index 1 | 0 | 2 | `BABB` | 3 | 2 | `max(4, 4) = 4` |
+| 6 | B at index 2 | 1 | 3 | `ABBA` | 3 | 2 | `max(4, 4) = 4` |
+
+Two debugger details explain the apparently surprising values:
+
+- `replacementsNeeded` is calculated **before removal**. The code does not assign it again after `left++`, so it still displays `2` at the end of iterations 4, 5, and 6.
+- `frequency` always counts the current window, but `maxFrequency` is historical. After iteration 4, `ABAB` has counts A=2, B=2, so its actual replacement cost is `4 - 2 = 2`; `maxFrequency` nevertheless remains `3`. Iteration 5 ends with `BABB`, whose actual cost is `4 - 3 = 1`. Iteration 6 ends with `ABBA`, whose actual cost is `4 - 2 = 2`. The algorithm keeps the already achieved length `4`; it does not assert that every maintained window is currently valid.
+
+After iteration 6, `right++` makes `right = 7`. The condition `7 < text.length()` becomes `7 < 7`, which is false. The method returns `bestLength = 4`. A valid length-four window was `AABA`: keep its three A characters and replace its one B to obtain `AAAA`.
+
 ## Reference approach
 
 ```java
