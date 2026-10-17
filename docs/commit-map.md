@@ -625,3 +625,12 @@ For every new feature or learning concept:
 - Concepts: sliding-window boundaries, all 26 frequency cells after every mutation, historical maximum, and local-variable timing.
 - Docs and code pointers: [lesson and trace](./interview/01-leetcode/lessons/03-sliding-window/03-longest-repeating-character-replacement/README.md), [reference method](../src/test/java/com/instagram/backend/interview/leetcode/slidingwindow/characterreplacement/CharacterReplacementSolution.java).
 - Verification: compiled practice and reference Java files; ran the reference runner successfully; `git diff --check` passed. Documentation-only change; no API or UI behavior changed. Feature/concept backlog and learner status remain unchanged because this expands an existing lesson without completing a new feature or demonstrating comprehension.
+
+## API design with Spring Boot — 2026-10-17
+
+- Commit: `dfb2050` — fifteen API design lesson artifacts with Spring Boot examples.
+- Concepts: resource URLs, HTTP methods/statuses, validation, errors, identity/ownership, offset/cursor pagination, filtering, idempotency, conditional writes, private caching, compatibility, asynchronous work, and contract verification.
+- Docs: [module and sequence](./interview/02-system-design/api-design/README.md), [learner evidence](./interview/02-system-design/api-design/learner-progress.md).
+- Code mappings: [PostController](../src/main/java/com/instagram/backend/controller/PostController.java), [PostService](../src/main/java/com/instagram/backend/service/PostService.java), [PostRepository](../src/main/java/com/instagram/backend/repository/PostRepository.java), [correlation filter](../src/main/java/com/instagram/backend/observability/RequestCorrelationFilter.java). Proposed components are explicitly labelled in the lessons.
+- Verification: 15 lesson files, 45 explained checkpoints, 92 resolving local module links, balanced code fences, required section checks, and `git diff --check`. Examples reviewed against source and linked primary HTTP/Spring references. Teaching excerpts were not compiled or exercised as implemented endpoints. Documentation only; application/API/UI behavior unchanged, so integration/API/browser verification is not applicable.
+- Backlogs: artifact availability recorded in feature and system-design trackers. Feature implementation statuses remain unchanged; all new lesson learning statuses are TODO until demonstrated.
