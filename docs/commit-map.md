@@ -460,6 +460,13 @@ This file maps each commit to:
 - Verification: validated sequential `S001`-`S100` coverage, category count, answer length, A4 dimensions, page count, extracted PDF text, local links, ASCII-safe source, clean diff checks, and visually inspected every generated page.
 - Docs: [Scenario Drills](./interview/02-system-design/questions/short-questions-and-answers/toprint/system-design-scenario-drills.md), [System Design Morning Print Pack](./interview/02-system-design/questions/short-questions-and-answers/toprint/README.md), [Learner Progress](./interview/02-system-design/learner-progress.md)
 
+80. `90dbe0a`
+- Learning change: expanded the production-meeting scenario booklet from 100 to 200 questions with new drills on coordination, service discovery, storage lifecycle, stream processing, search and ML, networking, multi-region systems, cost engineering, architecture migration, and incident leadership.
+- Interview practice: added sequential `S101`-`S200` prompts whose answers consistently cover the first evidence to inspect, immediate containment, correctness boundary, durable fix, and operational trade-off.
+- Print artifact: regenerated the booklet as 18 dense A4 pages and converted the final page into a full-width 22-entry morning review log with the reusable 60-second answer framework.
+- Verification: validated 200 sequential IDs, 20 categories, 84-102 word answers, exact extracted PDF coverage, A4 dimensions, page count, local links, ASCII-safe source, source diff checks, and visually inspected all 18 rendered pages.
+- Docs: [Scenario Drills](./interview/02-system-design/questions/short-questions-and-answers/toprint/system-design-scenario-drills.md), [System Design Morning Print Pack](./interview/02-system-design/questions/short-questions-and-answers/toprint/README.md), [Learner Progress](./interview/02-system-design/learner-progress.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
