@@ -4,7 +4,7 @@
 - Time: 15 minutes
 - Primary idea: caching speeds reads by creating another copy, which creates a freshness decision
 - New terms: cache hit, cache miss, stale data
-- Prerequisite: [Scalability, Availability, and Reliability](./01-scalability-availability-reliability.md)
+- Prerequisite: [Scalability, Availability, and Reliability](../09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md)
 
 ## Why does this exist?
 
@@ -78,7 +78,7 @@ Use a time-to-live (TTL) and tolerate old data briefly. Appropriate for product 
 
 ## Project mapping
 
-[ProfileService.java](../../../../src/main/java/com/instagram/backend/service/ProfileService.java) reads profile data that could eventually use cache-aside for popular public profiles. [PostService.java](../../../../src/main/java/com/instagram/backend/service/PostService.java) builds feed responses where caching could reduce repeated reads.
+[ProfileService.java](../../../../../src/main/java/com/instagram/backend/service/ProfileService.java) reads profile data that could eventually use cache-aside for popular public profiles. [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) builds feed responses where caching could reduce repeated reads.
 
 Do not cache merely because these methods exist. First measure query load and define freshness. A viewer-specific feed response includes like state, so a shared cache key must include the viewer or separate shared post data from viewer-specific state.
 

@@ -18,9 +18,9 @@ For full, standalone answers to the microservices prompts below, use the [Micros
 | MIG-01 | Nov 6 | How would you decompose a tightly coupled legacy Java monolith into microservices? | `P0` | [Detailed answer](./questions/microservices/01-decomposing-a-monolith.md) |
 | MIG-02 | Nov 6 | How would you minimize risk and preserve functionality during migration? | `P0` | [Detailed answer](./questions/microservices/01-decomposing-a-monolith.md) |
 | MIG-03 | Nov 6 | How do you maintain backward compatibility while both architectures coexist? | `P0` | [Contract evolution](./questions/microservices/09-api-event-contract-evolution.md) |
-| SCALE-01 | Nov 6 | How would you build dynamically scaling, high-throughput e-commerce services? | `P0` | [Foundations](./concepts/01-scalability-availability-reliability.md) |
+| SCALE-01 | Nov 6 | How would you build dynamically scaling, high-throughput e-commerce services? | `P0` | [Foundations](./concepts/09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md) |
 | PAY-01 | Nov 6 | How would you make checkout and payment highly available without sacrificing correctness? | `P0` | [Resilient architecture](./questions/microservices/06-fault-tolerant-resilient-architecture.md) |
-| CACHE-01 | Nov 6 | Which caching strategy would you choose, and how would you manage consistency? | `P0` | [Caching](./concepts/02-caching-consistency.md) |
+| CACHE-01 | Nov 6 | Which caching strategy would you choose, and how would you manage consistency? | `P0` | [Caching](./concepts/03-caching-and-content-delivery/02-caching-consistency.md) |
 | TXN-01 | Nov 6 | Where would you use a Saga, and how would failures be compensated? | `P0` | [Distributed transactions](./questions/microservices/04-distributed-transactions-and-data-consistency.md) |
 | PRIV-01 | Nov 6 | How can healthcare services share data efficiently while meeting privacy obligations? | `P1` | Privacy/global operation |
 | PRIV-02 | Nov 6 | How can analytics data be anonymized while original identity remains available for billing? | `P1` | Privacy/global operation |
@@ -161,7 +161,7 @@ An oversized pool can also multiply memory use, database connections, lock conte
 
 | ID | Date | Normalized question | Priority | Primary lesson |
 |---|---|---|---|---|
-| DATA-01 | Dec 1 | What are Cassandra partition keys, clustering keys, partitions, replicas, and nodes? | `P0` | [Partitioning](./concepts/03-partitioning-replication-hot-keys.md) |
+| DATA-01 | Dec 1 | What are Cassandra partition keys, clustering keys, partitions, replicas, and nodes? | `P0` | [Partitioning](./concepts/04-databases-and-data-modeling/03-partitioning-replication-hot-keys.md) |
 | DATA-02 | Dec 1 | How do you choose partition keys in SQL and NoSQL systems? | `P0` | Partitioning |
 | DATA-03 | Dec 1 | How would you model a Cassandra `UserActivity` table? | `P1` | Partitioning |
 | DATA-04 | Dec 1 | How does Cassandra route a query to a partition and replica nodes? | `P1` | Partitioning |

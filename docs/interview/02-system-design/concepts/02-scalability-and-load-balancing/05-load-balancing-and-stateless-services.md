@@ -4,7 +4,7 @@
 - Time: 15 minutes
 - Primary idea: a load balancer can safely spread requests only when any healthy instance can serve the next request
 - New terms: load balancer, stateless service, health check
-- Prerequisite: [Scalability, Availability, and Reliability](./01-scalability-availability-reliability.md)
+- Prerequisite: [Scalability, Availability, and Reliability](../09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md)
 
 ## Why does this exist?
 
@@ -56,11 +56,11 @@ The balancer improves the application tier, not the whole path automatically. If
 
 ## Instagram-backend mapping
 
-**Actual:** [TokenService.java](../../../../src/main/java/com/instagram/backend/service/TokenService.java) validates bearer tokens from shared configuration, so instances using the same signing secret can authenticate them. [PostService.java](../../../../src/main/java/com/instagram/backend/service/PostService.java) loads user and post state from repositories rather than an earlier request's memory.
+**Actual:** [TokenService.java](../../../../../src/main/java/com/instagram/backend/service/TokenService.java) validates bearer tokens from shared configuration, so instances using the same signing secret can authenticate them. [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) loads user and post state from repositories rather than an earlier request's memory.
 
-**Current scaling blocker:** [MediaStorageService.java](../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java) stores uploads on the instance's local filesystem. A later media request routed to another instance may not find that file.
+**Current scaling blocker:** [MediaStorageService.java](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java) stores uploads on the instance's local filesystem. A later media request routed to another instance may not find that file.
 
-**Proposed:** put multiple instances behind a load balancer and move media to shared object storage. Use the readiness probes in [application.properties](../../../../src/main/resources/application.properties) to stop routing when the database is unavailable. This infrastructure is not implemented here.
+**Proposed:** put multiple instances behind a load balancer and move media to shared object storage. Use the readiness probes in [application.properties](../../../../../src/main/resources/application.properties) to stop routing when the database is unavailable. This infrastructure is not implemented here.
 
 ## Decision and trade-off
 

@@ -4,7 +4,7 @@
 - Time: 20 minutes
 - Primary idea: replace one business capability at a time behind stable contracts instead of rewriting the whole system
 - New terms: domain boundary, strangler migration, anti-corruption layer
-- Prerequisite: [Scalability, Availability, and Reliability](./01-scalability-availability-reliability.md)
+- Prerequisite: [Scalability, Availability, and Reliability](../09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md)
 
 ## Why does this exist?
 
@@ -111,7 +111,7 @@ Increase traffic gradually, retain a rollback window, stop old writes, reconcile
 
 ## Project mapping
 
-This repository is still small enough to remain a modular monolith. [AuthService.java](../../../../src/main/java/com/instagram/backend/service/AuthService.java), [PostService.java](../../../../src/main/java/com/instagram/backend/service/PostService.java), [ProfileService.java](../../../../src/main/java/com/instagram/backend/service/ProfileService.java), and [MediaStorageService.java](../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java) already suggest capability boundaries.
+This repository is still small enough to remain a modular monolith. [AuthService.java](../../../../../src/main/java/com/instagram/backend/service/AuthService.java), [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java), [ProfileService.java](../../../../../src/main/java/com/instagram/backend/service/ProfileService.java), and [MediaStorageService.java](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java) already suggest capability boundaries.
 
 A sensible learning extraction would be media processing/storage because it can become asynchronous and independently scalable. Authentication and post ownership should remain together until there is a concrete scaling, security, or team-ownership reason to separate them.
 

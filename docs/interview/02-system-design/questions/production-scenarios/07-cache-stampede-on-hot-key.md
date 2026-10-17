@@ -63,7 +63,7 @@ If the value were an authorization decision, the stale path would be rejected; t
 
 No application cache exists in this repository. [PostService.feed(...)](../../../../../src/main/java/com/instagram/backend/service/PostService.java) reads all posts from PostgreSQL on every request and checks each viewer’s like state. [PostRepository.java](../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) exposes the direct feed query. Any Redis cache, refresh lease, invalidation event, or stale window described here is **proposed**, not implemented.
 
-A safe first candidate would be a bounded public or global feed page whose freshness requirement is explicit, not an unbounded personalized response containing security decisions. Existing [HTTP and feed observations](../../../../../src/main/resources/application.properties) could be extended with bounded `hit`, `miss`, `stale`, and `load_failure` outcomes. Review the detailed [Caching and Consistency](../../concepts/02-caching-consistency.md) lesson before choosing invalidation behavior.
+A safe first candidate would be a bounded public or global feed page whose freshness requirement is explicit, not an unbounded personalized response containing security decisions. Existing [HTTP and feed observations](../../../../../src/main/resources/application.properties) could be extended with bounded `hit`, `miss`, `stale`, and `load_failure` outcomes. Review the detailed [Caching and Consistency](../../concepts/03-caching-and-content-delivery/02-caching-consistency.md) lesson before choosing invalidation behavior.
 
 ## Choices and trade-offs
 

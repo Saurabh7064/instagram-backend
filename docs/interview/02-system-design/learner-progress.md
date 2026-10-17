@@ -15,14 +15,14 @@ Artifact completion and learner understanding are separate. A lesson can be read
 
 | Order | Concept | Artifact | Comprehension | Required evidence |
 |---:|---|---|---|---|
-| 1 | [Scalability, availability, reliability](./concepts/01-scalability-availability-reliability.md) | `READY` | `TODO` | Explain differences and diagnose one failure |
-| 2 | [Caching and consistency](./concepts/02-caching-consistency.md) | `READY` | `TODO` | Trace hit/miss/update and stale-read trade-off |
-| 3 | [Partitioning, replication, hot keys](./concepts/03-partitioning-replication-hot-keys.md) | `READY` | `TODO` | Route a query and repair a hot-key design |
-| 4 | [Monolith-to-microservices migration](./concepts/04-monolith-to-microservices-migration.md) | `READY` | `TODO` | Choose first extraction, coexistence, and rollback |
-| 5 | [Load balancing and stateless services](./concepts/05-load-balancing-and-stateless-services.md) | `READY` | `TODO` | Predict routing and instance failure behavior |
-| 6 | [Latency, throughput, and saturation](./concepts/06-latency-throughput-and-saturation.md) | `READY` | `TODO` | Locate a constrained resource from rate, latency, and queue evidence |
-| 7 | [Tail latency, percentiles, and queueing](./concepts/07-tail-latency-percentiles-and-queueing.md) | `READY` | `TODO` | Explain a high percentile hidden by an average and locate waiting time |
-| 8 | [Backpressure and load shedding](./concepts/08-backpressure-and-load-shedding.md) | `READY` | `TODO` | Bound overload and choose which work degrades first |
+| 1 | [Scalability, availability, reliability](./concepts/09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md) | `READY` | `TODO` | Explain differences and diagnose one failure |
+| 2 | [Caching and consistency](./concepts/03-caching-and-content-delivery/02-caching-consistency.md) | `READY` | `TODO` | Trace hit/miss/update and stale-read trade-off |
+| 3 | [Partitioning, replication, hot keys](./concepts/04-databases-and-data-modeling/03-partitioning-replication-hot-keys.md) | `READY` | `TODO` | Route a query and repair a hot-key design |
+| 4 | [Monolith-to-microservices migration](./concepts/07-microservices-and-api-design/04-monolith-to-microservices-migration.md) | `READY` | `TODO` | Choose first extraction, coexistence, and rollback |
+| 5 | [Load balancing and stateless services](./concepts/02-scalability-and-load-balancing/05-load-balancing-and-stateless-services.md) | `READY` | `TODO` | Predict routing and instance failure behavior |
+| 6 | [Latency, throughput, and saturation](./concepts/15-advanced-architecture-and-performance/06-latency-throughput-and-saturation.md) | `READY` | `TODO` | Locate a constrained resource from rate, latency, and queue evidence |
+| 7 | [Tail latency, percentiles, and queueing](./concepts/10-observability-and-production-monitoring/07-tail-latency-percentiles-and-queueing.md) | `READY` | `TODO` | Explain a high percentile hidden by an average and locate waiting time |
+| 8 | [Backpressure and load shedding](./concepts/02-scalability-and-load-balancing/08-backpressure-and-load-shedding.md) | `READY` | `TODO` | Bound overload and choose which work degrades first |
 | 9 | Saga, compensation, and idempotency | `TODO` | `TODO` | Recover a partially completed checkout |
 | 10 | Privacy and anonymized analytics | `TODO` | `TODO` | Separate identity, billing, and analytics data |
 | 11 | Multi-region operation | `TODO` | `TODO` | State RTO/RPO and resolve one write conflict |
@@ -67,5 +67,5 @@ For dense morning revision, use the [380-concept printable tracker](./questions/
 ## Current lesson
 
 - Active lesson: none selected yet.
-- Recommended start: [Scalability, Availability, and Reliability](./concepts/01-scalability-availability-reliability.md).
+- Recommended start: [Scalability, Availability, and Reliability](./concepts/09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md).
 - Rule: select one lesson, attempt its checkpoints aloud, and record the result before advancing.

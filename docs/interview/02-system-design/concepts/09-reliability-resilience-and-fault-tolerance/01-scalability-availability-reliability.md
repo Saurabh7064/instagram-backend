@@ -66,9 +66,9 @@ This is why architecture quality must be evaluated across the full dependency pa
 
 ## Project mapping
 
-The current application exposes HTTP endpoints through [PostController.java](../../../../src/main/java/com/instagram/backend/controller/PostController.java) and executes feed logic in [PostService.java](../../../../src/main/java/com/instagram/backend/service/PostService.java).
+The current application exposes HTTP endpoints through [PostController.java](../../../../../src/main/java/com/instagram/backend/controller/PostController.java) and executes feed logic in [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java).
 
-The token design in [TokenService.java](../../../../src/main/java/com/instagram/backend/service/TokenService.java) can support stateless authentication because any instance with the signing configuration can validate a token. Local media storage in [MediaStorageService.java](../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java), however, becomes instance-local state and would need shared object storage before multiple instances can serve the same media reliably.
+The token design in [TokenService.java](../../../../../src/main/java/com/instagram/backend/service/TokenService.java) can support stateless authentication because any instance with the signing configuration can validate a token. Local media storage in [MediaStorageService.java](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java), however, becomes instance-local state and would need shared object storage before multiple instances can serve the same media reliably.
 
 ## Decision and trade-off
 

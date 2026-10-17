@@ -82,11 +82,11 @@ Study one micro-lesson at a time. Later rows remain `TODO` until the current sto
 
 ### Module 1 — Foundations
 
-1. [Scalability, Availability, and Reliability](./concepts/01-scalability-availability-reliability.md) — `READY`
-2. [Load Balancing and Stateless Services](./concepts/05-load-balancing-and-stateless-services.md) — `READY`
-3. [Latency, Throughput, and Saturation](./concepts/06-latency-throughput-and-saturation.md) — `READY`
-4. [Tail Latency, Percentiles, and Queueing](./concepts/07-tail-latency-percentiles-and-queueing.md) — `READY`
-5. [Backpressure and Load Shedding](./concepts/08-backpressure-and-load-shedding.md) — `READY`
+1. [Scalability, Availability, and Reliability](./concepts/09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md) — `READY`
+2. [Load Balancing and Stateless Services](./concepts/02-scalability-and-load-balancing/05-load-balancing-and-stateless-services.md) — `READY`
+3. [Latency, Throughput, and Saturation](./concepts/15-advanced-architecture-and-performance/06-latency-throughput-and-saturation.md) — `READY`
+4. [Tail Latency, Percentiles, and Queueing](./concepts/10-observability-and-production-monitoring/07-tail-latency-percentiles-and-queueing.md) — `READY`
+5. [Backpressure and Load Shedding](./concepts/02-scalability-and-load-balancing/08-backpressure-and-load-shedding.md) — `READY`
 6. Consistency and durability — `TODO`
 
 Stop/go: explain why “highly scalable” and “highly available” are different claims, then identify which one a proposed change improves.
@@ -97,7 +97,7 @@ Broad short-answer practice: use the [20-question index](./questions/short-quest
 
 ### Module 2 — Data placement
 
-1. [Partitioning, Replication, and Hot Keys](./concepts/03-partitioning-replication-hot-keys.md) — `READY`
+1. [Partitioning, Replication, and Hot Keys](./concepts/04-databases-and-data-modeling/03-partitioning-replication-hot-keys.md) — `READY`
 2. SQL versus NoSQL from access patterns — `TODO`
 3. Cassandra partition and clustering keys — `TODO`
 4. Read replicas, quorum, and replication lag — `TODO`
@@ -106,7 +106,7 @@ Stop/go: choose a key for a concrete query, predict which node receives it, and 
 
 ### Module 3 — Fast reads and search
 
-1. [Caching and Consistency](./concepts/02-caching-consistency.md) — `READY`
+1. [Caching and Consistency](./concepts/03-caching-and-content-delivery/02-caching-consistency.md) — `READY`
 2. Cache-aside, write-through, and invalidation — `TODO`
 3. Stampede, penetration, and eviction — `TODO`
 4. Product search, inverted indexes, and indexing delay — `TODO`
@@ -124,7 +124,7 @@ Stop/go: explain how a retried checkout avoids duplicate payment and how the sys
 
 ### Module 5 — Architecture evolution
 
-1. [Monolith-to-Microservices Migration](./concepts/04-monolith-to-microservices-migration.md) — `READY`
+1. [Monolith-to-Microservices Migration](./concepts/07-microservices-and-api-design/04-monolith-to-microservices-migration.md) — `READY`
 2. Service boundaries and data ownership — `TODO`
 3. Backward compatibility and contract testing — `TODO`
 4. Observability, canaries, rollback, and cutover — `TODO`

@@ -4,7 +4,7 @@
 - Time: 15–20 minutes
 - Primary idea: partitioning divides data while replication copies data; a poor key can overload one division
 - New terms: partition, replica, hot key
-- Prerequisite: [Scalability, Availability, and Reliability](./01-scalability-availability-reliability.md)
+- Prerequisite: [Scalability, Availability, and Reliability](../09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md)
 
 ## Why does this exist?
 
@@ -114,7 +114,7 @@ Do not choose a Cassandra key because it is “unique.” Choose it because it s
 
 ## Project mapping
 
-[Post.java](../../../../src/main/java/com/instagram/backend/domain/Post.java), [PostLike.java](../../../../src/main/java/com/instagram/backend/domain/PostLike.java), and their repositories currently use relational storage. That is appropriate at the current scale.
+[Post.java](../../../../../src/main/java/com/instagram/backend/domain/Post.java), [PostLike.java](../../../../../src/main/java/com/instagram/backend/domain/PostLike.java), and their repositories currently use relational storage. That is appropriate at the current scale.
 
 At larger scale, partitioning by only `author_id` could create celebrity hot keys. A feed/event store might use a bounded key such as `(author_id, time_bucket, shard)` while a relational source of truth continues to own transactional post metadata.
 

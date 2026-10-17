@@ -4,7 +4,7 @@
 - Time: 15 minutes
 - Primary idea: when demand exceeds sustainable capacity, deliberately limit accepted work so the system keeps a bounded, useful service
 - New terms: bounded queue, backpressure, load shedding
-- Prerequisite: [Latency, Throughput, and Saturation](./06-latency-throughput-and-saturation.md)
+- Prerequisite: [Latency, Throughput, and Saturation](../15-advanced-architecture-and-performance/06-latency-throughput-and-saturation.md)
 
 ## Why does this exist?
 
@@ -57,9 +57,9 @@ The limit should protect the actual constrained dependency. A generous applicati
 
 ## Instagram-backend mapping
 
-The current [PostController.java](../../../../src/main/java/com/instagram/backend/controller/PostController.java) accepts synchronous requests, while [PostService.java](../../../../src/main/java/com/instagram/backend/service/PostService.java) performs database work. The feed reads all posts, so its cost grows with stored data.
+The current [PostController.java](../../../../../src/main/java/com/instagram/backend/controller/PostController.java) accepts synchronous requests, while [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) performs database work. The feed reads all posts, so its cost grows with stored data.
 
-[application.properties](../../../../src/main/resources/application.properties) configures latency buckets and database-aware readiness. [JourneyMetricsInterceptor.java](../../../../src/main/java/com/instagram/backend/observability/JourneyMetricsInterceptor.java) records business outcomes. These detect overload but do not limit admission.
+[application.properties](../../../../../src/main/resources/application.properties) configures latency buckets and database-aware readiness. [JourneyMetricsInterceptor.java](../../../../../src/main/java/com/instagram/backend/observability/JourneyMetricsInterceptor.java) records business outcomes. These detect overload but do not limit admission.
 
 A gateway limit, maximum active feed requests, cursor pagination, reserved authentication capacity, and an overload response are **proposed**. Any future media-processing queue should also be bounded.
 

@@ -18,7 +18,7 @@ Update this file once per week. Evidence should link to notes, problem logs, moc
 |---|---:|---:|---|---|
 | Coding patterns mastered | 12 | 0 | LEARNING | Complete [HashMap Value-to-Index Lookup](./01-leetcode/lessons/01-arrays-hash-maps/03-value-to-index/README.md) |
 | Problems mastered | 130 | 0 | LEARNING | Explain the passing average `O(n)` Two Sum solution and answer its checkpoints |
-| System designs completed | 15 | 0 | NOT_STARTED | Attempt [Scalability, Availability, and Reliability](./02-system-design/concepts/01-scalability-availability-reliability.md), then design the Instagram read path |
+| System designs completed | 15 | 0 | NOT_STARTED | Attempt [Scalability, Availability, and Reliability](./02-system-design/concepts/09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md), then design the Instagram read path |
 | Behavioral stories rehearsed | 8 | 0 | NOT_STARTED | Draft technical challenge story |
 | Project deep-dives ready | 2 | 0 | NOT_STARTED | Select Nike and U.S. Bank examples |
 | Java/JVM topics ready | 10 | 0 | NOT_STARTED | After the active LeetCode lesson, choose [Functional Programming Coding](./04-java/01-functional-programming-coding/README.md) or [Multithreading from Scratch](./04-java/02-multithreading-from-scratch/README.md) |

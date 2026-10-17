@@ -583,6 +583,13 @@ This file maps each commit to:
 - Verification: 6 Playwright tests, successful production build, and a proof script that asserts the complete Maximum Average reference method has lines 1–16.
 - Docs: [Feature 15](./features/15-numbered-reference-solutions.md), [UI Docs Index](../../instagram-ui/docs/index.md), [UI Feature Roadmap](../../instagram-ui/docs/ui-feature-roadmap.md)
 
+## Concept folder organization — 2026-10-17
+
+- Commit: see the commit titled `docs: organize system design concepts by index categories`; its hash is recorded below after creation.
+- Change: organized eight existing lessons under the 16 categories from the supplied index, retaining all 380 roadmap topics and updating lesson, progress, and backlog links.
+- Docs: [Concept index](./interview/02-system-design/concepts/index.md), [existing lesson sequence](./interview/02-system-design/concepts/README.md).
+- Verification: 120 local concept links resolve; all 380 topic numbers remain ordered and eight lesson artifacts remain. Documentation-only change; application behavior and learner statuses are unchanged.
+
 ## Rule
 
 For every new feature or learning concept:

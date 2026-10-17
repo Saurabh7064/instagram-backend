@@ -4,7 +4,7 @@
 - Time: 15 minutes
 - Primary idea: response time rises sharply when incoming work approaches the capacity of the slowest constrained resource
 - New terms: latency, throughput, saturation
-- Prerequisite: [Scalability, Availability, and Reliability](./01-scalability-availability-reliability.md)
+- Prerequisite: [Scalability, Availability, and Reliability](../09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md)
 
 ## Why does this exist?
 
@@ -51,9 +51,9 @@ Investigate in this order: confirm the latency and errors; correlate them with t
 
 ## Instagram-backend mapping
 
-**Actual visibility:** [application.properties](../../../../src/main/resources/application.properties) enables HTTP latency histograms. [PostService.java](../../../../src/main/java/com/instagram/backend/service/PostService.java) observes feed loading. [JourneyMetricsInterceptor.java](../../../../src/main/java/com/instagram/backend/observability/JourneyMetricsInterceptor.java) and [InstagramMetrics.java](../../../../src/main/java/com/instagram/backend/observability/InstagramMetrics.java) record journey outcomes.
+**Actual visibility:** [application.properties](../../../../../src/main/resources/application.properties) enables HTTP latency histograms. [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) observes feed loading. [JourneyMetricsInterceptor.java](../../../../../src/main/java/com/instagram/backend/observability/JourneyMetricsInterceptor.java) and [InstagramMetrics.java](../../../../../src/main/java/com/instagram/backend/observability/InstagramMetrics.java) record journey outcomes.
 
-**Actual risk:** the feed calls `findAllByOrderByCreatedAtDesc()` in [PostRepository.java](../../../../src/main/java/com/instagram/backend/repository/PostRepository.java), so work grows with all posts. `PostService` also calls `existsByPostAndUser` from [PostLikeRepository.java](../../../../src/main/java/com/instagram/backend/repository/PostLikeRepository.java) once per post. This repeated database work can amplify latency.
+**Actual risk:** the feed calls `findAllByOrderByCreatedAtDesc()` in [PostRepository.java](../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java), so work grows with all posts. `PostService` also calls `existsByPostAndUser` from [PostLikeRepository.java](../../../../../src/main/java/com/instagram/backend/repository/PostLikeRepository.java) once per post. This repeated database work can amplify latency.
 
 **Proposed:** paginate the feed, fetch like state in bounded work, and expose query time, connection use, and waits beside HTTP metrics. These changes are not implemented; measurements should verify the bottleneck first.
 

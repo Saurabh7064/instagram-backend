@@ -4,7 +4,7 @@
 - Time: 15 minutes
 - Primary idea: a small group of slow requests can harm users even when average latency looks acceptable, so inspect percentiles and waiting time
 - New terms: tail latency, percentile, queueing
-- Prerequisite: [Latency, Throughput, and Saturation](./06-latency-throughput-and-saturation.md)
+- Prerequisite: [Latency, Throughput, and Saturation](../15-advanced-architecture-and-performance/06-latency-throughput-and-saturation.md)
 
 ## Why does this exist?
 
@@ -59,9 +59,9 @@ Compare the same route by time, version, instance, and region, then inspect one 
 
 ## Instagram-backend mapping
 
-The current [application.properties](../../../../src/main/resources/application.properties) records HTTP latency in fixed buckets from `100 ms` through `2 s`. Central collection could use them to answer percentile questions; one local scrape is not a historical production view.
+The current [application.properties](../../../../../src/main/resources/application.properties) records HTTP latency in fixed buckets from `100 ms` through `2 s`. Central collection could use them to answer percentile questions; one local scrape is not a historical production view.
 
-[RequestCorrelationFilter.java](../../../../src/main/java/com/instagram/backend/observability/RequestCorrelationFilter.java) logs route, status, and total `durationMs`. [PostService.java](../../../../src/main/java/com/instagram/backend/service/PostService.java) measures feed work with `instagram.feed.load`.
+[RequestCorrelationFilter.java](../../../../../src/main/java/com/instagram/backend/observability/RequestCorrelationFilter.java) logs route, status, and total `durationMs`. [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) measures feed work with `instagram.feed.load`.
 
 The feed loads every post. Pagination, connection-wait metrics, retained dashboards, and database child spans are **proposed**, not implemented. They would separate growing result work from PostgreSQL wait time.
 
