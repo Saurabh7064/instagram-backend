@@ -467,6 +467,13 @@ This file maps each commit to:
 - Verification: validated 200 sequential IDs, 20 categories, 84-102 word answers, exact extracted PDF coverage, A4 dimensions, page count, local links, ASCII-safe source, source diff checks, and visually inspected all 18 rendered pages.
 - Docs: [Scenario Drills](./interview/02-system-design/questions/short-questions-and-answers/toprint/system-design-scenario-drills.md), [System Design Morning Print Pack](./interview/02-system-design/questions/short-questions-and-answers/toprint/README.md), [Learner Progress](./interview/02-system-design/learner-progress.md)
 
+81. `1c1a03f`
+- Learning change: added a 120-concept printable system-design handbook covering foundations, consistency, transaction isolation, database and distributed lock types, data scaling, caching, messaging, resilience, APIs, coordination, observability, architecture, product-scale patterns, security, and deployments.
+- Explanation standard: every concept has a 51-78 word explanation of purpose and trade-offs plus a separate 21-38 word concrete example; included dedicated entries for eventual consistency, optimistic and pessimistic locking, shared and exclusive locks, row and table locks, distributed locks, leases, and fencing tokens.
+- Print artifact: generated nine dense A4 pages with two-column concept content, three recall boxes per item, pale example callouts, a concept-answer framework, and a full-page 22-entry morning review log.
+- Verification: validated sequential `C001`-`C120` coverage, 12 categories, answer and example depth, exact extracted PDF content, A4 dimensions, page count, local links, ASCII-safe source, source diff checks, and visually inspected all nine rendered pages.
+- Docs: [Concept Handbook](./interview/02-system-design/questions/short-questions-and-answers/toprint/system-design-concepts-with-examples.md), [System Design Morning Print Pack](./interview/02-system-design/questions/short-questions-and-answers/toprint/README.md), [Learner Progress](./interview/02-system-design/learner-progress.md)
+
 ## UI Repo: `instagram-ui`
 
 1. `1ff70f7`
