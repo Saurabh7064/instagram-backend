@@ -396,6 +396,27 @@ For this sample, no partner-duplicate loop advances. For sorted `[-2,0,0,2,2]`, 
 | `0` | `4` | `5` | `-4 + 1 + 2 = -1` | `left++ → 5` | `[]` |
 | `3` | `4` | `5` | `0 + 1 + 2 = 3` | `right-- → 4` | `[[-1, -1, 2], [-1, 0, 1]]` |
 
+
+**Complete iterations — read each row left to right:**
+
+The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+
+| anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `0` | `1` | `5` | `1 < 5 → true` | `false` | `-4+(-1)+2=-3` | `false` | `true` | `[]` | `left=2; Skipped (no match)` |
+| `0` | `2` | `5` | `2 < 5 → true` | `false` | `-4+(-1)+2=-3` | `false` | `true` | `[]` | `left=3; Skipped (no match)` |
+| `0` | `3` | `5` | `3 < 5 → true` | `false` | `-4+(0)+2=-2` | `false` | `true` | `[]` | `left=4; Skipped (no match)` |
+| `0` | `4` | `5` | `4 < 5 → true` | `false` | `-4+(1)+2=-1` | `false` | `true` | `[]` | `left=5; Skipped (no match)` |
+| `0` | `5` | `5` | `5 < 5 → false` | `already false` | `Skipped` | `Skipped` | `Skipped` | `[]` | `exit inner loop; next anchor` |
+| `1` | `2` | `5` | `2 < 5 → true` | `false` | `-1+(-1)+2=0` | `true` | `Skipped` | `[[-1, -1, 2]]` | `record; left=3; right=4; left duplicate false; right duplicate false` |
+| `1` | `3` | `4` | `3 < 4 → true` | `false` | `-1+(0)+1=0` | `true` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `record; left=4; right=3; left < right false; equality skipped; left < right false; equality skipped` |
+| `1` | `4` | `3` | `4 < 3 → false` | `already false` | `Skipped` | `Skipped` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `exit inner loop; next anchor` |
+| `2` | `—` | `—` | `Skipped` | `true; continue` | `Skipped` | `Skipped` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `next anchor` |
+| `3` | `4` | `5` | `4 < 5 → true` | `false` | `0+(1)+2=3` | `false` | `false` | `[[-1, -1, 2], [-1, 0, 1]]` | `right=4; Skipped (no match)` |
+| `3` | `4` | `4` | `4 < 4 → false` | `already false` | `Skipped` | `Skipped` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `exit inner loop; next anchor` |
+
+Outer anchors `0..3` satisfy `anchor < 6-2`. Anchor `0` short-circuits `anchor > 0 && ...` at its false first operand. Anchor `2` is a duplicate and skips pointer initialization entirely. After anchor `3`, `anchor=4` makes `4 < 4` false; return the two recorded triplets.
+
 ### Block 9 — Return every unique triplet found
 
 ```java

@@ -137,6 +137,23 @@ for (char character : first.toCharArray()) {
 | `count first` | `a` | `2` | `2 + 1 = 3` | `{'a': 3, 'n': 1, 'g': 1, 'r': 1}` |
 | `count first` | `m` | `0` | `0 + 1 = 1` | `{'a': 3, 'n': 1, 'g': 1, 'r': 1, 'm': 1}` |
 
+
+**Complete iterations — read each row left to right:**
+
+The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+
+| character | getOrDefault(character,0) | put count | map after | next action |
+| --- | --- | --- | --- | --- |
+| `a` | `0` | `0+1=1` | `{'a': 1}` | `next first-string character` |
+| `n` | `0` | `0+1=1` | `{'a': 1, 'n': 1}` | `next first-string character` |
+| `a` | `1` | `1+1=2` | `{'a': 2, 'n': 1}` | `next first-string character` |
+| `g` | `0` | `0+1=1` | `{'a': 2, 'n': 1, 'g': 1}` | `next first-string character` |
+| `r` | `0` | `0+1=1` | `{'a': 2, 'n': 1, 'g': 1, 'r': 1}` | `next first-string character` |
+| `a` | `2` | `2+1=3` | `{'a': 3, 'n': 1, 'g': 1, 'r': 1}` | `next first-string character` |
+| `m` | `0` | `0+1=1` | `{'a': 3, 'n': 1, 'g': 1, 'r': 1, 'm': 1}` | `next first-string character` |
+
+After seven characters, this enhanced loop is exhausted. The next loop starts with the complete requirement map.
+
 ### Block 4 — Request one available copy for each second-string character
 
 ```java
@@ -200,6 +217,23 @@ if (currentCount == 1) {
 | `consume second` | `r` | `1` | `remove key (count was 1)` | `{'a': 1, 'm': 1}` |
 | `consume second` | `a` | `1` | `remove key (count was 1)` | `{'m': 1}` |
 | `consume second` | `m` | `1` | `remove key (count was 1)` | `{}` |
+
+
+**Complete iterations — read each row left to right:**
+
+The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+
+| character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `n` | `1` | `false` | `true` | `remove key` | `{'a': 3, 'g': 1, 'r': 1, 'm': 1}` | `next second-string character` |
+| `a` | `3` | `false` | `false` | `put(a,2)` | `{'a': 2, 'g': 1, 'r': 1, 'm': 1}` | `next second-string character` |
+| `g` | `1` | `false` | `true` | `remove key` | `{'a': 2, 'r': 1, 'm': 1}` | `next second-string character` |
+| `a` | `2` | `false` | `false` | `put(a,1)` | `{'a': 1, 'r': 1, 'm': 1}` | `next second-string character` |
+| `r` | `1` | `false` | `true` | `remove key` | `{'a': 1, 'm': 1}` | `next second-string character` |
+| `a` | `1` | `false` | `true` | `remove key` | `{'m': 1}` | `next second-string character` |
+| `m` | `1` | `false` | `true` | `remove key` | `{}` | `next second-string character` |
+
+Every lookup is present, so no early false return runs. After exhaustion, `remainingByCharacter.isEmpty()` evaluates to `true`; return `true`.
 
 ### Block 6 — Accept only a completely consumed map
 

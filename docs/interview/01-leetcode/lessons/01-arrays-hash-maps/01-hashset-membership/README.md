@@ -137,6 +137,20 @@ This is easier to read initially but performs a lookup followed by a separate in
 | `3` | `[1, 2]` | `true` | `[1, 2, 3]` | `continue` |
 | `1` | `[1, 2, 3]` | `false` | `[1, 2, 3]` | `return true` |
 
+
+**Complete iterations — read each row left to right:**
+
+The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+
+| value | seen.add(value) | if (!seen.add(value)) | seen after | next action |
+| --- | --- | --- | --- | --- |
+| `1` | `true` | `!true → false` | `[1]` | `continue` |
+| `2` | `true` | `!true → false` | `[1, 2]` | `continue` |
+| `3` | `true` | `!true → false` | `[1, 2, 3]` | `continue` |
+| `1` | `false` | `!false → true` | `[1, 2, 3]` | `return true; stop` |
+
+The duplicate makes the fourth condition true, so the final return outside the loop is skipped. For all-distinct input, exhaustion instead reaches `return false`.
+
 ### Block 4 — Reject duplication only after the scan finishes
 
 ```java

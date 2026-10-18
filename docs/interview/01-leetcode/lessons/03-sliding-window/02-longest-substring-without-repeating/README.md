@@ -175,6 +175,24 @@ bestLength = Math.max(bestLength, right - left + 1);
 | `add incoming; update bestLength` | `6` | `b` | `5` | `['b', 'c']` | `3` |
 | `add incoming; update bestLength` | `7` | `b` | `7` | `['b']` | `3` |
 
+
+**Complete iterations — read each row left to right:**
+
+The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+
+| right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `0` | `a` | `[]` | `false → stop shrinking` | `0` | `['a']` | `0-0+1=1` | `1` | `right++; continue` |
+| `1` | `b` | `['a']` | `false → stop shrinking` | `0` | `['a', 'b']` | `1-0+1=2` | `2` | `right++; continue` |
+| `2` | `c` | `['a', 'b']` | `false → stop shrinking` | `0` | `['a', 'b', 'c']` | `2-0+1=3` | `3` | `right++; continue` |
+| `3` | `a` | `['a', 'b', 'c']` | `true → remove a@0, left=1, set=['b', 'c']; false → stop shrinking` | `1` | `['a', 'b', 'c']` | `3-1+1=3` | `3` | `right++; continue` |
+| `4` | `b` | `['a', 'b', 'c']` | `true → remove b@1, left=2, set=['a', 'c']; false → stop shrinking` | `2` | `['a', 'b', 'c']` | `4-2+1=3` | `3` | `right++; continue` |
+| `5` | `c` | `['a', 'b', 'c']` | `true → remove c@2, left=3, set=['a', 'b']; false → stop shrinking` | `3` | `['a', 'b', 'c']` | `5-3+1=3` | `3` | `right++; continue` |
+| `6` | `b` | `['a', 'b', 'c']` | `true → remove a@3, left=4, set=['b', 'c']; true → remove b@4, left=5, set=['c']; false → stop shrinking` | `5` | `['b', 'c']` | `6-5+1=2` | `3` | `right++; continue` |
+| `7` | `b` | `['b', 'c']` | `true → remove c@5, left=6, set=['b']; true → remove b@6, left=7, set=[]; false → stop shrinking` | `7` | `['b']` | `7-7+1=1` | `3` | `right++; continue` |
+
+Each outer loop condition `right < 8` is true for the eight rows. After the last row, `right=8` makes `8 < 8` false; return `3`. The repeated `true` checks at right `6` and `7` explain why one removal is insufficient.
+
 ### Block 5 — Return the completed maximum
 
 ```java

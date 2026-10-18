@@ -240,6 +240,19 @@ If insertion happened first, index `0` could find itself when current value `3` 
 | `0` | `3` | `6 - 3 = 3` | `null` | `{}` | `{3: 0}` | `continue` |
 | `1` | `2` | `6 - 2 = 4` | `null` | `{3: 0}` | `{3: 0, 2: 1}` | `continue` |
 
+
+**Complete iterations — read each row left to right:**
+
+The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+
+| index | loop condition | value | complement | earlierIndex | earlierIndex != null | insertion | map after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `0` | `0 < 3 → true` | `3` | `6 - 3 = 3` | `null` | `false` | `put(3,0)` | `{3: 0}` | `index++; continue` |
+| `1` | `1 < 3 → true` | `2` | `6 - 2 = 4` | `null` | `false` | `put(2,1)` | `{3: 0, 2: 1}` | `index++; continue` |
+| `2` | `2 < 3 → true` | `4` | `6 - 4 = 2` | `1` | `true` | `Skipped` | `{3: 0, 2: 1}` | `return [1,2]; stop` |
+
+The successful lookup returns before storing index `2`. There is no exhausted-loop exception on this input.
+
 ### Block 7 — Reject input that violates the stated guarantee
 
 ```java

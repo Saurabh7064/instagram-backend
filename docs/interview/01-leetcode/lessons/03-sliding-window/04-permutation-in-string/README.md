@@ -60,7 +60,7 @@ For `"adc"` inside `"dcda"`, the first complete window `"dcd"` has `d:2,c:1`; af
 
 ## Block-by-block code walkthrough
 
-Follow one input throughout: `pattern="ab"`, `text="eidbaooo"`. Text positions `0..7` contain `e,i,d,b,a,o,o,o`. Each block below explains its code and then shows the state that code produces. Step numbers retain their original execution order across the loop; arrays are shown beside the operation that changes or compares them.
+Follow one input throughout: `pattern="ab"`, `text="eidbaooo"`. Text positions `0..7` contain `e,i,d,b,a,o,o,o`. Each block below explains its code and then shows the state that code produces. Rows use the actual pattern index or text `right` value; arrays are shown beside the operation that changes or compares them.
 
 ### Block 1 — Reject a pattern that cannot fit
 
@@ -112,17 +112,12 @@ Both arrays start as `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]`. Ea
 | `1` | `true` | `b` | `'b' - 'a' = 1` | `neededCounts[1]: 0 → 1` |
 | `2` | `false` | `not read` | `not evaluated` | `loop exits` |
 
-| Step | operation / index | right | outgoingIndex | Arrays.equals |
-| --- | --- | --- | --- | --- |
-| 1 | `build needed: index=0, char=a` | `—` | `—` | `—` |
-| 2 | `build needed: index=1, char=b` | `—` | `—` | `—` |
+Full arrays at these iteration phases (`a..z`, indexes `0..25`):
 
-Full arrays immediately after those same steps (`a..z`, indexes `0..25`):
-
-| Step | neededCounts | windowCounts |
-| --- | --- | --- |
-| 1 | `[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| 2 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| Iteration | Phase | neededCounts | windowCounts |
+| --- | --- | --- | --- |
+| pattern index=0 | after counting a | `[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| pattern index=1 | after counting b | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 
 The result records exactly the required copies: one `a`, one `b`, and zero of every other letter. `windowCounts` is still all zero because no text character has entered. For `pattern="aab"`, the same loop visits indexes `0,1,2`: cell `a` changes `0 → 1 → 2`, then cell `b` changes `0 → 1`. A set would lose that second copy of `a`.
 
@@ -143,23 +138,15 @@ for (int right = 0; right < text.length(); right++) {
 
 Each outer iteration adds its character before removal or comparison. The incoming character indexes for `e,i,d,b,a` are `4,8,3,1,0`. At the start of `right=2`, the maintained window was `ei`; adding `d` temporarily produces `eid`. The next block removes the extra character. `neededCounts` stays fixed throughout this loop.
 
-| Step | operation / index | right | outgoingIndex | Arrays.equals |
-| --- | --- | --- | --- | --- |
-| 3 | `add e` | `0` | `—` | `not checked yet` |
-| 5 | `add i` | `1` | `—` | `not checked yet` |
-| 7 | `add d` | `2` | `—` | `not checked yet` |
-| 10 | `add b` | `3` | `—` | `not checked yet` |
-| 13 | `add a` | `4` | `—` | `not checked yet` |
+Full arrays at these iteration phases (`a..z`, indexes `0..25`):
 
-Full arrays immediately after those same steps (`a..z`, indexes `0..25`):
-
-| Step | neededCounts | windowCounts |
-| --- | --- | --- |
-| 3 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| 5 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| 7 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| 10 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| 13 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| Iteration | Phase | neededCounts | windowCounts |
+| --- | --- | --- | --- |
+| right=0 | after add e | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=1 | after add i | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=2 | after add d | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=3 | after add b | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=4 | after add a | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 
 ### Block 4 — Remove the value one full window behind
 
@@ -188,19 +175,13 @@ For `right=0` and `1`, `right >= 2` is false; remove nothing. At `right=2`, it b
 | `3` | `3 - 2 = 1` | `i` | `8` | `1 → 0` | `db` |
 | `4` | `4 - 2 = 2` | `d` | `3` | `1 → 0` | `ba` |
 
-| Step | operation / index | right | outgoingIndex | Arrays.equals |
-| --- | --- | --- | --- | --- |
-| 8 | `remove e` | `2` | `0` | `not checked yet` |
-| 11 | `remove i` | `3` | `1` | `not checked yet` |
-| 14 | `remove d` | `4` | `2` | `not checked yet` |
+Full arrays at these iteration phases (`a..z`, indexes `0..25`):
 
-Full arrays immediately after those same steps (`a..z`, indexes `0..25`):
-
-| Step | neededCounts | windowCounts |
-| --- | --- | --- |
-| 8 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| 11 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| 14 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| Iteration | Phase | neededCounts | windowCounts |
+| --- | --- | --- | --- |
+| right=2 | after remove e | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=3 | after remove i | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=4 | after remove d | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 
 Without removal, the array would count the full prefix `eidba`, including unwanted `e`, `i`, and `d`, rather than just the candidate `ba`.
 
@@ -231,25 +212,31 @@ return false;
 
 `Arrays.equals` compares values in all 26 cells. It runs after the removal block, never between insertion and removal.
 
-| Step | operation / index | right | outgoingIndex | Arrays.equals |
-| --- | --- | --- | --- | --- |
-| 4 | `compare arrays` | `0` | `out of scope` | `false` |
-| 6 | `compare arrays` | `1` | `out of scope` | `false` |
-| 9 | `compare arrays` | `2` | `out of scope` | `false` |
-| 12 | `compare arrays` | `3` | `out of scope` | `false` |
-| 15 | `compare arrays` | `4` | `out of scope` | `true` |
+Full arrays at these iteration phases (`a..z`, indexes `0..25`):
 
-Full arrays immediately after those same steps (`a..z`, indexes `0..25`):
-
-| Step | neededCounts | windowCounts |
-| --- | --- | --- |
-| 4 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| 6 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| 9 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| 12 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| 15 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| Iteration | Phase | neededCounts | windowCounts |
+| --- | --- | --- | --- |
+| right=0 | at comparison | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=1 | at comparison | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=2 | at comparison | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=3 | at comparison | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| right=4 | at comparison | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 
 At `right=0`, a partial one-character window cannot match a two-character pattern: `a` and `b` are missing. At `right=4`, the window `ba` has exactly `[1,1,0,...,0]`, matching `neededCounts`; return `true` immediately. Indexes `5..7` are never processed. If every comparison were false (for example, `pattern="ab"`, `text="eidboaoo"`), `right` would reach `8`, `8 < 8` would be false, and execution would reach the final `return false` **outside the outer loop**.
+
+**Complete iterations — read each row left to right:**
+
+The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+
+| right | addition | right >= pattern.length() | removal | window after removal | Arrays.equals(neededCounts, windowCounts) | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `0` | `add e` | `0 >= 2 → false` | `Skipped` | `e` | `false` | `right++; continue` |
+| `1` | `add i` | `1 >= 2 → false` | `Skipped` | `ei` | `false` | `right++; continue` |
+| `2` | `add d` | `2 >= 2 → true` | `index 2-2=0; remove e` | `id` | `false` | `right++; continue` |
+| `3` | `add b` | `3 >= 2 → true` | `index 3-2=1; remove i` | `db` | `false` | `right++; continue` |
+| `4` | `add a` | `4 >= 2 → true` | `index 4-2=2; remove d` | `ba` | `true` | `return true; stop` |
+
+The return at right `4` skips the increment and all later text positions. The comparison is evaluated only after the removal decision in that same row. For a nonmatching text, exhaustion instead reaches the terminal false return.
 
 ## Reference approach
 

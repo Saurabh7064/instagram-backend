@@ -151,6 +151,21 @@ for (int index = 0; index < windowSize; index++) {
 | `initial window` | `2` | `—` | `—` | `13 + (-5) = 8` | `—` |
 | `initial window` | `3` | `—` | `—` | `8 + (-6) = 2` | `—` |
 
+
+**Complete iterations — read each row left to right:**
+
+The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+
+| index | index < windowSize | windowSum after addition | next action |
+| --- | --- | --- | --- |
+| `0` | `0 < 4 → true` | `0+(1)=1` | `index++; continue` |
+| `1` | `1 < 4 → true` | `1+(12)=13` | `index++; continue` |
+| `2` | `2 < 4 → true` | `13+(-5)=8` | `index++; continue` |
+| `3` | `3 < 4 → true` | `8+(-6)=2` | `index++; continue` |
+| `4` | `4 < 4 → false` | `unchanged: 2` | `exit; bestSum=2` |
+
+This loop has no conditional branch in its body; its loop condition is still shown explicitly.
+
 ### Block 3 — Initialize the best from real data
 
 ```java
@@ -221,6 +236,19 @@ bestSum = Math.max(bestSum, windowSum);
 | `subtract outgoing; update best` | `—` | `4` | `0` | `52 - (1) = 51` | `max(2,51) = 51` |
 | `add incoming` | `—` | `5` | `1` | `51 + 3 = 54` | `51` |
 | `subtract outgoing; update best` | `—` | `5` | `1` | `54 - (12) = 42` | `max(51,42) = 51` |
+
+
+**Complete iterations — read each row left to right:**
+
+The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+
+| right | right < numbers.length | outgoingIndex | sum after add | sum after removal | bestSum after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `4` | `4 < 6 → true` | `4-4=0` | `2+50=52` | `52-(1)=51` | `51` | `right++; continue` |
+| `5` | `5 < 6 → true` | `5-4=1` | `51+3=54` | `54-(12)=42` | `51` | `right++; continue` |
+| `6` | `6 < 6 → false` | `Skipped` | `Skipped` | `Skipped` | `51` | `exit; return 51/4.0=12.75` |
+
+No `if` exists in this loop: `Math.max` preserves the larger sum on each completed slide.
 
 ### Block 6 — Force floating-point division
 

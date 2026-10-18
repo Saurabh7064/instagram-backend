@@ -232,6 +232,25 @@ if (heights[left] <= heights[right]) {
 | `4` | `6` | `5` | `8` | `2` | `5` | `2 * 5 = 10` | `max(49,10) = 49` | `left++` |
 | `5` | `6` | `4` | `8` | `1` | `4` | `1 * 4 = 4` | `max(49,4) = 49` | `left++` |
 
+
+**Complete iterations — read each row left to right:**
+
+The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+
+| left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `0` | `8` | `0 < 8 → true` | `8` | `1` | `8*1=8` | `8` | `1 <= 7 → true` | `left=1` |
+| `1` | `8` | `1 < 8 → true` | `7` | `7` | `7*7=49` | `49` | `8 <= 7 → false` | `right=7` |
+| `1` | `7` | `1 < 7 → true` | `6` | `3` | `6*3=18` | `49` | `8 <= 3 → false` | `right=6` |
+| `1` | `6` | `1 < 6 → true` | `5` | `8` | `5*8=40` | `49` | `8 <= 8 → true` | `left=2` |
+| `2` | `6` | `2 < 6 → true` | `4` | `6` | `4*6=24` | `49` | `6 <= 8 → true` | `left=3` |
+| `3` | `6` | `3 < 6 → true` | `3` | `2` | `3*2=6` | `49` | `2 <= 8 → true` | `left=4` |
+| `4` | `6` | `4 < 6 → true` | `2` | `5` | `2*5=10` | `49` | `5 <= 8 → true` | `left=5` |
+| `5` | `6` | `5 < 6 → true` | `1` | `4` | `1*4=4` | `49` | `4 <= 8 → true` | `left=6` |
+| `6` | `6` | `6 < 6 → false` | `Skipped` | `Skipped` | `Skipped` | `49` | `Skipped` | `exit; return 49` |
+
+The best is retained even as later areas decrease. Equal boundary heights take the `<=` branch and advance left.
+
 ### Block 5 — Return the maximum, not the last area
 
 ```java

@@ -175,6 +175,19 @@ if (sum < target) {
 | `0` | `4` | `-5` | `9` | `-5 + 9 = 4` | `right--` |
 | `0` | `3` | `-5` | `3` | `-5 + 3 = -2` | `left++` |
 
+
+**Complete iterations — read each row left to right:**
+
+The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+
+| left | right | loop condition | sum | sum == target | sum < target | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `0` | `4` | `0 < 4 → true` | `-5 + 9 = 4` | `false` | `false` | `right=3` |
+| `0` | `3` | `0 < 3 → true` | `-5 + 3 = -2` | `false` | `true` | `left=1` |
+| `1` | `3` | `1 < 3 → true` | `-2 + 3 = 1` | `true` | `Skipped (returned)` | `return [2,4]; stop` |
+
+The equality branch returns before the smaller-than-target condition is evaluated. Return indexes `left+1=2`, `right+1=4`.
+
 ### Block 6 — Signal a violated input promise
 
 ```java

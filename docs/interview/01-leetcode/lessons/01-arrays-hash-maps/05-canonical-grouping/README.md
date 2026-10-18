@@ -167,6 +167,22 @@ wordsByKey.computeIfAbsent(key, ignored -> new ArrayList<>())
 | `nat` | `['n', 'a', 't']` | `['a', 'n', 't']` | `ant` | `existing list` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat']}` |
 | `bat` | `['b', 'a', 't']` | `['a', 'b', 't']` | `abt` | `new empty list` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat'], 'abt': ['bat']}` |
 
+
+**Complete iterations — read each row left to right:**
+
+The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+
+| word | characters before sort | characters after sort | key | key absent? (inside computeIfAbsent) | action | wordsByKey after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `eat` | `['e', 'a', 't']` | `['a', 'e', 't']` | `aet` | `true` | `create [] then append` | `{'aet': ['eat']}` | `next word` |
+| `tea` | `['t', 'e', 'a']` | `['a', 'e', 't']` | `aet` | `false` | `reuse list then append` | `{'aet': ['eat', 'tea']}` | `next word` |
+| `tan` | `['t', 'a', 'n']` | `['a', 'n', 't']` | `ant` | `true` | `create [] then append` | `{'aet': ['eat', 'tea'], 'ant': ['tan']}` | `next word` |
+| `ate` | `['a', 't', 'e']` | `['a', 'e', 't']` | `aet` | `false` | `reuse list then append` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan']}` | `next word` |
+| `nat` | `['n', 'a', 't']` | `['a', 'n', 't']` | `ant` | `false` | `reuse list then append` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat']}` | `next word` |
+| `bat` | `['b', 'a', 't']` | `['a', 'b', 't']` | `abt` | `true` | `create [] then append` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat'], 'abt': ['bat']}` | `next word` |
+
+There is no explicit `if` in this Java loop: `computeIfAbsent` makes the missing-key decision internally. After all six words, return the grouped values in a new outer list; group order is unspecified.
+
 ### Block 5 — Return a detached outer result list
 
 ```java

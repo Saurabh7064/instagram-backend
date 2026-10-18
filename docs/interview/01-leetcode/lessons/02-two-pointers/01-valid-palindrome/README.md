@@ -253,6 +253,19 @@ right--;
 | `after iteration; next outer check` | `1` | `3` | `out of scope` | `out of scope` | `1 < 3 is true` |
 | `after iteration; next outer check` | `3` | `1` | `out of scope` | `out of scope` | `3 < 1 is false` |
 
+
+**Complete iterations — read each row left to right:**
+
+The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+
+| left before | right before | outer left < right | left-skip condition and movement | right-skip condition and movement | normalized pair | leftCharacter != rightCharacter | pointer update | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `0` | `4` | `0 < 4 → true` | `A is alphanumeric → false; skip loop` | `a is alphanumeric → false; skip loop` | `a / a` | `false` | `left=1; right=3` | `continue` |
+| `1` | `3` | `1 < 3 → true` | `comma → true; left=2; b → false` | `space → true; right=2; 2 < 2 → false (character check skipped)` | `b / b` | `false` | `left=3; right=1` | `continue` |
+| `3` | `1` | `3 < 1 → false` | `Skipped` | `Skipped` | `Skipped` | `Skipped` | `Skipped` | `exit loop; return true` |
+
+Each skip condition is `left < right && !isLetterOrDigit(...)`. A false first operand skips the character test. For `"0P"`, both skip loops stop immediately, normalized `0 != p` is true, and the method returns false before moving pointers.
+
 ### Block 8 — Accept only after every required pair matched
 
 ```java

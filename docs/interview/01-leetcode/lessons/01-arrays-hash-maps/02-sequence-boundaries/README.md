@@ -408,6 +408,22 @@ Without this update, the method forgets completed runs and always returns its in
 | `successor absent; update longest` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
 | `successor absent; update longest` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
 
+
+**Complete iterations — read each row left to right:**
+
+The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+
+| value | value != MIN_VALUE | predecessor lookup | if (!hasPredecessor) | successor while checks (current != MAX_VALUE is true here) | run after | longest after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `1` | `true` | `contains(0) → false` | `!false → true` | `2 present → true; 3 present → true; 4 present → true; 5 absent → false` | `current=4, length=4` | `4` | `next distinct value` |
+| `2` | `true` | `contains(1) → true` | `!true → false` | `Skipped` | `Skipped` | `4` | `next distinct value` |
+| `3` | `true` | `contains(2) → true` | `!true → false` | `Skipped` | `Skipped` | `4` | `next distinct value` |
+| `4` | `true` | `contains(3) → true` | `!true → false` | `Skipped` | `Skipped` | `4` | `next distinct value` |
+| `100` | `true` | `contains(99) → false` | `!false → true` | `101 absent → false` | `current=100, length=1` | `4` | `next distinct value` |
+| `200` | `true` | `contains(199) → false` | `!false → true` | `201 absent → false` | `current=200, length=1` | `4` | `next distinct value` |
+
+This uses the permitted set order `1,2,3,4,100,200`; Java does not promise that order. A predecessor skips the entire run scan. After the sixth value, the enhanced loop is exhausted; return `4`. Existing boundary examples explain the MIN/MAX short circuits.
+
 ### Block 9 — Return the best run after every candidate is considered
 
 ```java
