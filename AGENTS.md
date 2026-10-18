@@ -192,6 +192,15 @@ For every LeetCode or other coding explanation, use the detailed character-repla
 - Derive the answer from the trace and check it against the runnable reference. Keep the conceptual explanation before the trace and keep learning/mastery status independent of artifact completion.
 - Apply this to future lessons when created; a roadmap-only question stays TODO until activated.
 
+## Functional Programming Lesson Standard
+
+- Teach the functional-programming concept and the concrete problem it solves before stream syntax. Start with pure functions and outside changes, then functions as values, then the operations that use those functions. Do not assume streams, lambdas, method references, or functional interfaces before teaching them.
+- Build concept -> small runnable Java programs -> a suitable coding/LeetCode exercise after its prerequisites. Arrays are valid functional input; do not imply that functional programming requires collections or the Stream API.
+- Keep one primary concept and normally no more than three new terms per micro-lesson. Split overloaded introductory lessons instead of mixing purity, lambda syntax, filtering, locale details, and advanced APIs in a first encounter.
+- Use the narrated debugger standard for each program. Stream traces must distinguish logical values/emission order from internal counters, buffers, or intermediate collections that are not part of the program.
+- Explain input ownership, output modifiability, callback purity, and when a loop is clearer. Compare complexity and avoid forcing a stream rewrite onto an algorithm that needs explicit evolving state.
+- Preserve separate runnable practice/reference files and keep artifact readiness separate from demonstrated understanding. Teach only one micro-lesson at a time in chat.
+
 ## System Design Interview Answer Standard
 
 For every question-answer file under `docs/interview/02-system-design/questions/`:

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Runnable reference solution for Functional Programming Micro-Lesson 01.
+ * Runnable reference solution for Functional Programming Micro-Lesson 03.
  */
 public class NormalizeWordsSolution {
 

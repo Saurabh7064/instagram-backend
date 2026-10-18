@@ -7,7 +7,7 @@
 
 ## Goal
 
-Build practical Java functional-programming skill through small runnable problems, not API memorization. Each lesson should make the data transformation, side-effect boundary, correctness argument, and complexity visible.
+Build practical Java functional-programming skill by understanding the concept, writing small programs, then applying it to a suitable coding problem. Define the idea before naming its API. Functional programming can operate on arrays as well as collections; the style concerns how computation is expressed and what it changes.
 
 ## Working rules
 
@@ -20,9 +20,29 @@ Build practical Java functional-programming skill through small runnable problem
 7. Explain when a loop is clearer than a stream instead of treating streams as automatically better.
 8. Record code completion separately from checkpoint understanding and later retrieval.
 
+## How each lesson should teach
+
+1. Start with the conceptual question and explain the problem the concept solves.
+2. Define at most three unfamiliar terms, using a small worked calculation before library syntax.
+3. Give one or two directly runnable programs related to that same concept, with separate practice and reference files.
+4. Interleave small code blocks, why they exist, narrated execution for each iteration, and exact value tables. Explain guards, allocations, callback invocations, discarded values, and termination. A stream’s logical emitted values are not a claim about hidden counters or buffers.
+5. Add a focused LeetCode bridge when it fits naturally, after its prerequisites. Compare with a loop and preserve algorithmic complexity; do not force a stream onto every problem.
+6. Check understanding through prediction, a plain-language explanation, and an implementation attempt. Artifact readiness does not earn comprehension credit.
+
+## Prepared introductory sequence
+
+| Lesson | Concept first | Runnable problem | Learning status |
+|---|---|---|---|
+| [01 — Pure Transformations](./lessons/01-pure-transformations/README.md) | Same input values, same result values, no outside changes | Double a scalar; transform an array into a new one | `TODO` |
+| [02 — Pass Behavior as a Value](./lessons/02-functions-as-values/README.md) | Supply a calculation instead of copying traversal logic | One array loop with doubling, adding three, and a method reference | `TODO` |
+| [03 — Compose Word Transformations](./lessons/03-stream-transformations/README.md) | Describe independent value changes and keep/discard decisions | Trim, remove blanks, lowercase, and gather words | `TODO` |
+| [04 — LeetCode 1929: Concatenation of Array](./lessons/04-array-concatenation/README.md) | Apply an input-preserving transformation to array data | Stream and loop solutions with the same O(n) algorithm | `TODO` |
+
+The original normalization Java files remain at their old paths and now belong to lesson 03. The original first-lesson URL is preserved, but its content starts with purity rather than assuming streams, lambdas, and method references. Later lessons stay TODO; the track remains inactive until explicitly selected.
+
 ## Ordered path
 
-1. Pure transformations with `map` and `filter`
+1. Introductory module: purity → functions as values → stream transformations → one array LeetCode bridge
 2. Reduction and aggregation
 3. Collectors for grouping and partitioning
 4. `Optional` as an explicit absence result

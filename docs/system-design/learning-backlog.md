@@ -45,3 +45,7 @@ Re-reviewed and expanded every original lesson and added five applied-pattern ch
 ## Prefix/suffix and interval artifacts — 2026-10-17
 
 Prepared [five Module 04 LeetCode lessons](../interview/01-leetcode/lessons/04-prefix-suffix-intervals/README.md), with [Feature 16 evidence](../features/16-prefix-suffix-and-interval-curriculum.md), separate runnable practice/reference programs, narrated iterations, and checks. This artifact-only addition does not complete a product implementation milestone or demonstrate learner comprehension; existing feature/concept statuses remain unchanged. All five learning entries remain TODO; the active Two Sum lesson is unchanged.
+
+## Functional-programming introduction review — 2026-10-17
+
+Reworked the [introductory functional-programming module](../interview/04-java/01-functional-programming-coding/README.md) into concept-first lessons with small Java programs, narrated executions, and a suitable array LeetCode bridge; see [Feature 17](../features/17-functional-programming-concept-first.md). This learning-artifact change does not complete a product implementation or demonstrate learner comprehension. Existing tracker statuses are unchanged; all four FP lessons remain TODO and inactive.

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Editable practice program for Functional Programming Micro-Lesson 01.
+ * Editable practice program for Functional Programming Micro-Lesson 03.
  */
 public class NormalizeWordsPractice {
 

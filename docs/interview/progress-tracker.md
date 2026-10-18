@@ -65,3 +65,7 @@ Copy this section for each week.
 ## Prepared future artifacts — 2026-10-17
 
 [Module 04: Prefix/Suffix State and Intervals](./01-leetcode/lessons/04-prefix-suffix-intervals/README.md) has five prepared lessons with compiled practice/reference programs, narrated debugger traces, and recorded checks. Artifact readiness is READY; all five learning statuses remain TODO. This does not change the active Two Sum lesson, its pending checkpoints, or any mastery counts.
+
+## Functional-programming artifact review — 2026-10-17
+
+The [functional-programming introduction](./04-java/01-functional-programming-coding/README.md) now has four concept-first lessons: purity, functions as values, stream transformations, and an array LeetCode bridge. Artifacts are READY after recorded Java/browser checks; all four learning statuses remain TODO, the track remains inactive, and no existing mastery counts or active lessons change.

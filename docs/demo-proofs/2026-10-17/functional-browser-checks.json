@@ -1,0 +1,35 @@
+{
+  "results": [
+    {
+      "lesson": "01-pure-transformations",
+      "http": 200,
+      "checkpoints": 3,
+      "referenceLines": 14,
+      "screenshot": "functional-01-pure-transformations-trace.png"
+    },
+    {
+      "lesson": "02-functions-as-values",
+      "http": 200,
+      "checkpoints": 3,
+      "referenceLines": 14,
+      "screenshot": "functional-02-functions-as-values-trace.png"
+    },
+    {
+      "lesson": "03-stream-transformations",
+      "http": 200,
+      "checkpoints": 3,
+      "referenceLines": 10,
+      "screenshot": "functional-03-stream-transformations-trace.png"
+    },
+    {
+      "lesson": "04-array-concatenation",
+      "http": 200,
+      "checkpoints": 3,
+      "referenceLines": 15,
+      "screenshot": "functional-04-array-concatenation-trace.png"
+    }
+  ],
+  "mobileViewport": "390x844",
+  "mobilePageOverflow": false,
+  "pageErrors": []
+}
