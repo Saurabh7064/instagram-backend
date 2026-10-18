@@ -4,11 +4,11 @@
 
 How do you expose search options without exposing the database?
 
-[Module sequence](README.md) · Estimated time: 15–20 minutes · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Explain the problem behind filtering and sorting contracts, trace its externally visible behavior, and identify one implementation risk before proposing a change.
+Specify filter combination, empty/unknown parameter policies, allowlisted sorting, wildcard handling, and bounded query cost.
 
 Prerequisites: Lesson 8 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
 
@@ -18,7 +18,7 @@ Users need to select subsets and order results, but arbitrary query expressions 
 
 ## Spring Boot example
 
-Unless explicitly described as existing code, this is a proposed teaching excerpt, not an endpoint implemented by this documentation change. Application-specific collaborators and types require implementation; imports and class wiring are omitted. Preserve authentication when adapting an excerpt. This project uses Spring Boot 4.0.2 and Java 24, as recorded in [build configuration](../../../../build.gradle).
+Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
 
 ```java
 enum PostOrder { NEWEST, OLDEST }
@@ -43,6 +43,40 @@ GET /posts?author=mira.frames&order=NEWEST -> validate options -> bind author as
 
 The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
 
+## Specify a query language small enough to operate
+
+A query contract needs more than optional Strings. Define how each parameter combines, how empty values behave, how ties sort, and what resource budget one request may consume.
+
+| Parameter | Proposed meaning | Validation | Query implication |
+|---|---|---|---|
+| author | Exact username | Nonblank if supplied | Parameterized equality |
+| createdAfter | Exclusive UTC instant | Valid ISO-8601 timestamp | Range on createdAt |
+| tag, repeated | Any listed tag (OR) | Max 5 values | Membership query; deduplicate rows |
+| order | NEWEST or OLDEST | Enum allowlist | Always append ID tie-breaker |
+| limit | Requested maximum | 1–100 | Database LIMIT |
+| fields | Optional public projection | Allowlist and max count | Never grants extra field access |
+
+These are design examples, not supported current parameters. `tag=a&tag=b` could mean AND instead of OR in another API; either is defensible if explicit. Combining author with tags can be AND across dimensions. Unknown parameters may be rejected to catch typos, or ignored for forward compatibility; choose deliberately and test it. Silent `limti=1000` ignored as a typo may surprise clients.
+
+### Parameterize values, allowlist identifiers
+
+```java
+Sort sort = switch (order) {
+    case NEWEST -> Sort.by("createdAt").descending()
+            .and(Sort.by("id").descending());
+    case OLDEST -> Sort.by("createdAt").ascending()
+            .and(Sort.by("id").ascending());
+};
+```
+
+Proposed service fragment: each enum maps to server-owned entity property names. Bound query parameters protect values; they do not make arbitrary caller-supplied SQL column names safe. For text LIKE queries, escaping SQL injection is separate from escaping `%` and `_` wildcard semantics. Decide whether a user searching `100%` means the literal percentage sign or a wildcard.
+
+### Work through combined filtering
+
+Suppose posts are 9(mira,2026-10-17), 8(lee,2026-10-17), 7(mira,2026-10-16). For author=mira, createdAfter=2026-10-16T12:00:00Z, NEWEST, assume post 7 is at 10:00 that day. Filter by author -> [9,7]. Apply exclusive time boundary -> [9]. Sort -> [9]. Limit 20 -> [9]. Filtering after fetching 20 unrelated posts would produce incomplete pages and potentially false hasNext values.
+
+Public “contains anywhere” search may not use a normal B-tree index efficiently. Case-insensitive comparison, language normalization, relevance ordering, and full-text search need an explicit storage/query strategy. Start with exact-match contracts until the product needs more. Bound query length, repeated filters, page size, and expensive combinations; authorization remains a mandatory predicate for every plan.
+
 ## Project mapping and practice
 
 Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
@@ -61,9 +95,9 @@ Predict passing a query expression as a raw ORDER BY fragment. Concatenation can
 
 Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
 
-## Interview-ready answer outline
+## Interview-ready answer
 
-For a two-minute answer, start with the caller’s problem, define the main concept in plain language, explain the request trace above, then justify one choice and its cost. Finish by explaining how the failure drill would be detected and prevented in this backend. Do not claim the proposed extension is deployed.
+I publish a small intentional query language instead of exposing database expressions. I define exact matching, repeated-parameter semantics, filter combination, order and ties, limits, and unknown-field behavior. I parameterize values and map admitted sort choices to server-owned expressions. SQL injection protection is distinct from deciding whether percent or underscore is a wildcard. Filtering and permissions must happen before pagination. For the future search feature I would start with a bounded indexed use case, inspect representative plans, and introduce full-text or flexible query syntax only when its operational and compatibility costs are justified.
 
 ## Stop/go and learner evidence
 
@@ -79,19 +113,29 @@ An enum exposes a finite supported choice and prevents callers selecting arbitra
 </details>
 
 <details>
-<summary>2. What exact response or state should the worked request produce, and why?</summary>
+<summary>2. Is a bound parameter enough to make arbitrary ORDER BY input safe?</summary>
 
-GET /posts?author=mira.frames&order=NEWEST -> validate options -> bind author as data -> apply visibility scope -> order timestamp and ID -> bounded response. order=DROP_TABLE is not a recognized enum, so reject it before querying.
-
-This follows from the request boundary and state checks in the walkthrough, not merely from choosing a URL.
+No. Bind values as data, but choose identifiers/expressions from a server-owned allowlist. Sort field selection is not an ordinary value substitution problem.
 
 </details>
 
 <details>
-<summary>3. Which failure can remain despite a successful happy-path request, and how would you prevent it?</summary>
+<summary>3. Why filter before limiting?</summary>
 
-Predict passing a query expression as a raw ORDER BY fragment. Concatenation can allow injection or unindexed sorts. Detect malicious-input tests and slow-query metrics, contain by disabling arbitrary fields, recover with bound values and allowlisted expressions, prevent with review and query-budget tests.
+Limiting unrelated rows then filtering produces incomplete pages and incorrect continuation metadata. The selected authorized set must be formed before pagination.
 
-A successful request proves one case. The controlled failure needs its own observation and regression check.
+</details>
+
+<details>
+<summary>4. Are escaped SQL values automatically literal LIKE searches?</summary>
+
+No. Percent and underscore can retain wildcard meaning even without SQL injection. Specify and implement literal-versus-pattern semantics separately.
+
+</details>
+
+<details>
+<summary>5. Why document repeated tag parameters?</summary>
+
+tag=a&tag=b can mean any tag or all tags. Both are possible product rules; unstated combinations make clients and queries disagree.
 
 </details>

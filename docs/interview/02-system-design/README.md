@@ -19,7 +19,7 @@ The revision format is deliberately shorter: **problem → requirements → scal
 
 ## API design practice
 
-Follow [API Design with Spring Boot](./api-design/README.md) for 15 ordered lessons, project code mappings, request traces, failure drills, and explained checkpoints. Learning starts at lesson 01; artifact readiness is tracked separately from comprehension.
+Follow [API Design with Spring Boot](./api-design/README.md) for 20 expanded lessons, project code mappings, request traces, failure drills, and explained checkpoints. Learning starts at lesson 01; artifact readiness is tracked separately from comprehension.
 
 ## Interview structure
 

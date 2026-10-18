@@ -4,11 +4,11 @@
 
 How do you design errors that clients can handle safely?
 
-[Module sequence](README.md) · Estimated time: 15–20 minutes · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Explain the problem behind consistent error bodies, trace its externally visible behavior, and identify one implementation risk before proposing a change.
+Define safe Problem Details and field-error extensions; map framework, domain, and persistence failures without misclassifying defects or exposing secrets.
 
 Prerequisites: Lesson 4 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
 
@@ -18,7 +18,7 @@ Clients need to distinguish invalid fields from missing resources without parsin
 
 ## Spring Boot example
 
-Unless explicitly described as existing code, this is a proposed teaching excerpt, not an endpoint implemented by this documentation change. Application-specific collaborators and types require implementation; imports and class wiring are omitted. Preserve authentication when adapting an excerpt. This project uses Spring Boot 4.0.2 and Java 24, as recorded in [build configuration](../../../../build.gradle).
+Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
 
 ```java
 @RestControllerAdvice
@@ -46,6 +46,45 @@ GET post 42 -> proposed service throws PostMissing -> advice returns 404 applica
 
 The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
 
+## An error is a protocol object
+
+A proposed error response for this backend could be:
+
+```json
+{
+  "type": "https://api.example.test/problems/post-not-found",
+  "title": "Post unavailable",
+  "status": 404,
+  "detail": "The requested post is unavailable.",
+  "instance": "/api/posts/42",
+  "code": "POST_NOT_FOUND",
+  "correlationId": "api-lesson-05"
+}
+```
+
+The example domain is illustrative; production needs stable owned documentation for its types. `type` identifies the problem category; `instance` identifies this occurrence. `code` and correlationId are application extensions. The HTTP status must agree with the body status. Treat detail as human text, never as a parser input. An instance URL must not echo token-bearing query strings.
+
+### Map exceptions by responsibility
+
+| Failure | Handling responsibility | Public outcome |
+|---|---|---|
+| Malformed JSON | Framework error handling | 400 with safe message |
+| Invalid field constraints | Validation error handling | 400 with safe field codes under current convention |
+| Known missing domain object | Domain exception advice | 404 |
+| Known uniqueness race | Persistence exception translation | Documented 409 |
+| Stale If-Match | Conditional update boundary | 412 |
+| Unknown database connectivity failure | Unexpected failure path | Sanitized 5xx with diagnostics |
+
+Do not write `@ExceptionHandler(Exception.class)` that returns 400 for every exception. It turns server defects into caller blame and corrupts monitoring. `ResponseEntityExceptionHandler` provides framework exception hooks; custom domain advice complements it. Filters can reject requests before controller advice runs, so authentication/filter errors need consistent output at their own boundary.
+
+### Validation details that a form can use
+
+A proposed extension `errors: [{"field":"caption","code":"SIZE_MAX","limit":500}]` lets a form highlight one field and translate its message. Use a deterministic ordering if clients or tests require it. Do not return binding internals, Java class names, or rejected secret values. Global/cross-field errors need a documented place rather than a fabricated field name.
+
+**Failure trace:** a unique-like constraint violation occurs under concurrent requests. Classifying it as “post missing” is wrong; blindly returning 500 can encourage unsafe retries; returning success requires proving the desired like already exists and the stored count is correct after a safely managed transaction. Exception translation cannot repair a partially incorrect data model.
+
+Use the returned correlation ID to find internal diagnostics. Log the cause once at the boundary responsible for diagnosis, preserve its stack internally, and redact tokens and PII. Error shape stability is part of compatibility, including code spelling and optional extensions. See [Problem Details](https://www.rfc-editor.org/rfc/rfc9457.html) and [Spring error handling](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-rest-exceptions.html).
+
 ## Project mapping and practice
 
 Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/service/PostService.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
@@ -64,9 +103,9 @@ Predict returning a database exception message on duplicate registration. Intern
 
 Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
 
-## Interview-ready answer outline
+## Interview-ready answer
 
-For a two-minute answer, start with the caller’s problem, define the main concept in plain language, explain the request trace above, then justify one choice and its cost. Finish by explaining how the failure drill would be detected and prevented in this backend. Do not claim the proposed extension is deployed.
+I use a stable machine-readable error contract and keep human detail separate from client branching. HTTP status and body status agree; problem type/code identifies the category; a safe correlation ID helps diagnosis. I map known domain and validation failures explicitly and leave unexpected faults as sanitized server failures. Controller advice does not automatically cover every filter rejection. I never expose SQL, stack traces, or rejected secret values. In this backend I would coordinate token/filter failures with domain advice and test malformed bodies, known conflicts, missing posts, and unexpected database outages. A friendly error response is not a substitute for transactional correctness: a rejected mutation must also leave the expected stored state.
 
 ## Stop/go and learner evidence
 
@@ -82,19 +121,29 @@ No. Human wording can change or be localized. Use the HTTP status plus a documen
 </details>
 
 <details>
-<summary>2. What exact response or state should the worked request produce, and why?</summary>
+<summary>2. Why not map every Exception to 400?</summary>
 
-GET post 42 -> proposed service throws PostMissing -> advice returns 404 application/problem+json with status, title, detail, and code. Client chooses its missing-post screen from code, not from the English detail. An unexpected database failure must instead produce a sanitized 5xx and internal diagnostics.
-
-This follows from the request boundary and state checks in the walkthrough, not merely from choosing a URL.
+It misclassifies database outages and application defects as caller errors, damages monitoring, and encourages wrong remediation. Known caller failures and unexpected provider failures need different handling.
 
 </details>
 
 <details>
-<summary>3. Which failure can remain despite a successful happy-path request, and how would you prevent it?</summary>
+<summary>3. Can controller advice be assumed to format every authentication failure?</summary>
 
-Predict returning a database exception message on duplicate registration. Internal table details leak. Detect sensitive strings in test responses, contain by suppressing raw exception text, recover with safe codes, prevent with negative response assertions and reviewed error mappings.
+No. Filters can reject before controller invocation. Their response handling must be designed consistently at the filter/security boundary.
 
-A successful request proves one case. The controlled failure needs its own observation and regression check.
+</details>
+
+<details>
+<summary>4. What should a field validation extension contain?</summary>
+
+Safe field names, stable codes, and useful limits under a documented structure. Omit rejected passwords/tokens and internal binding/class details.
+
+</details>
+
+<details>
+<summary>5. Why can an error response still be a failed API implementation?</summary>
+
+It may have changed data before returning an error, leaked sensitive diagnostics, or misclassified the failure. Verify final state and safe output, not just the status.
 
 </details>

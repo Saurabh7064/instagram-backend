@@ -65,3 +65,7 @@ Added ready interview answers on concurrent likes, idempotency keys, and deadlin
 ## API design lesson artifacts — 2026-10-17
 
 Created [15 API Design with Spring Boot lessons](../interview/02-system-design/api-design/README.md), with [separate learner evidence](../interview/02-system-design/api-design/learner-progress.md). Artifacts are READY; comprehension remains TODO. Proposed exercises map to F-010/F-014/F-016/F-017/F-022/F-030 and SD-004 compatibility. No feature implementation or concept mastery status changes are claimed.
+
+### API design depth review — 2026-10-17
+
+Re-reviewed and expanded every original lesson and added five applied-pattern chapters: [20-lesson module](../interview/02-system-design/api-design/README.md), [coverage/evidence](../interview/02-system-design/api-design/review-notes.md). HTTP method/patch semantics and versioning were rewritten; relationship races, negotiation, aggregation/BFF, bulk operations, and contract-first design now have explicit decisions and worked examples. Artifact completion is documentation only; feature statuses and learner comprehension remain unchanged.

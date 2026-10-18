@@ -4,11 +4,11 @@
 
 What should a client receive after success or failure?
 
-[Module sequence](README.md) · Estimated time: 15–20 minutes · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Explain the problem behind status codes and response contracts, trace its externally visible behavior, and identify one implementation risk before proposing a change.
+Select success/error statuses by failure boundary, design authoritative DTOs, distinguish 400/406/409/412/415/422, and identify numeric-ID compatibility risk.
 
 Prerequisites: Lesson 2 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
 
@@ -18,7 +18,7 @@ A client cannot reliably infer success from a sentence in JSON. The status code 
 
 ## Spring Boot example
 
-Unless explicitly described as existing code, this is a proposed teaching excerpt, not an endpoint implemented by this documentation change. Application-specific collaborators and types require implementation; imports and class wiring are omitted. Preserve authentication when adapting an excerpt. This project uses Spring Boot 4.0.2 and Java 24, as recorded in [build configuration](../../../../build.gradle).
+Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
 
 ```java
 @PostMapping("/posts")
@@ -44,6 +44,42 @@ Valid create -> save generates ID 42 -> 201 with Location /api/posts/42 and body
 
 The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
 
+## Choose statuses from the failure boundary
+
+| Result | Status | Caller action | Common mistake |
+|---|---|---|---|
+| Existing representation returned | 200 | Render it | Returning a body with 204 |
+| Resource created now | 201 | Use returned identity/Location | Using 202 after a completed synchronous create |
+| Work accepted, incomplete | 202 | Inspect job state | Assuming success is guaranteed |
+| Completed, no body | 204 | Update local state | Trying to parse empty JSON |
+| Conditional read unchanged | 304 | Reuse stored representation | Treating 304 as a new JSON response |
+| Unparseable JSON / invalid request | 400 | Correct request | Retrying the same bad bytes |
+| Missing/invalid credentials | 401 | Obtain valid credentials | Using 403 for expired credentials |
+| Identity lacks permission | 403 | Stop or request permission | Client retry loops |
+| Missing or deliberately concealed resource | 404 | Show unavailable | Leaking existence inconsistently |
+| Unsupported method for resource | 405 | Check Allow and contract | Confusing it with unknown resource |
+| No acceptable output media type | 406 | Change Accept | Calling it a malformed body |
+| State conflict | 409 | Resolve current domain state | Mapping every database exception to conflict |
+| Failed supplied precondition | 412 | Reload and reconcile | Ignoring If-Match |
+| Input too large | 413 | Reduce upload/body | Allowing allocation before checking limits |
+| Unsupported request media type | 415 | Change Content-Type/body | Assuming all JSON patch formats are interchangeable |
+| Semantically invalid content | 422, if adopted | Correct meaning | Using 400 and 422 unpredictably |
+| Required precondition missing | 428, if adopted | Read then send validator | Silently accepting an unconditional write |
+| Caller exceeds admission policy | 429 | Respect Retry-After | Retrying immediately |
+| Unexpected internal failure | 500 | Report; retry only if safe | Returning SQL/stack traces |
+| Dependency/gateway failure | 502/504 where applicable | Respect retry budget | Using gateway codes for every controller error |
+| Temporarily unavailable service | 503 | Back off under policy | Blaming one user for global overload |
+
+For this project, bean-validation failures currently follow Spring’s normal 400 path. Introducing 422 is a contract decision, not a reason to claim current behavior already uses it. For 401, document the applicable authentication challenge, normally a Bearer `WWW-Authenticate` header; the current custom token parsing must be inspected rather than assuming a security framework supplies it.
+
+### Choose response fields deliberately
+
+A create body should contain authoritative server values, not echo unchecked input. With caption `" hello "`, the service trims it: the response should say `"hello"`. IDs, ownership, creation time, and counts are server controlled. An empty collection is usually 200 with `[]` or the documented page envelope, not 404. An item lookup can be 404 even when its parent collection is empty.
+
+Use a consistent timestamp format, ID representation, and nullability contract. JavaScript cannot represent every Java Long exactly: integer 9007199254740993 becomes unsafe as a JavaScript number. If IDs may reach that range, consider string IDs from the beginning and test consumers. Changing numeric IDs to strings later is breaking.
+
+**Worked negotiation case:** a route accepts JSON and returns JSON. Request Content-Type=text/plain fails with 415 before its text is parsed as JSON. Valid JSON with Accept=application/xml can instead fail with 406. Those are distinct remediation steps; see [content negotiation](16-content-negotiation.md).
+
 ## Project mapping and practice
 
 Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/dto/FeedPostResponse.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
@@ -62,9 +98,9 @@ Predict a 200 response containing an error string. A client marks the operation 
 
 Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
 
-## Interview-ready answer outline
+## Interview-ready answer
 
-For a two-minute answer, start with the caller’s problem, define the main concept in plain language, explain the request trace above, then justify one choice and its cost. Finish by explaining how the failure drill would be detected and prevented in this backend. Do not claim the proposed extension is deployed.
+I choose the status from the actual outcome and the boundary that failed. Completed creation is 201; accepted unfinished work is 202; a deliberate empty success is 204. I distinguish input syntax, media negotiation, credentials, authorization, missing resources, conflicts, and preconditions so callers can act correctly. Response DTOs contain authoritative server state and stable types rather than arbitrary entity fields. In this backend I preserve current validation conventions and avoid inventing a 422 contract without a deliberate change. I test not only status and fields but final stored state, and never use 200 to hide failures. I also review ID precision, timestamp units, nullability, and no-body responses before clients depend on them.
 
 ## Stop/go and learner evidence
 
@@ -80,19 +116,29 @@ Proceed only after explaining the request trace without notes, predicting the fa
 </details>
 
 <details>
-<summary>2. What exact response or state should the worked request produce, and why?</summary>
+<summary>2. What is the difference between 409 and 412?</summary>
 
-Valid create -> save generates ID 42 -> 201 with Location /api/posts/42 and body id 42. Invalid JSON -> 400 before creation. Missing credentials -> 401; authenticated non-owner edit -> current service 403; absent post -> 404. A temporary dependency outage is a server-side failure, not a client validation error.
-
-This follows from the request boundary and state checks in the walkthrough, not merely from choosing a URL.
+409 reports a conflict with current domain state under the contract. 412 specifically means a supplied HTTP precondition failed, such as stale If-Match. A uniqueness violation is not automatically the same as a revision precondition.
 
 </details>
 
 <details>
-<summary>3. Which failure can remain despite a successful happy-path request, and how would you prevent it?</summary>
+<summary>3. Why is an empty collection normally not 404?</summary>
 
-Predict a 200 response containing an error string. A client marks the operation successful. Detect disagreement between error-body counts and status metrics, contain by treating the documented error field defensively, recover with correct statuses, prevent with response contract tests.
+The collection resource exists but has zero matching members. Return its documented empty list/envelope with 200; an absent individual item is a different case.
 
-A successful request proves one case. The controlled failure needs its own observation and regression check.
+</details>
+
+<details>
+<summary>4. Why could a Long JSON ID break a JavaScript consumer?</summary>
+
+JavaScript numbers represent integers exactly only through 2^53-1. A larger ID can round, so decide the external number/string representation and test clients before changing it.
+
+</details>
+
+<details>
+<summary>5. How should the client react to 401 versus 403?</summary>
+
+401 calls for valid authentication according to the challenge and auth flow. 403 means permission is denied for the identity; blindly refreshing/retrying can create a loop.
 
 </details>

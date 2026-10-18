@@ -8,7 +8,7 @@
 
 ## API contract practice
 
-[15 API Design with Spring Boot lessons](../../api-design/README.md) cover resource paths, methods, statuses, validation, errors, ownership, pagination, filtering, idempotency, conditional updates, caching, compatibility, asynchronous work, and contract tests. Proposed extensions are labelled; learning remains TODO until demonstrated.
+[20 API Design with Spring Boot lessons](../../api-design/README.md) cover resource paths, methods, statuses, validation, errors, ownership, pagination, filtering, idempotency, conditional updates, caching, compatibility, asynchronous work, contract tests, content negotiation, relationship commands, aggregation/BFF, bulk operations, and contract-first design. Proposed extensions are labelled; learning remains TODO until demonstrated.
 
 ## Topic roadmap
 

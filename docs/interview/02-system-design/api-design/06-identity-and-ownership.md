@@ -4,11 +4,11 @@
 
 How do you stop a user from modifying somebody else’s post?
 
-[Module sequence](README.md) · Estimated time: 15–20 minutes · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Explain the problem behind identity and ownership checks, trace its externally visible behavior, and identify one implementation risk before proposing a change.
+Separate authentication, object/collection/field authorization, CORS, and CSRF; trace a cross-owner write and design consistent denial behavior.
 
 Prerequisites: Lesson 5 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
 
@@ -18,7 +18,7 @@ Knowing who called does not prove they may act on every ID. Authentication estab
 
 ## Spring Boot example
 
-Unless explicitly described as existing code, this is a proposed teaching excerpt, not an endpoint implemented by this documentation change. Application-specific collaborators and types require implementation; imports and class wiring are omitted. Preserve authentication when adapting an excerpt. This project uses Spring Boot 4.0.2 and Java 24, as recorded in [build configuration](../../../../build.gradle).
+Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
 
 ```java
 private Post requireOwnedPost(UserAccount viewer, Long postId) {
@@ -44,6 +44,32 @@ User 7 owns post 42. Token for user 9 -> token parsed -> user 9 loaded -> post 4
 
 The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
 
+## Permissions apply to rows, fields, and transitions
+
+Object authorization is the owner check already shown. Collection authorization means every returned row belongs to the viewer’s allowed scope. Field authorization means a caller may edit caption but cannot promote themselves by writing role=ADMIN. Transition authorization means permission to read a draft does not imply permission to publish it.
+
+| Request | Identity | Required rule | Expected failure |
+|---|---|---|---|
+| Edit my post | Valid owner | Stored author matches viewer | Missing post -> 404 |
+| Edit another user’s post | Valid non-owner | Same rule | Current service -> 403 |
+| Read a private collection | Valid follower/non-follower | Scope query by visibility | Never load all then leak before filtering |
+| Create like for body userId=7 | Token user 9 | Ignore/reject caller-selected actor | Actor remains user 9 |
+| Poll media job | Valid non-owner | Job owner matches viewer | Consistent denial/concealment |
+
+### Authenticate once, authorize at the business boundary
+
+A proposed security integration could supply an authenticated principal to controllers rather than passing raw headers everywhere. Do not copy `@AuthenticationPrincipal` into this project and assume it works: build.gradle includes password crypto, not a configured full security filter chain. The current implementation calls TokenService inside services. Introducing filter-chain authentication is a separate behavior change with tests.
+
+Even with central authentication, keep domain checks close to the mutation. A controller check followed by a reusable unprotected service method invites another caller to bypass it. Perform the ownership decision and write in an appropriate transaction; if ownership or visibility can change concurrently, define the locking/version policy.
+
+### CORS, CSRF, and bearer tokens solve different problems
+
+CORS is a browser rule controlling which origins may read certain responses or issue preflighted requests. It does not stop a scripted caller using curl. CSRF is a browser sending ambient credentials, commonly cookies, on a request a malicious site induced. A token supplied explicitly in an Authorization header has a different threat model from a session cookie; switching to cookies requires a CSRF design. TLS protects tokens in transit, but cannot stop a compromised client or token leakage in logs.
+
+Sequential IDs reveal that another object may exist but guessing-resistant IDs do not establish permission. For private objects, a consistent 404 policy can reduce existence disclosure, at the cost of less explicit diagnostics. Keep internal audit evidence separate from the public denial response.
+
+**Adversarial trace:** user 9 sends valid token plus postId 42 and authorId 7 in JSON. DTO excludes authorId -> service resolves token to 9 -> loads stored author 7 -> denies -> no write. Repeat via batch and nested routes: they require the same rule for every item. A permission check only on the collection’s first item is insufficient.
+
 ## Project mapping and practice
 
 Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/service/PostService.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
@@ -62,9 +88,9 @@ Predict changing /posts/42 to /posts/43 while authenticated. Without object chec
 
 Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
 
-## Interview-ready answer outline
+## Interview-ready answer
 
-For a two-minute answer, start with the caller’s problem, define the main concept in plain language, explain the request trace above, then justify one choice and its cost. Finish by explaining how the failure drill would be detected and prevented in this backend. Do not claim the proposed extension is deployed.
+I derive identity from validated credentials and decide permission for each object, field, collection, and transition. Knowing a post ID or carrying a valid token does not grant edit rights. I keep ownership near the business mutation and scope collection queries to visible rows. In this backend tokens are parsed in services; adding a full security filter chain would be a real separately tested change. CORS is a browser access mechanism, not authentication, and a move to cookie credentials requires a CSRF design. I test owner/non-owner requests, attacker-supplied actor IDs, nested membership, and mixed-permission batch items, then assert denied writes leave data unchanged.
 
 ## Stop/go and learner evidence
 
@@ -80,19 +106,29 @@ The token identifies the caller, not the owner of the requested post. Load the s
 </details>
 
 <details>
-<summary>2. What exact response or state should the worked request produce, and why?</summary>
+<summary>2. Can curl bypass permissions by ignoring CORS?</summary>
 
-User 7 owns post 42. Token for user 9 -> token parsed -> user 9 loaded -> post 42 loaded -> 7 differs from 9 -> 403 -> caption unchanged. Missing token -> 401 before ownership comparison. Missing post -> current service 404.
-
-This follows from the request boundary and state checks in the walkthrough, not merely from choosing a URL.
+CORS does not impose domain permissions on curl in the first place. The API must authenticate and authorize every request independently of browser origin enforcement.
 
 </details>
 
 <details>
-<summary>3. Which failure can remain despite a successful happy-path request, and how would you prevent it?</summary>
+<summary>3. Can this project use @AuthenticationPrincipal without extra setup?</summary>
 
-Predict changing /posts/42 to /posts/43 while authenticated. Without object checks, another user’s post changes. Detect cross-owner mutation tests, contain mutation access, restore affected data from audit/backup, prevent with owner/non-owner integration cases.
+It is not currently configured as a full security-chain authentication model. Password crypto and custom token parsing do not automatically supply a resolved Spring Security principal.
 
-A successful request proves one case. The controlled failure needs its own observation and regression check.
+</details>
+
+<details>
+<summary>4. What changes when credentials move from an explicit bearer header to cookies?</summary>
+
+Browsers may attach cookies automatically, creating a CSRF threat model. Cookie policy, CSRF defenses, origins, and session behavior require explicit design.
+
+</details>
+
+<details>
+<summary>5. Why authorize fields and transitions as well as rows?</summary>
+
+An owner may edit caption but not authorId, counters, or an arbitrary publication status. Ownership of the object does not grant every possible mutation.
 
 </details>
