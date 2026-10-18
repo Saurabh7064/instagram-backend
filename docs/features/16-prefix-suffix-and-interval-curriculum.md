@@ -41,7 +41,7 @@ The module follows the next unbuilt section of the existing index. The user expl
 
 ## 6) Commit pointers and evidence
 
-Commit hashes are recorded in the [commit map](../commit-map.md). Exact validation output and screenshot review notes: [verification record](../demo-proofs/2026-10-17/prefix-interval-verification.md).
+Backend learning-artifact commit: `32a48e7` — `docs: build prefix suffix and interval LeetCode lessons`. No UI commit was needed; the existing catalog/renderer was reused. See the [commit map](../commit-map.md). Exact validation output and screenshot review notes: [verification record](../demo-proofs/2026-10-17/prefix-interval-verification.md).
 
 - Eleven Java files compile; five reference runners pass; five practice runners reach their intentional TODO messages.
 - Independent fixed-seed checks pass 6,270 range queries, 5,500 subarray cases, 500 products, 500 merge cases, and 500 insert cases. Interval coverage is checked at half-unit positions to catch gaps between integer endpoints.
