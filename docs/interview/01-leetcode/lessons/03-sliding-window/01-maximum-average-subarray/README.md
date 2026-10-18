@@ -247,6 +247,9 @@ The first loop exits when `index=4`, because `4 < 4` is false. The second exits 
 Runnable file: [MaximumAverageSubarraySolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/slidingwindow/fixedaverage/MaximumAverageSubarraySolution.java)
 
 ```java
+// Input: numbers = [1, 12, -5, -6, 50, 3]; windowSize = 4
+// Expected return: 12.75
+
 static double findMaxAverage(int[] numbers, int windowSize) {
     long windowSum = 0;
     for (int index = 0; index < windowSize; index++) {

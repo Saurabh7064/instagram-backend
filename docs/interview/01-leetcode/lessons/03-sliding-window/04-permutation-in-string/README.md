@@ -254,6 +254,9 @@ At `right=0`, a partial one-character window cannot match a two-character patter
 ## Reference approach
 
 ```java
+// Input: pattern = "ab"; text = "eidbaooo"
+// Expected return: true (window "ba")
+
 static boolean checkInclusion(String pattern, String text) {
     if (pattern.length() > text.length()) {
         return false;

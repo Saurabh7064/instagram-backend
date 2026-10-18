@@ -276,6 +276,9 @@ The character locals leave scope at the closing brace; the â€œnext outer checkâ€
 ## Reference approach
 
 ```java
+// Input: text = "A,b a"
+// Expected return: true
+
 int left = 0;
 int right = text.length() - 1;
 

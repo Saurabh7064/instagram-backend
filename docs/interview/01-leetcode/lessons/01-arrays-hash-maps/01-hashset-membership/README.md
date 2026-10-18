@@ -162,6 +162,9 @@ The fourth addition returns `false`, so `!false` is `true` and the method return
 ## Reference solution
 
 ```java
+// Input: values = [1, 2, 3, 1]
+// Expected return: true
+
 static boolean containsDuplicate(int[] values) {
     Set<Integer> seen = new HashSet<>();
 

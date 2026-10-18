@@ -224,6 +224,9 @@ For the sorting alternative, `firstCharacters` starts `[a,n,a,g,r,a,m]` and `sec
 ## Reference approach
 
 ```java
+// Input: first = "anagram"; second = "nagaram"
+// Expected return: true
+
 static boolean isAnagram(String first, String second) {
     if (first.length() != second.length()) {
         return false;
@@ -257,6 +260,9 @@ static boolean isAnagram(String first, String second) {
 A simpler but slower approach sorts both strings and compares the resulting arrays.
 
 ```java
+// Input: first = "anagram"; second = "nagaram"
+// Expected return: true
+
 static boolean isAnagramBySort(String first, String second) {
     if (first.length() != second.length()) {
         return false;

@@ -310,6 +310,9 @@ After the last contraction: `right=12`, `left=10`, `formedGroups=2`, `bestStart=
 ## Reference approach
 
 ```java
+// Input: source = "ADOBECODEBANC"; target = "ABC"
+// Expected return: "BANC"
+
 static String minWindow(String source, String target) {
     Map<Character, Integer> neededCounts = new HashMap<>();
     for (char value : target.toCharArray()) {

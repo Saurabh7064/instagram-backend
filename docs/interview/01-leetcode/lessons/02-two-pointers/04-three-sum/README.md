@@ -415,6 +415,9 @@ After anchor `3`, the outer increment makes `anchor=4`; `4 < sorted.length-2` is
 ## Reference approach
 
 ```java
+// Input: numbers = [-1, 0, 1, 2, -1, -4]
+// Expected return: [[-1, -1, 2], [-1, 0, 1]]
+
 for (int anchor = 0; anchor < sorted.length - 2; anchor++) {
     if (anchor > 0 && sorted[anchor] == sorted[anchor - 1]) {
         continue;

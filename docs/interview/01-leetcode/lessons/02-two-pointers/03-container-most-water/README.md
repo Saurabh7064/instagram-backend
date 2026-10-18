@@ -253,6 +253,9 @@ The maximum is found at indexes `1` and `8`: width `8 - 1 = 7`, limiting height 
 ## Reference approach
 
 ```java
+// Input: heights = [1, 8, 6, 2, 5, 4, 8, 3, 7]
+// Expected return: 49
+
 int left = 0;
 int right = heights.length - 1;
 int bestArea = 0;

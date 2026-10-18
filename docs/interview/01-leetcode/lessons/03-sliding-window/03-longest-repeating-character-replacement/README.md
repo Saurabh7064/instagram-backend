@@ -238,6 +238,9 @@ At `right=3`, `AABA` establishes a valid length `4`: keep three A characters and
 ## Reference approach
 
 ```java
+// Input: text = "AABABBA"; replacementsAllowed = 1
+// Expected return: 4
+
 static int characterReplacement(String text, int replacementsAllowed) {
     int[] frequency = new int[26];
     int left = 0;

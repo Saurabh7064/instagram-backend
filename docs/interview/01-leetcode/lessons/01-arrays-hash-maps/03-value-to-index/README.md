@@ -257,6 +257,9 @@ At index `2`, the complement is `6 - 4 = 2`, and lookup finds index `1`. Return 
 ## Reference approach
 
 ```java
+// Input: numbers = [3, 2, 4]; target = 6
+// Expected return: [1, 2] (zero-based indexes)
+
 static int[] twoSum(int[] numbers, int target) {
     Map<Integer, Integer> earlierIndexByValue = new HashMap<>();
 

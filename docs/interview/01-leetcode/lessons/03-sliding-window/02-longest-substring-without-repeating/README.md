@@ -194,6 +194,9 @@ At `right=6`, incoming is `b`: remove `a` at index `3` first, but `b` is still p
 ## Reference approach
 
 ```java
+// Input: text = "abcabcbb"
+// Expected return: 3
+
 static int lengthOfLongestSubstring(String text) {
     Set<Character> activeCharacters = new HashSet<>();
     int left = 0;

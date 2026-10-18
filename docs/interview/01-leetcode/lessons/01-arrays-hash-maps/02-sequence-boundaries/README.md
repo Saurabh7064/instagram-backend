@@ -431,6 +431,9 @@ For the run starting at `1`, successor checks find `2`, `3`, and `4`, then fail 
 ## Fully annotated reference solution
 
 ```java
+// Input: values = [100, 4, 200, 1, 3, 2]
+// Expected return: 4
+
 static int longestConsecutive(int[] values) {
     // Remove duplicates and enable average O(1) membership checks.
     Set<Integer> unique = new HashSet<>();

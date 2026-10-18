@@ -198,6 +198,9 @@ The pointer pairs are `(0,4) → (0,3) → (1,3)`. At `(1,3)`, `-2 + 3 = 1`; ret
 ## Reference approach
 
 ```java
+// Input: numbers = [-5, -2, 0, 3, 9]; target = 1
+// Expected return: [2, 4] (one-based indexes)
+
 int left = 0;
 int right = numbers.length - 1;
 

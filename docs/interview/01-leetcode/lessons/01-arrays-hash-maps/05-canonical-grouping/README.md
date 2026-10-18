@@ -190,6 +190,9 @@ For `tea`, sorting `[t,e,a]` produces `[a,e,t]`, so `key = "aet"`; the existing 
 ## Reference approach
 
 ```java
+// Input: words = ["eat", "tea", "tan", "ate", "nat", "bat"]
+// Expected return: [[eat, tea, ate], [tan, nat], [bat]] (group order may vary)
+
 static List<List<String>> groupAnagrams(String[] words) {
     Map<String, List<String>> wordsByKey = new HashMap<>();
 
