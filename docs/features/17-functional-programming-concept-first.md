@@ -37,7 +37,7 @@ The original lesson assumed several APIs before explaining functional programmin
 
 ## 6) Commit pointers and verification
 
-Hashes and outcomes are recorded in the [commit map](../commit-map.md); exact evidence and reviewed screenshot links are in the [verification record](../demo-proofs/2026-10-17/functional-verification.md).
+Learning-artifact commit: `68de455` — `docs: teach functional programming concepts before stream syntax`. No UI code commit was required. Hashes and outcomes are recorded in the [commit map](../commit-map.md); exact evidence and reviewed screenshot links are in the [verification record](../demo-proofs/2026-10-17/functional-verification.md).
 
 Verification covers Java compilation, four reference runners and four intentional practice TODO states, 400 model cases per lesson, rendered content and reference line numbers for all four lesson routes, mobile layout, HTTP serving, and visual screenshot review. No application endpoint or renderer implementation is changed.
 
