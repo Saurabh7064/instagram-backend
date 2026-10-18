@@ -54,40 +54,11 @@ For each value:
 2. Otherwise, add it and continue.
 3. If the loop ends, every value was distinct.
 
-## Debugger trace — every variable and collection
-
-Input `values = [1,2,3,1]`. Initially `seen = {}`. The enhanced `for` has no index variable; `value` is its loop variable.
-
-The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
-
-| value | seen before | seen.add(value) | seen after | branch |
-| --- | --- | --- | --- | --- |
-| `1` | `[]` | `true` | `[1]` | `continue` |
-| `2` | `[1]` | `true` | `[1, 2]` | `continue` |
-| `3` | `[1, 2]` | `true` | `[1, 2, 3]` | `continue` |
-| `1` | `[1, 2, 3]` | `false` | `[1, 2, 3]` | `return true` |
-
-The fourth addition returns `false`, so `!false` is `true` and the method returns `true` immediately. No later loop step runs. For `[1,2,3,4]`, all four additions return `true`; after the loop, the terminal return is `false`.
-
-## Reference solution
-
-```java
-static boolean containsDuplicate(int[] values) {
-    Set<Integer> seen = new HashSet<>();
-
-    for (int value : values) {
-        if (!seen.add(value)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-```
-
-`Set.add` returns `false` when the value was already present, so one operation performs the membership check and insertion.
-
 ## Block-by-block code walkthrough
+
+**Running example for the code and tables below:** Input `values = [1,2,3,1]`. Initially `seen = {}`. The enhanced `for` has no index variable; `value` is its loop variable.
+
+Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
 
 ### Block 1 — Create the memory of earlier values
 
@@ -103,6 +74,10 @@ Set<Integer> seen = new HashSet<>();
 
 **Equivalent clearer form:** `HashSet<Integer> seen = new HashSet<>();` behaves the same, but declaring the `Set` interface communicates that only membership behavior matters.
 
+**Debugger state at this block:**
+
+`seen = {}`; `value` has not been assigned yet.
+
 ### Block 2 — Process every array value once
 
 ```java
@@ -116,6 +91,15 @@ for (int value : values) {
 **What fails without it:** examining only part of the array misses a duplicate near the end, such as the final `1` in `[1, 2, 3, 1]`.
 
 **Equivalent clearer form:** `for (int index = 0; index < values.length; index++) { int value = values[index]; }` is equivalent but adds an unused index.
+
+**Debugger state at this block:**
+
+| value | seen before | seen.add(value) | seen after | branch |
+| --- | --- | --- | --- | --- |
+| `1` | `[]` | `true` | `[1]` | `continue` |
+| `2` | `[1]` | `true` | `[1, 2]` | `continue` |
+| `3` | `[1, 2]` | `true` | `[1, 2, 3]` | `continue` |
+| `1` | `[1, 2, 3]` | `false` | `[1, 2, 3]` | `return true` |
 
 ### Block 3 — Let insertion detect the duplicate
 
@@ -144,6 +128,15 @@ seen.add(value);
 
 This is easier to read initially but performs a lookup followed by a separate insertion for new values.
 
+**Debugger state at this block:**
+
+| value | seen before | seen.add(value) | seen after | branch |
+| --- | --- | --- | --- | --- |
+| `1` | `[]` | `true` | `[1]` | `continue` |
+| `2` | `[1]` | `true` | `[1, 2]` | `continue` |
+| `3` | `[1, 2]` | `true` | `[1, 2, 3]` | `continue` |
+| `1` | `[1, 2, 3]` | `false` | `[1, 2, 3]` | `return true` |
+
 ### Block 4 — Reject duplication only after the scan finishes
 
 ```java
@@ -160,12 +153,35 @@ return false;
 
 **Equivalent clearer form:** a separate `boolean duplicateFound` flag is possible, but the early return expresses the proof more directly.
 
+**Debugger state at this block:**
+
+For `[1,2,3,1]`, the duplicate branch already returned `true`, so this terminal `false` is not reached. For `[1,2,3,4]`, the completed set is `{1,2,3,4}` and this line returns `false`.
+
+The fourth addition returns `false`, so `!false` is `true` and the method returns `true` immediately. No later loop step runs. For `[1,2,3,4]`, all four additions return `true`; after the loop, the terminal return is `false`.
+
+## Reference solution
+
+```java
+static boolean containsDuplicate(int[] values) {
+    Set<Integer> seen = new HashSet<>();
+
+    for (int value : values) {
+        if (!seen.add(value)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+```
+
+`Set.add` returns `false` when the value was already present, so one operation performs the membership check and insertion.
+
 ## Complexity
 
 - Average time: `O(n)` because each element performs one average constant-time set operation.
 - Additional space: `O(n)` in the all-distinct case.
 - Trade-off: extra memory replaces repeated pair comparisons.
-
 
 ## Learner solution review — 2026-10-06
 

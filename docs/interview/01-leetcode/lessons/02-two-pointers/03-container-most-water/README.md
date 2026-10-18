@@ -115,11 +115,47 @@ Suppose the left height is shorter. Keeping it and moving the right pointer:
 
 That cannot improve the area. Therefore every pair using that left boundary and a closer right boundary is dominated, and `left` can be advanced safely.
 
-## Debugger trace — every variable and collection
+## Block-by-block code walkthrough
 
-Input `heights = [1,8,6,2,5,4,8,3,7]`; initially `left = 0`, `right = 8`, `bestArea = 0`. The array stays unchanged. Each row calculates the area before moving a pointer.
+**Running example for the code and tables below:** Input `heights = [1,8,6,2,5,4,8,3,7]`; initially `left = 0`, `right = 8`, `bestArea = 0`. The array stays unchanged. Each row calculates the area before moving a pointer.
 
-The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
+
+### Block 1 — Initialize boundaries and a real lower bound
+
+```java
+int left = 0;
+int right = heights.length - 1;
+int bestArea = 0;
+```
+
+**What it evaluates:** the pointers select the widest possible container. `bestArea = 0` is valid because heights and therefore all areas are nonnegative.
+
+**Concrete result:** for `[1, 8, 6]`, `left = 0`, `right = 2`, and the initial candidate width is `2`.
+
+**What fails without it:** starting `right` at `heights.length` causes an invalid array access. Leaving `bestArea` uninitialized does not compile.
+
+**Equivalent clearer form:** `int lastIndex = heights.length - 1;` may be introduced before assigning `right`.
+
+**Debugger state at this block:**
+
+`left=0`, `right=9-1=8`, `bestArea=0`; `width` and `limitingHeight` are not assigned.
+
+### Block 2 — Inspect only genuine pairs
+
+```java
+while (left < right) {
+```
+
+**What it evaluates:** two distinct lines remain. For `[1, 1]`, the only iteration uses indexes `0` and `1`.
+
+**Why it is needed:** one line cannot form a container with itself, and the loop must stop when every useful boundary was eliminated.
+
+**What fails without it:** `left <= right` evaluates a zero-width self-pair unnecessarily; no stopping condition creates an infinite loop.
+
+**Equivalent clearer form:** `while (right - left >= 1)` is equivalent but obscures the pointer relationship.
+
+**Debugger state at this block:**
 
 | left | right | heights[left] | heights[right] | width | limitingHeight | area calculation | bestArea update | movement |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -131,6 +167,86 @@ The rows follow execution order. Collection contents are shown after the named o
 | `3` | `6` | `2` | `8` | `3` | `2` | `3 * 2 = 6` | `max(49,6) = 49` | `left++` |
 | `4` | `6` | `5` | `8` | `2` | `5` | `2 * 5 = 10` | `max(49,10) = 49` | `left++` |
 | `5` | `6` | `4` | `8` | `1` | `4` | `1 * 4 = 4` | `max(49,4) = 49` | `left++` |
+
+### Block 3 — Calculate the current container
+
+```java
+int width = right - left;
+int limitingHeight = Math.min(heights[left], heights[right]);
+bestArea = Math.max(bestArea, width * limitingHeight);
+```
+
+**What it evaluates:** width is the index distance; `Math.min` chooses the water level; `Math.max` preserves the best area seen.
+
+**Concrete result:** for indexes `1` and `8` in the standard example, width is `7`, limiting height is `min(8, 7) = 7`, area is `49`, and `bestArea` becomes `49`.
+
+**Why it is needed:** returning only the final pair would forget a larger container examined earlier.
+
+**What fails without it:** using `Math.max` for the height imagines water above the shorter wall. Using `right - left + 1` counts positions rather than distance and overstates width.
+
+**Equivalent clearer form:** compute `int area = width * limitingHeight; if (area > bestArea) bestArea = area;` instead of `Math.max`.
+
+**Debugger state at this block:**
+
+| left | right | heights[left] | heights[right] | width | limitingHeight | area calculation | bestArea update | movement |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `0` | `8` | `1` | `7` | `8` | `1` | `8 * 1 = 8` | `max(0,8) = 8` | `left++` |
+| `1` | `8` | `8` | `7` | `7` | `7` | `7 * 7 = 49` | `max(8,49) = 49` | `right--` |
+| `1` | `7` | `8` | `3` | `6` | `3` | `6 * 3 = 18` | `max(49,18) = 49` | `right--` |
+| `1` | `6` | `8` | `8` | `5` | `8` | `5 * 8 = 40` | `max(49,40) = 49` | `left++` |
+| `2` | `6` | `6` | `8` | `4` | `6` | `4 * 6 = 24` | `max(49,24) = 49` | `left++` |
+| `3` | `6` | `2` | `8` | `3` | `2` | `3 * 2 = 6` | `max(49,6) = 49` | `left++` |
+| `4` | `6` | `5` | `8` | `2` | `5` | `2 * 5 = 10` | `max(49,10) = 49` | `left++` |
+| `5` | `6` | `4` | `8` | `1` | `4` | `1 * 4 = 4` | `max(49,4) = 49` | `left++` |
+
+### Block 4 — Remove the limiting boundary
+
+```java
+if (heights[left] <= heights[right]) {
+    left++;
+} else {
+    right--;
+}
+```
+
+**What it evaluates:** the shorter boundary moves inward. With equal heights, this implementation chooses the left boundary.
+
+**Concrete result:** if the boundary heights are `1` and `7`, moving `left` is the only move that might find a taller limiting wall. Keeping height `1` while shrinking width cannot improve area.
+
+**Why it is needed:** each move discards a boundary whose closer pairs are dominated.
+
+**What fails without it:** moving the taller line can discard a useful tall boundary while retaining the same short limitation. Moving neither pointer loops forever.
+
+**Equivalent clearer form:** compare named values `leftHeight` and `rightHeight`; moving `right` on equality is also correct.
+
+**Debugger state at this block:**
+
+| left | right | heights[left] | heights[right] | width | limitingHeight | area calculation | bestArea update | movement |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `0` | `8` | `1` | `7` | `8` | `1` | `8 * 1 = 8` | `max(0,8) = 8` | `left++` |
+| `1` | `8` | `8` | `7` | `7` | `7` | `7 * 7 = 49` | `max(8,49) = 49` | `right--` |
+| `1` | `7` | `8` | `3` | `6` | `3` | `6 * 3 = 18` | `max(49,18) = 49` | `right--` |
+| `1` | `6` | `8` | `8` | `5` | `8` | `5 * 8 = 40` | `max(49,40) = 49` | `left++` |
+| `2` | `6` | `6` | `8` | `4` | `6` | `4 * 6 = 24` | `max(49,24) = 49` | `left++` |
+| `3` | `6` | `2` | `8` | `3` | `2` | `3 * 2 = 6` | `max(49,6) = 49` | `left++` |
+| `4` | `6` | `5` | `8` | `2` | `5` | `2 * 5 = 10` | `max(49,10) = 49` | `left++` |
+| `5` | `6` | `4` | `8` | `1` | `4` | `1 * 4 = 4` | `max(49,4) = 49` | `left++` |
+
+### Block 5 — Return the maximum, not the last area
+
+```java
+return bestArea;
+```
+
+**What it evaluates:** after all safe eliminations, `bestArea` contains the greatest area evaluated.
+
+**Concrete results:** `[1, 1]` returns `1`; `[0, 2]` returns `0`.
+
+**What fails without it:** returning the most recently calculated `area` can lose an earlier maximum and does not handle the value outside the loop cleanly.
+
+**Equivalent clearer form:** none is simpler; `bestArea` is the maintained answer.
+
+**Debugger state at this block:**
 
 The maximum is found at indexes `1` and `8`: width `8 - 1 = 7`, limiting height `min(8,7) = 7`, area `7 * 7 = 49`. The later equal-height comparison at `(1,6)` uses `<=`, so left advances. Eventually `left=6`, `right=6`; `left < right` is false and return `49`.
 
@@ -156,90 +272,6 @@ return bestArea;
 ```
 
 When heights are equal, either boundary may move: both are current limiting heights, and keeping one with a smaller width cannot produce a larger area unless the other boundary changes.
-
-## Block-by-block code walkthrough
-
-### Block 1 — Initialize boundaries and a real lower bound
-
-```java
-int left = 0;
-int right = heights.length - 1;
-int bestArea = 0;
-```
-
-**What it evaluates:** the pointers select the widest possible container. `bestArea = 0` is valid because heights and therefore all areas are nonnegative.
-
-**Concrete result:** for `[1, 8, 6]`, `left = 0`, `right = 2`, and the initial candidate width is `2`.
-
-**What fails without it:** starting `right` at `heights.length` causes an invalid array access. Leaving `bestArea` uninitialized does not compile.
-
-**Equivalent clearer form:** `int lastIndex = heights.length - 1;` may be introduced before assigning `right`.
-
-### Block 2 — Inspect only genuine pairs
-
-```java
-while (left < right) {
-```
-
-**What it evaluates:** two distinct lines remain. For `[1, 1]`, the only iteration uses indexes `0` and `1`.
-
-**Why it is needed:** one line cannot form a container with itself, and the loop must stop when every useful boundary was eliminated.
-
-**What fails without it:** `left <= right` evaluates a zero-width self-pair unnecessarily; no stopping condition creates an infinite loop.
-
-**Equivalent clearer form:** `while (right - left >= 1)` is equivalent but obscures the pointer relationship.
-
-### Block 3 — Calculate the current container
-
-```java
-int width = right - left;
-int limitingHeight = Math.min(heights[left], heights[right]);
-bestArea = Math.max(bestArea, width * limitingHeight);
-```
-
-**What it evaluates:** width is the index distance; `Math.min` chooses the water level; `Math.max` preserves the best area seen.
-
-**Concrete result:** for indexes `1` and `8` in the standard example, width is `7`, limiting height is `min(8, 7) = 7`, area is `49`, and `bestArea` becomes `49`.
-
-**Why it is needed:** returning only the final pair would forget a larger container examined earlier.
-
-**What fails without it:** using `Math.max` for the height imagines water above the shorter wall. Using `right - left + 1` counts positions rather than distance and overstates width.
-
-**Equivalent clearer form:** compute `int area = width * limitingHeight; if (area > bestArea) bestArea = area;` instead of `Math.max`.
-
-### Block 4 — Remove the limiting boundary
-
-```java
-if (heights[left] <= heights[right]) {
-    left++;
-} else {
-    right--;
-}
-```
-
-**What it evaluates:** the shorter boundary moves inward. With equal heights, this implementation chooses the left boundary.
-
-**Concrete result:** if the boundary heights are `1` and `7`, moving `left` is the only move that might find a taller limiting wall. Keeping height `1` while shrinking width cannot improve area.
-
-**Why it is needed:** each move discards a boundary whose closer pairs are dominated.
-
-**What fails without it:** moving the taller line can discard a useful tall boundary while retaining the same short limitation. Moving neither pointer loops forever.
-
-**Equivalent clearer form:** compare named values `leftHeight` and `rightHeight`; moving `right` on equality is also correct.
-
-### Block 5 — Return the maximum, not the last area
-
-```java
-return bestArea;
-```
-
-**What it evaluates:** after all safe eliminations, `bestArea` contains the greatest area evaluated.
-
-**Concrete results:** `[1, 1]` returns `1`; `[0, 2]` returns `0`.
-
-**What fails without it:** returning the most recently calculated `area` can lose an earlier maximum and does not handle the value outside the loop cleanly.
-
-**Equivalent clearer form:** none is simpler; `bestArea` is the maintained answer.
 
 ## Correctness reasoning
 

@@ -60,11 +60,72 @@ The useful question is:
 
 A frequency map stores that answer.
 
-## Debugger trace — every variable and collection
+## Block-by-block code walkthrough
 
-Inputs `first = "anagram"`, `second = "nagaram"`; both lengths are `7`, so the length guard is false. Initially `remainingByCharacter = {}`. Each row shows the map after its mutation.
+**Running example for the code and tables below:** Inputs `first = "anagram"`, `second = "nagaram"`; both lengths are `7`, so the length guard is false. Initially `remainingByCharacter = {}`. Each row shows the map after its mutation.
 
-The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
+
+### Block 1 — Reject different lengths
+
+```java
+if (first.length() != second.length()) {
+    return false;
+}
+```
+
+**What it evaluates:** it compares the number of characters before building any counts. `"ab"` has length `2`; `"a"` has length `1`, so the condition is true.
+
+**Why it is needed:** anagrams use exactly the same number of characters. The early return also prevents unnecessary map work.
+
+**What fails without it:** the counting algorithm can still detect most differences, but it performs avoidable work and makes the final proof less direct.
+
+**Equivalent clearer form:** store both lengths in named variables first; the boolean decision is identical.
+
+**Debugger state at this block:**
+
+For `first="anagram"`, `second="nagaram"`, evaluate `7 != 7 → false`; continue. For `"ab"` and `"a"`, evaluate `2 != 1 → true`; return `false` immediately. No map exists on that early-return path.
+
+### Block 2 — Create the remaining-count map
+
+```java
+Map<Character, Integer> remainingByCharacter = new HashMap<>();
+```
+
+**What it evaluates:** an empty mapping is created from each character to its unmatched count.
+
+**Why it is needed:** a set cannot distinguish one `a` from two `a` characters.
+
+**Concrete result:** after counting `"aab"`, the map will be `{a=2, b=1}`.
+
+**What fails without it:** the method has nowhere to retain counts between the two scans.
+
+**Equivalent clearer form:** under the lowercase-English constraint, `int[] counts = new int[26]` can use `character - 'a'` as the index, but it teaches a less general representation.
+
+**Debugger state at this block:**
+
+`remainingByCharacter = {}` before the first string is counted.
+
+### Block 3 — Count every character in the first string
+
+```java
+for (char character : first.toCharArray()) {
+    int currentCount = remainingByCharacter.getOrDefault(character, 0);
+    remainingByCharacter.put(character, currentCount + 1);
+}
+```
+
+**What it evaluates:** `toCharArray()` supplies each character. `getOrDefault` returns its saved count or `0`; `put` writes one more.
+
+**Concrete result:** the second `a` in `"aab"` reads `1` and stores `2`.
+
+**Why it is needed:** the map must represent every copy available for matching.
+
+**What fails without it:** calling `get(character)` for the first occurrence returns `null`; unboxing or adding one would throw `NullPointerException`.
+
+**Equivalent clearer form:** `remainingByCharacter.merge(character, 1, Integer::sum);` performs the same frequency update, but `getOrDefault` makes the arithmetic visible to a learner.
+
+**Debugger state at this block:**
 
 | loop | character | currentCount before | operation | remainingByCharacter after |
 | --- | --- | --- | --- | --- |
@@ -75,6 +136,31 @@ The rows follow execution order. Collection contents are shown after the named o
 | `count first` | `r` | `0` | `0 + 1 = 1` | `{'a': 2, 'n': 1, 'g': 1, 'r': 1}` |
 | `count first` | `a` | `2` | `2 + 1 = 3` | `{'a': 3, 'n': 1, 'g': 1, 'r': 1}` |
 | `count first` | `m` | `0` | `0 + 1 = 1` | `{'a': 3, 'n': 1, 'g': 1, 'r': 1, 'm': 1}` |
+
+### Block 4 — Request one available copy for each second-string character
+
+```java
+for (char character : second.toCharArray()) {
+    Integer currentCount = remainingByCharacter.get(character);
+    if (currentCount == null) {
+        return false;
+    }
+```
+
+**What it evaluates:** the loop retrieves the unmatched count. `Integer` is required because absence is represented by `null`.
+
+**Concrete result:** with first `"rat"` and second `"car"`, lookup for `c` returns `null`, so the method returns `false` immediately.
+
+**Why it is needed:** a missing key means the second string requests a character copy the first string does not have left.
+
+**What fails without it:** unboxing a missing result into primitive `int` throws, and ignoring absence could accept unequal strings.
+
+**Equivalent clearer form:** `if (!remainingByCharacter.containsKey(character)) return false;` followed by `get` is correct but performs a second lookup.
+
+**Debugger state at this block:**
+
+| loop | character | currentCount before | operation | remainingByCharacter after |
+| --- | --- | --- | --- | --- |
 | `consume second` | `n` | `1` | `remove key (count was 1)` | `{'a': 3, 'g': 1, 'r': 1, 'm': 1}` |
 | `consume second` | `a` | `3` | `3 - 1 = 2` | `{'a': 2, 'g': 1, 'r': 1, 'm': 1}` |
 | `consume second` | `g` | `1` | `remove key (count was 1)` | `{'a': 2, 'r': 1, 'm': 1}` |
@@ -82,6 +168,54 @@ The rows follow execution order. Collection contents are shown after the named o
 | `consume second` | `r` | `1` | `remove key (count was 1)` | `{'a': 1, 'm': 1}` |
 | `consume second` | `a` | `1` | `remove key (count was 1)` | `{'m': 1}` |
 | `consume second` | `m` | `1` | `remove key (count was 1)` | `{}` |
+
+### Block 5 — Remove the last copy or decrement the balance
+
+```java
+if (currentCount == 1) {
+    remainingByCharacter.remove(character);
+} else {
+    remainingByCharacter.put(character, currentCount - 1);
+}
+```
+
+**What it evaluates:** count `1` means the current character consumes the final copy, so the key disappears. Larger counts are reduced by one.
+
+**Concrete result:** `{a=2, b=1}` becomes `{a=1, b=1}` after `a`, then `{a=1}` after `b`.
+
+**Why it is needed:** the map must continue to mean “unmatched copies remaining.” Removing zero-count keys makes an empty map a complete final proof.
+
+**What fails without it:** leaving counts unchanged lets repeated characters in the second string reuse the same copy. Storing zero instead of removing is correct only if the final check verifies every value is zero rather than calling `isEmpty()`.
+
+**Equivalent clearer form:** always store `currentCount - 1`, then run a final loop checking for zero balances; that keeps more keys and needs more code.
+
+**Debugger state at this block:**
+
+| loop | character | currentCount before | operation | remainingByCharacter after |
+| --- | --- | --- | --- | --- |
+| `consume second` | `n` | `1` | `remove key (count was 1)` | `{'a': 3, 'g': 1, 'r': 1, 'm': 1}` |
+| `consume second` | `a` | `3` | `3 - 1 = 2` | `{'a': 2, 'g': 1, 'r': 1, 'm': 1}` |
+| `consume second` | `g` | `1` | `remove key (count was 1)` | `{'a': 2, 'r': 1, 'm': 1}` |
+| `consume second` | `a` | `2` | `2 - 1 = 1` | `{'a': 1, 'r': 1, 'm': 1}` |
+| `consume second` | `r` | `1` | `remove key (count was 1)` | `{'a': 1, 'm': 1}` |
+| `consume second` | `a` | `1` | `remove key (count was 1)` | `{'m': 1}` |
+| `consume second` | `m` | `1` | `remove key (count was 1)` | `{}` |
+
+### Block 6 — Accept only a completely consumed map
+
+```java
+return remainingByCharacter.isEmpty();
+```
+
+**What it evaluates:** `isEmpty()` is true only when every key was removed after its final copy was matched.
+
+**Concrete results:** `"aab"`/`"aba"` ends with `{}` and returns `true`; a leftover count would return `false`.
+
+**What fails without it:** an unconditional `true` could accept a first string with unmatched copies if the length guard or future contract changed.
+
+**Equivalent clearer form:** under the current equal-length guard and immediate missing-key failure, `return true` is logically sufficient, but `isEmpty()` directly checks the invariant and resists later changes.
+
+**Debugger state at this block:**
 
 All second-loop lookups are non-null, so no early `false` return occurs. The final map is `{}`; `isEmpty()` returns `true`.
 
@@ -118,113 +252,6 @@ static boolean isAnagram(String first, String second) {
 }
 ```
 
-## Block-by-block code walkthrough
-
-### Block 1 — Reject different lengths
-
-```java
-if (first.length() != second.length()) {
-    return false;
-}
-```
-
-**What it evaluates:** it compares the number of characters before building any counts. `"ab"` has length `2`; `"a"` has length `1`, so the condition is true.
-
-**Why it is needed:** anagrams use exactly the same number of characters. The early return also prevents unnecessary map work.
-
-**What fails without it:** the counting algorithm can still detect most differences, but it performs avoidable work and makes the final proof less direct.
-
-**Equivalent clearer form:** store both lengths in named variables first; the boolean decision is identical.
-
-### Block 2 — Create the remaining-count map
-
-```java
-Map<Character, Integer> remainingByCharacter = new HashMap<>();
-```
-
-**What it evaluates:** an empty mapping is created from each character to its unmatched count.
-
-**Why it is needed:** a set cannot distinguish one `a` from two `a` characters.
-
-**Concrete result:** after counting `"aab"`, the map will be `{a=2, b=1}`.
-
-**What fails without it:** the method has nowhere to retain counts between the two scans.
-
-**Equivalent clearer form:** under the lowercase-English constraint, `int[] counts = new int[26]` can use `character - 'a'` as the index, but it teaches a less general representation.
-
-### Block 3 — Count every character in the first string
-
-```java
-for (char character : first.toCharArray()) {
-    int currentCount = remainingByCharacter.getOrDefault(character, 0);
-    remainingByCharacter.put(character, currentCount + 1);
-}
-```
-
-**What it evaluates:** `toCharArray()` supplies each character. `getOrDefault` returns its saved count or `0`; `put` writes one more.
-
-**Concrete result:** the second `a` in `"aab"` reads `1` and stores `2`.
-
-**Why it is needed:** the map must represent every copy available for matching.
-
-**What fails without it:** calling `get(character)` for the first occurrence returns `null`; unboxing or adding one would throw `NullPointerException`.
-
-**Equivalent clearer form:** `remainingByCharacter.merge(character, 1, Integer::sum);` performs the same frequency update, but `getOrDefault` makes the arithmetic visible to a learner.
-
-### Block 4 — Request one available copy for each second-string character
-
-```java
-for (char character : second.toCharArray()) {
-    Integer currentCount = remainingByCharacter.get(character);
-    if (currentCount == null) {
-        return false;
-    }
-```
-
-**What it evaluates:** the loop retrieves the unmatched count. `Integer` is required because absence is represented by `null`.
-
-**Concrete result:** with first `"rat"` and second `"car"`, lookup for `c` returns `null`, so the method returns `false` immediately.
-
-**Why it is needed:** a missing key means the second string requests a character copy the first string does not have left.
-
-**What fails without it:** unboxing a missing result into primitive `int` throws, and ignoring absence could accept unequal strings.
-
-**Equivalent clearer form:** `if (!remainingByCharacter.containsKey(character)) return false;` followed by `get` is correct but performs a second lookup.
-
-### Block 5 — Remove the last copy or decrement the balance
-
-```java
-if (currentCount == 1) {
-    remainingByCharacter.remove(character);
-} else {
-    remainingByCharacter.put(character, currentCount - 1);
-}
-```
-
-**What it evaluates:** count `1` means the current character consumes the final copy, so the key disappears. Larger counts are reduced by one.
-
-**Concrete result:** `{a=2, b=1}` becomes `{a=1, b=1}` after `a`, then `{a=1}` after `b`.
-
-**Why it is needed:** the map must continue to mean “unmatched copies remaining.” Removing zero-count keys makes an empty map a complete final proof.
-
-**What fails without it:** leaving counts unchanged lets repeated characters in the second string reuse the same copy. Storing zero instead of removing is correct only if the final check verifies every value is zero rather than calling `isEmpty()`.
-
-**Equivalent clearer form:** always store `currentCount - 1`, then run a final loop checking for zero balances; that keeps more keys and needs more code.
-
-### Block 6 — Accept only a completely consumed map
-
-```java
-return remainingByCharacter.isEmpty();
-```
-
-**What it evaluates:** `isEmpty()` is true only when every key was removed after its final copy was matched.
-
-**Concrete results:** `"aab"`/`"aba"` ends with `{}` and returns `true`; a leftover count would return `false`.
-
-**What fails without it:** an unconditional `true` could accept a first string with unmatched copies if the length guard or future contract changed.
-
-**Equivalent clearer form:** under the current equal-length guard and immediate missing-key failure, `return true` is logically sufficient, but `isEmpty()` directly checks the invariant and resists later changes.
-
 ## Sort-based alternative
 
 A simpler but slower approach sorts both strings and compares the resulting arrays.
@@ -244,6 +271,17 @@ static boolean isAnagramBySort(String first, String second) {
     return Arrays.equals(firstCharacters, secondCharacters);
 }
 ```
+
+For the same `first="anagram"`, `second="nagaram"` example, the alternative executes in this order:
+
+| Code operation | Why it runs | Debugger state immediately afterward |
+|---|---|---|
+| Length guard | A permutation cannot change the number of characters | `7 != 7 → false`; continue |
+| `first.toCharArray()` | Make a mutable copy of the first string | `firstCharacters=[a,n,a,g,r,a,m]` |
+| `second.toCharArray()` | Make a separate mutable copy | `secondCharacters=[n,a,g,a,r,a,m]`; first array unchanged |
+| `Arrays.sort(firstCharacters)` | Put the first multiset in canonical order | `firstCharacters=[a,a,a,g,m,n,r]`; second array still `[n,a,g,a,r,a,m]` |
+| `Arrays.sort(secondCharacters)` | Put the second multiset in the same order | Both arrays now contain `[a,a,a,g,m,n,r]` |
+| `Arrays.equals(...)` | Compare every corresponding character | All seven positions match; return `true` |
 
 This preserves the exact same character multiset, but the work is `O(n log n)` because sorting dominates the runtime. It is still valid when a simpler implementation is preferred and the problem does not require the faster linear-time strategy.
 
@@ -304,7 +342,6 @@ This explains why a missing character fails immediately and why an empty map at 
 - A `HashSet` loses counts and cannot distinguish `"aacc"` from `"ccac"`.
 - Sorting both strings works in `O(n log n)` time but changes the time target.
 - An `int[26]` is a good constant-space alternative under the lowercase-English constraint, but the HashMap version teaches reusable frequency counting.
-
 
 ## Practice after learning the concept
 

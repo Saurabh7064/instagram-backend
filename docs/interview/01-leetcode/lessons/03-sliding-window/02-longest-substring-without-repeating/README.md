@@ -60,37 +60,134 @@ For `"bbbbb"`, every `b` after the first duplicates the active `b`. The old `b` 
 
 For `"pwwkew"`, the second `w` forces removals of `p` and the earlier `w`. The window becomes `"w"`, then grows to `"wke"` with length `3`. The final `w` produces another valid length-`3` window, `"kew"`.
 
-## Debugger trace — every variable and collection
+## Block-by-block code walkthrough
 
-Input `text = "abcabcbb"`; initially `activeCharacters = {}`, `left = 0`, `bestLength = 0`. The input string stays unchanged. `incoming` is read once per outer iteration and remains the same throughout its removal loop.
+**Running example for the code and tables below:** Input `text = "abcabcbb"`; initially `activeCharacters = {}`, `left = 0`, `bestLength = 0`. The input string stays unchanged. `incoming` is read once per outer iteration and remains the same throughout its removal loop.
 
-The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
+
+### Block 1 — Represent the current valid window
+
+```java
+Set<Character> activeCharacters = new HashSet<>();
+int left = 0;
+int bestLength = 0;
+```
+
+**What it evaluates:** the set starts empty, `left` marks the first active index, and no valid length has been seen yet.
+
+**Why it is needed:** set lookup answers “is this character already active?” in average `O(1)` time.
+
+**Concrete result:** before scanning `"abc"`, the set is `{}`, `left = 0`, and `bestLength = 0`.
+
+**What fails without it:** searching the window character by character for every `right` can degrade to `O(n²)`.
+
+**Equivalent clearer form:** a boolean array can replace the set only when the character range is known and small.
+
+**Debugger state at this block:**
+
+For `text="abcabcbb"`, initialize `activeCharacters={}`, `left=0`, `bestLength=0`; `right` and `incoming` are not assigned yet.
+
+### Block 2 — Expand by one character
+
+```java
+for (int right = 0; right < text.length(); right++) {
+    char incoming = text.charAt(right);
+```
+
+**What it evaluates:** `right` visits every valid index once and `incoming` names the new character.
+
+**Concrete result:** for `"pww"`, `right = 2` reads the second `w`.
+
+**What fails without it:** using `right <= text.length()` attempts `charAt(text.length())`, which is outside the string.
+
+**Equivalent clearer form:** a `while` loop with an explicit `right++` is equivalent but easier to forget to advance.
+
+**Debugger state at this block:**
 
 | operation | right | incoming | left | activeCharacters | bestLength |
 | --- | --- | --- | --- | --- | --- |
 | `read incoming` | `0` | `a` | `0` | `[]` | `0` |
-| `add incoming; update bestLength` | `0` | `a` | `0` | `['a']` | `1` |
 | `read incoming` | `1` | `b` | `0` | `['a']` | `1` |
-| `add incoming; update bestLength` | `1` | `b` | `0` | `['a', 'b']` | `2` |
 | `read incoming` | `2` | `c` | `0` | `['a', 'b']` | `2` |
-| `add incoming; update bestLength` | `2` | `c` | `0` | `['a', 'b', 'c']` | `3` |
 | `read incoming` | `3` | `a` | `0` | `['a', 'b', 'c']` | `3` |
-| `remove a; left++` | `3` | `a` | `1` | `['b', 'c']` | `3` |
-| `add incoming; update bestLength` | `3` | `a` | `1` | `['a', 'b', 'c']` | `3` |
 | `read incoming` | `4` | `b` | `1` | `['a', 'b', 'c']` | `3` |
-| `remove b; left++` | `4` | `b` | `2` | `['a', 'c']` | `3` |
-| `add incoming; update bestLength` | `4` | `b` | `2` | `['a', 'b', 'c']` | `3` |
 | `read incoming` | `5` | `c` | `2` | `['a', 'b', 'c']` | `3` |
-| `remove c; left++` | `5` | `c` | `3` | `['a', 'b']` | `3` |
-| `add incoming; update bestLength` | `5` | `c` | `3` | `['a', 'b', 'c']` | `3` |
 | `read incoming` | `6` | `b` | `3` | `['a', 'b', 'c']` | `3` |
+| `read incoming` | `7` | `b` | `5` | `['b', 'c']` | `3` |
+
+### Block 3 — Shrink until the duplicate is gone
+
+```java
+while (activeCharacters.contains(incoming)) {
+    activeCharacters.remove(text.charAt(left));
+    left++;
+}
+```
+
+**What it evaluates:** the loop removes the leftmost active character repeatedly while `incoming` is still duplicated.
+
+**Concrete result:** before index `2` in `"pww"`, the set is `{p, w}`. Remove `p` and move `left` to `1`; `w` is still present, so remove it and move `left` to `2`.
+
+**Why it is needed:** the repeated character may not be at the left boundary.
+
+**What fails without it:** an `if` removes only `p` in that example, leaving the old `w`; adding the new `w` would still produce a duplicate.
+
+**Equivalent clearer form:** store last-seen indexes and jump `left`, but that introduces a different state model reserved for a later optimization.
+
+**Debugger state at this block:**
+
+| operation | right | incoming | left | activeCharacters | bestLength |
+| --- | --- | --- | --- | --- | --- |
+| `remove a; left++` | `3` | `a` | `1` | `['b', 'c']` | `3` |
+| `remove b; left++` | `4` | `b` | `2` | `['a', 'c']` | `3` |
+| `remove c; left++` | `5` | `c` | `3` | `['a', 'b']` | `3` |
 | `remove a; left++` | `6` | `b` | `4` | `['b', 'c']` | `3` |
 | `remove b; left++` | `6` | `b` | `5` | `['c']` | `3` |
-| `add incoming; update bestLength` | `6` | `b` | `5` | `['b', 'c']` | `3` |
-| `read incoming` | `7` | `b` | `5` | `['b', 'c']` | `3` |
 | `remove c; left++` | `7` | `b` | `6` | `['b']` | `3` |
 | `remove b; left++` | `7` | `b` | `7` | `[]` | `3` |
+
+### Block 4 — Add only after validity is restored
+
+```java
+activeCharacters.add(incoming);
+bestLength = Math.max(bestLength, right - left + 1);
+```
+
+**What it evaluates:** the new character enters a now-unique window, whose inclusive length is compared with the best.
+
+**Concrete result:** `left = 2`, `right = 4` in `"pwwke"` gives `4 - 2 + 1 = 3` for `"wke"`.
+
+**What fails without it:** omitting `+ 1` reports `2`; recording before the shrink can count an invalid duplicated window.
+
+**Equivalent clearer form:** compute `int windowLength = right - left + 1` before `Math.max`.
+
+**Debugger state at this block:**
+
+| operation | right | incoming | left | activeCharacters | bestLength |
+| --- | --- | --- | --- | --- | --- |
+| `add incoming; update bestLength` | `0` | `a` | `0` | `['a']` | `1` |
+| `add incoming; update bestLength` | `1` | `b` | `0` | `['a', 'b']` | `2` |
+| `add incoming; update bestLength` | `2` | `c` | `0` | `['a', 'b', 'c']` | `3` |
+| `add incoming; update bestLength` | `3` | `a` | `1` | `['a', 'b', 'c']` | `3` |
+| `add incoming; update bestLength` | `4` | `b` | `2` | `['a', 'b', 'c']` | `3` |
+| `add incoming; update bestLength` | `5` | `c` | `3` | `['a', 'b', 'c']` | `3` |
+| `add incoming; update bestLength` | `6` | `b` | `5` | `['b', 'c']` | `3` |
 | `add incoming; update bestLength` | `7` | `b` | `7` | `['b']` | `3` |
+
+### Block 5 — Return the completed maximum
+
+```java
+return bestLength;
+```
+
+**What it evaluates:** after every ending index has been considered, the largest valid length is final.
+
+**Concrete result:** an empty string skips the loop and returns `0`.
+
+**What fails without it:** returning the final window length misses a longer window that appeared earlier.
+
+**Debugger state at this block:**
 
 At `right=6`, incoming is `b`: remove `a` at index `3` first, but `b` is still present; remove `b` at index `4` next. Only then add the incoming `b`. This produces `left=5`, window `cb`, length `6 - 5 + 1 = 2`; best stays `3`. At `right=7`, remove `c` then `b`, producing final window `b`. The loop increment makes `right=8`; `8 < 8` is false and return `3`.
 
@@ -115,87 +212,6 @@ static int lengthOfLongestSubstring(String text) {
     return bestLength;
 }
 ```
-
-## Block-by-block code walkthrough
-
-### Block 1 — Represent the current valid window
-
-```java
-Set<Character> activeCharacters = new HashSet<>();
-int left = 0;
-int bestLength = 0;
-```
-
-**What it evaluates:** the set starts empty, `left` marks the first active index, and no valid length has been seen yet.
-
-**Why it is needed:** set lookup answers “is this character already active?” in average `O(1)` time.
-
-**Concrete result:** before scanning `"abc"`, the set is `{}`, `left = 0`, and `bestLength = 0`.
-
-**What fails without it:** searching the window character by character for every `right` can degrade to `O(n²)`.
-
-**Equivalent clearer form:** a boolean array can replace the set only when the character range is known and small.
-
-### Block 2 — Expand by one character
-
-```java
-for (int right = 0; right < text.length(); right++) {
-    char incoming = text.charAt(right);
-```
-
-**What it evaluates:** `right` visits every valid index once and `incoming` names the new character.
-
-**Concrete result:** for `"pww"`, `right = 2` reads the second `w`.
-
-**What fails without it:** using `right <= text.length()` attempts `charAt(text.length())`, which is outside the string.
-
-**Equivalent clearer form:** a `while` loop with an explicit `right++` is equivalent but easier to forget to advance.
-
-### Block 3 — Shrink until the duplicate is gone
-
-```java
-while (activeCharacters.contains(incoming)) {
-    activeCharacters.remove(text.charAt(left));
-    left++;
-}
-```
-
-**What it evaluates:** the loop removes the leftmost active character repeatedly while `incoming` is still duplicated.
-
-**Concrete result:** before index `2` in `"pww"`, the set is `{p, w}`. Remove `p` and move `left` to `1`; `w` is still present, so remove it and move `left` to `2`.
-
-**Why it is needed:** the repeated character may not be at the left boundary.
-
-**What fails without it:** an `if` removes only `p` in that example, leaving the old `w`; adding the new `w` would still produce a duplicate.
-
-**Equivalent clearer form:** store last-seen indexes and jump `left`, but that introduces a different state model reserved for a later optimization.
-
-### Block 4 — Add only after validity is restored
-
-```java
-activeCharacters.add(incoming);
-bestLength = Math.max(bestLength, right - left + 1);
-```
-
-**What it evaluates:** the new character enters a now-unique window, whose inclusive length is compared with the best.
-
-**Concrete result:** `left = 2`, `right = 4` in `"pwwke"` gives `4 - 2 + 1 = 3` for `"wke"`.
-
-**What fails without it:** omitting `+ 1` reports `2`; recording before the shrink can count an invalid duplicated window.
-
-**Equivalent clearer form:** compute `int windowLength = right - left + 1` before `Math.max`.
-
-### Block 5 — Return the completed maximum
-
-```java
-return bestLength;
-```
-
-**What it evaluates:** after every ending index has been considered, the largest valid length is final.
-
-**Concrete result:** an empty string skips the loop and returns `0`.
-
-**What fails without it:** returning the final window length misses a longer window that appeared earlier.
 
 ## Invariant and correctness
 

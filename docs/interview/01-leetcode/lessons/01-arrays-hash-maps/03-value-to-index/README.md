@@ -81,42 +81,11 @@ After processing index `0` of `[2, 7, 11, 15]`, the map contains:
 
 When index `1` contains `7`, the algorithm asks for complement `2`, finds index `0`, and returns `[0, 1]`.
 
-## Debugger trace — every variable and collection
-
-Input `numbers = [3,2,4]`, `target = 6`. Initially `earlierIndexByValue = {}`. A map entry `3:0` means value `3` was seen at index `0`.
-
-The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
-
-| index | numbers[index] | complement | earlierIndex | map before lookup | map after branch | action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `0` | `3` | `6 - 3 = 3` | `null` | `{}` | `{3: 0}` | `continue` |
-| `1` | `2` | `6 - 2 = 4` | `null` | `{3: 0}` | `{3: 0, 2: 1}` | `continue` |
-| `2` | `4` | `6 - 4 = 2` | `1` | `{3: 0, 2: 1}` | `{3: 0, 2: 1}` | `return [1,2]` |
-
-At index `2`, the complement is `6 - 4 = 2`, and lookup finds index `1`. Return `[1,2]` before inserting `4`. This ordering prevents pairing an element with itself. The input array never changes.
-
-## Reference approach
-
-```java
-static int[] twoSum(int[] numbers, int target) {
-    Map<Integer, Integer> earlierIndexByValue = new HashMap<>();
-
-    for (int index = 0; index < numbers.length; index++) {
-        int complement = target - numbers[index];
-        Integer earlierIndex = earlierIndexByValue.get(complement);
-
-        if (earlierIndex != null) {
-            return new int[] {earlierIndex, index};
-        }
-
-        earlierIndexByValue.put(numbers[index], index);
-    }
-
-    throw new IllegalArgumentException("Expected exactly one valid pair");
-}
-```
-
 ## Block-by-block code walkthrough
+
+**Running example for the code and tables below:** Input `numbers = [3,2,4]`, `target = 6`. Initially `earlierIndexByValue = {}`. A map entry `3:0` means value `3` was seen at index `0`.
+
+Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
 
 ### Block 1 — Create the value-to-index map
 
@@ -125,6 +94,10 @@ Map<Integer, Integer> earlierIndexByValue = new HashMap<>();
 ```
 
 This creates an empty map whose key is an earlier array value and whose value is that value's index. It is needed because the answer must return indexes, not just report that a complement exists. For `[2, 7]`, processing index `0` later produces `{2 -> 0}`. Without the map, the method would have to search earlier values again and could take `O(n²)` time. A longer but equivalent declaration is `HashMap<Integer, Integer> earlierIndexByValue = new HashMap<Integer, Integer>();`; the interface type and diamond operator are clearer here.
+
+**Debugger state at this block:**
+
+`earlierIndexByValue = {}`; `index`, `complement`, and `earlierIndex` are not assigned yet.
 
 ### Block 2 — Traverse indexes from left to right
 
@@ -147,6 +120,14 @@ index = 4: 4 < 4 -> false, stop
 Using `index <= numbers.length` would eventually try `numbers[numbers.length]`, which is one position beyond the last valid index and would throw `ArrayIndexOutOfBoundsException`.
 
 An equivalent `while` loop could initialize `index = 0` and increment it after each iteration, but the `for` loop keeps the initialization, boundary, and update together.
+
+**Debugger state at this block:**
+
+| index | numbers[index] | complement | earlierIndex | map before lookup | map after branch | action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `0` | `3` | `6 - 3 = 3` | `null` | `{}` | `{3: 0}` | `continue` |
+| `1` | `2` | `6 - 2 = 4` | `null` | `{3: 0}` | `{3: 0, 2: 1}` | `continue` |
+| `2` | `4` | `6 - 4 = 2` | `1` | `{3: 0, 2: 1}` | `{3: 0, 2: 1}` | `return [1,2]` |
 
 ### Block 3 — Calculate the complement
 
@@ -171,6 +152,14 @@ The stated numeric constraints make this subtraction safe in a Java `int`. Witho
 
 Without this transformation, the map would not know which key to search for. The equivalent equation is `numbers[index] + complement == target`; subtraction directly produces the lookup key.
 
+**Debugger state at this block:**
+
+| index | numbers[index] | complement | earlierIndex | map before lookup | map after branch | action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `0` | `3` | `6 - 3 = 3` | `null` | `{}` | `{3: 0}` | `continue` |
+| `1` | `2` | `6 - 2 = 4` | `null` | `{3: 0}` | `{3: 0, 2: 1}` | `continue` |
+| `2` | `4` | `6 - 4 = 2` | `1` | `{3: 0, 2: 1}` | `{3: 0, 2: 1}` | `return [1,2]` |
+
 ### Block 4 — Read a previously stored index
 
 ```java
@@ -189,6 +178,14 @@ map is {3 -> 0}, complement is 2 -> get returns null
 This map never stores `null` values, so `null` unambiguously means the complement has not appeared.
 
 Without this lookup, storing earlier values provides no benefit. An equivalent but more verbose form is `containsKey(complement)` followed by `get(complement)`; one `get` avoids performing two map operations.
+
+**Debugger state at this block:**
+
+| index | numbers[index] | complement | earlierIndex | map before lookup | map after branch | action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `0` | `3` | `6 - 3 = 3` | `null` | `{}` | `{3: 0}` | `continue` |
+| `1` | `2` | `6 - 2 = 4` | `null` | `{3: 0}` | `{3: 0, 2: 1}` | `continue` |
+| `2` | `4` | `6 - 4 = 2` | `1` | `{3: 0, 2: 1}` | `{3: 0, 2: 1}` | `return [1,2]` |
 
 ### Block 5 — Return when the complement exists
 
@@ -212,6 +209,12 @@ Returning immediately is safe because the problem guarantees exactly one solutio
 
 Without the null guard, Java would unbox a missing `Integer` when constructing the result and throw `NullPointerException`. The clearer equivalent using two map calls is `if (earlierIndexByValue.containsKey(complement)) { return new int[] {earlierIndexByValue.get(complement), index}; }`.
 
+**Debugger state at this block:**
+
+| index | numbers[index] | complement | earlierIndex | map before lookup | map after branch | action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `2` | `4` | `6 - 4 = 2` | `1` | `{3: 0, 2: 1}` | `{3: 0, 2: 1}` | `return [1,2]` |
+
 ### Block 6 — Store the current value only after lookup
 
 ```java
@@ -230,6 +233,13 @@ If insertion happened first, index `0` could find itself when current value `3` 
 
 `put` also replaces an older index when the same value appears again. That is safe because any stored occurrence is earlier than the current index. There is no clearer equivalent: a separate presence check followed by either `replace` or `put` would only expand the same insert-or-replace behavior.
 
+**Debugger state at this block:**
+
+| index | numbers[index] | complement | earlierIndex | map before lookup | map after branch | action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `0` | `3` | `6 - 3 = 3` | `null` | `{}` | `{3: 0}` | `continue` |
+| `1` | `2` | `6 - 2 = 4` | `null` | `{3: 0}` | `{3: 0, 2: 1}` | `continue` |
+
 ### Block 7 — Reject input that violates the stated guarantee
 
 ```java
@@ -237,6 +247,33 @@ throw new IllegalArgumentException("Expected exactly one valid pair");
 ```
 
 This line runs only if the loop finishes without finding a pair. Under the problem assumptions it is unreachable; for `[1, 2]` with target `10`, it throws a clear exception instead of returning a fabricated answer. Without it, Java would reject the method because not every control path returns an `int[]`, or a placeholder return could silently lie. An equivalent choice is `throw new IllegalStateException(...)`; `IllegalArgumentException` more clearly says the supplied input broke the method's contract.
+
+**Debugger state at this block:**
+
+For this valid input, the return at index `2` makes the exception unreachable. For invalid `numbers=[1,2]`, `target=9`, the loop exhausts its two indexes without a match, then throws.
+
+At index `2`, the complement is `6 - 4 = 2`, and lookup finds index `1`. Return `[1,2]` before inserting `4`. This ordering prevents pairing an element with itself. The input array never changes.
+
+## Reference approach
+
+```java
+static int[] twoSum(int[] numbers, int target) {
+    Map<Integer, Integer> earlierIndexByValue = new HashMap<>();
+
+    for (int index = 0; index < numbers.length; index++) {
+        int complement = target - numbers[index];
+        Integer earlierIndex = earlierIndexByValue.get(complement);
+
+        if (earlierIndex != null) {
+            return new int[] {earlierIndex, index};
+        }
+
+        earlierIndexByValue.put(numbers[index], index);
+    }
+
+    throw new IllegalArgumentException("Expected exactly one valid pair");
+}
+```
 
 ## Loop invariant
 
@@ -270,7 +307,6 @@ The lookup occurs before insertion, so `i` and `j` cannot be the same index.
 - Returning the values instead of their indexes answers a different question.
 - A nested-loop solution is simpler but takes `O(n²)` time.
 - Sorting can support a two-pointer search in `O(n log n)` time, but original indexes must be carried through the sort; it is unnecessary for this target.
-
 
 ## Learner solution review — 2026-10-07
 

@@ -65,15 +65,56 @@ For `"AABABBA"`, `k = 1`:
 
 For `"AAAA"`, `k = 0`, every active character already matches: `4 - 4 = 0`. Result: `4`.
 
-## Debugger trace — `AABABBA`, replacement budget `1`
+## Block-by-block code walkthrough
 
-This trace follows the reference method below and the runnable [reference solution](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/slidingwindow/characterreplacement/CharacterReplacementSolution.java). Indexes `0..6` contain `A, A, B, A, B, B, A`. Throughout the run, `text = "AABABBA"` and `replacementsAllowed = 1`.
+Use `text="AABABBA"`, budget `1`, throughout. Text indexes `0..6` hold `A,A,B,A,B,B,A`. Each block includes the relevant scalar and frequency states; all array rows show 26 cells.
 
-Initially, `left = 0`, `bestLength = 0`, `maxFrequency = 0`, and all 26 frequency cells are zero. `right` starts at `0`; the other local variables are assigned inside the loop.
+### Block 1 — Store uppercase frequencies and boundaries
 
-### Before the budget check
+```java
+int[] frequency = new int[26];
+int left = 0;
+int bestLength = 0;
+int maxFrequency = 0;
+```
 
-Each row is immediately after adding the incoming character and updating `maxFrequency`, then calculating `replacementsNeeded`. `bestLength` here is the value from the previous iteration.
+**What it evaluates:** indexes `0..25` represent `A..Z`; the active candidate and best start empty.
+
+**Why it is needed:** replacement cost depends on the dominant character's count.
+
+**Concrete result:** character `C` uses index `'C' - 'A' = 2`.
+
+**What fails without it:** counting only total length cannot distinguish `AAAA` from `ABCD`.
+
+**Equivalent clearer form:** a `Map<Character, Integer>` supports larger alphabets but has more overhead.
+
+**Debugger state at this block:**
+
+For `text="AABABBA"`, `replacementsAllowed=1`, initialize `left=0`, `bestLength=0`, `maxFrequency=0`. Array cells `0..25` correspond to `A..Z`; every count starts at zero.
+
+| Debugger step | Exact operation | Full `frequency` array |
+|:---|:---|:---|
+| Initial | `new int[26]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+
+### Block 2 — Add the incoming character
+
+```java
+int incomingIndex = text.charAt(right) - 'A';
+frequency[incomingIndex]++;
+maxFrequency = Math.max(maxFrequency, frequency[incomingIndex]);
+```
+
+**What it evaluates:** the new character's window count increases, and the largest useful frequency is preserved.
+
+**Concrete result:** after reading `"AABA"`, the `A` count and `maxFrequency` are both `3`.
+
+**What fails without it:** replacing `Math.max` with assignment makes `maxFrequency` fall whenever a less-frequent character arrives.
+
+**Equivalent clearer form:** name the character first, then calculate its zero-based alphabet index.
+
+**Debugger state at this block:**
+
+Adding a letter increments its cell; `Math.max` keeps the largest frequency observed so far. For example, at `right=3`, adding A changes cell 0 from `2` to `3`, then `max(2,3)=3`.
 
 | `right` | Incoming | `incomingIndex` | `left` | Window | A count | B count | `maxFrequency` | `replacementsNeeded = right - left + 1 - maxFrequency` | `bestLength` | `> 1`? |
 |---:|:---:|---:|---:|:---|---:|---:|---:|:---|---:|:---:|
@@ -85,27 +126,103 @@ Each row is immediately after adding the incoming character and updating `maxFre
 | 5 | B | 1 | 1 | `ABABB` | 2 | 3 | 3 | `5 - 1 + 1 - 3 = 2` | 4 | true |
 | 6 | A | 0 | 2 | `BABBA` | 2 | 3 | 3 | `6 - 2 + 1 - 3 = 2` | 4 | true |
 
-### Full frequency array after every mutation
-
-`frequency[0]` counts `A`, `frequency[1]` counts `B`, and indexes `2..25` count `C..Z`. For example, `'A' - 'A' = 0` and `'B' - 'A' = 1`. Every row below contains all 26 cells in index order; only the first two change for this input.
+Full frequency arrays immediately after each insertion (before removal):
 
 | Debugger step | Exact operation | Full `frequency` array |
 |:---|:---|:---|
-| Initial | `new int[26]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 | right=0: add A | `frequency[0]++` | `[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 | right=1: add A | `frequency[0]++` | `[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 | right=2: add B | `frequency[1]++` | `[2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 | right=3: add A | `frequency[0]++` | `[3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 | right=4: add B | `frequency[1]++` | `[3,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| Remove A at left=0 | `frequency[0]--` | `[2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 | right=5: add B | `frequency[1]++` | `[2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| Remove A at left=1 | `frequency[0]--` | `[1,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 | right=6: add A | `frequency[0]++` | `[2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+
+### Block 3 — Calculate the cost used to decide growth
+
+```java
+int replacementsNeeded = right - left + 1 - maxFrequency;
+```
+
+**What it evaluates:** every character except the dominant copies must change.
+
+**Concrete result:** `"AABA"` has length `4` and `maxFrequency = 3`, so `4 - 3 = 1` replacement.
+
+**What fails without it:** subtracting `k` from the length does not describe the current character distribution.
+
+**Equivalent clearer form:** `int windowLength = right - left + 1; int replacementsNeeded = windowLength - maxFrequency;`.
+
+**Debugger state at this block:**
+
+Calculate the cost before moving left. The complete calculations are shown here beside the expression:
+
+| `right` | Incoming | `incomingIndex` | `left` | Window | A count | B count | `maxFrequency` | `replacementsNeeded = right - left + 1 - maxFrequency` | `bestLength` | `> 1`? |
+|---:|:---:|---:|---:|:---|---:|---:|---:|:---|---:|:---:|
+| 0 | A | 0 | 0 | `A` | 1 | 0 | 1 | `0 - 0 + 1 - 1 = 0` | 0 | false |
+| 1 | A | 0 | 0 | `AA` | 2 | 0 | 2 | `1 - 0 + 1 - 2 = 0` | 1 | false |
+| 2 | B | 1 | 0 | `AAB` | 2 | 1 | 2 | `2 - 0 + 1 - 2 = 1` | 2 | false |
+| 3 | A | 0 | 0 | `AABA` | 3 | 1 | 3 | `3 - 0 + 1 - 3 = 1` | 3 | false |
+| 4 | B | 1 | 0 | `AABAB` | 3 | 2 | 3 | `4 - 0 + 1 - 3 = 2` | 4 | true |
+| 5 | B | 1 | 1 | `ABABB` | 2 | 3 | 3 | `5 - 1 + 1 - 3 = 2` | 4 | true |
+| 6 | A | 0 | 2 | `BABBA` | 2 | 3 | 3 | `6 - 2 + 1 - 3 = 2` | 4 | true |
+This uses the historical `maxFrequency`. Once it is stale, the expression is a growth test rather than the exact current-window replacement count; the next blocks show that distinction.
+
+### Block 4 — Move left when the budget is exceeded
+
+```java
+if (replacementsNeeded > replacementsAllowed) {
+    int outgoingIndex = text.charAt(left) - 'A';
+    frequency[outgoingIndex]--;
+    left++;
+}
+```
+
+**What it evaluates:** an over-budget candidate drops its oldest character and keeps scanning at the same maintained size.
+
+**Concrete result:** a length-`5` window with `maxFrequency = 3` needs `2`; when `k = 1`, the left character leaves.
+
+**Why `if` is sufficient here:** each expansion grows the previous maintained window by only one, so one left movement restores the maintained candidate size. This formulation seeks the maximum length, not every currently exact valid window.
+
+**What fails without it:** an over-budget window could grow indefinitely and produce a false maximum.
+
+**Equivalent clearer form:** a `while` loop can enforce strict current-window validity, but then recalculating an exact decreasing maximum requires extra work.
+
+**Debugger state at this block:**
+
+The condition is false for `right=0..3`, true for `right=4..6`. On each true branch, decrement the outgoing letter before incrementing left.
+
+| right | outgoingIndex | frequency update | left update |
+| --- | --- | --- | --- |
+| `4` | `'A' - 'A' = 0` | `A: 3 → 2` | `0 → 1` |
+| `5` | `'A' - 'A' = 0` | `A: 2 → 1` | `1 → 2` |
+| `6` | `'B' - 'A' = 1` | `B: 3 → 2` | `2 → 3` |
+
+Full arrays after those removals:
+
+| Debugger step | Exact operation | Full `frequency` array |
+|:---|:---|:---|
+| Remove A at left=0 | `frequency[0]--` | `[2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| Remove A at left=1 | `frequency[0]--` | `[1,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 | Remove B at left=2 | `frequency[1]--` | `[2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 
-### After removal and the best-length update
+`replacementsNeeded` is not assigned again after removal and still contains `2`. `maxFrequency` also remains `3`; after the first removal, `ABAB` actually has A=2 and B=2, requiring `4-2=2` changes. This maximum-length algorithm can retain that already-achieved size without claiming the current window is valid.
 
-`outgoingIndex` exists only inside the `if` block. A dash means the block did not run; it does not mean the variable contains `-1`.
+### Block 5 — Preserve the best length and stale maximum
+
+```java
+bestLength = Math.max(bestLength, right - left + 1);
+return bestLength;
+```
+
+**What it evaluates:** the largest maintained candidate length becomes the answer.
+
+**Why stale `maxFrequency` is safe:** a smaller current maximum cannot prove that a new longer answer exists. The historical maximum records the frequency required to support the best length; it may delay shrinking but cannot increase the answer without a window that once had enough dominant copies.
+
+**Concrete result:** if `maxFrequency` remains `3` after an `A` leaves, the algorithm may keep a size-`4` candidate; it does not claim size `5` unless a frequency of at least `4` makes that possible with `k = 1`.
+
+**What fails without the best variable:** returning the final candidate ignores a larger earlier answer.
+
+**Debugger state at this block:**
 
 | `right` | Removed | `outgoingIndex` | `left` after | Window after | `maxFrequency` | Stored `replacementsNeeded` | `bestLength = max(previous best, right - left + 1)` |
 |---:|:---|---:|---:|:---|---:|---:|:---|
@@ -116,13 +233,7 @@ Each row is immediately after adding the incoming character and updating `maxFre
 | 4 | A at index 0 | 0 | 1 | `ABAB` | 3 | 2 | `max(4, 4) = 4` |
 | 5 | A at index 1 | 0 | 2 | `BABB` | 3 | 2 | `max(4, 4) = 4` |
 | 6 | B at index 2 | 1 | 3 | `ABBA` | 3 | 2 | `max(4, 4) = 4` |
-
-Two debugger details explain the apparently surprising values:
-
-- `replacementsNeeded` is calculated **before removal**. The code does not assign it again after `left++`, so it still displays `2` at the end of iterations 4, 5, and 6.
-- `frequency` always counts the current window, but `maxFrequency` is historical. After iteration 4, `ABAB` has counts A=2, B=2, so its actual replacement cost is `4 - 2 = 2`; `maxFrequency` nevertheless remains `3`. Iteration 5 ends with `BABB`, whose actual cost is `4 - 3 = 1`. Iteration 6 ends with `ABBA`, whose actual cost is `4 - 2 = 2`. The algorithm keeps the already achieved length `4`; it does not assert that every maintained window is currently valid.
-
-After iteration 6, `right++` makes `right = 7`. The condition `7 < text.length()` becomes `7 < 7`, which is false. The method returns `bestLength = 4`. A valid length-four window was `AABA`: keep its three A characters and replace its one B to obtain `AAAA`.
+At `right=3`, `AABA` establishes a valid length `4`: keep three A characters and change its B once. Later maintained windows stay at length `4`, so the best cannot increase. The final `ABBA` has A=2, B=2 but historical `maxFrequency=3`. After `right++` makes `right=7`, `7 < 7` is false. Return `bestLength=4`; the return is after the loop, not inside each iteration.
 
 ## Reference approach
 
@@ -150,92 +261,6 @@ static int characterReplacement(String text, int replacementsAllowed) {
     return bestLength;
 }
 ```
-
-## Block-by-block code walkthrough
-
-### Block 1 — Store uppercase frequencies and boundaries
-
-```java
-int[] frequency = new int[26];
-int left = 0;
-int bestLength = 0;
-int maxFrequency = 0;
-```
-
-**What it evaluates:** indexes `0..25` represent `A..Z`; the active candidate and best start empty.
-
-**Why it is needed:** replacement cost depends on the dominant character's count.
-
-**Concrete result:** character `C` uses index `'C' - 'A' = 2`.
-
-**What fails without it:** counting only total length cannot distinguish `AAAA` from `ABCD`.
-
-**Equivalent clearer form:** a `Map<Character, Integer>` supports larger alphabets but has more overhead.
-
-### Block 2 — Add the incoming character
-
-```java
-int incomingIndex = text.charAt(right) - 'A';
-frequency[incomingIndex]++;
-maxFrequency = Math.max(maxFrequency, frequency[incomingIndex]);
-```
-
-**What it evaluates:** the new character's window count increases, and the largest useful frequency is preserved.
-
-**Concrete result:** after reading `"AABA"`, the `A` count and `maxFrequency` are both `3`.
-
-**What fails without it:** replacing `Math.max` with assignment makes `maxFrequency` fall whenever a less-frequent character arrives.
-
-**Equivalent clearer form:** name the character first, then calculate its zero-based alphabet index.
-
-### Block 3 — Calculate exact replacement cost
-
-```java
-int replacementsNeeded = right - left + 1 - maxFrequency;
-```
-
-**What it evaluates:** every character except the dominant copies must change.
-
-**Concrete result:** `"AABA"` has length `4` and `maxFrequency = 3`, so `4 - 3 = 1` replacement.
-
-**What fails without it:** subtracting `k` from the length does not describe the current character distribution.
-
-**Equivalent clearer form:** `int windowLength = right - left + 1; int replacementsNeeded = windowLength - maxFrequency;`.
-
-### Block 4 — Move left when the budget is exceeded
-
-```java
-if (replacementsNeeded > replacementsAllowed) {
-    int outgoingIndex = text.charAt(left) - 'A';
-    frequency[outgoingIndex]--;
-    left++;
-}
-```
-
-**What it evaluates:** an over-budget candidate drops its oldest character and keeps scanning at the same maintained size.
-
-**Concrete result:** a length-`5` window with `maxFrequency = 3` needs `2`; when `k = 1`, the left character leaves.
-
-**Why `if` is sufficient here:** each expansion grows the previous maintained window by only one, so one left movement restores the maintained candidate size. This formulation seeks the maximum length, not every currently exact valid window.
-
-**What fails without it:** an over-budget window could grow indefinitely and produce a false maximum.
-
-**Equivalent clearer form:** a `while` loop can enforce strict current-window validity, but then recalculating an exact decreasing maximum requires extra work.
-
-### Block 5 — Preserve the best length and stale maximum
-
-```java
-bestLength = Math.max(bestLength, right - left + 1);
-return bestLength;
-```
-
-**What it evaluates:** the largest maintained candidate length becomes the answer.
-
-**Why stale `maxFrequency` is safe:** a smaller current maximum cannot prove that a new longer answer exists. The historical maximum records the frequency required to support the best length; it may delay shrinking but cannot increase the answer without a window that once had enough dominant copies.
-
-**Concrete result:** if `maxFrequency` remains `3` after an `A` leaves, the algorithm may keep a size-`4` candidate; it does not claim size `5` unless a frequency of at least `4` makes that possible with `k = 1`.
-
-**What fails without the best variable:** returning the final candidate ignores a larger earlier answer.
 
 ## Invariant and correctness
 

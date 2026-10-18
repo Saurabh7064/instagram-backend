@@ -74,6 +74,10 @@ Start?       yes no no no
 
 ## Block-by-block code walkthrough
 
+**Running example for the code and tables below:** Input `values = [100,4,200,1,3,2]`. `unique` starts empty. After construction, `longest = 0`. For the outer set loop, this trace chooses the permitted order `1,2,3,4,100,200`; a debugger may visit a different order with the same final answer.
+
+Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
+
 The nine blocks below explain what each block evaluates, why it is required, a concrete result, what breaks without it, and a clearer equivalent where one exists.
 
 ### Block 1 — Build the set
@@ -103,6 +107,17 @@ Why use a set?
 
 **Equivalent clearer form:** `Set<Integer> unique = new HashSet<>(values.length);` can pre-size the set but does not change the algorithm.
 
+**Debugger state at this block:**
+
+| operation | value | unique | hasPredecessor | current | length | longest |
+| --- | --- | --- | --- | --- | --- | --- |
+| `build set` | `100` | `[100]` | `—` | `—` | `—` | `—` |
+| `build set` | `4` | `[4, 100]` | `—` | `—` | `—` | `—` |
+| `build set` | `200` | `[4, 100, 200]` | `—` | `—` | `—` | `—` |
+| `build set` | `1` | `[1, 4, 100, 200]` | `—` | `—` | `—` | `—` |
+| `build set` | `3` | `[1, 3, 4, 100, 200]` | `—` | `—` | `—` | `—` |
+| `build set` | `2` | `[1, 2, 3, 4, 100, 200]` | `—` | `—` | `—` | `—` |
+
 ### Block 2 — Initialize the best completed length
 
 ```java
@@ -118,6 +133,10 @@ int longest = 0;
 **What fails without it:** Java does not allow an uninitialized local variable to be read by `Math.max` or returned.
 
 **Equivalent clearer form:** no different initialization is clearer; starting at `1` would be wrong for empty input.
+
+**Debugger state at this block:**
+
+After set construction, `unique = {1,2,3,4,100,200}` and `longest = 0`. No run-local `current` or `length` exists yet.
 
 ### Supporting concept — Understand Java's integer boundaries
 
@@ -158,6 +177,23 @@ for (int value : unique) {
 
 **Equivalent clearer form:** `for (Integer boxedValue : unique) { int value = boxedValue; }` is equivalent but makes Java's unboxing visible unnecessarily.
 
+**Debugger state at this block:**
+
+| operation | value | unique | hasPredecessor | current | length | longest |
+| --- | --- | --- | --- | --- | --- | --- |
+| `initialize run` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `1` | `1` | `0` |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `2` | `2` | `0` |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `3` | `3` | `0` |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `4` | `4` | `0` |
+| `successor absent; update longest` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `4` | `4` | `4` |
+| `skip: predecessor exists` | `2` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
+| `skip: predecessor exists` | `3` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
+| `skip: predecessor exists` | `4` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
+| `initialize run` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
+| `successor absent; update longest` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
+| `initialize run` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
+| `successor absent; update longest` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
+
 ### Block 4 — Decide whether a value has a predecessor
 
 The reference solution uses:
@@ -173,6 +209,17 @@ Read the line from left to right:
 2. `&&` means both conditions must be true.
 3. Java stops after the first condition when it is `false`; it does not evaluate `value - 1`.
 4. Only for a safe value does the set check whether `value - 1` exists.
+
+**Debugger state at this block:**
+
+| operation | value | unique | hasPredecessor | current | length | longest |
+| --- | --- | --- | --- | --- | --- | --- |
+| `initialize run` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `1` | `1` | `0` |
+| `skip: predecessor exists` | `2` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
+| `skip: predecessor exists` | `3` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
+| `skip: predecessor exists` | `4` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
+| `initialize run` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
+| `initialize run` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
 
 ### Why `!= Integer.MIN_VALUE`?
 
@@ -251,6 +298,17 @@ Only `1` starts the four-value run. It does not matter which order the set happe
 
 Without this guard, `1`, `2`, `3`, and `4` would all rescan suffixes of the same run. An equivalent positive form is `if (isStart)`, using the boolean expression shown in Block 4.
 
+**Debugger state at this block:**
+
+| operation | value | unique | hasPredecessor | current | length | longest |
+| --- | --- | --- | --- | --- | --- | --- |
+| `initialize run` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `1` | `1` | `0` |
+| `skip: predecessor exists` | `2` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
+| `skip: predecessor exists` | `3` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
+| `skip: predecessor exists` | `4` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
+| `initialize run` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
+| `initialize run` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
+
 ### Block 6 — Count the current value first
 
 ```java
@@ -265,6 +323,14 @@ The starting value already belongs to the run. If the set contains only `{7}`, t
 `current` is a cursor. It moves through the current run while `value` remains unchanged as the start chosen by the outer loop.
 
 Without `length = 1`, a one-value run would be reported as zero; without a separate cursor, advancing would destroy the stable start value used by the outer iteration. There is no clearer equivalent; the two initializations directly state that the start is already counted and that scanning begins there.
+
+**Debugger state at this block:**
+
+| operation | value | unique | hasPredecessor | current | length | longest |
+| --- | --- | --- | --- | --- | --- | --- |
+| `initialize run` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `1` | `1` | `0` |
+| `initialize run` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
+| `initialize run` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
 
 ### Block 7 — Look for the next value safely
 
@@ -282,6 +348,17 @@ Read the condition from left to right:
 2. If `current` is the maximum, Java stops and does not evaluate `current + 1`.
 3. Otherwise, the set checks for the next integer.
 4. When it exists, both `current` and `length` advance by one.
+
+**Debugger state at this block:**
+
+| operation | value | unique | hasPredecessor | current | length | longest |
+| --- | --- | --- | --- | --- | --- | --- |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `2` | `2` | `0` |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `3` | `3` | `0` |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `4` | `4` | `0` |
+| `successor absent; update longest` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `4` | `4` | `4` |
+| `successor absent; update longest` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
+| `successor absent; update longest` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
 
 ### Why `!= Integer.MAX_VALUE`?
 
@@ -323,6 +400,14 @@ If a later run has length `2`, `Math.max(4, 2)` keeps `4`.
 
 Without this update, the method forgets completed runs and always returns its initial value. The equivalent explicit form is `if (length > longest) { longest = length; }`.
 
+**Debugger state at this block:**
+
+| operation | value | unique | hasPredecessor | current | length | longest |
+| --- | --- | --- | --- | --- | --- | --- |
+| `successor absent; update longest` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `4` | `4` | `4` |
+| `successor absent; update longest` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
+| `successor absent; update longest` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
+
 ### Block 9 — Return the best run after every candidate is considered
 
 ```java
@@ -339,32 +424,7 @@ return longest;
 
 **Equivalent clearer form:** none; `longest` is the maintained answer.
 
-## Debugger trace — every variable and collection
-
-Input `values = [100,4,200,1,3,2]`. `unique` starts empty. After construction, `longest = 0`. For the outer set loop, this trace chooses the permitted order `1,2,3,4,100,200`; a debugger may visit a different order with the same final answer.
-
-The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
-
-| operation | value | unique | hasPredecessor | current | length | longest |
-| --- | --- | --- | --- | --- | --- | --- |
-| `build set` | `100` | `[100]` | `—` | `—` | `—` | `—` |
-| `build set` | `4` | `[4, 100]` | `—` | `—` | `—` | `—` |
-| `build set` | `200` | `[4, 100, 200]` | `—` | `—` | `—` | `—` |
-| `build set` | `1` | `[1, 4, 100, 200]` | `—` | `—` | `—` | `—` |
-| `build set` | `3` | `[1, 3, 4, 100, 200]` | `—` | `—` | `—` | `—` |
-| `build set` | `2` | `[1, 2, 3, 4, 100, 200]` | `—` | `—` | `—` | `—` |
-| `initialize run` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `1` | `1` | `0` |
-| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `2` | `2` | `0` |
-| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `3` | `3` | `0` |
-| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `4` | `4` | `0` |
-| `successor absent; update longest` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `4` | `4` | `4` |
-| `skip: predecessor exists` | `2` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
-| `skip: predecessor exists` | `3` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
-| `skip: predecessor exists` | `4` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
-| `initialize run` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
-| `successor absent; update longest` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
-| `initialize run` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
-| `successor absent; update longest` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
+**Debugger state at this block:**
 
 For the run starting at `1`, successor checks find `2`, `3`, and `4`, then fail at `5`: the length grows `1 → 2 → 3 → 4`. Runs `100` and `200` each have length `1`; `max(4,1) = 4`, so return `4`. The integer guards are true for these ordinary values; boundary/overflow examples remain in the walkthrough below.
 
@@ -504,7 +564,6 @@ Therefore each run is measured once. Taking the maximum of all measured run leng
 - Removing the minimum/maximum guards and connecting integer extremes through overflow.
 - Putting the overflow guard after the arithmetic expression, which is too late.
 - Sorting even though the target asks for average `O(n)` time; sorting is a valid simpler alternative when `O(n log n)` is acceptable.
-
 
 ## Learner solution review — 2026-10-07
 

@@ -66,50 +66,11 @@ while (left < right && !Character.isLetterOrDigit(text.charAt(left))) {
 
 Java evaluates `&&` left to right. When the pointers meet, `left < right` is false, so `charAt(left)` is not evaluated by this loop. Reversing the conditions would inspect a character before confirming that another comparison is still needed.
 
-## Debugger trace — every variable and collection
-
-Input `text = "A,b a"`; indexes `0..4` hold `A`, comma, `b`, space, `a`. Initially `left = 0`, `right = 4`. This short example exercises case conversion and both punctuation-skip loops.
-
-The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
-
-| operation | left | right | leftCharacter | rightCharacter | observation |
-| --- | --- | --- | --- | --- | --- |
-| `compare lowercase characters` | `0` | `4` | `a` | `a` | `equal; continue` |
-| `after iteration; next outer check` | `1` | `3` | `out of scope` | `out of scope` | `1 < 3 is true` |
-| `skip left punctuation` | `1` | `3` | `—` | `—` | `left=2, right=3` |
-| `skip right punctuation` | `2` | `3` | `—` | `—` | `left=2, right=2` |
-| `compare lowercase characters` | `2` | `2` | `b` | `b` | `equal; continue` |
-| `after iteration; next outer check` | `3` | `1` | `out of scope` | `out of scope` | `3 < 1 is false` |
-
-The character locals leave scope at the closing brace; the “next outer check” rows therefore show them as out of scope. The comma fails `isLetterOrDigit`, moving left `1 → 2`; the space fails it, moving right `3 → 2`. Both lowercase characters at index `2` are `b`. The final pointer update makes `left=3`, `right=1`; the outer condition is false, so return `true`. For `text="0P"`, lowercase values are `0` and `p`; they differ, so return `false` before either pointer advances.
-
-## Reference approach
-
-```java
-int left = 0;
-int right = text.length() - 1;
-
-while (left < right) {
-    while (left < right && !Character.isLetterOrDigit(text.charAt(left))) {
-        left++;
-    }
-    while (left < right && !Character.isLetterOrDigit(text.charAt(right))) {
-        right--;
-    }
-
-    char leftCharacter = Character.toLowerCase(text.charAt(left));
-    char rightCharacter = Character.toLowerCase(text.charAt(right));
-    if (leftCharacter != rightCharacter) {
-        return false;
-    }
-
-    left++;
-    right--;
-}
-return true;
-```
-
 ## Block-by-block code walkthrough
+
+**Running example for the code and tables below:** Input `text = "A,b a"`; indexes `0..4` hold `A`, comma, `b`, space, `a`. Initially `left = 0`, `right = 4`. This short example exercises case conversion and both punctuation-skip loops.
+
+Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
 
 ### Block 1 — Place the pointers at both ends
 
@@ -132,6 +93,10 @@ int right = text.length() - 1;
 
 **Equivalent clearer form:** `int lastIndex = text.length() - 1; int right = lastIndex;` is more verbose but has the same behavior.
 
+**Debugger state at this block:**
+
+For `text="A,b a"`, `left=0`, `right=text.length()-1=5-1=4`. The character locals have not been assigned.
+
 ### Block 2 — Continue only while two different positions remain
 
 ```java
@@ -147,6 +112,13 @@ while (left < right) {
 **What fails without it:** an unconditional loop would eventually read beyond the string or never stop. Using `left <= right` can still be made correct, but it performs an unnecessary middle-character comparison.
 
 **Equivalent clearer form:** `while (right - left > 0)` expresses the same relationship, but `left < right` is easier to read and avoids arithmetic.
+
+**Debugger state at this block:**
+
+| operation | left | right | leftCharacter | rightCharacter | observation |
+| --- | --- | --- | --- | --- | --- |
+| `after iteration; next outer check` | `1` | `3` | `out of scope` | `out of scope` | `1 < 3 is true` |
+| `after iteration; next outer check` | `3` | `1` | `out of scope` | `out of scope` | `3 < 1 is false` |
 
 ### Block 3 — Skip irrelevant characters on the left
 
@@ -178,6 +150,12 @@ while (left < right) {
 
 The equivalent is longer but makes the stop decision explicit.
 
+**Debugger state at this block:**
+
+| operation | left | right | leftCharacter | rightCharacter | observation |
+| --- | --- | --- | --- | --- | --- |
+| `skip left punctuation` | `1` | `3` | `—` | `—` | `left=2, right=3` |
+
 ### Block 4 — Skip irrelevant characters on the right independently
 
 ```java
@@ -196,6 +174,12 @@ while (left < right && !Character.isLetterOrDigit(text.charAt(right))) {
 
 **Equivalent clearer form:** the expanded `while`/`break` form shown for the left pointer can be mirrored with `text.charAt(right)` and `right--`.
 
+**Debugger state at this block:**
+
+| operation | left | right | leftCharacter | rightCharacter | observation |
+| --- | --- | --- | --- | --- | --- |
+| `skip right punctuation` | `2` | `3` | `—` | `—` | `left=2, right=2` |
+
 ### Block 5 — Normalize both meaningful characters
 
 ```java
@@ -212,6 +196,13 @@ char rightCharacter = Character.toLowerCase(text.charAt(right));
 **What fails without it:** direct comparison would treat `'A' != 'a'` and incorrectly reject `"Aa"`. Lowercasing only one side is also wrong: `"aA"` would become `'a'` versus `'A'`.
 
 **Equivalent clearer form:** `Character.toUpperCase(...)` on both sides works too. Converting the entire string first is simpler to visualize but uses `O(n)` additional space.
+
+**Debugger state at this block:**
+
+| operation | left | right | leftCharacter | rightCharacter | observation |
+| --- | --- | --- | --- | --- | --- |
+| `compare lowercase characters` | `0` | `4` | `a` | `a` | `equal; continue` |
+| `compare lowercase characters` | `2` | `2` | `b` | `b` | `equal; continue` |
 
 ### Block 6 — Stop at the first real mismatch
 
@@ -231,6 +222,13 @@ if (leftCharacter != rightCharacter) {
 
 **Equivalent clearer form:** `boolean charactersMatch = leftCharacter == rightCharacter; if (!charactersMatch) return false;` has the same behavior but names the decision.
 
+**Debugger state at this block:**
+
+| operation | left | right | leftCharacter | rightCharacter | observation |
+| --- | --- | --- | --- | --- | --- |
+| `compare lowercase characters` | `0` | `4` | `a` | `a` | `equal; continue` |
+| `compare lowercase characters` | `2` | `2` | `b` | `b` | `equal; continue` |
+
 ### Block 7 — Consume the pair that just matched
 
 ```java
@@ -248,6 +246,13 @@ right--;
 
 **Equivalent clearer form:** `left = left + 1; right = right - 1;` is identical but more explicit.
 
+**Debugger state at this block:**
+
+| operation | left | right | leftCharacter | rightCharacter | observation |
+| --- | --- | --- | --- | --- | --- |
+| `after iteration; next outer check` | `1` | `3` | `out of scope` | `out of scope` | `1 < 3 is true` |
+| `after iteration; next outer check` | `3` | `1` | `out of scope` | `out of scope` | `3 < 1 is false` |
+
 ### Block 8 — Accept only after every required pair matched
 
 ```java
@@ -263,6 +268,36 @@ return true;
 **What fails without it:** Java requires a boolean result on every path, so the method would not compile.
 
 **Equivalent clearer form:** there is no clearer different algorithmic form; `return left >= right;` is redundant here because leaving the loop already proves that condition.
+
+**Debugger state at this block:**
+
+The character locals leave scope at the closing brace; the “next outer check” rows therefore show them as out of scope. The comma fails `isLetterOrDigit`, moving left `1 → 2`; the space fails it, moving right `3 → 2`. Both lowercase characters at index `2` are `b`. The final pointer update makes `left=3`, `right=1`; the outer condition is false, so return `true`. For `text="0P"`, lowercase values are `0` and `p`; they differ, so return `false` before either pointer advances.
+
+## Reference approach
+
+```java
+int left = 0;
+int right = text.length() - 1;
+
+while (left < right) {
+    while (left < right && !Character.isLetterOrDigit(text.charAt(left))) {
+        left++;
+    }
+    while (left < right && !Character.isLetterOrDigit(text.charAt(right))) {
+        right--;
+    }
+
+    char leftCharacter = Character.toLowerCase(text.charAt(left));
+    char rightCharacter = Character.toLowerCase(text.charAt(right));
+    if (leftCharacter != rightCharacter) {
+        return false;
+    }
+
+    left++;
+    right--;
+}
+return true;
+```
 
 ## Full dry runs
 

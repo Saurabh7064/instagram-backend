@@ -100,11 +100,49 @@ return bestSum / (double) windowSize;
 
 All windows have the same positive denominator `k`. Therefore the window with the largest sum also has the largest average. Casting the denominator to `double` prevents integer division: `51 / 4` would be `12`, while `51 / 4.0` is `12.75`.
 
-## Debugger trace — every variable and collection
+## Block-by-block code walkthrough
 
-Input `numbers = [1,12,-5,-6,50,3]`, `windowSize = 4`. The array stays unchanged. Initially `windowSum = 0` (a `long`). The two loops have different local variables: `index` belongs to the first; `right` and `outgoingIndex` belong to the second.
+**Running example for the code and tables below:** Input `numbers = [1,12,-5,-6,50,3]`, `windowSize = 4`. The array stays unchanged. Initially `windowSum = 0` (a `long`). The two loops have different local variables: `index` belongs to the first; `right` and `outgoingIndex` belong to the second.
 
-The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
+
+### Block 1 — Create the rolling sum
+
+```java
+long windowSum = 0;
+```
+
+**What it evaluates:** the running total starts empty before any array value is added.
+
+**Why it is needed:** later slides reuse this variable instead of recalculating each window.
+
+**Concrete result:** for `[1, 12, -5, -6]`, the variable changes `0 → 1 → 13 → 8 → 2` while building the first window.
+
+**What fails without it:** Java local variables must be initialized before `+=`. Using `int` is valid for the stated constraints, but `long` prevents overflow if larger constraints are introduced.
+
+**Equivalent clearer form:** `long firstWindowSum = 0;` is a useful temporary name, but the value later becomes the rolling sum.
+
+**Debugger state at this block:**
+
+For `numbers=[1,12,-5,-6,50,3]`, `windowSize=4`, initialize `windowSum=0` as a `long`. Neither loop has started.
+
+### Block 2 — Build exactly the first complete window
+
+```java
+for (int index = 0; index < windowSize; index++) {
+    windowSum += numbers[index];
+}
+```
+
+**What it evaluates:** indexes `0` through `windowSize - 1` are added. For `windowSize = 4`, the loop uses `0, 1, 2, 3` and stops when `index = 4`.
+
+**Why it is needed:** a slide requires a previous complete window, and the first window is also a valid answer candidate.
+
+**What fails without it:** starting the slide loop with a zero sum would subtract values that were never added. Using `index <= windowSize` reads one extra element and can go out of bounds when the window fills the array.
+
+**Equivalent clearer form:** `for (int value : Arrays.copyOfRange(numbers, 0, windowSize))` is less efficient because it allocates a copy.
+
+**Debugger state at this block:**
 
 | operation | index | right | outgoingIndex | windowSum | bestSum |
 | --- | --- | --- | --- | --- | --- |
@@ -112,11 +150,95 @@ The rows follow execution order. Collection contents are shown after the named o
 | `initial window` | `1` | `—` | `—` | `1 + (12) = 13` | `—` |
 | `initial window` | `2` | `—` | `—` | `13 + (-5) = 8` | `—` |
 | `initial window` | `3` | `—` | `—` | `8 + (-6) = 2` | `—` |
+
+### Block 3 — Initialize the best from real data
+
+```java
+long bestSum = windowSum;
+```
+
+**What it evaluates:** the first complete window becomes the best known candidate.
+
+**Concrete result:** for `[-5, -3]` with `k = 1`, `bestSum` starts at `-5`, not `0`.
+
+**Why it is needed:** every candidate may be negative.
+
+**What fails without it:** `bestSum = 0` invents a nonexistent window and would return `0.0` instead of `-3.0`.
+
+**Equivalent clearer form:** `long maximumWindowSum = windowSum;` is the same operation with a more explicit name.
+
+**Debugger state at this block:**
+
+| operation | index | right | outgoingIndex | windowSum | bestSum |
+| --- | --- | --- | --- | --- | --- |
 | `initialize bestSum` | `—` | `—` | `—` | `2` | `2` |
+
+### Block 4 — Identify each incoming value
+
+```java
+for (int right = windowSize; right < numbers.length; right++) {
+    int outgoingIndex = right - windowSize;
+```
+
+**What it evaluates:** `right` starts at the first index outside the initial window. Subtracting the fixed window size identifies the value leaving from the left.
+
+**Concrete result:** with `k = 4`, the first incoming index is `4` and the outgoing index is `4 - 4 = 0`.
+
+**What fails without it:** starting `right` at `windowSize - 1` adds the final first-window value twice. Using `right - 1` removes the adjacent value rather than the left boundary.
+
+**Equivalent clearer form:** maintain a separate `left` variable and increment both pointers, but deriving `left` from `right` prevents them drifting apart.
+
+**Debugger state at this block:**
+
+| operation | index | right | outgoingIndex | windowSum | bestSum |
+| --- | --- | --- | --- | --- | --- |
+| `add incoming` | `—` | `4` | `0` | `2 + 50 = 52` | `2` |
+| `add incoming` | `—` | `5` | `1` | `51 + 3 = 54` | `51` |
+
+### Block 5 — Slide and preserve the maximum
+
+```java
+windowSum += numbers[right];
+windowSum -= numbers[outgoingIndex];
+bestSum = Math.max(bestSum, windowSum);
+```
+
+**What it evaluates:** one incoming value is added, one outgoing value is removed, and the resulting complete-window sum competes with the best.
+
+**Concrete result:** the first example changes the first sum `2` by `+50 - 1` to `51`; `bestSum` becomes `51`.
+
+**Why it is needed:** neighboring windows share all other positions, so these two updates preserve an exact length-`k` sum.
+
+**What fails without it:** forgetting the subtraction grows the window; updating `bestSum` before both operations compares an incomplete window.
+
+**Equivalent clearer form:** `windowSum += numbers[right] - numbers[outgoingIndex];` combines the arithmetic, while separate lines make each movement visible.
+
+**Debugger state at this block:**
+
+| operation | index | right | outgoingIndex | windowSum | bestSum |
+| --- | --- | --- | --- | --- | --- |
 | `add incoming` | `—` | `4` | `0` | `2 + 50 = 52` | `2` |
 | `subtract outgoing; update best` | `—` | `4` | `0` | `52 - (1) = 51` | `max(2,51) = 51` |
 | `add incoming` | `—` | `5` | `1` | `51 + 3 = 54` | `51` |
 | `subtract outgoing; update best` | `—` | `5` | `1` | `54 - (12) = 42` | `max(51,42) = 51` |
+
+### Block 6 — Force floating-point division
+
+```java
+return bestSum / (double) windowSize;
+```
+
+**What it evaluates:** the best sum is divided by the positive fixed size after converting the denominator to `double`.
+
+**Concrete result:** `51 / 4.0` produces `12.75`.
+
+**Why it is needed:** equal window sizes mean the best sum also has the best average.
+
+**What fails without it:** integer division would truncate the fraction; `51 / 4` produces `12` before conversion to `double`.
+
+**Equivalent clearer form:** `(double) bestSum / windowSize` is identical because either floating-point operand promotes the division.
+
+**Debugger state at this block:**
 
 The first loop exits when `index=4`, because `4 < 4` is false. The second exits when `right=6`, because `6 < 6` is false. Return `bestSum / (double) windowSize = 51 / 4.0 = 12.75`; the cast preserves the fractional part. The winning window `[12,-5,-6,50]` sums to `12 - 5 - 6 + 50 = 51`.
 
@@ -144,105 +266,6 @@ static double findMaxAverage(int[] numbers, int windowSize) {
 ```
 
 Read it as three operations: build the first complete window, slide by adding one value and removing one value, then convert the largest sum to an average. The next section explains every block and boundary in this method.
-
-## Block-by-block code walkthrough
-
-### Block 1 — Create the rolling sum
-
-```java
-long windowSum = 0;
-```
-
-**What it evaluates:** the running total starts empty before any array value is added.
-
-**Why it is needed:** later slides reuse this variable instead of recalculating each window.
-
-**Concrete result:** for `[1, 12, -5, -6]`, the variable changes `0 → 1 → 13 → 8 → 2` while building the first window.
-
-**What fails without it:** Java local variables must be initialized before `+=`. Using `int` is valid for the stated constraints, but `long` prevents overflow if larger constraints are introduced.
-
-**Equivalent clearer form:** `long firstWindowSum = 0;` is a useful temporary name, but the value later becomes the rolling sum.
-
-### Block 2 — Build exactly the first complete window
-
-```java
-for (int index = 0; index < windowSize; index++) {
-    windowSum += numbers[index];
-}
-```
-
-**What it evaluates:** indexes `0` through `windowSize - 1` are added. For `windowSize = 4`, the loop uses `0, 1, 2, 3` and stops when `index = 4`.
-
-**Why it is needed:** a slide requires a previous complete window, and the first window is also a valid answer candidate.
-
-**What fails without it:** starting the slide loop with a zero sum would subtract values that were never added. Using `index <= windowSize` reads one extra element and can go out of bounds when the window fills the array.
-
-**Equivalent clearer form:** `for (int value : Arrays.copyOfRange(numbers, 0, windowSize))` is less efficient because it allocates a copy.
-
-### Block 3 — Initialize the best from real data
-
-```java
-long bestSum = windowSum;
-```
-
-**What it evaluates:** the first complete window becomes the best known candidate.
-
-**Concrete result:** for `[-5, -3]` with `k = 1`, `bestSum` starts at `-5`, not `0`.
-
-**Why it is needed:** every candidate may be negative.
-
-**What fails without it:** `bestSum = 0` invents a nonexistent window and would return `0.0` instead of `-3.0`.
-
-**Equivalent clearer form:** `long maximumWindowSum = windowSum;` is the same operation with a more explicit name.
-
-### Block 4 — Identify each incoming value
-
-```java
-for (int right = windowSize; right < numbers.length; right++) {
-    int outgoingIndex = right - windowSize;
-```
-
-**What it evaluates:** `right` starts at the first index outside the initial window. Subtracting the fixed window size identifies the value leaving from the left.
-
-**Concrete result:** with `k = 4`, the first incoming index is `4` and the outgoing index is `4 - 4 = 0`.
-
-**What fails without it:** starting `right` at `windowSize - 1` adds the final first-window value twice. Using `right - 1` removes the adjacent value rather than the left boundary.
-
-**Equivalent clearer form:** maintain a separate `left` variable and increment both pointers, but deriving `left` from `right` prevents them drifting apart.
-
-### Block 5 — Slide and preserve the maximum
-
-```java
-windowSum += numbers[right];
-windowSum -= numbers[outgoingIndex];
-bestSum = Math.max(bestSum, windowSum);
-```
-
-**What it evaluates:** one incoming value is added, one outgoing value is removed, and the resulting complete-window sum competes with the best.
-
-**Concrete result:** the first example changes the first sum `2` by `+50 - 1` to `51`; `bestSum` becomes `51`.
-
-**Why it is needed:** neighboring windows share all other positions, so these two updates preserve an exact length-`k` sum.
-
-**What fails without it:** forgetting the subtraction grows the window; updating `bestSum` before both operations compares an incomplete window.
-
-**Equivalent clearer form:** `windowSum += numbers[right] - numbers[outgoingIndex];` combines the arithmetic, while separate lines make each movement visible.
-
-### Block 6 — Force floating-point division
-
-```java
-return bestSum / (double) windowSize;
-```
-
-**What it evaluates:** the best sum is divided by the positive fixed size after converting the denominator to `double`.
-
-**Concrete result:** `51 / 4.0` produces `12.75`.
-
-**Why it is needed:** equal window sizes mean the best sum also has the best average.
-
-**What fails without it:** integer division would truncate the fraction; `51 / 4` produces `12` before conversion to `double`.
-
-**Equivalent clearer form:** `(double) bestSum / windowSize` is identical because either floating-point operand promotes the division.
 
 ## Invariant and correctness
 
