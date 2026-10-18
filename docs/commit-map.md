@@ -661,3 +661,10 @@ For every new feature or learning concept:
 - Other lesson pointers: [Arrays/hash maps](./interview/01-leetcode/lessons/01-arrays-hash-maps/README.md), [Two pointers](./interview/01-leetcode/lessons/02-two-pointers/README.md), [Sliding window](./interview/01-leetcode/lessons/03-sliding-window/README.md).
 - Verification: all 33 Java practice/reference files compile; all 15 reference runners pass. Checked debugger annotations beside every numbered block in all 14 lessons, balanced code fences, local file links, and `git diff --check`. Reviewed counting-array and map states, early returns, and scope explanations.
 - Scope: documentation-only reorganization; no API/UI behavior changes. Existing feature/concept backlog and learner statuses remain unchanged. Unrelated uncommitted Java and Kubernetes changes are excluded.
+
+## Inputs alongside reference code — 2026-10-17
+
+- Commit: `289f1af` — added named example inputs and expected returns as comments at the top of the same Java code block in all 15 complete reference listings across 14 existing LeetCode lessons, including the sorting alternative.
+- Concepts: keep code-reading context local; distinguish method inputs and returned values from changing algorithm state. Saved this requirement in the [coding explanation standard](../AGENTS.md#coding-explanation-and-debugger-trace-standard).
+- Docs: [LeetCode lessons](./interview/01-leetcode/README.md), [Permutation in String reference](./interview/01-leetcode/lessons/03-sliding-window/04-permutation-in-string/README.md#reference-approach).
+- Verification: checked all 15 listings contain input/expected-return comments inside the Java block; code fences are balanced and `git diff --check` passes. Examples match the existing worked traces. Comments/documentation only; Java sources, API/UI behavior, feature/concept backlogs, and learner statuses are unchanged. Unrelated working-tree edits are excluded.
