@@ -61,3 +61,7 @@ Copy this section for each week.
 | Topic or question | Why it was missed | Review +1 day | Review +1 week | Review +1 month | Mastered? |
 |---|---|---|---|---|---|
 | Sequence boundaries / Longest Consecutive | Needed coaching on one scan start and exact overflow wording | 2026-10-08 | 2026-10-14 | 2026-11-07 | NO |
+
+## Prepared future artifacts — 2026-10-17
+
+[Module 04: Prefix/Suffix State and Intervals](./01-leetcode/lessons/04-prefix-suffix-intervals/README.md) has five prepared lessons with compiled practice/reference programs, narrated debugger traces, and recorded checks. Artifact readiness is READY; all five learning statuses remain TODO. This does not change the active Two Sum lesson, its pending checkpoints, or any mastery counts.

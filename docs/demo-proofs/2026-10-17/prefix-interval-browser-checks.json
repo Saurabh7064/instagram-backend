@@ -1,0 +1,42 @@
+{
+  "results": [
+    {
+      "lesson": "01-range-sum-query-immutable",
+      "http": 200,
+      "checkpoints": 3,
+      "referenceLines": 17,
+      "screenshot": "01-range-sum-query-immutable-trace.png"
+    },
+    {
+      "lesson": "02-subarray-sum-equals-k",
+      "http": 200,
+      "checkpoints": 3,
+      "referenceLines": 17,
+      "screenshot": "02-subarray-sum-equals-k-trace.png"
+    },
+    {
+      "lesson": "03-product-of-array-except-self",
+      "http": 200,
+      "checkpoints": 3,
+      "referenceLines": 18,
+      "screenshot": "03-product-of-array-except-self-trace.png"
+    },
+    {
+      "lesson": "04-merge-intervals",
+      "http": 200,
+      "checkpoints": 3,
+      "referenceLines": 29,
+      "screenshot": "04-merge-intervals-trace.png"
+    },
+    {
+      "lesson": "05-insert-interval",
+      "http": 200,
+      "checkpoints": 3,
+      "referenceLines": 25,
+      "screenshot": "05-insert-interval-trace.png"
+    }
+  ],
+  "mobileViewport": "390x844",
+  "mobilePageOverflow": false,
+  "pageErrors": []
+}

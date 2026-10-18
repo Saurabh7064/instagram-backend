@@ -69,3 +69,7 @@ Created [15 API Design with Spring Boot lessons](../interview/02-system-design/a
 ### API design depth review — 2026-10-17
 
 Re-reviewed and expanded every original lesson and added five applied-pattern chapters: [20-lesson module](../interview/02-system-design/api-design/README.md), [coverage/evidence](../interview/02-system-design/api-design/review-notes.md). HTTP method/patch semantics and versioning were rewritten; relationship races, negotiation, aggregation/BFF, bulk operations, and contract-first design now have explicit decisions and worked examples. Artifact completion is documentation only; feature statuses and learner comprehension remain unchanged.
+
+## Prefix/suffix and interval artifacts — 2026-10-17
+
+Prepared [five Module 04 LeetCode lessons](../interview/01-leetcode/lessons/04-prefix-suffix-intervals/README.md), with [Feature 16 evidence](../features/16-prefix-suffix-and-interval-curriculum.md), separate runnable practice/reference programs, narrated iterations, and checks. This artifact-only addition does not complete a product implementation milestone or demonstrate learner comprehension; existing feature/concept statuses remain unchanged. All five learning entries remain TODO; the active Two Sum lesson is unchanged.

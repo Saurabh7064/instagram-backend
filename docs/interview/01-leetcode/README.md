@@ -45,6 +45,13 @@ The pattern list above is the high-level order. The lesson index expands it into
    - [Micro-Lesson 04: Permutation in String](./lessons/03-sliding-window/04-permutation-in-string/README.md) — `TODO`
    - [Micro-Lesson 05: Minimum Window Substring](./lessons/03-sliding-window/05-minimum-window-substring/README.md) — `TODO`
 
+4. [Prefix/Suffix State and Intervals](./lessons/04-prefix-suffix-intervals/README.md) — prepared module
+   - [Micro-Lesson 01: Range Sum Query — Immutable](./lessons/04-prefix-suffix-intervals/01-range-sum-query-immutable/README.md) — `TODO`
+   - [Micro-Lesson 02: Subarray Sum Equals K](./lessons/04-prefix-suffix-intervals/02-subarray-sum-equals-k/README.md) — `TODO`
+   - [Micro-Lesson 03: Product of Array Except Self](./lessons/04-prefix-suffix-intervals/03-product-of-array-except-self/README.md) — `TODO`
+   - [Micro-Lesson 04: Merge Intervals](./lessons/04-prefix-suffix-intervals/04-merge-intervals/README.md) — `TODO`
+   - [Micro-Lesson 05: Insert Interval](./lessons/04-prefix-suffix-intervals/05-insert-interval/README.md) — `TODO`
+
 Current session: [Session 03 — HashMap Value-to-Index Lookup](../daily/2026-10-07-session-03.md)
 
 ## Mastery rule

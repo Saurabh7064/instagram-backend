@@ -1,6 +1,6 @@
 # LeetCode Micro-Lesson Index
 
-This is the navigation map for future coding practice. Each row will become one focused lesson directory with one primary idea, one problem, one editable Java program, and one reference solution—but only when that lesson is activated.
+This is the navigation map for future coding practice. Each row will become one focused lesson directory with one primary idea, one problem, one editable Java program, and one reference solution—when the lesson is activated or the user explicitly requests its artifacts in advance. Preparing an artifact does not activate its learning status.
 
 ## Status legend
 
@@ -48,11 +48,11 @@ The core path contains 72 primary problems. Reviews, unseen variations, mock-int
 
 | ID | Focused idea | Primary practice | Difficulty | Status |
 |---|---|---|---|---|
-| C04.01 | Precompute prefix totals | [Range Sum Query — Immutable](https://leetcode.com/problems/range-sum-query-immutable/) | Easy | `TODO` |
-| C04.02 | Match prior prefix sums | [Subarray Sum Equals K](https://leetcode.com/problems/subarray-sum-equals-k/) | Medium | `TODO` |
-| C04.03 | Combine left and right accumulated state | [Product of Array Except Self](https://leetcode.com/problems/product-of-array-except-self/) | Medium | `TODO` |
-| C04.04 | Merge overlapping ranges | [Merge Intervals](https://leetcode.com/problems/merge-intervals/) | Medium | `TODO` |
-| C04.05 | Place and merge one new range | [Insert Interval](https://leetcode.com/problems/insert-interval/) | Medium | `TODO` |
+| C04.01 | [Precompute prefix totals](./lessons/04-prefix-suffix-intervals/01-range-sum-query-immutable/README.md) | [Range Sum Query — Immutable](https://leetcode.com/problems/range-sum-query-immutable/) | Easy | `TODO` |
+| C04.02 | [Match prior prefix sums](./lessons/04-prefix-suffix-intervals/02-subarray-sum-equals-k/README.md) | [Subarray Sum Equals K](https://leetcode.com/problems/subarray-sum-equals-k/) | Medium | `TODO` |
+| C04.03 | [Combine left and right accumulated state](./lessons/04-prefix-suffix-intervals/03-product-of-array-except-self/README.md) | [Product of Array Except Self](https://leetcode.com/problems/product-of-array-except-self/) | Medium | `TODO` |
+| C04.04 | [Merge overlapping ranges](./lessons/04-prefix-suffix-intervals/04-merge-intervals/README.md) | [Merge Intervals](https://leetcode.com/problems/merge-intervals/) | Medium | `TODO` |
+| C04.05 | [Place and merge one new range](./lessons/04-prefix-suffix-intervals/05-insert-interval/README.md) | [Insert Interval](https://leetcode.com/problems/insert-interval/) | Medium | `TODO` |
 
 ## Module 05 — Stack and Queue
 
