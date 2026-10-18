@@ -152,16 +152,46 @@ for (int index = 0; index < windowSize; index++) {
 | `initial window` | `3` | `—` | `—` | `8 + (-6) = 2` | `—` |
 
 
-**Complete iterations — read each row left to right:**
+**Narrated execution — follow each operation, then check its values:**
 
-The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+**Iteration/check 1 — index = `0`.**
+
+At initial-window index `0`, test the first-loop condition: `0 < 4 → true`. The addition produces `0+(1)=1`. Next, `index++; continue`. A false loop test skips the addition; the completed first-window sum then initializes `bestSum`.
 
 | index | index < windowSize | windowSum after addition | next action |
 | --- | --- | --- | --- |
 | `0` | `0 < 4 → true` | `0+(1)=1` | `index++; continue` |
+
+**Iteration/check 2 — index = `1`.**
+
+At initial-window index `1`, test the first-loop condition: `1 < 4 → true`. The addition produces `1+(12)=13`. Next, `index++; continue`. A false loop test skips the addition; the completed first-window sum then initializes `bestSum`.
+
+| index | index < windowSize | windowSum after addition | next action |
+| --- | --- | --- | --- |
 | `1` | `1 < 4 → true` | `1+(12)=13` | `index++; continue` |
+
+**Iteration/check 3 — index = `2`.**
+
+At initial-window index `2`, test the first-loop condition: `2 < 4 → true`. The addition produces `13+(-5)=8`. Next, `index++; continue`. A false loop test skips the addition; the completed first-window sum then initializes `bestSum`.
+
+| index | index < windowSize | windowSum after addition | next action |
+| --- | --- | --- | --- |
 | `2` | `2 < 4 → true` | `13+(-5)=8` | `index++; continue` |
+
+**Iteration/check 4 — index = `3`.**
+
+At initial-window index `3`, test the first-loop condition: `3 < 4 → true`. The addition produces `8+(-6)=2`. Next, `index++; continue`. A false loop test skips the addition; the completed first-window sum then initializes `bestSum`.
+
+| index | index < windowSize | windowSum after addition | next action |
+| --- | --- | --- | --- |
 | `3` | `3 < 4 → true` | `8+(-6)=2` | `index++; continue` |
+
+**Iteration/check 5 — index = `4`.**
+
+At initial-window index `4`, test the first-loop condition: `4 < 4 → false`. The addition produces `unchanged: 2`. Next, `exit; bestSum=2`. A false loop test skips the addition; the completed first-window sum then initializes `bestSum`.
+
+| index | index < windowSize | windowSum after addition | next action |
+| --- | --- | --- | --- |
 | `4` | `4 < 4 → false` | `unchanged: 2` | `exit; bestSum=2` |
 
 This loop has no conditional branch in its body; its loop condition is still shown explicitly.
@@ -238,14 +268,30 @@ bestSum = Math.max(bestSum, windowSum);
 | `subtract outgoing; update best` | `—` | `5` | `1` | `54 - (12) = 42` | `max(51,42) = 51` |
 
 
-**Complete iterations — read each row left to right:**
+**Narrated execution — follow each operation, then check its values:**
 
-The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+**Iteration/check 1 — right = `4`.**
+
+At `right`=`4`, test the sliding-loop condition: `4 < 6 → true`. Compute the outgoing position: `4-4=0`. Add the incoming value first, giving `2+50=52`; subtract the outgoing value next, giving `52-(1)=51`. `Math.max` preserves `bestSum`=`51`. Next, `right++; continue`. On a false loop test, none of the slide operations run.
 
 | right | right < numbers.length | outgoingIndex | sum after add | sum after removal | bestSum after | next action |
 | --- | --- | --- | --- | --- | --- | --- |
 | `4` | `4 < 6 → true` | `4-4=0` | `2+50=52` | `52-(1)=51` | `51` | `right++; continue` |
+
+**Iteration/check 2 — right = `5`.**
+
+At `right`=`5`, test the sliding-loop condition: `5 < 6 → true`. Compute the outgoing position: `5-4=1`. Add the incoming value first, giving `51+3=54`; subtract the outgoing value next, giving `54-(12)=42`. `Math.max` preserves `bestSum`=`51`. Next, `right++; continue`. On a false loop test, none of the slide operations run.
+
+| right | right < numbers.length | outgoingIndex | sum after add | sum after removal | bestSum after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
 | `5` | `5 < 6 → true` | `5-4=1` | `51+3=54` | `54-(12)=42` | `51` | `right++; continue` |
+
+**Iteration/check 3 — right = `6`.**
+
+At `right`=`6`, test the sliding-loop condition: `6 < 6 → false`. Compute the outgoing position: `Skipped`. Add the incoming value first, giving `Skipped`; subtract the outgoing value next, giving `Skipped`. `Math.max` preserves `bestSum`=`51`. Next, `exit; return 51/4.0=12.75`. On a false loop test, none of the slide operations run.
+
+| right | right < numbers.length | outgoingIndex | sum after add | sum after removal | bestSum after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
 | `6` | `6 < 6 → false` | `Skipped` | `Skipped` | `Skipped` | `51` | `exit; return 51/4.0=12.75` |
 
 No `if` exists in this loop: `Math.max` preserves the larger sum on each completed slide.

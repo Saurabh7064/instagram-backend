@@ -60,9 +60,9 @@ For `"adc"` inside `"dcda"`, the first complete window `"dcd"` has `d:2,c:1`; af
 
 ## Block-by-block code walkthrough
 
-Follow one input throughout: `pattern="ab"`, `text="eidbaooo"`. Text positions `0..7` contain `e,i,d,b,a,o,o,o`. Each block below explains its code and then shows the state that code produces. Rows use the actual pattern index or text `right` value; arrays are shown beside the operation that changes or compares them.
+We are executing `checkInclusion("ab", "eidbaooo")`. `pattern` is `"ab"` (length `2`); `text` is `"eidbaooo"` (length `8`). Read the following as a debugger executing one statement at a time. Each iteration's explanation is immediately followed by its values.
 
-### Block 1 — Reject a pattern that cannot fit
+### Block 1 — Check whether the pattern can fit
 
 ```java
 if (pattern.length() > text.length()) {
@@ -70,173 +70,164 @@ if (pattern.length() > text.length()) {
 }
 ```
 
-**What it evaluates:** a candidate must contain exactly as many characters as the pattern.
+First read the two lengths: `pattern.length()` is `2`, and `text.length()` is `8`. Evaluate `2 > 8`: **false**. Therefore skip the `if` body, including `return false`, and continue to array creation. We skip the body because the pattern is **shorter** than the text, so a matching substring could fit. This does not yet prove a match exists.
 
-**Concrete result:** length `4` pattern `"abcd"` cannot fit in length `3` text `"abc"`.
+If the pattern were `"abcd"` and the text `"abc"`, the same check would be `4 > 3 → true`; the method would return `false` immediately because rearranging four characters cannot fit into three positions.
 
-**What fails without it:** the main loop still returns false, but performs work even though no complete candidate can exist.
+| pattern | text | length comparison | branch | next statement |
+| --- | --- | --- | --- | --- |
+| `ab` | `eidbaooo` | `2 > 8 → false` | `skip return false` | `create neededCounts` |
 
-**Equivalent clearer form:** keep the guard as an early return so later code assumes fitting is possible.
-
-**Debugger state at this block:**
-
-A permutation has exactly the pattern’s length: reordering cannot shorten it. For our input, `pattern.length()=2` and `text.length()=8`, so `2 > 8` is `false`; execution continues. For `pattern="abcd"`, `text="abc"`, `4 > 3` is `true`, so return `false` here. No arrays have been allocated on that path. The guard avoids scanning a text that cannot hold even one candidate.
-
-### Block 2 — Build the pattern's signature
+### Block 2 — Create space to remember character counts
 
 ```java
 int[] neededCounts = new int[26];
 int[] windowCounts = new int[26];
+```
+
+Create `neededCounts` to remember how many copies of each letter the pattern requires. Create `windowCounts` to remember how many copies are in the text window we are checking. They are separate arrays; changing one never changes the other. Java initializes every cell to zero.
+
+There are 26 cells because the input contains only lowercase English letters. Cell `0` means `a`, cell `1` means `b`, through cell `25` meaning `z`. No character has been counted yet.
+
+| array | all 26 cells after allocation |
+| --- | --- |
+| `neededCounts` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| `windowCounts` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+
+### Block 3 — Count the pattern, one iteration at a time
+
+```java
 for (int index = 0; index < pattern.length(); index++) {
     neededCounts[pattern.charAt(index) - 'a']++;
 }
 ```
 
-**What it evaluates:** each lowercase character maps to an array position from `0` for `a` through `25` for `z`.
+**Pattern iteration 1: `index = 0`.**
 
-**Concrete result:** `"aab"` produces `neededCounts[0] = 2` and `neededCounts[1] = 1`.
+Check `0 < 2`: true, so enter the loop. Read `pattern.charAt(0)`, which is `'a'`. Calculate `'a' - 'a' = 0` to select that letter's array cell. Increment `neededCounts[0]` from `0` to `1`: the pattern requires 1 copy of `a`. No text character has entered, so `windowCounts` is still all zero. Finally execute `index++`, making `index = 1`.
 
-**Why it is needed:** order is irrelevant, but duplicate counts are essential.
+| index before | condition | character | array cell | neededCounts after | windowCounts after | index after |
+| --- | --- | --- | --- | --- | --- | --- |
+| `0` | `0 < 2 → true` | `a` | `0` | `[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `1` |
 
-**What fails without it:** a set would treat `"aab"` and `"ab"` as identical even though their required lengths and counts differ.
+**Pattern iteration 2: `index = 1`.**
 
-**Equivalent clearer form:** a character-count map works for an unrestricted alphabet.
+Check `1 < 2`: true, so enter the loop. Read `pattern.charAt(1)`, which is `'b'`. Calculate `'b' - 'a' = 1` to select that letter's array cell. Increment `neededCounts[1]` from `0` to `1`: the pattern requires 1 copy of `b`. No text character has entered, so `windowCounts` is still all zero. Finally execute `index++`, making `index = 2`.
 
-**Debugger state at this block:**
+| index before | condition | character | array cell | neededCounts after | windowCounts after | index after |
+| --- | --- | --- | --- | --- | --- | --- |
+| `1` | `1 < 2 → true` | `b` | `1` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `2` |
 
-Both arrays start as `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]`. Each cell counts one lowercase letter. `pattern.charAt(index)` reads that letter, subtracting `'a'` chooses its cell, and `++` adds one occurrence.
+**Finish the pattern loop: `index = 2`.** Evaluate `2 < 2`: false. Skip the loop body; `pattern.charAt(2)` is never called. `neededCounts` now means “one `a`, one `b`, zero other letters.” This array stays unchanged during the text scan. Counting copies rather than just membership matters: for `"aab"`, the first two iterations would change cell `a` from `0 → 1 → 2`, then the third changes cell `b` from `0 → 1`.
 
-| index | index < 2 | pattern.charAt(index) | array index | count change |
-| --- | --- | --- | --- | --- |
-| `0` | `true` | `a` | `'a' - 'a' = 0` | `neededCounts[0]: 0 → 1` |
-| `1` | `true` | `b` | `'b' - 'a' = 1` | `neededCounts[1]: 0 → 1` |
-| `2` | `false` | `not read` | `not evaluated` | `loop exits` |
-
-Full arrays at these iteration phases (`a..z`, indexes `0..25`):
-
-| Iteration | Phase | neededCounts | windowCounts |
-| --- | --- | --- | --- |
-| pattern index=0 | after counting a | `[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| pattern index=1 | after counting b | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-
-The result records exactly the required copies: one `a`, one `b`, and zero of every other letter. `windowCounts` is still all zero because no text character has entered. For `pattern="aab"`, the same loop visits indexes `0,1,2`: cell `a` changes `0 → 1 → 2`, then cell `b` changes `0 → 1`. A set would lose that second copy of `a`.
-
-### Block 3 — Add each incoming character
+### Block 4 — Scan the text, completing every statement in each iteration
 
 ```java
 for (int right = 0; right < text.length(); right++) {
     windowCounts[text.charAt(right) - 'a']++;
-```
 
-**What it evaluates:** `right` expands the candidate and increases exactly one count.
+    if (right >= pattern.length()) {
+        int outgoingIndex = right - pattern.length();
+        windowCounts[text.charAt(outgoingIndex) - 'a']--;
+    }
 
-**Concrete result:** reading the `b` at index `3` of `"eidbaooo"` changes the active `b` count from `0` to `1`.
-
-**What fails without it:** comparing before insertion evaluates the previous window rather than the one ending at `right`.
-
-**Debugger state at this block:**
-
-Each outer iteration adds its character before removal or comparison. The incoming character indexes for `e,i,d,b,a` are `4,8,3,1,0`. At the start of `right=2`, the maintained window was `ei`; adding `d` temporarily produces `eid`. The next block removes the extra character. `neededCounts` stays fixed throughout this loop.
-
-Full arrays at these iteration phases (`a..z`, indexes `0..25`):
-
-| Iteration | Phase | neededCounts | windowCounts |
-| --- | --- | --- | --- |
-| right=0 | after add e | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| right=1 | after add i | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| right=2 | after add d | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| right=3 | after add b | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| right=4 | after add a | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-
-### Block 4 — Remove the value one full window behind
-
-```java
-if (right >= pattern.length()) {
-    int outgoingIndex = right - pattern.length();
-    windowCounts[text.charAt(outgoingIndex) - 'a']--;
+    if (Arrays.equals(neededCounts, windowCounts)) {
+        return true;
+    }
 }
 ```
 
-**What it evaluates:** once the scan would exceed the fixed size, the oldest character leaves.
+The loop adds the incoming character, removes the oldest one if the window has grown too large, then compares all 26 counts. `outgoingIndex` is a position in the text, not a letter's array cell. These are different indexes: at `right=2`, outgoing text position `0` holds `e`, whose frequency-array cell is `4`.
 
-**Concrete result:** with length `2` and `right = 3`, outgoing index is `3 - 2 = 1`; `i` leaves as `b` enters, producing window `"db"` at indexes `2..3`.
+**Text iteration 1: `right = 0`.**
 
-**What fails without it:** counts accumulate for the whole prefix rather than one length-`pattern` window. Using `right - pattern.length() + 1` removes the new left boundary instead of the old one.
+1. Check `0 < 8`: true, so enter the loop. Read `text.charAt(0)`, which is `'e'`. Calculate `'e' - 'a' = 4` and increment `windowCounts[4]` from `0` to `1`.
+2. Evaluate `right >= pattern.length()`: `0 >= 2 → false`. Skip the entire removal branch: no `outgoingIndex` is assigned and no count is decremented. The window is `e`.
+3. Execute `Arrays.equals(neededCounts, windowCounts)`: **false**, because we have an e, but need one a and one b. Skip `return true`. Execute `right++`, making `right = 1`, then start the next iteration.
 
-**Equivalent clearer form:** track a separate `left` pointer and move it when window length exceeds the pattern length.
+| right before | incoming/cell | removal condition | outgoingIndex | window at comparison | Arrays.equals | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `0` | `e / 4` | `0 >= 2 → false` | `not assigned` | `e` | `false` | `right=1; continue` |
 
-**Debugger state at this block:**
+| phase | neededCounts (unchanged) | windowCounts |
+| --- | --- | --- |
+| `before insertion` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| `after insertion` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| `removal skipped; at comparison` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 
-For `right=0` and `1`, `right >= 2` is false; remove nothing. At `right=2`, it becomes `2 >= 2 → true`. The outgoing text position is `right - pattern.length()`, not the incoming letter’s alphabet index.
+**Text iteration 2: `right = 1`.**
 
-| right | outgoingIndex calculation | outgoing letter | frequency cell | change | window after removal |
-| --- | --- | --- | --- | --- | --- |
-| `2` | `2 - 2 = 0` | `e` | `4` | `1 → 0` | `id` |
-| `3` | `3 - 2 = 1` | `i` | `8` | `1 → 0` | `db` |
-| `4` | `4 - 2 = 2` | `d` | `3` | `1 → 0` | `ba` |
+1. Check `1 < 8`: true, so enter the loop. Read `text.charAt(1)`, which is `'i'`. Calculate `'i' - 'a' = 8` and increment `windowCounts[8]` from `0` to `1`.
+2. Evaluate `right >= pattern.length()`: `1 >= 2 → false`. Skip the entire removal branch: no `outgoingIndex` is assigned and no count is decremented. The window is `ei`.
+3. Execute `Arrays.equals(neededCounts, windowCounts)`: **false**, because we have e and i, but need a and b. Skip `return true`. Execute `right++`, making `right = 2`, then start the next iteration.
 
-Full arrays at these iteration phases (`a..z`, indexes `0..25`):
+| right before | incoming/cell | removal condition | outgoingIndex | window at comparison | Arrays.equals | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `1` | `i / 8` | `1 >= 2 → false` | `not assigned` | `ei` | `false` | `right=2; continue` |
 
-| Iteration | Phase | neededCounts | windowCounts |
-| --- | --- | --- | --- |
-| right=2 | after remove e | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| right=3 | after remove i | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| right=4 | after remove d | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| phase | neededCounts (unchanged) | windowCounts |
+| --- | --- | --- |
+| `before insertion` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| `after insertion` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| `removal skipped; at comparison` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
 
-Without removal, the array would count the full prefix `eidba`, including unwanted `e`, `i`, and `d`, rather than just the candidate `ba`.
+**Text iteration 3: `right = 2`.**
 
-### Block 5 — Compare exact counts and finish
+1. Check `2 < 8`: true, so enter the loop. Read `text.charAt(2)`, which is `'d'`. Calculate `'d' - 'a' = 3` and increment `windowCounts[3]` from `0` to `1`.
+2. Evaluate `right >= pattern.length()`: `2 >= 2 → true`. Enter the removal branch. Calculate `outgoingIndex = 2 - 2 = 0`; read `text.charAt(0) = 'e'`; map it to cell `4`. Decrement `windowCounts[4]` from `1` to `0`. The window is now `id`.
+3. Execute `Arrays.equals(neededCounts, windowCounts)`: **false**, because we have i and d, but need a and b. Skip `return true`. Execute `right++`, making `right = 3`, then start the next iteration.
 
-```java
-if (Arrays.equals(neededCounts, windowCounts)) {
-    return true;
-}
-// The outer loop continues if the arrays differ.
-```
+| right before | incoming/cell | removal condition | outgoingIndex | window at comparison | Arrays.equals | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `2` | `d / 3` | `2 >= 2 → true` | `0` | `id` | `false` | `right=3; continue` |
 
-After the outer loop finishes:
+| phase | neededCounts (unchanged) | windowCounts |
+| --- | --- | --- |
+| `before insertion` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| `after insertion` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| `after removal` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+
+**Text iteration 4: `right = 3`.**
+
+1. Check `3 < 8`: true, so enter the loop. Read `text.charAt(3)`, which is `'b'`. Calculate `'b' - 'a' = 1` and increment `windowCounts[1]` from `0` to `1`.
+2. Evaluate `right >= pattern.length()`: `3 >= 2 → true`. Enter the removal branch. Calculate `outgoingIndex = 3 - 2 = 1`; read `text.charAt(1) = 'i'`; map it to cell `8`. Decrement `windowCounts[8]` from `1` to `0`. The window is now `db`.
+3. Execute `Arrays.equals(neededCounts, windowCounts)`: **false**, because we have d and b; b matches, but a is missing and d is extra. Skip `return true`. Execute `right++`, making `right = 4`, then start the next iteration.
+
+| right before | incoming/cell | removal condition | outgoingIndex | window at comparison | Arrays.equals | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `3` | `b / 1` | `3 >= 2 → true` | `1` | `db` | `false` | `right=4; continue` |
+
+| phase | neededCounts (unchanged) | windowCounts |
+| --- | --- | --- |
+| `before insertion` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| `after insertion` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| `after removal` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+
+**Text iteration 5: `right = 4`.**
+
+1. Check `4 < 8`: true, so enter the loop. Read `text.charAt(4)`, which is `'a'`. Calculate `'a' - 'a' = 0` and increment `windowCounts[0]` from `0` to `1`.
+2. Evaluate `right >= pattern.length()`: `4 >= 2 → true`. Enter the removal branch. Calculate `outgoingIndex = 4 - 2 = 2`; read `text.charAt(2) = 'd'`; map it to cell `3`. Decrement `windowCounts[3]` from `1` to `0`. The window is now `ba`.
+3. Execute `Arrays.equals(neededCounts, windowCounts)`: **true**, because we have exactly one a and one b, with zero counts for all other letters. The `if` body runs and returns `true` immediately. Skip `right++`; do not read the remaining `ooo`.
+
+| right before | incoming/cell | removal condition | outgoingIndex | window at comparison | Arrays.equals | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `4` | `a / 0` | `4 >= 2 → true` | `2` | `ba` | `true` | `return true; stop` |
+
+| phase | neededCounts (unchanged) | windowCounts |
+| --- | --- | --- |
+| `before insertion` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| `after insertion` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| `after removal` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+
+### Block 5 — Return false only if the text scan finishes without a match
 
 ```java
 return false;
 ```
 
-**What it evaluates:** all 26 counts must agree; an early match ends the search.
+For this execution, the earlier return at `right=4` has already ended the method. This line is **not reached**. The returned value is `true`, supported by text positions `3..4`, whose substring `"ba"` contains exactly the same counts as pattern `"ab"`.
 
-**Concrete result:** `"ba"` has the same `a:1,b:1` signature as `"ab"` even though its order differs.
-
-**What fails without exact comparison:** checking only required characters can accept a window with an extra character and a missing count elsewhere.
-
-**Equivalent clearer form:** maintain a matched-count total for `O(1)` comparison, but scanning 26 cells is constant work and easier to verify.
-
-**Debugger state at this block:**
-
-`Arrays.equals` compares values in all 26 cells. It runs after the removal block, never between insertion and removal.
-
-Full arrays at these iteration phases (`a..z`, indexes `0..25`):
-
-| Iteration | Phase | neededCounts | windowCounts |
-| --- | --- | --- | --- |
-| right=0 | at comparison | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| right=1 | at comparison | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| right=2 | at comparison | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| right=3 | at comparison | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-| right=4 | at comparison | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
-
-At `right=0`, a partial one-character window cannot match a two-character pattern: `a` and `b` are missing. At `right=4`, the window `ba` has exactly `[1,1,0,...,0]`, matching `neededCounts`; return `true` immediately. Indexes `5..7` are never processed. If every comparison were false (for example, `pattern="ab"`, `text="eidboaoo"`), `right` would reach `8`, `8 < 8` would be false, and execution would reach the final `return false` **outside the outer loop**.
-
-**Complete iterations — read each row left to right:**
-
-The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
-
-| right | addition | right >= pattern.length() | removal | window after removal | Arrays.equals(neededCounts, windowCounts) | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `0` | `add e` | `0 >= 2 → false` | `Skipped` | `e` | `false` | `right++; continue` |
-| `1` | `add i` | `1 >= 2 → false` | `Skipped` | `ei` | `false` | `right++; continue` |
-| `2` | `add d` | `2 >= 2 → true` | `index 2-2=0; remove e` | `id` | `false` | `right++; continue` |
-| `3` | `add b` | `3 >= 2 → true` | `index 3-2=1; remove i` | `db` | `false` | `right++; continue` |
-| `4` | `add a` | `4 >= 2 → true` | `index 4-2=2; remove d` | `ba` | `true` | `return true; stop` |
-
-The return at right `4` skips the increment and all later text positions. The comparison is evaluated only after the removal decision in that same row. For a nonmatching text, exhaustion instead reaches the terminal false return.
+For a nonmatching text such as `"eidboaoo"`, each comparison is false. After its last iteration at `right=7`, `right++` makes `right=8`; the loop test `8 < 8` is false. Only that exhausted-loop path reaches this final `return false`. Without this terminal return, the boolean method would have a path with no result and would not compile.
 
 ## Reference approach
 

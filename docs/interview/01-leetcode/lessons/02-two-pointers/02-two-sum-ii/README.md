@@ -176,14 +176,30 @@ if (sum < target) {
 | `0` | `3` | `-5` | `3` | `-5 + 3 = -2` | `left++` |
 
 
-**Complete iterations — read each row left to right:**
+**Narrated execution — follow each operation, then check its values:**
 
-The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+**Iteration/check 1 — left = `0`.**
+
+Begin with left index `0` and right index `4`; distinct-position check: `0 < 4 → true`. Add their values: `-5 + 9 = 4`. Equality with the target is `false`. Only if equality is false do we evaluate the smaller-than-target check: `false`. Next, `right=3`. A sum that is too small needs a larger left value; one that is too large needs a smaller right value.
 
 | left | right | loop condition | sum | sum == target | sum < target | next action |
 | --- | --- | --- | --- | --- | --- | --- |
 | `0` | `4` | `0 < 4 → true` | `-5 + 9 = 4` | `false` | `false` | `right=3` |
+
+**Iteration/check 2 — left = `0`.**
+
+Begin with left index `0` and right index `3`; distinct-position check: `0 < 3 → true`. Add their values: `-5 + 3 = -2`. Equality with the target is `false`. Only if equality is false do we evaluate the smaller-than-target check: `true`. Next, `left=1`. A sum that is too small needs a larger left value; one that is too large needs a smaller right value.
+
+| left | right | loop condition | sum | sum == target | sum < target | next action |
+| --- | --- | --- | --- | --- | --- | --- |
 | `0` | `3` | `0 < 3 → true` | `-5 + 3 = -2` | `false` | `true` | `left=1` |
+
+**Iteration/check 3 — left = `1`.**
+
+Begin with left index `1` and right index `3`; distinct-position check: `1 < 3 → true`. Add their values: `-2 + 3 = 1`. Equality with the target is `true`. Only if equality is false do we evaluate the smaller-than-target check: `Skipped (returned)`. Next, `return [2,4]; stop`. A sum that is too small needs a larger left value; one that is too large needs a smaller right value.
+
+| left | right | loop condition | sum | sum == target | sum < target | next action |
+| --- | --- | --- | --- | --- | --- | --- |
 | `1` | `3` | `1 < 3 → true` | `-2 + 3 = 1` | `true` | `Skipped (returned)` | `return [2,4]; stop` |
 
 The equality branch returns before the smaller-than-target condition is evaluated. Return indexes `left+1=2`, `right+1=4`.

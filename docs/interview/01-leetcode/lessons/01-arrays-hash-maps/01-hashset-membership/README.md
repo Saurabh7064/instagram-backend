@@ -138,15 +138,38 @@ This is easier to read initially but performs a lookup followed by a separate in
 | `1` | `[1, 2, 3]` | `false` | `[1, 2, 3]` | `return true` |
 
 
-**Complete iterations — read each row left to right:**
+**Narrated execution — follow each operation, then check its values:**
 
-The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+**Iteration/check 1 — value = `1`.**
+
+Read the next value, `1`, and try to add it to `seen`. The insertion returns `true`; negating that result evaluates the duplicate guard to `!true → false`. The set now contains `[1]`. Therefore `continue`. A successful insertion means this value was new; a failed insertion means it was already stored.
 
 | value | seen.add(value) | if (!seen.add(value)) | seen after | next action |
 | --- | --- | --- | --- | --- |
 | `1` | `true` | `!true → false` | `[1]` | `continue` |
+
+**Iteration/check 2 — value = `2`.**
+
+Read the next value, `2`, and try to add it to `seen`. The insertion returns `true`; negating that result evaluates the duplicate guard to `!true → false`. The set now contains `[1, 2]`. Therefore `continue`. A successful insertion means this value was new; a failed insertion means it was already stored.
+
+| value | seen.add(value) | if (!seen.add(value)) | seen after | next action |
+| --- | --- | --- | --- | --- |
 | `2` | `true` | `!true → false` | `[1, 2]` | `continue` |
+
+**Iteration/check 3 — value = `3`.**
+
+Read the next value, `3`, and try to add it to `seen`. The insertion returns `true`; negating that result evaluates the duplicate guard to `!true → false`. The set now contains `[1, 2, 3]`. Therefore `continue`. A successful insertion means this value was new; a failed insertion means it was already stored.
+
+| value | seen.add(value) | if (!seen.add(value)) | seen after | next action |
+| --- | --- | --- | --- | --- |
 | `3` | `true` | `!true → false` | `[1, 2, 3]` | `continue` |
+
+**Iteration/check 4 — value = `1`.**
+
+Read the next value, `1`, and try to add it to `seen`. The insertion returns `false`; negating that result evaluates the duplicate guard to `!false → true`. The set now contains `[1, 2, 3]`. Therefore `return true; stop`. A successful insertion means this value was new; a failed insertion means it was already stored.
+
+| value | seen.add(value) | if (!seen.add(value)) | seen after | next action |
+| --- | --- | --- | --- | --- |
 | `1` | `false` | `!false → true` | `[1, 2, 3]` | `return true; stop` |
 
 The duplicate makes the fourth condition true, so the final return outside the loop is skipped. For all-distinct input, exhaustion instead reaches `return false`.

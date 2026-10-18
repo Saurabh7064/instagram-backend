@@ -233,20 +233,78 @@ if (heights[left] <= heights[right]) {
 | `5` | `6` | `4` | `8` | `1` | `4` | `1 * 4 = 4` | `max(49,4) = 49` | `left++` |
 
 
-**Complete iterations — read each row left to right:**
+**Narrated execution — follow each operation, then check its values:**
 
-The condition is evaluated at the point shown. `Skipped` means the code was not executed; it does not mean the condition evaluated to false. Each row finishes its iteration or explicitly returns.
+**Iteration/check 1 — left = `0`.**
+
+Begin at boundary indexes `0` and `8`. Evaluate `left < right`: `0 < 8 → true`. If true, calculate width `8`, keep the shorter boundary height `1`, and multiply: `8*1=8`. Preserve the largest area, giving `bestArea`=`8`. The boundary-height comparison is `1 <= 7 → true`; next, `left=1`. On the terminating false loop check, all calculations and movements are skipped.
 
 | left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `0` | `8` | `0 < 8 → true` | `8` | `1` | `8*1=8` | `8` | `1 <= 7 → true` | `left=1` |
+
+**Iteration/check 2 — left = `1`.**
+
+Begin at boundary indexes `1` and `8`. Evaluate `left < right`: `1 < 8 → true`. If true, calculate width `7`, keep the shorter boundary height `7`, and multiply: `7*7=49`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `8 <= 7 → false`; next, `right=7`. On the terminating false loop check, all calculations and movements are skipped.
+
+| left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `1` | `8` | `1 < 8 → true` | `7` | `7` | `7*7=49` | `49` | `8 <= 7 → false` | `right=7` |
+
+**Iteration/check 3 — left = `1`.**
+
+Begin at boundary indexes `1` and `7`. Evaluate `left < right`: `1 < 7 → true`. If true, calculate width `6`, keep the shorter boundary height `3`, and multiply: `6*3=18`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `8 <= 3 → false`; next, `right=6`. On the terminating false loop check, all calculations and movements are skipped.
+
+| left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `1` | `7` | `1 < 7 → true` | `6` | `3` | `6*3=18` | `49` | `8 <= 3 → false` | `right=6` |
+
+**Iteration/check 4 — left = `1`.**
+
+Begin at boundary indexes `1` and `6`. Evaluate `left < right`: `1 < 6 → true`. If true, calculate width `5`, keep the shorter boundary height `8`, and multiply: `5*8=40`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `8 <= 8 → true`; next, `left=2`. On the terminating false loop check, all calculations and movements are skipped.
+
+| left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `1` | `6` | `1 < 6 → true` | `5` | `8` | `5*8=40` | `49` | `8 <= 8 → true` | `left=2` |
+
+**Iteration/check 5 — left = `2`.**
+
+Begin at boundary indexes `2` and `6`. Evaluate `left < right`: `2 < 6 → true`. If true, calculate width `4`, keep the shorter boundary height `6`, and multiply: `4*6=24`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `6 <= 8 → true`; next, `left=3`. On the terminating false loop check, all calculations and movements are skipped.
+
+| left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `2` | `6` | `2 < 6 → true` | `4` | `6` | `4*6=24` | `49` | `6 <= 8 → true` | `left=3` |
+
+**Iteration/check 6 — left = `3`.**
+
+Begin at boundary indexes `3` and `6`. Evaluate `left < right`: `3 < 6 → true`. If true, calculate width `3`, keep the shorter boundary height `2`, and multiply: `3*2=6`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `2 <= 8 → true`; next, `left=4`. On the terminating false loop check, all calculations and movements are skipped.
+
+| left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `3` | `6` | `3 < 6 → true` | `3` | `2` | `3*2=6` | `49` | `2 <= 8 → true` | `left=4` |
+
+**Iteration/check 7 — left = `4`.**
+
+Begin at boundary indexes `4` and `6`. Evaluate `left < right`: `4 < 6 → true`. If true, calculate width `2`, keep the shorter boundary height `5`, and multiply: `2*5=10`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `5 <= 8 → true`; next, `left=5`. On the terminating false loop check, all calculations and movements are skipped.
+
+| left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `4` | `6` | `4 < 6 → true` | `2` | `5` | `2*5=10` | `49` | `5 <= 8 → true` | `left=5` |
+
+**Iteration/check 8 — left = `5`.**
+
+Begin at boundary indexes `5` and `6`. Evaluate `left < right`: `5 < 6 → true`. If true, calculate width `1`, keep the shorter boundary height `4`, and multiply: `1*4=4`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `4 <= 8 → true`; next, `left=6`. On the terminating false loop check, all calculations and movements are skipped.
+
+| left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `5` | `6` | `5 < 6 → true` | `1` | `4` | `1*4=4` | `49` | `4 <= 8 → true` | `left=6` |
+
+**Iteration/check 9 — left = `6`.**
+
+Begin at boundary indexes `6` and `6`. Evaluate `left < right`: `6 < 6 → false`. If true, calculate width `Skipped`, keep the shorter boundary height `Skipped`, and multiply: `Skipped`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `Skipped`; next, `exit; return 49`. On the terminating false loop check, all calculations and movements are skipped.
+
+| left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `6` | `6` | `6 < 6 → false` | `Skipped` | `Skipped` | `Skipped` | `49` | `Skipped` | `exit; return 49` |
 
 The best is retained even as later areas decrease. Equal boundary heights take the `<=` branch and advance left.
