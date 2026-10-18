@@ -60,6 +60,40 @@ For `"bbbbb"`, every `b` after the first duplicates the active `b`. The old `b` 
 
 For `"pwwkew"`, the second `w` forces removals of `p` and the earlier `w`. The window becomes `"w"`, then grows to `"wke"` with length `3`. The final `w` produces another valid length-`3` window, `"kew"`.
 
+## Debugger trace — every variable and collection
+
+Input `text = "abcabcbb"`; initially `activeCharacters = {}`, `left = 0`, `bestLength = 0`. The input string stays unchanged. `incoming` is read once per outer iteration and remains the same throughout its removal loop.
+
+The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+
+| operation | right | incoming | left | activeCharacters | bestLength |
+| --- | --- | --- | --- | --- | --- |
+| `read incoming` | `0` | `a` | `0` | `[]` | `0` |
+| `add incoming; update bestLength` | `0` | `a` | `0` | `['a']` | `1` |
+| `read incoming` | `1` | `b` | `0` | `['a']` | `1` |
+| `add incoming; update bestLength` | `1` | `b` | `0` | `['a', 'b']` | `2` |
+| `read incoming` | `2` | `c` | `0` | `['a', 'b']` | `2` |
+| `add incoming; update bestLength` | `2` | `c` | `0` | `['a', 'b', 'c']` | `3` |
+| `read incoming` | `3` | `a` | `0` | `['a', 'b', 'c']` | `3` |
+| `remove a; left++` | `3` | `a` | `1` | `['b', 'c']` | `3` |
+| `add incoming; update bestLength` | `3` | `a` | `1` | `['a', 'b', 'c']` | `3` |
+| `read incoming` | `4` | `b` | `1` | `['a', 'b', 'c']` | `3` |
+| `remove b; left++` | `4` | `b` | `2` | `['a', 'c']` | `3` |
+| `add incoming; update bestLength` | `4` | `b` | `2` | `['a', 'b', 'c']` | `3` |
+| `read incoming` | `5` | `c` | `2` | `['a', 'b', 'c']` | `3` |
+| `remove c; left++` | `5` | `c` | `3` | `['a', 'b']` | `3` |
+| `add incoming; update bestLength` | `5` | `c` | `3` | `['a', 'b', 'c']` | `3` |
+| `read incoming` | `6` | `b` | `3` | `['a', 'b', 'c']` | `3` |
+| `remove a; left++` | `6` | `b` | `4` | `['b', 'c']` | `3` |
+| `remove b; left++` | `6` | `b` | `5` | `['c']` | `3` |
+| `add incoming; update bestLength` | `6` | `b` | `5` | `['b', 'c']` | `3` |
+| `read incoming` | `7` | `b` | `5` | `['b', 'c']` | `3` |
+| `remove c; left++` | `7` | `b` | `6` | `['b']` | `3` |
+| `remove b; left++` | `7` | `b` | `7` | `[]` | `3` |
+| `add incoming; update bestLength` | `7` | `b` | `7` | `['b']` | `3` |
+
+At `right=6`, incoming is `b`: remove `a` at index `3` first, but `b` is still present; remove `b` at index `4` next. Only then add the incoming `b`. This produces `left=5`, window `cb`, length `6 - 5 + 1 = 2`; best stays `3`. At `right=7`, remove `c` then `b`, producing final window `b`. The loop increment makes `right=8`; `8 < 8` is false and return `3`.
+
 ## Reference approach
 
 ```java

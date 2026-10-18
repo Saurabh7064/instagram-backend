@@ -115,6 +115,25 @@ Suppose the left height is shorter. Keeping it and moving the right pointer:
 
 That cannot improve the area. Therefore every pair using that left boundary and a closer right boundary is dominated, and `left` can be advanced safely.
 
+## Debugger trace — every variable and collection
+
+Input `heights = [1,8,6,2,5,4,8,3,7]`; initially `left = 0`, `right = 8`, `bestArea = 0`. The array stays unchanged. Each row calculates the area before moving a pointer.
+
+The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+
+| left | right | heights[left] | heights[right] | width | limitingHeight | area calculation | bestArea update | movement |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `0` | `8` | `1` | `7` | `8` | `1` | `8 * 1 = 8` | `max(0,8) = 8` | `left++` |
+| `1` | `8` | `8` | `7` | `7` | `7` | `7 * 7 = 49` | `max(8,49) = 49` | `right--` |
+| `1` | `7` | `8` | `3` | `6` | `3` | `6 * 3 = 18` | `max(49,18) = 49` | `right--` |
+| `1` | `6` | `8` | `8` | `5` | `8` | `5 * 8 = 40` | `max(49,40) = 49` | `left++` |
+| `2` | `6` | `6` | `8` | `4` | `6` | `4 * 6 = 24` | `max(49,24) = 49` | `left++` |
+| `3` | `6` | `2` | `8` | `3` | `2` | `3 * 2 = 6` | `max(49,6) = 49` | `left++` |
+| `4` | `6` | `5` | `8` | `2` | `5` | `2 * 5 = 10` | `max(49,10) = 49` | `left++` |
+| `5` | `6` | `4` | `8` | `1` | `4` | `1 * 4 = 4` | `max(49,4) = 49` | `left++` |
+
+The maximum is found at indexes `1` and `8`: width `8 - 1 = 7`, limiting height `min(8,7) = 7`, area `7 * 7 = 49`. The later equal-height comparison at `(1,6)` uses `<=`, so left advances. Eventually `left=6`, `right=6`; `left < right` is false and return `49`.
+
 ## Reference approach
 
 ```java

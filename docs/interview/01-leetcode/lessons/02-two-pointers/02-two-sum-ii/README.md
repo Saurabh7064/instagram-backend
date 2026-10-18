@@ -55,6 +55,20 @@ Start with the smallest and largest values. Their sum has three meanings:
 
 If `[2, 3, 4]` targets `6`, the first sum is `2 + 4 = 6`. If it targeted `7`, a sum of `6` would eliminate `2`, because pairing `2` with any smaller right-side value cannot increase the sum.
 
+## Debugger trace — every variable and collection
+
+Input `numbers = [-5,-2,0,3,9]`, `target = 1`; initially `left = 0`, `right = 4`. The sorted input array does not change. Rows show pointers before the comparison.
+
+The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+
+| left | right | numbers[left] | numbers[right] | sum | action |
+| --- | --- | --- | --- | --- | --- |
+| `0` | `4` | `-5` | `9` | `-5 + 9 = 4` | `right--` |
+| `0` | `3` | `-5` | `3` | `-5 + 3 = -2` | `left++` |
+| `1` | `3` | `-2` | `3` | `-2 + 3 = 1` | `return [2,4]` |
+
+The pointer pairs are `(0,4) → (0,3) → (1,3)`. At `(1,3)`, `-2 + 3 = 1`; return `[left+1,right+1] = [2,4]`. The method returns before another loop-condition check. If no pair exists, crossing pointers reaches the exception instead.
+
 ## Reference approach
 
 ```java

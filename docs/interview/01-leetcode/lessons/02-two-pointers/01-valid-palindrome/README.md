@@ -66,6 +66,23 @@ while (left < right && !Character.isLetterOrDigit(text.charAt(left))) {
 
 Java evaluates `&&` left to right. When the pointers meet, `left < right` is false, so `charAt(left)` is not evaluated by this loop. Reversing the conditions would inspect a character before confirming that another comparison is still needed.
 
+## Debugger trace — every variable and collection
+
+Input `text = "A,b a"`; indexes `0..4` hold `A`, comma, `b`, space, `a`. Initially `left = 0`, `right = 4`. This short example exercises case conversion and both punctuation-skip loops.
+
+The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+
+| operation | left | right | leftCharacter | rightCharacter | observation |
+| --- | --- | --- | --- | --- | --- |
+| `compare lowercase characters` | `0` | `4` | `a` | `a` | `equal; continue` |
+| `after iteration; next outer check` | `1` | `3` | `out of scope` | `out of scope` | `1 < 3 is true` |
+| `skip left punctuation` | `1` | `3` | `—` | `—` | `left=2, right=3` |
+| `skip right punctuation` | `2` | `3` | `—` | `—` | `left=2, right=2` |
+| `compare lowercase characters` | `2` | `2` | `b` | `b` | `equal; continue` |
+| `after iteration; next outer check` | `3` | `1` | `out of scope` | `out of scope` | `3 < 1 is false` |
+
+The character locals leave scope at the closing brace; the “next outer check” rows therefore show them as out of scope. The comma fails `isLetterOrDigit`, moving left `1 → 2`; the space fails it, moving right `3 → 2`. Both lowercase characters at index `2` are `b`. The final pointer update makes `left=3`, `right=1`; the outer condition is false, so return `true`. For `text="0P"`, lowercase values are `0` and `p`; they differ, so return `false` before either pointer advances.
+
 ## Reference approach
 
 ```java

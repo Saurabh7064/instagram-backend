@@ -177,6 +177,17 @@ For every lesson under `docs/interview/01-leetcode/`:
 21. Place the simulation only after the learner has the minimum conceptual model needed to interpret it. The surrounding lesson must still explain the dry run, conditions, intermediate state, mistakes, complexity, and every non-obvious code block; the interactive view supplements rather than replaces those explanations.
 22. Every lesson must show its complete reference method in a clearly named reference-solution section and link the directly runnable reference file. In the learning UI, every multiline Markdown code block must display stable one-based line numbers beside the code; keep those numbers out of the Markdown text and Java source so copying code remains clean.
 
+## Coding Explanation and Debugger Trace Standard
+
+For every LeetCode or other coding explanation, use the detailed character-replacement trace as the baseline:
+
+- State the exact input, index-to-value mapping when useful, and initial values before tracing.
+- Follow the actual reference code in execution order; show every algorithm variable, condition result, pointer movement, and returned value with exact arithmetic.
+- Show arrays, frequency tables, sets, maps, and result collections after each mutation. Use a separate table when the combined trace is too wide; never omit collection state merely to shorten the explanation. For fixed frequency arrays, label the character-to-index mapping and show all cells.
+- Distinguish state before a check from state after a mutation, and explain historical values, unchanged locals, variable scope, early returns, loop termination, and implementation-dependent collection order.
+- Derive the answer from the trace and check it against the runnable reference. Keep the conceptual explanation before the trace and keep learning/mastery status independent of artifact completion.
+- Apply this to future lessons when created; a roadmap-only question stays TODO until activated.
+
 ## System Design Interview Answer Standard
 
 For every question-answer file under `docs/interview/02-system-design/questions/`:

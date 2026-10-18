@@ -194,6 +194,28 @@ Three separate rules create unique output:
 
 For `[0, 0, 0, 0]`, these rules return `[0, 0, 0]` once rather than four equivalent index combinations.
 
+## Debugger trace — every variable and collection
+
+Input `numbers = [-1,0,1,2,-1,-4]`. The copy `sorted` initially matches it, then sorting yields `[-4,-1,-1,0,1,2]`. `numbers` remains unchanged; `result = []`. Each sum row shows pointers before its branch.
+
+The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+
+| anchor | left | right | sum | action | result after |
+| --- | --- | --- | --- | --- | --- |
+| `0` | `1` | `5` | `—` | `initialize pointers` | `[]` |
+| `0` | `1` | `5` | `-4 + -1 + 2 = -3` | `left++ → 2` | `[]` |
+| `0` | `2` | `5` | `-4 + -1 + 2 = -3` | `left++ → 3` | `[]` |
+| `0` | `3` | `5` | `-4 + 0 + 2 = -2` | `left++ → 4` | `[]` |
+| `0` | `4` | `5` | `-4 + 1 + 2 = -1` | `left++ → 5` | `[]` |
+| `1` | `2` | `5` | `—` | `initialize pointers` | `[]` |
+| `1` | `2` | `5` | `-1 + -1 + 2 = 0` | `record; left=3, right=4` | `[[-1, -1, 2]]` |
+| `1` | `3` | `4` | `-1 + 0 + 1 = 0` | `record; left=4, right=3` | `[[-1, -1, 2], [-1, 0, 1]]` |
+| `2` | `—` | `—` | `—` | `skip duplicate anchor` | `[[-1, -1, 2], [-1, 0, 1]]` |
+| `3` | `4` | `5` | `—` | `initialize pointers` | `[[-1, -1, 2], [-1, 0, 1]]` |
+| `3` | `4` | `5` | `0 + 1 + 2 = 3` | `right-- → 4` | `[[-1, -1, 2], [-1, 0, 1]]` |
+
+After anchor `3`, the outer increment makes `anchor=4`; `4 < sorted.length-2` is `4 < 4`, false. Return `[[-1,-1,2],[-1,0,1]]`. The duplicate anchor at index `2` uses `continue`, so it creates no new `left`, `right`, or `sum`. Duplicate-pointer loops do not advance in this particular input; for sorted `[-2,0,0,2,2]`, recording `[-2,0,2]` moves `(left,right)` from `(1,4)` to `(2,3)`, then the equal left zeros move `left` to `3`; `left < right` becomes false, so the right duplicate comparison short-circuits.
+
 ## Reference approach
 
 ```java

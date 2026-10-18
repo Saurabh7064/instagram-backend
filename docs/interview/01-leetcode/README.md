@@ -70,3 +70,7 @@ A problem counts as mastered only when you can solve a fresh variant without hin
 - Final complexity:
 - Mistake or insight:
 - Follow-up variation:
+
+## Debugger trace format
+
+Every existing problem lesson includes an execution-order debugger trace with initial values, scalar variables, branch decisions, and complete collection state. Arrays and maps use separate tables when needed. Future lessons must follow the same format; see the [character replacement example](./lessons/03-sliding-window/03-longest-repeating-character-replacement/README.md#debugger-trace--aababba-replacement-budget-1) and the project [coding explanation standard](../../../AGENTS.md#coding-explanation-and-debugger-trace-standard). A trace documents the reference implementation; it does not advance learner status.

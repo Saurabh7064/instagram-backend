@@ -62,6 +62,99 @@ For `"a"` and `"a"`, the single character forms the only required group, produci
 
 For `"a"` and `"aa"`, the window count reaches only `1` while `2` are needed. `formedGroups` never reaches `requiredGroups`, so return `""`.
 
+## Debugger trace — every variable and collection
+
+Inputs `source = "ADOBECODEBANC"`, `target = "ABC"`. First build `neededCounts` using loop variable `value`:
+| value | neededCounts after merge |
+| --- | --- |
+| `A` | `{'A': 1}` |
+| `B` | `{'A': 1, 'B': 1}` |
+| `C` | `{'A': 1, 'B': 1, 'C': 1}` |
+
+`requiredGroups = neededCounts.size() = 3` and remains constant. `bestLength` initially equals `Integer.MAX_VALUE = 2147483647`, meaning no answer yet. The table includes every addition, candidate comparison, and removal. Zero-count entries remain in `windowCounts` because `merge` changes their counts without deleting their keys.
+
+The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+
+| Step | operation | right | incoming | left | candidateLength | outgoing | formedGroups | bestStart | bestLength |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | `initialize` | `—` | `—` | `0` | `—` | `—` | `0` | `0` | `2147483647` |
+| 2 | `add; test required count` | `0` | `A` | `0` | `—` | `—` | `1` | `0` | `2147483647` |
+| 3 | `add; test required count` | `1` | `D` | `0` | `—` | `—` | `1` | `0` | `2147483647` |
+| 4 | `add; test required count` | `2` | `O` | `0` | `—` | `—` | `1` | `0` | `2147483647` |
+| 5 | `add; test required count` | `3` | `B` | `0` | `—` | `—` | `2` | `0` | `2147483647` |
+| 6 | `add; test required count` | `4` | `E` | `0` | `—` | `—` | `2` | `0` | `2147483647` |
+| 7 | `add; test required count` | `5` | `C` | `0` | `—` | `—` | `3` | `0` | `2147483647` |
+| 8 | `compare candidate; save if shorter` | `5` | `C` | `0` | `6` | `—` | `3` | `0` | `6` |
+| 9 | `remove; left++; test coverage` | `5` | `C` | `1` | `6` | `A` | `2` | `0` | `6` |
+| 10 | `add; test required count` | `6` | `O` | `1` | `—` | `—` | `2` | `0` | `6` |
+| 11 | `add; test required count` | `7` | `D` | `1` | `—` | `—` | `2` | `0` | `6` |
+| 12 | `add; test required count` | `8` | `E` | `1` | `—` | `—` | `2` | `0` | `6` |
+| 13 | `add; test required count` | `9` | `B` | `1` | `—` | `—` | `2` | `0` | `6` |
+| 14 | `add; test required count` | `10` | `A` | `1` | `—` | `—` | `3` | `0` | `6` |
+| 15 | `compare candidate; save if shorter` | `10` | `A` | `1` | `10` | `—` | `3` | `0` | `6` |
+| 16 | `remove; left++; test coverage` | `10` | `A` | `2` | `10` | `D` | `3` | `0` | `6` |
+| 17 | `compare candidate; save if shorter` | `10` | `A` | `2` | `9` | `—` | `3` | `0` | `6` |
+| 18 | `remove; left++; test coverage` | `10` | `A` | `3` | `9` | `O` | `3` | `0` | `6` |
+| 19 | `compare candidate; save if shorter` | `10` | `A` | `3` | `8` | `—` | `3` | `0` | `6` |
+| 20 | `remove; left++; test coverage` | `10` | `A` | `4` | `8` | `B` | `3` | `0` | `6` |
+| 21 | `compare candidate; save if shorter` | `10` | `A` | `4` | `7` | `—` | `3` | `0` | `6` |
+| 22 | `remove; left++; test coverage` | `10` | `A` | `5` | `7` | `E` | `3` | `0` | `6` |
+| 23 | `compare candidate; save if shorter` | `10` | `A` | `5` | `6` | `—` | `3` | `0` | `6` |
+| 24 | `remove; left++; test coverage` | `10` | `A` | `6` | `6` | `C` | `2` | `0` | `6` |
+| 25 | `add; test required count` | `11` | `N` | `6` | `—` | `—` | `2` | `0` | `6` |
+| 26 | `add; test required count` | `12` | `C` | `6` | `—` | `—` | `3` | `0` | `6` |
+| 27 | `compare candidate; save if shorter` | `12` | `C` | `6` | `7` | `—` | `3` | `0` | `6` |
+| 28 | `remove; left++; test coverage` | `12` | `C` | `7` | `7` | `O` | `3` | `0` | `6` |
+| 29 | `compare candidate; save if shorter` | `12` | `C` | `7` | `6` | `—` | `3` | `0` | `6` |
+| 30 | `remove; left++; test coverage` | `12` | `C` | `8` | `6` | `D` | `3` | `0` | `6` |
+| 31 | `compare candidate; save if shorter` | `12` | `C` | `8` | `5` | `—` | `3` | `8` | `5` |
+| 32 | `remove; left++; test coverage` | `12` | `C` | `9` | `5` | `E` | `3` | `8` | `5` |
+| 33 | `compare candidate; save if shorter` | `12` | `C` | `9` | `4` | `—` | `3` | `9` | `4` |
+| 34 | `remove; left++; test coverage` | `12` | `C` | `10` | `4` | `B` | `2` | `9` | `4` |
+
+### Complete window-count map at each step
+
+Step numbers match the table above; each row shows the complete collection state at that same point.
+
+| Step | windowCounts after |
+| --- | --- |
+| 1 | `{}` |
+| 2 | `{'A': 1}` |
+| 3 | `{'A': 1, 'D': 1}` |
+| 4 | `{'A': 1, 'D': 1, 'O': 1}` |
+| 5 | `{'A': 1, 'D': 1, 'O': 1, 'B': 1}` |
+| 6 | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1}` |
+| 7 | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 1}` |
+| 8 | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 1}` |
+| 9 | `{'A': 0, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 1}` |
+| 10 | `{'A': 0, 'D': 1, 'O': 2, 'B': 1, 'E': 1, 'C': 1}` |
+| 11 | `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 1, 'C': 1}` |
+| 12 | `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 2, 'C': 1}` |
+| 13 | `{'A': 0, 'D': 2, 'O': 2, 'B': 2, 'E': 2, 'C': 1}` |
+| 14 | `{'A': 1, 'D': 2, 'O': 2, 'B': 2, 'E': 2, 'C': 1}` |
+| 15 | `{'A': 1, 'D': 2, 'O': 2, 'B': 2, 'E': 2, 'C': 1}` |
+| 16 | `{'A': 1, 'D': 1, 'O': 2, 'B': 2, 'E': 2, 'C': 1}` |
+| 17 | `{'A': 1, 'D': 1, 'O': 2, 'B': 2, 'E': 2, 'C': 1}` |
+| 18 | `{'A': 1, 'D': 1, 'O': 1, 'B': 2, 'E': 2, 'C': 1}` |
+| 19 | `{'A': 1, 'D': 1, 'O': 1, 'B': 2, 'E': 2, 'C': 1}` |
+| 20 | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 2, 'C': 1}` |
+| 21 | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 2, 'C': 1}` |
+| 22 | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 1}` |
+| 23 | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 1}` |
+| 24 | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0}` |
+| 25 | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0, 'N': 1}` |
+| 26 | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 1, 'N': 1}` |
+| 27 | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 1, 'N': 1}` |
+| 28 | `{'A': 1, 'D': 1, 'O': 0, 'B': 1, 'E': 1, 'C': 1, 'N': 1}` |
+| 29 | `{'A': 1, 'D': 1, 'O': 0, 'B': 1, 'E': 1, 'C': 1, 'N': 1}` |
+| 30 | `{'A': 1, 'D': 0, 'O': 0, 'B': 1, 'E': 1, 'C': 1, 'N': 1}` |
+| 31 | `{'A': 1, 'D': 0, 'O': 0, 'B': 1, 'E': 1, 'C': 1, 'N': 1}` |
+| 32 | `{'A': 1, 'D': 0, 'O': 0, 'B': 1, 'E': 0, 'C': 1, 'N': 1}` |
+| 33 | `{'A': 1, 'D': 0, 'O': 0, 'B': 1, 'E': 0, 'C': 1, 'N': 1}` |
+| 34 | `{'A': 1, 'D': 0, 'O': 0, 'B': 0, 'E': 0, 'C': 1, 'N': 1}` |
+
+`candidateLength` and `outgoing` belong to the inner loop; its candidate length is calculated before removing the outgoing character. At `right=12`, the candidate shrinks through lengths `7`, `6`, `5`, and `4`; `[9..12]` is `BANC`. Removing B at index `9` then reduces `formedGroups` from `3` to `2`, ending contraction with `left=10`. The outer increment makes `right=13`, failing `13 < 13`. `bestLength != Integer.MAX_VALUE`, so return `source.substring(9, 9 + 4) = source.substring(9,13) = "BANC"`; the end index is exclusive.
+
 ## Reference approach
 
 ```java

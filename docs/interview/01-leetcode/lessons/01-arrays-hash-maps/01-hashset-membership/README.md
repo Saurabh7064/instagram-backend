@@ -54,6 +54,21 @@ For each value:
 2. Otherwise, add it and continue.
 3. If the loop ends, every value was distinct.
 
+## Debugger trace — every variable and collection
+
+Input `values = [1,2,3,1]`. Initially `seen = {}`. The enhanced `for` has no index variable; `value` is its loop variable.
+
+The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+
+| value | seen before | seen.add(value) | seen after | branch |
+| --- | --- | --- | --- | --- |
+| `1` | `[]` | `true` | `[1]` | `continue` |
+| `2` | `[1]` | `true` | `[1, 2]` | `continue` |
+| `3` | `[1, 2]` | `true` | `[1, 2, 3]` | `continue` |
+| `1` | `[1, 2, 3]` | `false` | `[1, 2, 3]` | `return true` |
+
+The fourth addition returns `false`, so `!false` is `true` and the method returns `true` immediately. No later loop step runs. For `[1,2,3,4]`, all four additions return `true`; after the loop, the terminal return is `false`.
+
 ## Reference solution
 
 ```java

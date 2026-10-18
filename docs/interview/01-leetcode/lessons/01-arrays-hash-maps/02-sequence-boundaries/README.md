@@ -339,6 +339,35 @@ return longest;
 
 **Equivalent clearer form:** none; `longest` is the maintained answer.
 
+## Debugger trace — every variable and collection
+
+Input `values = [100,4,200,1,3,2]`. `unique` starts empty. After construction, `longest = 0`. For the outer set loop, this trace chooses the permitted order `1,2,3,4,100,200`; a debugger may visit a different order with the same final answer.
+
+The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+
+| operation | value | unique | hasPredecessor | current | length | longest |
+| --- | --- | --- | --- | --- | --- | --- |
+| `build set` | `100` | `[100]` | `—` | `—` | `—` | `—` |
+| `build set` | `4` | `[4, 100]` | `—` | `—` | `—` | `—` |
+| `build set` | `200` | `[4, 100, 200]` | `—` | `—` | `—` | `—` |
+| `build set` | `1` | `[1, 4, 100, 200]` | `—` | `—` | `—` | `—` |
+| `build set` | `3` | `[1, 3, 4, 100, 200]` | `—` | `—` | `—` | `—` |
+| `build set` | `2` | `[1, 2, 3, 4, 100, 200]` | `—` | `—` | `—` | `—` |
+| `initialize run` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `1` | `1` | `0` |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `2` | `2` | `0` |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `3` | `3` | `0` |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `4` | `4` | `0` |
+| `successor absent; update longest` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `4` | `4` | `4` |
+| `skip: predecessor exists` | `2` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
+| `skip: predecessor exists` | `3` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
+| `skip: predecessor exists` | `4` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
+| `initialize run` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
+| `successor absent; update longest` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
+| `initialize run` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
+| `successor absent; update longest` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
+
+For the run starting at `1`, successor checks find `2`, `3`, and `4`, then fail at `5`: the length grows `1 → 2 → 3 → 4`. Runs `100` and `200` each have length `1`; `max(4,1) = 4`, so return `4`. The integer guards are true for these ordinary values; boundary/overflow examples remain in the walkthrough below.
+
 ## Fully annotated reference solution
 
 ```java

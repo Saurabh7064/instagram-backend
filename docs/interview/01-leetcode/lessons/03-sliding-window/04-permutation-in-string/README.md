@@ -58,6 +58,54 @@ For `"ab"` inside `"eidboaoo"`, every length-`2` window has a missing or extra c
 
 For `"adc"` inside `"dcda"`, the first complete window `"dcd"` has `d:2,c:1`; after sliding, `"cda"` has `a:1,c:1,d:1`, matching the pattern, so return `true`.
 
+## Debugger trace — every variable and collection
+
+Inputs `pattern = "ab"`, `text = "eidbaooo"`. The guard `2 > 8` is false. Initially `neededCounts` and `windowCounts` each have 26 zero cells. Array indexes `0..25` map to `a..z`; every cell is shown below.
+
+The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+
+| Step | operation / index | right | outgoingIndex | Arrays.equals |
+| --- | --- | --- | --- | --- |
+| 1 | `build needed: index=0, char=a` | `—` | `—` | `—` |
+| 2 | `build needed: index=1, char=b` | `—` | `—` | `—` |
+| 3 | `add e` | `0` | `—` | `not checked yet` |
+| 4 | `compare arrays` | `0` | `out of scope` | `false` |
+| 5 | `add i` | `1` | `—` | `not checked yet` |
+| 6 | `compare arrays` | `1` | `out of scope` | `false` |
+| 7 | `add d` | `2` | `—` | `not checked yet` |
+| 8 | `remove e` | `2` | `0` | `not checked yet` |
+| 9 | `compare arrays` | `2` | `out of scope` | `false` |
+| 10 | `add b` | `3` | `—` | `not checked yet` |
+| 11 | `remove i` | `3` | `1` | `not checked yet` |
+| 12 | `compare arrays` | `3` | `out of scope` | `false` |
+| 13 | `add a` | `4` | `—` | `not checked yet` |
+| 14 | `remove d` | `4` | `2` | `not checked yet` |
+| 15 | `compare arrays` | `4` | `out of scope` | `true` |
+
+### Full frequency arrays at each step
+
+Step numbers match the table above; each row shows the complete collection state at that same point.
+
+| Step | neededCounts | windowCounts |
+| --- | --- | --- |
+| 1 | `[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| 2 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| 3 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| 4 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| 5 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| 6 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| 7 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| 8 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| 9 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| 10 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| 11 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| 12 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| 13 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| 14 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+| 15 | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` |
+
+At `right=4`, adding `a` temporarily gives counts for `a`, `b`, and `d`. Removal uses `outgoingIndex = 4 - 2 = 2`, so the `d` count decreases to zero. Now both full arrays contain exactly one `a` and one `b`; return `true` for substring `ba` at indexes `3..4`. The loop never processes indexes `5..7`. `outgoingIndex` exists only inside its removal block; it is not a character-code index.
+
 ## Reference approach
 
 ```java

@@ -100,6 +100,26 @@ return bestSum / (double) windowSize;
 
 All windows have the same positive denominator `k`. Therefore the window with the largest sum also has the largest average. Casting the denominator to `double` prevents integer division: `51 / 4` would be `12`, while `51 / 4.0` is `12.75`.
 
+## Debugger trace — every variable and collection
+
+Input `numbers = [1,12,-5,-6,50,3]`, `windowSize = 4`. The array stays unchanged. Initially `windowSum = 0` (a `long`). The two loops have different local variables: `index` belongs to the first; `right` and `outgoingIndex` belong to the second.
+
+The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+
+| operation | index | right | outgoingIndex | windowSum | bestSum |
+| --- | --- | --- | --- | --- | --- |
+| `initial window` | `0` | `—` | `—` | `0 + (1) = 1` | `—` |
+| `initial window` | `1` | `—` | `—` | `1 + (12) = 13` | `—` |
+| `initial window` | `2` | `—` | `—` | `13 + (-5) = 8` | `—` |
+| `initial window` | `3` | `—` | `—` | `8 + (-6) = 2` | `—` |
+| `initialize bestSum` | `—` | `—` | `—` | `2` | `2` |
+| `add incoming` | `—` | `4` | `0` | `2 + 50 = 52` | `2` |
+| `subtract outgoing; update best` | `—` | `4` | `0` | `52 - (1) = 51` | `max(2,51) = 51` |
+| `add incoming` | `—` | `5` | `1` | `51 + 3 = 54` | `51` |
+| `subtract outgoing; update best` | `—` | `5` | `1` | `54 - (12) = 42` | `max(51,42) = 51` |
+
+The first loop exits when `index=4`, because `4 < 4` is false. The second exits when `right=6`, because `6 < 6` is false. Return `bestSum / (double) windowSize = 51 / 4.0 = 12.75`; the cast preserves the fractional part. The winning window `[12,-5,-6,50]` sums to `12 - 5 - 6 + 50 = 51`.
+
 ## Complete reference solution
 
 Runnable file: [MaximumAverageSubarraySolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/slidingwindow/fixedaverage/MaximumAverageSubarraySolution.java)

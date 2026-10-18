@@ -60,6 +60,33 @@ The useful question is:
 
 A frequency map stores that answer.
 
+## Debugger trace — every variable and collection
+
+Inputs `first = "anagram"`, `second = "nagaram"`; both lengths are `7`, so the length guard is false. Initially `remainingByCharacter = {}`. Each row shows the map after its mutation.
+
+The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+
+| loop | character | currentCount before | operation | remainingByCharacter after |
+| --- | --- | --- | --- | --- |
+| `count first` | `a` | `0` | `0 + 1 = 1` | `{'a': 1}` |
+| `count first` | `n` | `0` | `0 + 1 = 1` | `{'a': 1, 'n': 1}` |
+| `count first` | `a` | `1` | `1 + 1 = 2` | `{'a': 2, 'n': 1}` |
+| `count first` | `g` | `0` | `0 + 1 = 1` | `{'a': 2, 'n': 1, 'g': 1}` |
+| `count first` | `r` | `0` | `0 + 1 = 1` | `{'a': 2, 'n': 1, 'g': 1, 'r': 1}` |
+| `count first` | `a` | `2` | `2 + 1 = 3` | `{'a': 3, 'n': 1, 'g': 1, 'r': 1}` |
+| `count first` | `m` | `0` | `0 + 1 = 1` | `{'a': 3, 'n': 1, 'g': 1, 'r': 1, 'm': 1}` |
+| `consume second` | `n` | `1` | `remove key (count was 1)` | `{'a': 3, 'g': 1, 'r': 1, 'm': 1}` |
+| `consume second` | `a` | `3` | `3 - 1 = 2` | `{'a': 2, 'g': 1, 'r': 1, 'm': 1}` |
+| `consume second` | `g` | `1` | `remove key (count was 1)` | `{'a': 2, 'r': 1, 'm': 1}` |
+| `consume second` | `a` | `2` | `2 - 1 = 1` | `{'a': 1, 'r': 1, 'm': 1}` |
+| `consume second` | `r` | `1` | `remove key (count was 1)` | `{'a': 1, 'm': 1}` |
+| `consume second` | `a` | `1` | `remove key (count was 1)` | `{'m': 1}` |
+| `consume second` | `m` | `1` | `remove key (count was 1)` | `{}` |
+
+All second-loop lookups are non-null, so no early `false` return occurs. The final map is `{}`; `isEmpty()` returns `true`.
+
+For the sorting alternative, `firstCharacters` starts `[a,n,a,g,r,a,m]` and `secondCharacters` starts `[n,a,g,a,r,a,m]`. Sorting changes each to `[a,a,a,g,m,n,r]`; `Arrays.equals(firstCharacters, secondCharacters)` is `true`. These are separate arrays; the two input strings stay unchanged. For `first="ab"`, `second="a"`, `2 != 1` is true and either method returns `false` before allocating its map or arrays.
+
 ## Reference approach
 
 ```java

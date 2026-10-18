@@ -81,6 +81,20 @@ After processing index `0` of `[2, 7, 11, 15]`, the map contains:
 
 When index `1` contains `7`, the algorithm asks for complement `2`, finds index `0`, and returns `[0, 1]`.
 
+## Debugger trace — every variable and collection
+
+Input `numbers = [3,2,4]`, `target = 6`. Initially `earlierIndexByValue = {}`. A map entry `3:0` means value `3` was seen at index `0`.
+
+The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+
+| index | numbers[index] | complement | earlierIndex | map before lookup | map after branch | action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `0` | `3` | `6 - 3 = 3` | `null` | `{}` | `{3: 0}` | `continue` |
+| `1` | `2` | `6 - 2 = 4` | `null` | `{3: 0}` | `{3: 0, 2: 1}` | `continue` |
+| `2` | `4` | `6 - 4 = 2` | `1` | `{3: 0, 2: 1}` | `{3: 0, 2: 1}` | `return [1,2]` |
+
+At index `2`, the complement is `6 - 4 = 2`, and lookup finds index `1`. Return `[1,2]` before inserting `4`. This ordering prevents pairing an element with itself. The input array never changes.
+
 ## Reference approach
 
 ```java

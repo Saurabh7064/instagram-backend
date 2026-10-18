@@ -59,6 +59,23 @@ tan -> ant
 nat -> ant
 ```
 
+## Debugger trace — every variable and collection
+
+Input `words = ["eat","tea","tan","ate","nat","bat"]`; initially `wordsByKey = {}`. The original array and words remain unchanged.
+
+The rows follow execution order. Collection contents are shown after the named operation; `—` means a local variable has not been assigned or is outside its scope. Sets and maps are displayed in readable order, not a guaranteed Java iteration order.
+
+| word | characters before sort | characters after sort | key | computeIfAbsent result | wordsByKey after add |
+| --- | --- | --- | --- | --- | --- |
+| `eat` | `['e', 'a', 't']` | `['a', 'e', 't']` | `aet` | `new empty list` | `{'aet': ['eat']}` |
+| `tea` | `['t', 'e', 'a']` | `['a', 'e', 't']` | `aet` | `existing list` | `{'aet': ['eat', 'tea']}` |
+| `tan` | `['t', 'a', 'n']` | `['a', 'n', 't']` | `ant` | `new empty list` | `{'aet': ['eat', 'tea'], 'ant': ['tan']}` |
+| `ate` | `['a', 't', 'e']` | `['a', 'e', 't']` | `aet` | `existing list` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan']}` |
+| `nat` | `['n', 'a', 't']` | `['a', 'n', 't']` | `ant` | `existing list` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat']}` |
+| `bat` | `['b', 'a', 't']` | `['a', 'b', 't']` | `abt` | `new empty list` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat'], 'abt': ['bat']}` |
+
+For `tea`, sorting `[t,e,a]` produces `[a,e,t]`, so `key = "aet"`; the existing list `[eat]` becomes `[eat,tea]`. The lambda parameter `ignored` receives the missing key only when creating a list: `aet`, `ant`, then `abt`. Return a new outer list containing `[eat,tea,ate]`, `[tan,nat]`, and `[bat]`. HashMap does not guarantee the order of those three groups.
+
 ## Reference approach
 
 ```java
