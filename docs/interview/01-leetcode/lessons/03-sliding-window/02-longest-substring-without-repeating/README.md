@@ -62,6 +62,8 @@ For `"pwwkew"`, the second `w` forces removals of `p` and the earlier `w`. The w
 
 ## Block-by-block code walkthrough
 
+Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+
 **Running example for the code and tables below:** Input `text = "abcabcbb"`; initially `activeCharacters = {}`, `left = 0`, `bestLength = 0`. The input string stays unchanged. `incoming` is read once per outer iteration and remains the same throughout its removal loop.
 
 Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
@@ -182,65 +184,65 @@ bestLength = Math.max(bestLength, right - left + 1);
 
 Read text position `0`, whose incoming character is `a`. Before handling it, the set is `[]`. Test for that same incoming character repeatedly: `false → stop shrinking`. After shrinking, left is `0`. Now add the incoming character, producing `['a']`. Calculate the inclusive length: `0-0+1=1`; preserve `bestLength`=`1`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
 
-| right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `a` | `[]` | `false → stop shrinking` | `0` | `['a']` | `0-0+1=1` | `1` | `right++; continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `right=0; incoming=a; left=0` | `right: 0 → 1; bestLength: 0 → 1` | `{a}: absent → present` |
 
 **Iteration/check 2 — right = `1`.**
 
 Read text position `1`, whose incoming character is `b`. Before handling it, the set is `['a']`. Test for that same incoming character repeatedly: `false → stop shrinking`. After shrinking, left is `0`. Now add the incoming character, producing `['a', 'b']`. Calculate the inclusive length: `1-0+1=2`; preserve `bestLength`=`2`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
 
-| right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `b` | `['a']` | `false → stop shrinking` | `0` | `['a', 'b']` | `1-0+1=2` | `2` | `right++; continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `right=1; incoming=b; left=0` | `right: 1 → 2; bestLength: 1 → 2` | `{b}: absent → present` |
 
 **Iteration/check 3 — right = `2`.**
 
 Read text position `2`, whose incoming character is `c`. Before handling it, the set is `['a', 'b']`. Test for that same incoming character repeatedly: `false → stop shrinking`. After shrinking, left is `0`. Now add the incoming character, producing `['a', 'b', 'c']`. Calculate the inclusive length: `2-0+1=3`; preserve `bestLength`=`3`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
 
-| right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `c` | `['a', 'b']` | `false → stop shrinking` | `0` | `['a', 'b', 'c']` | `2-0+1=3` | `3` | `right++; continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `right=2; incoming=c; left=0` | `right: 2 → 3; bestLength: 2 → 3` | `{c}: absent → present` |
 
 **Iteration/check 4 — right = `3`.**
 
 Read text position `3`, whose incoming character is `a`. Before handling it, the set is `['a', 'b', 'c']`. Test for that same incoming character repeatedly: `true → remove a@0, left=1, set=['b', 'c']; false → stop shrinking`. After shrinking, left is `1`. Now add the incoming character, producing `['a', 'b', 'c']`. Calculate the inclusive length: `3-1+1=3`; preserve `bestLength`=`3`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
 
-| right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `a` | `['a', 'b', 'c']` | `true → remove a@0, left=1, set=['b', 'c']; false → stop shrinking` | `1` | `['a', 'b', 'c']` | `3-1+1=3` | `3` | `right++; continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `right=3; incoming=a; left=0` | `right: 3 → 4; left: 0 → 1` | `{a}: present → absent → present` |
 
 **Iteration/check 5 — right = `4`.**
 
 Read text position `4`, whose incoming character is `b`. Before handling it, the set is `['a', 'b', 'c']`. Test for that same incoming character repeatedly: `true → remove b@1, left=2, set=['a', 'c']; false → stop shrinking`. After shrinking, left is `2`. Now add the incoming character, producing `['a', 'b', 'c']`. Calculate the inclusive length: `4-2+1=3`; preserve `bestLength`=`3`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
 
-| right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `4` | `b` | `['a', 'b', 'c']` | `true → remove b@1, left=2, set=['a', 'c']; false → stop shrinking` | `2` | `['a', 'b', 'c']` | `4-2+1=3` | `3` | `right++; continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `right=4; incoming=b; left=1` | `right: 4 → 5; left: 1 → 2` | `{b}: present → absent → present` |
 
 **Iteration/check 6 — right = `5`.**
 
 Read text position `5`, whose incoming character is `c`. Before handling it, the set is `['a', 'b', 'c']`. Test for that same incoming character repeatedly: `true → remove c@2, left=3, set=['a', 'b']; false → stop shrinking`. After shrinking, left is `3`. Now add the incoming character, producing `['a', 'b', 'c']`. Calculate the inclusive length: `5-3+1=3`; preserve `bestLength`=`3`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
 
-| right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `5` | `c` | `['a', 'b', 'c']` | `true → remove c@2, left=3, set=['a', 'b']; false → stop shrinking` | `3` | `['a', 'b', 'c']` | `5-3+1=3` | `3` | `right++; continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `right=5; incoming=c; left=2` | `right: 5 → 6; left: 2 → 3` | `{c}: present → absent → present` |
 
 **Iteration/check 7 — right = `6`.**
 
 Read text position `6`, whose incoming character is `b`. Before handling it, the set is `['a', 'b', 'c']`. Test for that same incoming character repeatedly: `true → remove a@3, left=4, set=['b', 'c']; true → remove b@4, left=5, set=['c']; false → stop shrinking`. After shrinking, left is `5`. Now add the incoming character, producing `['b', 'c']`. Calculate the inclusive length: `6-5+1=2`; preserve `bestLength`=`3`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
 
-| right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `6` | `b` | `['a', 'b', 'c']` | `true → remove a@3, left=4, set=['b', 'c']; true → remove b@4, left=5, set=['c']; false → stop shrinking` | `5` | `['b', 'c']` | `6-5+1=2` | `3` | `right++; continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `right=6; incoming=b; left=3` | `right: 6 → 7; left: 3 → 4 → 5` | `{a}: present → absent; {b}: present → absent → present` |
 
 **Iteration/check 8 — right = `7`.**
 
 Read text position `7`, whose incoming character is `b`. Before handling it, the set is `['b', 'c']`. Test for that same incoming character repeatedly: `true → remove c@5, left=6, set=['b']; true → remove b@6, left=7, set=[]; false → stop shrinking`. After shrinking, left is `7`. Now add the incoming character, producing `['b']`. Calculate the inclusive length: `7-7+1=1`; preserve `bestLength`=`3`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
 
-| right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `7` | `b` | `['b', 'c']` | `true → remove c@5, left=6, set=['b']; true → remove b@6, left=7, set=[]; false → stop shrinking` | `7` | `['b']` | `7-7+1=1` | `3` | `right++; continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `right=7; incoming=b; left=5` | `right: 7 → 8; left: 5 → 6 → 7` | `{b}: present → absent → present; {c}: present → absent` |
 
 Each outer loop condition `right < 8` is true for the eight rows. After the last row, `right=8` makes `8 < 8` false; return `3`. The repeated `true` checks at right `6` and `7` explain why one removal is insufficient.
 

@@ -33,6 +33,8 @@ For non-null input `[-2,0,3]`, the same traversal with `value -> value*2` gives 
 
 ## Block-by-block code walkthrough
 
+Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+
 Input `numbers=[-2,0,3]`; first call supplies `operation = value -> value*2`, second supplies `operation = value -> value+3`.
 
 ### Block 1 — Receive the behavior without executing it yet
@@ -58,21 +60,21 @@ for (int index = 0; index < numbers.length; index++) {
 
 **Iteration `index=0`.** Evaluate `0<3 → true`. Read `-2`. `applyAsInt(-2)` runs the supplied expression, calculating `-2*2=-4`. Store `-4` at `result[0]`; input stays `[-2, 0, 3]`. Execute `index++` to `1`.
 
-| index | condition | operation | input | returned value | result after | input after | next |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `0<3 → true` | `value*2` | `-2` | `-4` | `[-4, 0, 0]` | `[-2, 0, 3]` | `index=1` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=0` | `index: 0 → 1` | `[0]: 0 → -4` |
 
 **Iteration `index=1`.** Evaluate `1<3 → true`. Read `0`. `applyAsInt(0)` runs the supplied expression, calculating `0*2=0`. Store `0` at `result[1]`; input stays `[-2, 0, 3]`. Execute `index++` to `2`.
 
-| index | condition | operation | input | returned value | result after | input after | next |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1<3 → true` | `value*2` | `0` | `0` | `[-4, 0, 0]` | `[-2, 0, 3]` | `index=2` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=1` | `index: 1 → 2` | `—` |
 
 **Iteration `index=2`.** Evaluate `2<3 → true`. Read `3`. `applyAsInt(3)` runs the supplied expression, calculating `3*2=6`. Store `6` at `result[2]`; input stays `[-2, 0, 3]`. Execute `index++` to `3`.
 
-| index | condition | operation | input | returned value | result after | input after | next |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2<3 → true` | `value*2` | `3` | `6` | `[-4, 0, 6]` | `[-2, 0, 3]` | `index=3` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=2` | `index: 2 → 3` | `[2]: 0 → 6` |
 
 At `index=3`, `3<3 → false`; no further operation call runs. The completed result for this call is `[-4, 0, 6]`.
 
@@ -80,21 +82,21 @@ At `index=3`, `3<3 → false`; no further operation call runs. The completed res
 
 **Iteration `index=0`.** Evaluate `0<3 → true`. Read `-2`. `applyAsInt(-2)` runs the supplied expression, calculating `-2+3=1`. Store `1` at `result[0]`; input stays `[-2, 0, 3]`. Execute `index++` to `1`.
 
-| index | condition | operation | input | returned value | result after | input after | next |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `0<3 → true` | `value+3` | `-2` | `1` | `[1, 0, 0]` | `[-2, 0, 3]` | `index=1` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=0` | `index: 0 → 1` | `[0]: 0 → 1` |
 
 **Iteration `index=1`.** Evaluate `1<3 → true`. Read `0`. `applyAsInt(0)` runs the supplied expression, calculating `0+3=3`. Store `3` at `result[1]`; input stays `[-2, 0, 3]`. Execute `index++` to `2`.
 
-| index | condition | operation | input | returned value | result after | input after | next |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1<3 → true` | `value+3` | `0` | `3` | `[1, 3, 0]` | `[-2, 0, 3]` | `index=2` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=1` | `index: 1 → 2` | `[1]: 0 → 3` |
 
 **Iteration `index=2`.** Evaluate `2<3 → true`. Read `3`. `applyAsInt(3)` runs the supplied expression, calculating `3+3=6`. Store `6` at `result[2]`; input stays `[-2, 0, 3]`. Execute `index++` to `3`.
 
-| index | condition | operation | input | returned value | result after | input after | next |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2<3 → true` | `value+3` | `3` | `6` | `[1, 3, 6]` | `[-2, 0, 3]` | `index=3` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=2` | `index: 2 → 3` | `[2]: 0 → 6` |
 
 At `index=3`, `3<3 → false`; no further operation call runs. The completed result for this call is `[1, 3, 6]`.
 

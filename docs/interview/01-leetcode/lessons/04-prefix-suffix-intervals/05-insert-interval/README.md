@@ -36,6 +36,8 @@ For `[[1,2],[3,5],[6,7],[8,10],[12,16]]`, new `[4,8]`: copy `[1,2]` because `2<4
 
 ## Block-by-block code walkthrough
 
+Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+
 Input `intervals=[[1,2],[3,5],[6,7],[8,10],[12,16]]`, `newInterval=[4,8]`; neither input is changed. Every repeated loop check appears below, including its final false check.
 
 ### Block 1 — Initialize a scan and separate editable endpoints
@@ -62,15 +64,15 @@ Java evaluates `&&` left to right. First ensure `index` refers to an existing ro
 
 **Before-loop iteration `index=0`.** Check `0<5 → true`; read end `2` and evaluate `2<4 → true`. Enter the body, copy `[1,2]`, append it, then increment index to `1`. Endpoints stay `start=4,end=8`.
 
-| index before | bounds check | end < start | action | result after | start/end | index after |
-| --- | --- | --- | --- | --- | --- | --- |
-| `0` | `0<5 → true` | `2<4 → true` | `copy [1,2]` | `[[1, 2]]` | `[4, 8]` | `1` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=0` | `index: 0 → 1` | `[0][0]: absent → 1; [0][1]: absent → 2` |
 
 **Before-loop stopping check `index=1`.** `1<5 → true`, but the row `[3,5]` has `5<4 → false`. Skip its body: do not copy or increment. Keep index `1` for the overlap loop, so this row is not lost.
 
-| index | bounds | end < start | body | result | next action |
-| --- | --- | --- | --- | --- | --- |
-| `1` | `1<5 → true` | `5<4 → false` | `Skipped` | `[[1, 2]]` | `enter overlap loop at index=1` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=1` | `—` | `—` |
 
 ### Block 3 — Expand across every overlapping row
 
@@ -86,27 +88,27 @@ At this point every earlier row was strictly before the new start. Any remaining
 
 **Overlap iteration `index=1`.** Bounds check `1<5 → true`; read current row `[3, 5]`. Compare its start with the latest end: `3 <= 8 → true`, so enter. Set start to `min(4,3)=3` and end to `max(8,5)=8`. Do not append yet: this combined interval is still unfinished. Increment index to `2`; the output remains `[[1, 2]]`.
 
-| index | bounds | current | start <= end | start update | end update | result after | next index |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1<5 → true` | `[3, 5]` | `3<=8 → true` | `min(4,3)=3` | `max(8,5)=8` | `[[1, 2]]` | `2` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=1` | `index: 1 → 2; start: 4 → 3` | `—` |
 
 **Overlap iteration `index=2`.** Bounds check `2<5 → true`; read current row `[6, 7]`. Compare its start with the latest end: `6 <= 8 → true`, so enter. Set start to `min(3,6)=3` and end to `max(8,7)=8`. Do not append yet: this combined interval is still unfinished. Increment index to `3`; the output remains `[[1, 2]]`.
 
-| index | bounds | current | start <= end | start update | end update | result after | next index |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2<5 → true` | `[6, 7]` | `6<=8 → true` | `min(3,6)=3` | `max(8,7)=8` | `[[1, 2]]` | `3` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=2` | `index: 2 → 3` | `—` |
 
 **Overlap iteration `index=3`.** Bounds check `3<5 → true`; read current row `[8, 10]`. Compare its start with the latest end: `8 <= 8 → true`, so enter. Set start to `min(3,8)=3` and end to `max(8,10)=10`. Do not append yet: this combined interval is still unfinished. Increment index to `4`; the output remains `[[1, 2]]`.
 
-| index | bounds | current | start <= end | start update | end update | result after | next index |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `3<5 → true` | `[8, 10]` | `8<=8 → true` | `min(3,8)=3` | `max(8,10)=10` | `[[1, 2]]` | `4` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=3` | `index: 3 → 4; end: 8 → 10` | `—` |
 
 **Overlap-loop stopping check `index=4`.** Bounds `4<5 → true`; next start `12 <= 10 → false`. Skip both endpoint updates and the increment. Keep `start=3,end=10,index=4`. Row `[12,16]` belongs to the after region and has not been consumed.
 
-| index | bounds | start <= end | body | start/end after | next |
-| --- | --- | --- | --- | --- | --- |
-| `4` | `4<5 → true` | `12<=10 → false` | `Skipped` | `[3, 10]` | `append combined range` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=4` | `—` | `—` |
 
 ### Block 4 — Save the combined interval exactly once
 
@@ -129,9 +131,9 @@ Every remaining start is beyond the combined end, and the original rows are disj
 
 **After-loop iteration `index=4`.** Evaluate `4<5 → true`; clone `[12,16]`, append it, and increment index to `5`. The result becomes `[[1,2],[3,10],[12,16]]`.
 
-| index | condition | row copied | result after | next |
-| --- | --- | --- | --- | --- |
-| `4` | `4<5 → true` | `[12, 16]` | `[[1, 2], [3, 10], [12, 16]]` | `index=5` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=4` | `index: 4 → 5` | `[2][0]: absent → 12; [2][1]: absent → 16` |
 
 **After-loop stopping check `index=5`.** `5<5 → false`. Skip the body; `intervals[5]` is never read and no out-of-bounds access occurs. If this exhaustion had happened in either earlier loop, the false first operand of `&&` would also have skipped the endpoint comparison.
 

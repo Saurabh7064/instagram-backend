@@ -56,6 +56,8 @@ For each value:
 
 ## Block-by-block code walkthrough
 
+Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+
 **Running example for the code and tables below:** Input `values = [1,2,3,1]`. Initially `seen = {}`. The enhanced `for` has no index variable; `value` is its loop variable.
 
 Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
@@ -144,33 +146,33 @@ This is easier to read initially but performs a lookup followed by a separate in
 
 Read the next value, `1`, and try to add it to `seen`. The insertion returns `true`; negating that result evaluates the duplicate guard to `!true → false`. The set now contains `[1]`. Therefore `continue`. A successful insertion means this value was new; a failed insertion means it was already stored.
 
-| value | seen.add(value) | if (!seen.add(value)) | seen after | next action |
-| --- | --- | --- | --- | --- |
-| `1` | `true` | `!true → false` | `[1]` | `continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `value=1` | `—` | `{1}: absent → present` |
 
 **Iteration/check 2 — value = `2`.**
 
 Read the next value, `2`, and try to add it to `seen`. The insertion returns `true`; negating that result evaluates the duplicate guard to `!true → false`. The set now contains `[1, 2]`. Therefore `continue`. A successful insertion means this value was new; a failed insertion means it was already stored.
 
-| value | seen.add(value) | if (!seen.add(value)) | seen after | next action |
-| --- | --- | --- | --- | --- |
-| `2` | `true` | `!true → false` | `[1, 2]` | `continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `value=2` | `—` | `{2}: absent → present` |
 
 **Iteration/check 3 — value = `3`.**
 
 Read the next value, `3`, and try to add it to `seen`. The insertion returns `true`; negating that result evaluates the duplicate guard to `!true → false`. The set now contains `[1, 2, 3]`. Therefore `continue`. A successful insertion means this value was new; a failed insertion means it was already stored.
 
-| value | seen.add(value) | if (!seen.add(value)) | seen after | next action |
-| --- | --- | --- | --- | --- |
-| `3` | `true` | `!true → false` | `[1, 2, 3]` | `continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `value=3` | `—` | `{3}: absent → present` |
 
 **Iteration/check 4 — value = `1`.**
 
 Read the next value, `1`, and try to add it to `seen`. The insertion returns `false`; negating that result evaluates the duplicate guard to `!false → true`. The set now contains `[1, 2, 3]`. Therefore `return true; stop`. A successful insertion means this value was new; a failed insertion means it was already stored.
 
-| value | seen.add(value) | if (!seen.add(value)) | seen after | next action |
-| --- | --- | --- | --- | --- |
-| `1` | `false` | `!false → true` | `[1, 2, 3]` | `return true; stop` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `value=1` | `—` | `—` |
 
 The duplicate makes the fourth condition true, so the final return outside the loop is skipped. For all-distinct input, exhaustion instead reaches `return false`.
 

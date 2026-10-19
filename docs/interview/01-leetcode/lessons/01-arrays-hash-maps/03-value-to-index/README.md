@@ -83,6 +83,8 @@ When index `1` contains `7`, the algorithm asks for complement `2`, finds index 
 
 ## Block-by-block code walkthrough
 
+Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+
 **Running example for the code and tables below:** Input `numbers = [3,2,4]`, `target = 6`. Initially `earlierIndexByValue = {}`. A map entry `3:0` means value `3` was seen at index `0`.
 
 Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
@@ -247,25 +249,25 @@ If insertion happened first, index `0` could find itself when current value `3` 
 
 Begin with index `0`; the loop condition is `0 < 3 → true`. Read `3` and calculate the missing partner: `6 - 3 = 3`. Looking up that partner returns `null`, so `earlierIndex != null` is `false`. The insertion operation is `put(3,0)`; the map afterward is `{3: 0}`. Next, `index++; continue`. A found partner returns before insertion; a missing partner stores the current index for later iterations.
 
-| index | loop condition | value | complement | earlierIndex | earlierIndex != null | insertion | map after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `0 < 3 → true` | `3` | `6 - 3 = 3` | `null` | `false` | `put(3,0)` | `{3: 0}` | `index++; continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=0` | `index: 0 → 1; complement: not assigned → 3; earlierIndex: not assigned → null` | `3: absent → 0` |
 
 **Iteration/check 2 — index = `1`.**
 
 Begin with index `1`; the loop condition is `1 < 3 → true`. Read `2` and calculate the missing partner: `6 - 2 = 4`. Looking up that partner returns `null`, so `earlierIndex != null` is `false`. The insertion operation is `put(2,1)`; the map afterward is `{3: 0, 2: 1}`. Next, `index++; continue`. A found partner returns before insertion; a missing partner stores the current index for later iterations.
 
-| index | loop condition | value | complement | earlierIndex | earlierIndex != null | insertion | map after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1 < 3 → true` | `2` | `6 - 2 = 4` | `null` | `false` | `put(2,1)` | `{3: 0, 2: 1}` | `index++; continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=1` | `index: 1 → 2; complement: not assigned → 4; earlierIndex: not assigned → null` | `2: absent → 1` |
 
 **Iteration/check 3 — index = `2`.**
 
 Begin with index `2`; the loop condition is `2 < 3 → true`. Read `4` and calculate the missing partner: `6 - 4 = 2`. Looking up that partner returns `1`, so `earlierIndex != null` is `true`. The insertion operation is `Skipped`; the map afterward is `{3: 0, 2: 1}`. Next, `return [1,2]; stop`. A found partner returns before insertion; a missing partner stores the current index for later iterations.
 
-| index | loop condition | value | complement | earlierIndex | earlierIndex != null | insertion | map after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2 < 3 → true` | `4` | `6 - 4 = 2` | `1` | `true` | `Skipped` | `{3: 0, 2: 1}` | `return [1,2]; stop` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=2` | `complement: not assigned → 2; earlierIndex: not assigned → 1` | `—` |
 
 The successful lookup returns before storing index `2`. There is no exhausted-loop exception on this input.
 

@@ -38,6 +38,8 @@ For `[2,5]` in `[-2,0,3,-5,2,-1,4]`, the sum through index `5` is `-3`; the sum 
 
 ## Block-by-block code walkthrough
 
+Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+
 Keep this input beside the execution: `numbers=[-2,0,3,-5,2,-1,4]`; queries `[0,2]`, `[2,5]`, `[0,6]`, `[3,3]`.
 
 ### Block 1 — Allocate totals for every boundary
@@ -66,45 +68,45 @@ Start `index=0`. Each iteration reads one input value and the already-built tota
 
 **Construction iteration: `index=0`.** Evaluate `0 < 7 → true`. Read `prefix[0]=0` and `numbers[0]=-2`. Calculate `0 + (-2) = -2`; assign it to `prefix[1]`. Only that cell changes. Execute `index++`, giving `1`.
 
-| index | loop condition | read total | incoming | written boundary | prefix after | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `0` | `0<7 → true` | `0` | `-2` | `1` | `[0, -2, 0, 0, 0, 0, 0, 0]` | `index=1` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=0` | `index: 0 → 1` | `[1]: 0 → -2` |
 
 **Construction iteration: `index=1`.** Evaluate `1 < 7 → true`. Read `prefix[1]=-2` and `numbers[1]=0`. Calculate `-2 + (0) = -2`; assign it to `prefix[2]`. Only that cell changes. Execute `index++`, giving `2`.
 
-| index | loop condition | read total | incoming | written boundary | prefix after | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1<7 → true` | `-2` | `0` | `2` | `[0, -2, -2, 0, 0, 0, 0, 0]` | `index=2` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=1` | `index: 1 → 2` | `[2]: 0 → -2` |
 
 **Construction iteration: `index=2`.** Evaluate `2 < 7 → true`. Read `prefix[2]=-2` and `numbers[2]=3`. Calculate `-2 + (3) = 1`; assign it to `prefix[3]`. Only that cell changes. Execute `index++`, giving `3`.
 
-| index | loop condition | read total | incoming | written boundary | prefix after | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2<7 → true` | `-2` | `3` | `3` | `[0, -2, -2, 1, 0, 0, 0, 0]` | `index=3` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=2` | `index: 2 → 3` | `[3]: 0 → 1` |
 
 **Construction iteration: `index=3`.** Evaluate `3 < 7 → true`. Read `prefix[3]=1` and `numbers[3]=-5`. Calculate `1 + (-5) = -4`; assign it to `prefix[4]`. Only that cell changes. Execute `index++`, giving `4`.
 
-| index | loop condition | read total | incoming | written boundary | prefix after | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `3` | `3<7 → true` | `1` | `-5` | `4` | `[0, -2, -2, 1, -4, 0, 0, 0]` | `index=4` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=3` | `index: 3 → 4` | `[4]: 0 → -4` |
 
 **Construction iteration: `index=4`.** Evaluate `4 < 7 → true`. Read `prefix[4]=-4` and `numbers[4]=2`. Calculate `-4 + (2) = -2`; assign it to `prefix[5]`. Only that cell changes. Execute `index++`, giving `5`.
 
-| index | loop condition | read total | incoming | written boundary | prefix after | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `4` | `4<7 → true` | `-4` | `2` | `5` | `[0, -2, -2, 1, -4, -2, 0, 0]` | `index=5` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=4` | `index: 4 → 5` | `[5]: 0 → -2` |
 
 **Construction iteration: `index=5`.** Evaluate `5 < 7 → true`. Read `prefix[5]=-2` and `numbers[5]=-1`. Calculate `-2 + (-1) = -3`; assign it to `prefix[6]`. Only that cell changes. Execute `index++`, giving `6`.
 
-| index | loop condition | read total | incoming | written boundary | prefix after | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `5` | `5<7 → true` | `-2` | `-1` | `6` | `[0, -2, -2, 1, -4, -2, -3, 0]` | `index=6` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=5` | `index: 5 → 6` | `[6]: 0 → -3` |
 
 **Construction iteration: `index=6`.** Evaluate `6 < 7 → true`. Read `prefix[6]=-3` and `numbers[6]=4`. Calculate `-3 + (4) = 1`; assign it to `prefix[7]`. Only that cell changes. Execute `index++`, giving `7`.
 
-| index | loop condition | read total | incoming | written boundary | prefix after | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `6` | `6<7 → true` | `-3` | `4` | `7` | `[0, -2, -2, 1, -4, -2, -3, 1]` | `index=7` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=6` | `index: 6 → 7` | `[7]: 0 → 1` |
 
 Now `index=7`; `7 < 7 → false`, so skip the body and finish construction. The loop-local index leaves scope. Without saving every boundary, later queries would need to sum values again. Equivalent clearer form: name `nextBoundary=index+1` and `nextTotal=prefix[index]+numbers[index]` before assigning.
 

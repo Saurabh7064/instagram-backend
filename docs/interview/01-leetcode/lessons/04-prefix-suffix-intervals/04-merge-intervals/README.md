@@ -37,6 +37,8 @@ Example: sorting `[[8,10],[1,3],[2,6],[15,18]]` gives `[[1,3],[2,6],[8,10],[15,1
 
 ## Block-by-block code walkthrough
 
+Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+
 Keep input `intervals=[[8,10],[1,3],[2,6],[15,18]]` alongside this execution.
 
 ### Block 1 — Handle no input before reading the first range
@@ -62,27 +64,27 @@ Allocate four rows, each with two zero-valued cells: `[[0,0],[0,0],[0,0],[0,0]]`
 
 **Copy iteration `index=0`.** Check `0<4 → true`. Read input row `[8, 10]`, create a new row with those same two values, and assign it at `sorted[0]`. The complete copy now contains `[[8, 10], [0, 0], [0, 0], [0, 0]]`; `intervals` remains `[[8, 10], [1, 3], [2, 6], [15, 18]]`. Execute `index++`, making `1`.
 
-| index | condition | copied row | sorted after | original after | next |
-| --- | --- | --- | --- | --- | --- |
-| `0` | `0<4 → true` | `[8, 10]` | `[[8, 10], [0, 0], [0, 0], [0, 0]]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `index=1` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=0` | `index: 0 → 1` | `[0][0]: 0 → 8; [0][1]: 0 → 10` |
 
 **Copy iteration `index=1`.** Check `1<4 → true`. Read input row `[1, 3]`, create a new row with those same two values, and assign it at `sorted[1]`. The complete copy now contains `[[8, 10], [1, 3], [0, 0], [0, 0]]`; `intervals` remains `[[8, 10], [1, 3], [2, 6], [15, 18]]`. Execute `index++`, making `2`.
 
-| index | condition | copied row | sorted after | original after | next |
-| --- | --- | --- | --- | --- | --- |
-| `1` | `1<4 → true` | `[1, 3]` | `[[8, 10], [1, 3], [0, 0], [0, 0]]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `index=2` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=1` | `index: 1 → 2` | `[1][0]: 0 → 1; [1][1]: 0 → 3` |
 
 **Copy iteration `index=2`.** Check `2<4 → true`. Read input row `[2, 6]`, create a new row with those same two values, and assign it at `sorted[2]`. The complete copy now contains `[[8, 10], [1, 3], [2, 6], [0, 0]]`; `intervals` remains `[[8, 10], [1, 3], [2, 6], [15, 18]]`. Execute `index++`, making `3`.
 
-| index | condition | copied row | sorted after | original after | next |
-| --- | --- | --- | --- | --- | --- |
-| `2` | `2<4 → true` | `[2, 6]` | `[[8, 10], [1, 3], [2, 6], [0, 0]]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `index=3` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=2` | `index: 2 → 3` | `[2][0]: 0 → 2; [2][1]: 0 → 6` |
 
 **Copy iteration `index=3`.** Check `3<4 → true`. Read input row `[15, 18]`, create a new row with those same two values, and assign it at `sorted[3]`. The complete copy now contains `[[8, 10], [1, 3], [2, 6], [15, 18]]`; `intervals` remains `[[8, 10], [1, 3], [2, 6], [15, 18]]`. Execute `index++`, making `4`.
 
-| index | condition | copied row | sorted after | original after | next |
-| --- | --- | --- | --- | --- | --- |
-| `3` | `3<4 → true` | `[15, 18]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `index=4` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=3` | `index: 3 → 4` | `[3][0]: 0 → 15; [3][1]: 0 → 18` |
 
 After the increment to `index=4`, `4<4 → false`; skip the copy body and continue to sorting.
 
@@ -118,21 +120,21 @@ Start at index `1` because index `0` already initialized the unfinished range. `
 
 **Merge iteration `index=1`.** Evaluate `1<4 → true`; read `current=[2, 6]`. The unfinished range before the test is `[1,3]`. Check `2 <= 3 → true`. Because the ranges meet, extend end=max(3,6)=6; skip else. The list is now `[]`, while the still-unfinished range is `[1,6]`. Execute `index++` to `2`. The sorted copy stays `[[1, 3], [2, 6], [8, 10], [15, 18]]`.
 
-| index | loop test | current | start/end before | current[0] <= end | executed branch | merged after | start/end after | next |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1<4 → true` | `[2, 6]` | `[1, 3]` | `true` | `extend end=max(3,6)=6; skip else` | `[]` | `[1, 6]` | `index=2` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=1` | `index: 1 → 2; end: 3 → 6` | `—` |
 
 **Merge iteration `index=2`.** Evaluate `2<4 → true`; read `current=[8, 10]`. The unfinished range before the test is `[1,6]`. Check `8 <= 6 → false`. Because there is a gap, save [1,6]; start=8; end=10. The list is now `[[1, 6]]`, while the still-unfinished range is `[8,10]`. Execute `index++` to `3`. The sorted copy stays `[[1, 3], [2, 6], [8, 10], [15, 18]]`.
 
-| index | loop test | current | start/end before | current[0] <= end | executed branch | merged after | start/end after | next |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2<4 → true` | `[8, 10]` | `[1, 6]` | `false` | `save [1,6]; start=8; end=10` | `[[1, 6]]` | `[8, 10]` | `index=3` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=2` | `index: 2 → 3; start: 1 → 8; end: 6 → 10` | `[0][0]: absent → 1; [0][1]: absent → 6` |
 
 **Merge iteration `index=3`.** Evaluate `3<4 → true`; read `current=[15, 18]`. The unfinished range before the test is `[8,10]`. Check `15 <= 10 → false`. Because there is a gap, save [8,10]; start=15; end=18. The list is now `[[1, 6], [8, 10]]`, while the still-unfinished range is `[15,18]`. Execute `index++` to `4`. The sorted copy stays `[[1, 3], [2, 6], [8, 10], [15, 18]]`.
 
-| index | loop test | current | start/end before | current[0] <= end | executed branch | merged after | start/end after | next |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `3<4 → true` | `[15, 18]` | `[8, 10]` | `false` | `save [8,10]; start=15; end=18` | `[[1, 6], [8, 10]]` | `[15, 18]` | `index=4` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=3` | `index: 3 → 4; start: 8 → 15; end: 10 → 18` | `[1][0]: absent → 8; [1][1]: absent → 10` |
 
 ### Block 5 — Save the final unfinished range and return rows
 

@@ -74,6 +74,8 @@ Start?       yes no no no
 
 ## Block-by-block code walkthrough
 
+Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+
 **Running example for the code and tables below:** Input `values = [100,4,200,1,3,2]`. `unique` starts empty. After construction, `longest = 0`. For the outer set loop, this trace chooses the permitted order `1,2,3,4,100,200`; a debugger may visit a different order with the same final answer.
 
 Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
@@ -415,49 +417,49 @@ Without this update, the method forgets completed runs and always returns its in
 
 Choose distinct value `1`. The lower-bound guard is `true`, so it is safe to ask whether its predecessor exists: `contains(0) → false`. The start-of-run condition is `!false → true`. The successor checks execute as follows: `2 present → true; 3 present → true; 4 present → true; 5 absent → false`. The run-local state is `current=4, length=4`; the best completed length is now `4`. Move to the next distinct value. When a predecessor exists, skip run initialization, successor scanning, and the best-length update entirely.
 
-| value | value != MIN_VALUE | predecessor lookup | if (!hasPredecessor) | successor while checks (current != MAX_VALUE is true here) | run after | longest after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `true` | `contains(0) → false` | `!false → true` | `2 present → true; 3 present → true; 4 present → true; 5 absent → false` | `current=4, length=4` | `4` | `next distinct value` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `value=1` | `longest: 0 → 4; hasPredecessor: not assigned → false; current: not assigned → 1 → 2 → 3 → 4; length: not assigned → 1 → 2 → 3 → 4` | `—` |
 
 **Iteration/check 2 — value = `2`.**
 
 Choose distinct value `2`. The lower-bound guard is `true`, so it is safe to ask whether its predecessor exists: `contains(1) → true`. The start-of-run condition is `!true → false`. The successor checks execute as follows: `Skipped`. The run-local state is `Skipped`; the best completed length is now `4`. Move to the next distinct value. When a predecessor exists, skip run initialization, successor scanning, and the best-length update entirely.
 
-| value | value != MIN_VALUE | predecessor lookup | if (!hasPredecessor) | successor while checks (current != MAX_VALUE is true here) | run after | longest after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `true` | `contains(1) → true` | `!true → false` | `Skipped` | `Skipped` | `4` | `next distinct value` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `value=2` | `hasPredecessor: not assigned → true` | `—` |
 
 **Iteration/check 3 — value = `3`.**
 
 Choose distinct value `3`. The lower-bound guard is `true`, so it is safe to ask whether its predecessor exists: `contains(2) → true`. The start-of-run condition is `!true → false`. The successor checks execute as follows: `Skipped`. The run-local state is `Skipped`; the best completed length is now `4`. Move to the next distinct value. When a predecessor exists, skip run initialization, successor scanning, and the best-length update entirely.
 
-| value | value != MIN_VALUE | predecessor lookup | if (!hasPredecessor) | successor while checks (current != MAX_VALUE is true here) | run after | longest after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `true` | `contains(2) → true` | `!true → false` | `Skipped` | `Skipped` | `4` | `next distinct value` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `value=3` | `hasPredecessor: not assigned → true` | `—` |
 
 **Iteration/check 4 — value = `4`.**
 
 Choose distinct value `4`. The lower-bound guard is `true`, so it is safe to ask whether its predecessor exists: `contains(3) → true`. The start-of-run condition is `!true → false`. The successor checks execute as follows: `Skipped`. The run-local state is `Skipped`; the best completed length is now `4`. Move to the next distinct value. When a predecessor exists, skip run initialization, successor scanning, and the best-length update entirely.
 
-| value | value != MIN_VALUE | predecessor lookup | if (!hasPredecessor) | successor while checks (current != MAX_VALUE is true here) | run after | longest after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `4` | `true` | `contains(3) → true` | `!true → false` | `Skipped` | `Skipped` | `4` | `next distinct value` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `value=4` | `hasPredecessor: not assigned → true` | `—` |
 
 **Iteration/check 5 — value = `100`.**
 
 Choose distinct value `100`. The lower-bound guard is `true`, so it is safe to ask whether its predecessor exists: `contains(99) → false`. The start-of-run condition is `!false → true`. The successor checks execute as follows: `101 absent → false`. The run-local state is `current=100, length=1`; the best completed length is now `4`. Move to the next distinct value. When a predecessor exists, skip run initialization, successor scanning, and the best-length update entirely.
 
-| value | value != MIN_VALUE | predecessor lookup | if (!hasPredecessor) | successor while checks (current != MAX_VALUE is true here) | run after | longest after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `100` | `true` | `contains(99) → false` | `!false → true` | `101 absent → false` | `current=100, length=1` | `4` | `next distinct value` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `value=100` | `hasPredecessor: not assigned → false; current: not assigned → 100; length: not assigned → 1` | `—` |
 
 **Iteration/check 6 — value = `200`.**
 
 Choose distinct value `200`. The lower-bound guard is `true`, so it is safe to ask whether its predecessor exists: `contains(199) → false`. The start-of-run condition is `!false → true`. The successor checks execute as follows: `201 absent → false`. The run-local state is `current=200, length=1`; the best completed length is now `4`. Move to the next distinct value. When a predecessor exists, skip run initialization, successor scanning, and the best-length update entirely.
 
-| value | value != MIN_VALUE | predecessor lookup | if (!hasPredecessor) | successor while checks (current != MAX_VALUE is true here) | run after | longest after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `200` | `true` | `contains(199) → false` | `!false → true` | `201 absent → false` | `current=200, length=1` | `4` | `next distinct value` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `value=200` | `hasPredecessor: not assigned → false; current: not assigned → 200; length: not assigned → 1` | `—` |
 
 This uses the permitted set order `1,2,3,4,100,200`; Java does not promise that order. A predecessor skips the entire run scan. After the sixth value, the enhanced loop is exhausted; return `4`. Existing boundary examples explain the MIN/MAX short circuits.
 

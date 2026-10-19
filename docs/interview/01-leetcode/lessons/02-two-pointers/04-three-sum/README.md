@@ -196,6 +196,8 @@ For `[0, 0, 0, 0]`, these rules return `[0, 0, 0]` once rather than four equival
 
 ## Block-by-block code walkthrough
 
+Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+
 **Running example for the code and tables below:** Input `numbers = [-1,0,1,2,-1,-4]`. The copy `sorted` initially matches it, then sorting yields `[-4,-1,-1,0,1,2]`. `numbers` remains unchanged; `result = []`. Each sum row shows pointers before its branch.
 
 Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
@@ -403,89 +405,89 @@ For this sample, no partner-duplicate loop advances. For sorted `[-2,0,0,2,2]`, 
 
 Use anchor index `0`. The repeated-anchor decision is `false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `1` and right `5`, with condition `1 < 5 → true`. The sum calculation is `-4+(-1)+2=-3`; the zero comparison is `false`. The negative comparison is `true` and is skipped when the zero branch already ran. The result list is `[]`. Execute the movement, duplicate checks, and next action in this order: `left=2; Skipped (no match)`.
 
-| anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `1` | `5` | `1 < 5 → true` | `false` | `-4+(-1)+2=-3` | `false` | `true` | `[]` | `left=2; Skipped (no match)` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `anchor=0; left=1; right=5` | `left: 1 → 2; sum: not assigned → -3` | `—` |
 
 **Iteration/check 2 — anchor = `0`.**
 
 Use anchor index `0`. The repeated-anchor decision is `false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `2` and right `5`, with condition `2 < 5 → true`. The sum calculation is `-4+(-1)+2=-3`; the zero comparison is `false`. The negative comparison is `true` and is skipped when the zero branch already ran. The result list is `[]`. Execute the movement, duplicate checks, and next action in this order: `left=3; Skipped (no match)`.
 
-| anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `2` | `5` | `2 < 5 → true` | `false` | `-4+(-1)+2=-3` | `false` | `true` | `[]` | `left=3; Skipped (no match)` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `anchor=0; left=2; right=5` | `left: 2 → 3; sum: not assigned → -3` | `—` |
 
 **Iteration/check 3 — anchor = `0`.**
 
 Use anchor index `0`. The repeated-anchor decision is `false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `3` and right `5`, with condition `3 < 5 → true`. The sum calculation is `-4+(0)+2=-2`; the zero comparison is `false`. The negative comparison is `true` and is skipped when the zero branch already ran. The result list is `[]`. Execute the movement, duplicate checks, and next action in this order: `left=4; Skipped (no match)`.
 
-| anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `3` | `5` | `3 < 5 → true` | `false` | `-4+(0)+2=-2` | `false` | `true` | `[]` | `left=4; Skipped (no match)` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `anchor=0; left=3; right=5` | `left: 3 → 4; sum: not assigned → -2` | `—` |
 
 **Iteration/check 4 — anchor = `0`.**
 
 Use anchor index `0`. The repeated-anchor decision is `false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `4` and right `5`, with condition `4 < 5 → true`. The sum calculation is `-4+(1)+2=-1`; the zero comparison is `false`. The negative comparison is `true` and is skipped when the zero branch already ran. The result list is `[]`. Execute the movement, duplicate checks, and next action in this order: `left=5; Skipped (no match)`.
 
-| anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `4` | `5` | `4 < 5 → true` | `false` | `-4+(1)+2=-1` | `false` | `true` | `[]` | `left=5; Skipped (no match)` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `anchor=0; left=4; right=5` | `left: 4 → 5; sum: not assigned → -1` | `—` |
 
 **Iteration/check 5 — anchor = `0`.**
 
 Use anchor index `0`. The repeated-anchor decision is `already false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `5` and right `5`, with condition `5 < 5 → false`. The sum calculation is `Skipped`; the zero comparison is `Skipped`. The negative comparison is `Skipped` and is skipped when the zero branch already ran. The result list is `[]`. Execute the movement, duplicate checks, and next action in this order: `exit inner loop; next anchor`.
 
-| anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `5` | `5` | `5 < 5 → false` | `already false` | `Skipped` | `Skipped` | `Skipped` | `[]` | `exit inner loop; next anchor` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `anchor=0; left=5; right=5` | `—` | `—` |
 
 **Iteration/check 6 — anchor = `1`.**
 
 Use anchor index `1`. The repeated-anchor decision is `false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `2` and right `5`, with condition `2 < 5 → true`. The sum calculation is `-1+(-1)+2=0`; the zero comparison is `true`. The negative comparison is `Skipped` and is skipped when the zero branch already ran. The result list is `[[-1, -1, 2]]`. Execute the movement, duplicate checks, and next action in this order: `record; left=3; right=4; left duplicate false; right duplicate false`.
 
-| anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `2` | `5` | `2 < 5 → true` | `false` | `-1+(-1)+2=0` | `true` | `Skipped` | `[[-1, -1, 2]]` | `record; left=3; right=4; left duplicate false; right duplicate false` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `anchor=1; left=2; right=5` | `left: 2 → 3; right: 5 → 4; sum: not assigned → 0` | `result[0][0]: absent → -1; result[0][1]: absent → -1; result[0][2]: absent → 2` |
 
 **Iteration/check 7 — anchor = `1`.**
 
 Use anchor index `1`. The repeated-anchor decision is `false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `3` and right `4`, with condition `3 < 4 → true`. The sum calculation is `-1+(0)+1=0`; the zero comparison is `true`. The negative comparison is `Skipped` and is skipped when the zero branch already ran. The result list is `[[-1, -1, 2], [-1, 0, 1]]`. Execute the movement, duplicate checks, and next action in this order: `record; left=4; right=3; left < right false; equality skipped; left < right false; equality skipped`.
 
-| anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `3` | `4` | `3 < 4 → true` | `false` | `-1+(0)+1=0` | `true` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `record; left=4; right=3; left < right false; equality skipped; left < right false; equality skipped` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `anchor=1; left=3; right=4` | `left: 3 → 4; right: 4 → 3; sum: not assigned → 0` | `result[1][0]: absent → -1; result[1][1]: absent → 0; result[1][2]: absent → 1` |
 
 **Iteration/check 8 — anchor = `1`.**
 
 Use anchor index `1`. The repeated-anchor decision is `already false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `4` and right `3`, with condition `4 < 3 → false`. The sum calculation is `Skipped`; the zero comparison is `Skipped`. The negative comparison is `Skipped` and is skipped when the zero branch already ran. The result list is `[[-1, -1, 2], [-1, 0, 1]]`. Execute the movement, duplicate checks, and next action in this order: `exit inner loop; next anchor`.
 
-| anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `4` | `3` | `4 < 3 → false` | `already false` | `Skipped` | `Skipped` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `exit inner loop; next anchor` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `anchor=1; left=4; right=3` | `—` | `—` |
 
 **Iteration/check 9 — anchor = `2`.**
 
 Use anchor index `2`. The repeated-anchor decision is `true; continue`; a true result immediately continues the outer loop. Otherwise the inner search uses left `—` and right `—`, with condition `Skipped`. The sum calculation is `Skipped`; the zero comparison is `Skipped`. The negative comparison is `Skipped` and is skipped when the zero branch already ran. The result list is `[[-1, -1, 2], [-1, 0, 1]]`. Execute the movement, duplicate checks, and next action in this order: `next anchor`.
 
-| anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `—` | `—` | `Skipped` | `true; continue` | `Skipped` | `Skipped` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `next anchor` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `anchor=2` | `—` | `—` |
 
 **Iteration/check 10 — anchor = `3`.**
 
 Use anchor index `3`. The repeated-anchor decision is `false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `4` and right `5`, with condition `4 < 5 → true`. The sum calculation is `0+(1)+2=3`; the zero comparison is `false`. The negative comparison is `false` and is skipped when the zero branch already ran. The result list is `[[-1, -1, 2], [-1, 0, 1]]`. Execute the movement, duplicate checks, and next action in this order: `right=4; Skipped (no match)`.
 
-| anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `4` | `5` | `4 < 5 → true` | `false` | `0+(1)+2=3` | `false` | `false` | `[[-1, -1, 2], [-1, 0, 1]]` | `right=4; Skipped (no match)` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `anchor=3; left=4; right=5` | `right: 5 → 4; sum: not assigned → 3` | `—` |
 
 **Iteration/check 11 — anchor = `3`.**
 
 Use anchor index `3`. The repeated-anchor decision is `already false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `4` and right `4`, with condition `4 < 4 → false`. The sum calculation is `Skipped`; the zero comparison is `Skipped`. The negative comparison is `Skipped` and is skipped when the zero branch already ran. The result list is `[[-1, -1, 2], [-1, 0, 1]]`. Execute the movement, duplicate checks, and next action in this order: `exit inner loop; next anchor`.
 
-| anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `4` | `4` | `4 < 4 → false` | `already false` | `Skipped` | `Skipped` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `exit inner loop; next anchor` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `anchor=3; left=4; right=4` | `—` | `—` |
 
 Outer anchors `0..3` satisfy `anchor < 6-2`. Anchor `0` short-circuits `anchor > 0 && ...` at its false first operand. Anchor `2` is a duplicate and skips pointer initialization entirely. After anchor `3`, `anchor=4` makes `4 < 4` false; return the two recorded triplets.
 

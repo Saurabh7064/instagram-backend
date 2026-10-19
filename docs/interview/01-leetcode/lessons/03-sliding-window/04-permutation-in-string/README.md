@@ -60,6 +60,8 @@ For `"adc"` inside `"dcda"`, the first complete window `"dcd"` has `d:2,c:1`; af
 
 ## Block-by-block code walkthrough
 
+Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+
 We are executing `checkInclusion("ab", "eidbaooo")`. `pattern` is `"ab"` (length `2`); `text` is `"eidbaooo"` (length `8`). Read the following as a debugger executing one statement at a time. Each iteration's explanation is immediately followed by its values.
 
 ### Block 1 — Check whether the pattern can fit
@@ -106,17 +108,17 @@ for (int index = 0; index < pattern.length(); index++) {
 
 Check `0 < 2`: true, so enter the loop. Read `pattern.charAt(0)`, which is `'a'`. Calculate `'a' - 'a' = 0` to select that letter's array cell. Increment `neededCounts[0]` from `0` to `1`: the pattern requires 1 copy of `a`. No text character has entered, so `windowCounts` is still all zero. Finally execute `index++`, making `index = 1`.
 
-| index before | condition | character | array cell | neededCounts after | windowCounts after | index after |
-| --- | --- | --- | --- | --- | --- | --- |
-| `0` | `0 < 2 → true` | `a` | `0` | `[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `1` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=0` | `index: 0 → 1` | `neededCounts[0]: 0 → 1` |
 
 **Pattern iteration 2: `index = 1`.**
 
 Check `1 < 2`: true, so enter the loop. Read `pattern.charAt(1)`, which is `'b'`. Calculate `'b' - 'a' = 1` to select that letter's array cell. Increment `neededCounts[1]` from `0` to `1`: the pattern requires 1 copy of `b`. No text character has entered, so `windowCounts` is still all zero. Finally execute `index++`, making `index = 2`.
 
-| index before | condition | character | array cell | neededCounts after | windowCounts after | index after |
-| --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1 < 2 → true` | `b` | `1` | `[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]` | `2` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `index=1` | `index: 1 → 2` | `neededCounts[1]: 0 → 1` |
 
 **Finish the pattern loop: `index = 2`.** Evaluate `2 < 2`: false. Skip the loop body; `pattern.charAt(2)` is never called. `neededCounts` now means “one `a`, one `b`, zero other letters.” This array stays unchanged during the text scan. Counting copies rather than just membership matters: for `"aab"`, the first two iterations would change cell `a` from `0 → 1 → 2`, then the third changes cell `b` from `0 → 1`.
 
@@ -145,9 +147,9 @@ The loop adds the incoming character, removes the oldest one if the window has g
 2. Evaluate `right >= pattern.length()`: `0 >= 2 → false`. Skip the entire removal branch: no `outgoingIndex` is assigned and no count is decremented. The window is `e`.
 3. Execute `Arrays.equals(neededCounts, windowCounts)`: **false**, because we have an e, but need one a and one b. Skip `return true`. Execute `right++`, making `right = 1`, then start the next iteration.
 
-| right before | incoming/cell | removal condition | outgoingIndex | window at comparison | Arrays.equals | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `0` | `e / 4` | `0 >= 2 → false` | `not assigned` | `e` | `false` | `right=1; continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `right=0` | `right: 0 → 1` | `windowCounts[4]: 0 → 1` |
 
 | phase | neededCounts (unchanged) | windowCounts |
 | --- | --- | --- |
@@ -161,9 +163,9 @@ The loop adds the incoming character, removes the oldest one if the window has g
 2. Evaluate `right >= pattern.length()`: `1 >= 2 → false`. Skip the entire removal branch: no `outgoingIndex` is assigned and no count is decremented. The window is `ei`.
 3. Execute `Arrays.equals(neededCounts, windowCounts)`: **false**, because we have e and i, but need a and b. Skip `return true`. Execute `right++`, making `right = 2`, then start the next iteration.
 
-| right before | incoming/cell | removal condition | outgoingIndex | window at comparison | Arrays.equals | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `1` | `i / 8` | `1 >= 2 → false` | `not assigned` | `ei` | `false` | `right=2; continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `right=1` | `right: 1 → 2` | `windowCounts[8]: 0 → 1` |
 
 | phase | neededCounts (unchanged) | windowCounts |
 | --- | --- | --- |
@@ -177,9 +179,9 @@ The loop adds the incoming character, removes the oldest one if the window has g
 2. Evaluate `right >= pattern.length()`: `2 >= 2 → true`. Enter the removal branch. Calculate `outgoingIndex = 2 - 2 = 0`; read `text.charAt(0) = 'e'`; map it to cell `4`. Decrement `windowCounts[4]` from `1` to `0`. The window is now `id`.
 3. Execute `Arrays.equals(neededCounts, windowCounts)`: **false**, because we have i and d, but need a and b. Skip `return true`. Execute `right++`, making `right = 3`, then start the next iteration.
 
-| right before | incoming/cell | removal condition | outgoingIndex | window at comparison | Arrays.equals | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `2` | `d / 3` | `2 >= 2 → true` | `0` | `id` | `false` | `right=3; continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `right=2` | `right: 2 → 3; outgoingIndex: not assigned → 0` | `windowCounts[3]: 0 → 1; windowCounts[4]: 1 → 0` |
 
 | phase | neededCounts (unchanged) | windowCounts |
 | --- | --- | --- |
@@ -193,9 +195,9 @@ The loop adds the incoming character, removes the oldest one if the window has g
 2. Evaluate `right >= pattern.length()`: `3 >= 2 → true`. Enter the removal branch. Calculate `outgoingIndex = 3 - 2 = 1`; read `text.charAt(1) = 'i'`; map it to cell `8`. Decrement `windowCounts[8]` from `1` to `0`. The window is now `db`.
 3. Execute `Arrays.equals(neededCounts, windowCounts)`: **false**, because we have d and b; b matches, but a is missing and d is extra. Skip `return true`. Execute `right++`, making `right = 4`, then start the next iteration.
 
-| right before | incoming/cell | removal condition | outgoingIndex | window at comparison | Arrays.equals | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `3` | `b / 1` | `3 >= 2 → true` | `1` | `db` | `false` | `right=4; continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `right=3` | `right: 3 → 4; outgoingIndex: not assigned → 1` | `windowCounts[1]: 0 → 1; windowCounts[8]: 1 → 0` |
 
 | phase | neededCounts (unchanged) | windowCounts |
 | --- | --- | --- |
@@ -209,9 +211,9 @@ The loop adds the incoming character, removes the oldest one if the window has g
 2. Evaluate `right >= pattern.length()`: `4 >= 2 → true`. Enter the removal branch. Calculate `outgoingIndex = 4 - 2 = 2`; read `text.charAt(2) = 'd'`; map it to cell `3`. Decrement `windowCounts[3]` from `1` to `0`. The window is now `ba`.
 3. Execute `Arrays.equals(neededCounts, windowCounts)`: **true**, because we have exactly one a and one b, with zero counts for all other letters. The `if` body runs and returns `true` immediately. Skip `right++`; do not read the remaining `ooo`.
 
-| right before | incoming/cell | removal condition | outgoingIndex | window at comparison | Arrays.equals | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `4` | `a / 0` | `4 >= 2 → true` | `2` | `ba` | `true` | `return true; stop` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `right=4` | `outgoingIndex: not assigned → 2` | `windowCounts[0]: 0 → 1; windowCounts[3]: 1 → 0` |
 
 | phase | neededCounts (unchanged) | windowCounts |
 | --- | --- | --- |

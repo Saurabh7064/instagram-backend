@@ -57,6 +57,8 @@ If `[2, 3, 4]` targets `6`, the first sum is `2 + 4 = 6`. If it targeted `7`, a 
 
 ## Block-by-block code walkthrough
 
+Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+
 **Running example for the code and tables below:** Input `numbers = [-5,-2,0,3,9]`, `target = 1`; initially `left = 0`, `right = 4`. The sorted input array does not change. Rows show pointers before the comparison.
 
 Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
@@ -182,25 +184,25 @@ if (sum < target) {
 
 Begin with left index `0` and right index `4`; distinct-position check: `0 < 4 → true`. Add their values: `-5 + 9 = 4`. Equality with the target is `false`. Only if equality is false do we evaluate the smaller-than-target check: `false`. Next, `right=3`. A sum that is too small needs a larger left value; one that is too large needs a smaller right value.
 
-| left | right | loop condition | sum | sum == target | sum < target | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `0` | `4` | `0 < 4 → true` | `-5 + 9 = 4` | `false` | `false` | `right=3` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `left=0; right=4` | `right: 4 → 3; sum: not assigned → 4` | `—` |
 
 **Iteration/check 2 — left = `0`.**
 
 Begin with left index `0` and right index `3`; distinct-position check: `0 < 3 → true`. Add their values: `-5 + 3 = -2`. Equality with the target is `false`. Only if equality is false do we evaluate the smaller-than-target check: `true`. Next, `left=1`. A sum that is too small needs a larger left value; one that is too large needs a smaller right value.
 
-| left | right | loop condition | sum | sum == target | sum < target | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `0` | `3` | `0 < 3 → true` | `-5 + 3 = -2` | `false` | `true` | `left=1` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `left=0; right=3` | `left: 0 → 1; sum: not assigned → -2` | `—` |
 
 **Iteration/check 3 — left = `1`.**
 
 Begin with left index `1` and right index `3`; distinct-position check: `1 < 3 → true`. Add their values: `-2 + 3 = 1`. Equality with the target is `true`. Only if equality is false do we evaluate the smaller-than-target check: `Skipped (returned)`. Next, `return [2,4]; stop`. A sum that is too small needs a larger left value; one that is too large needs a smaller right value.
 
-| left | right | loop condition | sum | sum == target | sum < target | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `1` | `3` | `1 < 3 → true` | `-2 + 3 = 1` | `true` | `Skipped (returned)` | `return [2,4]; stop` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `left=1; right=3` | `sum: not assigned → 1` | `—` |
 
 The equality branch returns before the smaller-than-target condition is evaluated. Return indexes `left+1=2`, `right+1=4`.
 

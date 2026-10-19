@@ -68,6 +68,8 @@ Java evaluates `&&` left to right. When the pointers meet, `left < right` is fal
 
 ## Block-by-block code walkthrough
 
+Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+
 **Running example for the code and tables below:** Input `text = "A,b a"`; indexes `0..4` hold `A`, comma, `b`, space, `a`. Initially `left = 0`, `right = 4`. This short example exercises case conversion and both punctuation-skip loops.
 
 Tables belong to the code block immediately above them. Inputs stay unchanged unless a block explicitly creates or changes a copy. Collection order is displayed for readability; HashMap/HashSet order is unspecified.
@@ -260,25 +262,25 @@ right--;
 
 Begin with `left`=`0` and `right`=`4`. Evaluate the outer loop: `0 < 4 → true`. The left punctuation loop does `A is alphanumeric → false; skip loop`; the independent right loop does `a is alphanumeric → false; skip loop`. Convert the surviving characters to lowercase, producing `a / a`. Their mismatch condition is `false`. The pointer update is `left=1; right=3`. Next, `continue`. If the outer condition is false, every body operation is skipped.
 
-| left before | right before | outer left < right | left-skip condition and movement | right-skip condition and movement | normalized pair | leftCharacter != rightCharacter | pointer update | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `4` | `0 < 4 → true` | `A is alphanumeric → false; skip loop` | `a is alphanumeric → false; skip loop` | `a / a` | `false` | `left=1; right=3` | `continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `left=0; right=4` | `left: 0 → 1; right: 4 → 3; leftCharacter: not assigned → a; rightCharacter: not assigned → a` | `—` |
 
 **Iteration/check 2 — left before = `1`.**
 
 Begin with `left`=`1` and `right`=`3`. Evaluate the outer loop: `1 < 3 → true`. The left punctuation loop does `comma → true; left=2; b → false`; the independent right loop does `space → true; right=2; 2 < 2 → false (character check skipped)`. Convert the surviving characters to lowercase, producing `b / b`. Their mismatch condition is `false`. The pointer update is `left=3; right=1`. Next, `continue`. If the outer condition is false, every body operation is skipped.
 
-| left before | right before | outer left < right | left-skip condition and movement | right-skip condition and movement | normalized pair | leftCharacter != rightCharacter | pointer update | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `3` | `1 < 3 → true` | `comma → true; left=2; b → false` | `space → true; right=2; 2 < 2 → false (character check skipped)` | `b / b` | `false` | `left=3; right=1` | `continue` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `left=1; right=3` | `left: 1 → 2 → 3; right: 3 → 2 → 1; leftCharacter: not assigned → b; rightCharacter: not assigned → b` | `—` |
 
 **Iteration/check 3 — left before = `3`.**
 
 Begin with `left`=`3` and `right`=`1`. Evaluate the outer loop: `3 < 1 → false`. The left punctuation loop does `Skipped`; the independent right loop does `Skipped`. Convert the surviving characters to lowercase, producing `Skipped`. Their mismatch condition is `Skipped`. The pointer update is `Skipped`. Next, `exit loop; return true`. If the outer condition is false, every body operation is skipped.
 
-| left before | right before | outer left < right | left-skip condition and movement | right-skip condition and movement | normalized pair | leftCharacter != rightCharacter | pointer update | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `1` | `3 < 1 → false` | `Skipped` | `Skipped` | `Skipped` | `Skipped` | `Skipped` | `exit loop; return true` |
+| Iteration | Scalar change paths | Collection change paths |
+| --- | --- | --- |
+| `left=3; right=1` | `—` | `—` |
 
 Each skip condition is `left < right && !isLetterOrDigit(...)`. A false first operand skips the character test. For `"0P"`, both skip loops stop immediately, normalized `0 != p` is true, and the method returns false before moving pointers.
 

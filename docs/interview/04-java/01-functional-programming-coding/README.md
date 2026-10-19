@@ -53,3 +53,5 @@ The original normalization Java files remain at their old paths and now belong t
 9. Parallel streams: suitability, measurement, and safety
 
 Start with the [learning backlog](./learning-backlog.md); later lessons remain `TODO` until the current lesson's stop/go criteria are met.
+
+Debugger-table preference: keep one row per iteration and show only changes, preserving intermediate values as compact arrow paths in a cell. Use `—` for unchanged state. Keep the explanation concise; do not expand every operation into another table row.
