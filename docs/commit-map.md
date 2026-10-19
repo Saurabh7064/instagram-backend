@@ -715,3 +715,9 @@ For every new feature or learning concept:
 - Commit: `e138f4f` — saved the learner preference that conceptual explanations, walkthroughs, debugger tables, and related checkpoints use one fixed input without switching to counterexamples.
 - Updated [Minimum Window Substring](./interview/01-leetcode/lessons/03-sliding-window/05-minimum-window-substring/README.md) to explain counts using two B occurrences in the same ADOBECODEBANC / ABC execution: window 3..10 has B twice; removing index 3 leaves the B at index 9. Removed the separate duplicate-target input and kept its checkpoint on the main trace.
 - Verification: checked the source slices and B counts, preserved three answered checkpoints, balanced code fences, and `git diff --check`. Documentation only; no source-code behavior, learner status, or backlog completion status changes. Additional edge-case checks remain in the runnable programs.
+
+## Restore concise Minimum Window narration — 2026-10-18
+
+- Revert commits: `7693fea`, `28c9cc1` — reverted the latest code-anchored narration expansion and its saved preference at the learner’s request. Restored the lesson and AGENTS.md exactly to their pre-expansion state; the single-input explanation rule remains.
+- Docs: [Minimum Window Substring](./interview/01-leetcode/lessons/03-sliding-window/05-minimum-window-substring/README.md).
+- Verification: both restored files match commit `2ea4617`; local lesson catalog regenerated successfully. Documentation-only revert; unrelated edits and learner/backlog statuses remain unchanged.
