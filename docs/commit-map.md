@@ -727,3 +727,10 @@ For every new feature or learning concept:
 - Commit: `338e5cf` — retained the compact paragraph format in all 13 iterations while naming windowCounts.merge, the incoming if condition, formedGroups++, the while check, and the for update. Incoming map increments show exact before/after counts; false if branches explicitly skip the increment. Saved the concise inline-code preference in AGENTS.md.
 - Docs: [Minimum Window Substring](./interview/01-leetcode/lessons/03-sliding-window/05-minimum-window-substring/README.md).
 - Verification: derived count changes from the fixed ADOBECODEBANC / ABC trace; checked 13 concise anchors, table columns, code fences, and git diff --check. Local lesson catalog regenerated successfully. Documentation only; no Java/API/UI behavior or learner/backlog status changes; unrelated edits excluded.
+
+## Within-iteration debugger state — 2026-10-19
+
+- Commit: `9c0caf3` — replaced the 13 end-only Minimum Window iteration summaries with chronological phase tables. Each row names its phase/code and shows formedGroups before/after plus the current left boundary, best range, and full window map. Narration stays compact.
+- Concept: intermediate state is distinct from final state. At right=5, the incoming if increments formedGroups 2→3; after removing A, the outgoing if decrements it 3→2. Both transitions are now visible instead of only the ending 2. Saved this table preference in AGENTS.md.
+- Docs: [Minimum Window Substring](./interview/01-leetcode/lessons/03-sliding-window/05-minimum-window-substring/README.md).
+- Verification: derived phase states from the fixed ADOBECODEBANC / ABC execution and verified final BANC; checked 13 phase tables, both right=5 transitions, table columns, code fences, and git diff --check. Documentation only; no Java/API/renderer behavior, learner status, or backlog completion changes. Unrelated working-tree edits excluded.
