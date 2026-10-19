@@ -721,3 +721,9 @@ For every new feature or learning concept:
 - Revert commits: `7693fea`, `28c9cc1` — reverted the latest code-anchored narration expansion and its saved preference at the learner’s request. Restored the lesson and AGENTS.md exactly to their pre-expansion state; the single-input explanation rule remains.
 - Docs: [Minimum Window Substring](./interview/01-leetcode/lessons/03-sliding-window/05-minimum-window-substring/README.md).
 - Verification: both restored files match commit `2ea4617`; local lesson catalog regenerated successfully. Documentation-only revert; unrelated edits and learner/backlog statuses remain unchanged.
+
+## Brief code names in Minimum Window narration — 2026-10-18
+
+- Commit: `338e5cf` — retained the compact paragraph format in all 13 iterations while naming windowCounts.merge, the incoming if condition, formedGroups++, the while check, and the for update. Incoming map increments show exact before/after counts; false if branches explicitly skip the increment. Saved the concise inline-code preference in AGENTS.md.
+- Docs: [Minimum Window Substring](./interview/01-leetcode/lessons/03-sliding-window/05-minimum-window-substring/README.md).
+- Verification: derived count changes from the fixed ADOBECODEBANC / ABC trace; checked 13 concise anchors, table columns, code fences, and git diff --check. Local lesson catalog regenerated successfully. Documentation only; no Java/API/UI behavior or learner/backlog status changes; unrelated edits excluded.
