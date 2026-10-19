@@ -9,8 +9,6 @@ Practice source: [Minimum Window Substring on LeetCode](https://leetcode.com/pro
 Examples:
 
 - `source = "ADOBECODEBANC"`, `target = "ABC"` → `"BANC"`.
-- `source = "a"`, `target = "a"` → `"a"`.
-- `source = "a"`, `target = "aa"` → `""`.
 
 Assumptions follow LeetCode: both inputs contain English letters, `1 <= source.length, target.length <= 100,000`, and the answer is unique when it exists. Target `O(n + m)` time and `O(alphabet)` space.
 
@@ -58,10 +56,6 @@ For `"ADOBECODEBANC"` and `"ABC"`:
 - at the final `C`, shrinking yields `"BANC"` at indexes `9..12`, length `12 - 9 + 1 = 4`;
 - no length below `4` can contain three required characters here, so return `"BANC"`.
 
-For `"a"` and `"a"`, the single character forms the only required group, producing `"a"`.
-
-For `"a"` and `"aa"`, the window count reaches only `1` while `2` are needed. `formedGroups` never reaches `requiredGroups`, so return `""`.
-
 ## Block-by-block code walkthrough
 
 Use `source="ADOBECODEBANC"`, `target="ABC"`. Source indexes `0..12` hold `A,D,O,B,E,C,O,D,E,B,A,N,C`. The requirements are built first; each later block shows its own mutations and branch results. Supporting snapshots use the actual `right` index and phase to connect each mutation to its complete iteration. Map entries are displayed in insertion order for readability; Java HashMap order is unspecified.
@@ -81,15 +75,13 @@ for (char value : target.toCharArray()) {
 
 **Why it is needed:** a covering window must satisfy duplicates, not merely contain each distinct character once.
 
-**Why counts rather than a set?** Our main target `"ABC"` has no repeated letters, so it does not by itself demonstrate the duplicate-count problem. To see that problem, use the **separate example already listed above: `source="a"`, `target="aa"`**. This changes the input only for this comparison; the main debugger trace still uses `"ADOBECODEBANC"` / `"ABC"`.
+**Why counts rather than a plain add/remove set?** Stay with `source="ADOBECODEBANC"`, `target="ABC"`. Later in this same execution, the window at `left=3`, `right=10` is `"BECODEBA"`. It contains two copies of `B`: source indexes `3` and `9`. Removing the left `B` must decrease its count from `2` to `1`, because the `B` at index `9` is still inside the window.
 
-A set remembers only which letters occur. Both `"a"` and `"aa"` produce the set `{a}`, so a distinct-letter-only test would incorrectly call the one-character source sufficient. Counts instead record that the target needs `a:2`, while the source supplies only `a:1`: `1 < 2`, so one `a` is missing and no valid window exists. The correct result for this separate example is `""`.
+A plain set using `remove('B')` would forget `B` altogether, incorrectly suggesting that the window no longer has one. Counts let us distinguish removing one occurrence from losing the final occurrence. The target still needs `B:1`; after this removal, the window still supplies `B:1`, so the B requirement remains formed. This is why the later removal code decrements a count and checks it against the required count.
 
-| Explicitly separate example | Target requirement | Available source count | Distinct-letter-only test | Correct count test |
-|---|---|---|---|---|
-| `source="a", target="aa"` | `a:2` | `a:1` | `{a}` contains `{a}` → incorrectly accepts | `1 >= 2` → false; return `""` |
-
-**Return to the main input:** `source="ADOBECODEBANC"`, `target="ABC"`; the next table counts `A`, `B`, and `C` once each.
+| Same running input | Window before | B positions before | Removal | B count after | Target B requirement | Is B still satisfied? |
+|---|---|---|---|---|---|---|
+| `ADOBECODEBANC / ABC` | `BECODEBA` at `3..10` | `3,9` | Remove B at index 3 | `2 - 1 = 1` | `1` | `1 >= 1 → true` |
 
 **Equivalent clearer form:** `put(value, getOrDefault(value, 0) + 1)` performs the same update.
 
@@ -422,7 +414,7 @@ return bestLength == Integer.MAX_VALUE
 
 **Debugger state at this block:**
 
-After the last contraction: `right=12`, `left=10`, `formedGroups=2`, `bestStart=9`, `bestLength=4`, `requiredGroups=3`. Final counts are `{A:1,D:0,O:0,B:0,E:0,C:1,N:1}`. The loop increments right to `13`; `13 < 13` is false. `4 == Integer.MAX_VALUE` is false, so return `source.substring(9,9+4) = source.substring(9,13) = "BANC"` (exclusive end). For `source="a"`, `target="aa"`, A’s lowercase count reaches only `1`, never the required `2`; no candidate is recorded and `bestLength` stays `2147483647`, so the guard returns `""`.
+After the last contraction: `right=12`, `left=10`, `formedGroups=2`, `bestStart=9`, `bestLength=4`, `requiredGroups=3`. Final counts are `{A:1,D:0,O:0,B:0,E:0,C:1,N:1}`. The loop increments right to `13`; `13 < 13` is false. `4 == Integer.MAX_VALUE` is false, so return `source.substring(9,9+4) = source.substring(9,13) = "BANC"` (exclusive end). If no valid candidate were recorded, the unchanged sentinel would trigger the empty-string return; that branch is not taken in this execution.
 
 ## Reference approach
 
@@ -502,9 +494,9 @@ static String minWindow(String source, String target) {
 ## Questions and explained answers
 
 <details>
-<summary>1. In the separate source="a", target="aa" example, why is requiredGroups 1 rather than 2?</summary>
+<summary>1. In our ABC trace, why is requiredGroups 3 even when the window ADOBEC contains six distinct characters?</summary>
 
-This checkpoint uses the separately labeled duplicate-count example, not the main ABC trace. There is one distinct required character, `a`, so `requiredGroups=1`. Its required count is stored as `neededCounts[a]=2`; a source count of one cannot form that group. In the main `target="ABC"` example, the three distinct characters instead give `requiredGroups=3`.
+Requirements come from the fixed target, not from the changing window. Target `"ABC"` has three keys with counts `A:1`, `B:1`, and `C:1`. D, O, and E in `"ADOBEC"` create no additional requirements; they are extra window characters. Thus requiredGroups stays 3 throughout this execution.
 
 </details>
 
