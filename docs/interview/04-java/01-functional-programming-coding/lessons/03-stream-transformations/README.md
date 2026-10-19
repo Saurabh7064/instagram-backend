@@ -31,7 +31,7 @@ Input is a non-null list of non-null strings: `[" Alice ", "", "BOB", "   ", "Ch
 
 ## Block-by-block code walkthrough
 
-Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+Original snapshots are retained. Where a value changes several times, its cell shows the sequence ending at the final value.
 
 ### Block 1 — Read from the source without editing it
 
@@ -75,33 +75,33 @@ This call starts the traversal, keeps source order, and produces an unmodifiable
 
 **Word 0: input `" Alice "`.** The traversal has this next source element. Trim it to `"Alice"`. Evaluate `isEmpty() → false`, then negate it: keep condition `true`. The filter passes it, so calculate lowercase `"alice"` and include that value in the result. The conceptual result values so far are `["alice"]`. The original list is still `[" Alice ", "", "BOB", "   ", "Chloë"]`. Continue with the next source element.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `logical source position=0` | `current value (logical): " Alice " → "Alice" → "alice"` | `logical output[0]: absent → alice` |
+| source position (explanatory, not a Java index variable) | original | after trim | isEmpty | filter keep | lowercase | conceptual collected values | source after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `0` | `" Alice "` | `"Alice"` | `false` | `true` | `"alice"` | `["alice"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
 
 **Word 1: input `""`.** The traversal has this next source element. Trim it to `""`. Evaluate `isEmpty() → true`, then negate it: keep condition `false`. The filter discards it; the lowercase calculation is not invoked and no result value is added. The conceptual result values so far are `["alice"]`. The original list is still `[" Alice ", "", "BOB", "   ", "Chloë"]`. Continue with the next source element.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `logical source position=1` | `—` | `—` |
+| source position (explanatory, not a Java index variable) | original | after trim | isEmpty | filter keep | lowercase | conceptual collected values | source after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `1` | `""` | `""` | `true` | `false` | `Skipped` | `["alice"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
 
 **Word 2: input `"BOB"`.** The traversal has this next source element. Trim it to `"BOB"`. Evaluate `isEmpty() → false`, then negate it: keep condition `true`. The filter passes it, so calculate lowercase `"bob"` and include that value in the result. The conceptual result values so far are `["alice", "bob"]`. The original list is still `[" Alice ", "", "BOB", "   ", "Chloë"]`. Continue with the next source element.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `logical source position=2` | `current value (logical): "BOB" → "bob"` | `logical output[1]: absent → bob` |
+| source position (explanatory, not a Java index variable) | original | after trim | isEmpty | filter keep | lowercase | conceptual collected values | source after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `2` | `"BOB"` | `"BOB"` | `false` | `true` | `"bob"` | `["alice", "bob"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
 
 **Word 3: input `"   "`.** The traversal has this next source element. Trim it to `""`. Evaluate `isEmpty() → true`, then negate it: keep condition `false`. The filter discards it; the lowercase calculation is not invoked and no result value is added. The conceptual result values so far are `["alice", "bob"]`. The original list is still `[" Alice ", "", "BOB", "   ", "Chloë"]`. Continue with the next source element.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `logical source position=3` | `current value (logical): "   " → ""` | `—` |
+| source position (explanatory, not a Java index variable) | original | after trim | isEmpty | filter keep | lowercase | conceptual collected values | source after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `3` | `"   "` | `""` | `true` | `false` | `Skipped` | `["alice", "bob"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
 
 **Word 4: input `"Chloë"`.** The traversal has this next source element. Trim it to `"Chloë"`. Evaluate `isEmpty() → false`, then negate it: keep condition `true`. The filter passes it, so calculate lowercase `"chloë"` and include that value in the result. The conceptual result values so far are `["alice", "bob", "chloë"]`. The original list is still `[" Alice ", "", "BOB", "   ", "Chloë"]`. Continue with the next source element.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `logical source position=4` | `current value (logical): "Chloë" → "chloë"` | `logical output[2]: absent → chloë` |
+| source position (explanatory, not a Java index variable) | original | after trim | isEmpty | filter keep | lowercase | conceptual collected values | source after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `4` | `"Chloë"` | `"Chloë"` | `false` | `true` | `"chloë"` | `["alice", "bob", "chloë"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
 
 After source position `4`, there is no next source element. There is no application-level `index++` or loop condition in this reference: the stream library controls traversal. `toList` completes, and the return expression returns `["alice", "bob", "chloë"]`. No hidden lowercase invocation is owed to discarded words.
 

@@ -62,7 +62,7 @@ A frequency map stores that answer.
 
 ## Block-by-block code walkthrough
 
-Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+Original snapshots are retained. Where a value changes several times, its cell shows the sequence ending at the final value.
 
 **Running example for the code and tables below:** Inputs `first = "anagram"`, `second = "nagaram"`; both lengths are `7`, so the length guard is false. Initially `remainingByCharacter = {}`. Each row shows the map after its mutation.
 
@@ -146,57 +146,57 @@ for (char character : first.toCharArray()) {
 
 Read first-string character `a`. Retrieve its previous count with `getOrDefault`, obtaining `0`; an absent key supplies zero. Add this occurrence: `0+1=1`. Store that result, making the complete map `{'a': 1}`. Then advance to the next first-string character.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `character=a` | `currentCount: not assigned → 0` | `a: absent → 1` |
+| character | getOrDefault(character,0) | put count | map after | next action |
+| --- | --- | --- | --- | --- |
+| `a` | `0` | `0+1=1` | `{'a': 1}` | `next first-string character` |
 
 **Iteration/check 2 — character = `n`.**
 
 Read first-string character `n`. Retrieve its previous count with `getOrDefault`, obtaining `0`; an absent key supplies zero. Add this occurrence: `0+1=1`. Store that result, making the complete map `{'a': 1, 'n': 1}`. Then advance to the next first-string character.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `character=n` | `currentCount: not assigned → 0` | `n: absent → 1` |
+| character | getOrDefault(character,0) | put count | map after | next action |
+| --- | --- | --- | --- | --- |
+| `n` | `0` | `0+1=1` | `{'a': 1, 'n': 1}` | `next first-string character` |
 
 **Iteration/check 3 — character = `a`.**
 
 Read first-string character `a`. Retrieve its previous count with `getOrDefault`, obtaining `1`; an absent key supplies zero. Add this occurrence: `1+1=2`. Store that result, making the complete map `{'a': 2, 'n': 1}`. Then advance to the next first-string character.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `character=a` | `currentCount: not assigned → 1` | `a: 1 → 2` |
+| character | getOrDefault(character,0) | put count | map after | next action |
+| --- | --- | --- | --- | --- |
+| `a` | `1` | `1+1=2` | `{'a': 2, 'n': 1}` | `next first-string character` |
 
 **Iteration/check 4 — character = `g`.**
 
 Read first-string character `g`. Retrieve its previous count with `getOrDefault`, obtaining `0`; an absent key supplies zero. Add this occurrence: `0+1=1`. Store that result, making the complete map `{'a': 2, 'n': 1, 'g': 1}`. Then advance to the next first-string character.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `character=g` | `currentCount: not assigned → 0` | `g: absent → 1` |
+| character | getOrDefault(character,0) | put count | map after | next action |
+| --- | --- | --- | --- | --- |
+| `g` | `0` | `0+1=1` | `{'a': 2, 'n': 1, 'g': 1}` | `next first-string character` |
 
 **Iteration/check 5 — character = `r`.**
 
 Read first-string character `r`. Retrieve its previous count with `getOrDefault`, obtaining `0`; an absent key supplies zero. Add this occurrence: `0+1=1`. Store that result, making the complete map `{'a': 2, 'n': 1, 'g': 1, 'r': 1}`. Then advance to the next first-string character.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `character=r` | `currentCount: not assigned → 0` | `r: absent → 1` |
+| character | getOrDefault(character,0) | put count | map after | next action |
+| --- | --- | --- | --- | --- |
+| `r` | `0` | `0+1=1` | `{'a': 2, 'n': 1, 'g': 1, 'r': 1}` | `next first-string character` |
 
 **Iteration/check 6 — character = `a`.**
 
 Read first-string character `a`. Retrieve its previous count with `getOrDefault`, obtaining `2`; an absent key supplies zero. Add this occurrence: `2+1=3`. Store that result, making the complete map `{'a': 3, 'n': 1, 'g': 1, 'r': 1}`. Then advance to the next first-string character.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `character=a` | `currentCount: not assigned → 2` | `a: 2 → 3` |
+| character | getOrDefault(character,0) | put count | map after | next action |
+| --- | --- | --- | --- | --- |
+| `a` | `2` | `2+1=3` | `{'a': 3, 'n': 1, 'g': 1, 'r': 1}` | `next first-string character` |
 
 **Iteration/check 7 — character = `m`.**
 
 Read first-string character `m`. Retrieve its previous count with `getOrDefault`, obtaining `0`; an absent key supplies zero. Add this occurrence: `0+1=1`. Store that result, making the complete map `{'a': 3, 'n': 1, 'g': 1, 'r': 1, 'm': 1}`. Then advance to the next first-string character.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `character=m` | `currentCount: not assigned → 0` | `m: absent → 1` |
+| character | getOrDefault(character,0) | put count | map after | next action |
+| --- | --- | --- | --- | --- |
+| `m` | `0` | `0+1=1` | `{'a': 3, 'n': 1, 'g': 1, 'r': 1, 'm': 1}` | `next first-string character` |
 
 After seven characters, this enhanced loop is exhausted. The next loop starts with the complete requirement map.
 
@@ -271,57 +271,57 @@ if (currentCount == 1) {
 
 Read second-string character `n` and look up its remaining count: `1`. The missing-key guard is `false`, so the early false return is skipped. The final-copy condition is `true`; execute `remove key`. The remaining map is `{'a': 3, 'g': 1, 'r': 1, 'm': 1}`. Continue to the next second-string character. Removing a key means its last required copy has just been consumed.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `character=n` | `currentCount: not assigned → 1` | `n: 1 → absent` |
+| character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `n` | `1` | `false` | `true` | `remove key` | `{'a': 3, 'g': 1, 'r': 1, 'm': 1}` | `next second-string character` |
 
 **Iteration/check 2 — character = `a`.**
 
 Read second-string character `a` and look up its remaining count: `3`. The missing-key guard is `false`, so the early false return is skipped. The final-copy condition is `false`; execute `put(a,2)`. The remaining map is `{'a': 2, 'g': 1, 'r': 1, 'm': 1}`. Continue to the next second-string character. Removing a key means its last required copy has just been consumed.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `character=a` | `currentCount: not assigned → 3` | `a: 3 → 2` |
+| character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `a` | `3` | `false` | `false` | `put(a,2)` | `{'a': 2, 'g': 1, 'r': 1, 'm': 1}` | `next second-string character` |
 
 **Iteration/check 3 — character = `g`.**
 
 Read second-string character `g` and look up its remaining count: `1`. The missing-key guard is `false`, so the early false return is skipped. The final-copy condition is `true`; execute `remove key`. The remaining map is `{'a': 2, 'r': 1, 'm': 1}`. Continue to the next second-string character. Removing a key means its last required copy has just been consumed.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `character=g` | `currentCount: not assigned → 1` | `g: 1 → absent` |
+| character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `g` | `1` | `false` | `true` | `remove key` | `{'a': 2, 'r': 1, 'm': 1}` | `next second-string character` |
 
 **Iteration/check 4 — character = `a`.**
 
 Read second-string character `a` and look up its remaining count: `2`. The missing-key guard is `false`, so the early false return is skipped. The final-copy condition is `false`; execute `put(a,1)`. The remaining map is `{'a': 1, 'r': 1, 'm': 1}`. Continue to the next second-string character. Removing a key means its last required copy has just been consumed.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `character=a` | `currentCount: not assigned → 2` | `a: 2 → 1` |
+| character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `a` | `2` | `false` | `false` | `put(a,1)` | `{'a': 1, 'r': 1, 'm': 1}` | `next second-string character` |
 
 **Iteration/check 5 — character = `r`.**
 
 Read second-string character `r` and look up its remaining count: `1`. The missing-key guard is `false`, so the early false return is skipped. The final-copy condition is `true`; execute `remove key`. The remaining map is `{'a': 1, 'm': 1}`. Continue to the next second-string character. Removing a key means its last required copy has just been consumed.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `character=r` | `currentCount: not assigned → 1` | `r: 1 → absent` |
+| character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `r` | `1` | `false` | `true` | `remove key` | `{'a': 1, 'm': 1}` | `next second-string character` |
 
 **Iteration/check 6 — character = `a`.**
 
 Read second-string character `a` and look up its remaining count: `1`. The missing-key guard is `false`, so the early false return is skipped. The final-copy condition is `true`; execute `remove key`. The remaining map is `{'m': 1}`. Continue to the next second-string character. Removing a key means its last required copy has just been consumed.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `character=a` | `currentCount: not assigned → 1` | `a: 1 → absent` |
+| character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `a` | `1` | `false` | `true` | `remove key` | `{'m': 1}` | `next second-string character` |
 
 **Iteration/check 7 — character = `m`.**
 
 Read second-string character `m` and look up its remaining count: `1`. The missing-key guard is `false`, so the early false return is skipped. The final-copy condition is `true`; execute `remove key`. The remaining map is `{}`. Continue to the next second-string character. Removing a key means its last required copy has just been consumed.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `character=m` | `currentCount: not assigned → 1` | `m: 1 → absent` |
+| character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `m` | `1` | `false` | `true` | `remove key` | `{}` | `next second-string character` |
 
 Every lookup is present, so no early false return runs. After exhaustion, `remainingByCharacter.isEmpty()` evaluates to `true`; return `true`.
 

@@ -61,7 +61,7 @@ nat -> ant
 
 ## Block-by-block code walkthrough
 
-Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+Original snapshots are retained. Where a value changes several times, its cell shows the sequence ending at the final value.
 
 **Running example for the code and tables below:** Input `words = ["eat","tea","tan","ate","nat","bat"]`; initially `wordsByKey = {}`. The original array and words remain unchanged.
 
@@ -176,49 +176,49 @@ wordsByKey.computeIfAbsent(key, ignored -> new ArrayList<>())
 
 Read word `eat`. Copy it into characters `['e', 'a', 't']`, then sort that copy into `['a', 'e', 't']`. Construct key `aet`. Inside `computeIfAbsent`, the key-absent decision is `true`; `create [] then append`. Appending the original word produces the full map `{'aet': ['eat']}`. Advance to the next word. Sorting the copy never changes the original word.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `word=eat` | `key: not assigned → aet` | `characters[0]: e → a; characters[1]: a → e; wordsByKey.aet[0]: absent → eat` |
+| word | characters before sort | characters after sort | key | key absent? (inside computeIfAbsent) | action | wordsByKey after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `eat` | `['e', 'a', 't']` | `['a', 'e', 't']` | `aet` | `true` | `create [] then append` | `{'aet': ['eat']}` | `next word` |
 
 **Iteration/check 2 — word = `tea`.**
 
 Read word `tea`. Copy it into characters `['t', 'e', 'a']`, then sort that copy into `['a', 'e', 't']`. Construct key `aet`. Inside `computeIfAbsent`, the key-absent decision is `false`; `reuse list then append`. Appending the original word produces the full map `{'aet': ['eat', 'tea']}`. Advance to the next word. Sorting the copy never changes the original word.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `word=tea` | `key: not assigned → aet` | `characters[0]: t → a; characters[2]: a → t; wordsByKey.aet[1]: absent → tea` |
+| word | characters before sort | characters after sort | key | key absent? (inside computeIfAbsent) | action | wordsByKey after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `tea` | `['t', 'e', 'a']` | `['a', 'e', 't']` | `aet` | `false` | `reuse list then append` | `{'aet': ['eat', 'tea']}` | `next word` |
 
 **Iteration/check 3 — word = `tan`.**
 
 Read word `tan`. Copy it into characters `['t', 'a', 'n']`, then sort that copy into `['a', 'n', 't']`. Construct key `ant`. Inside `computeIfAbsent`, the key-absent decision is `true`; `create [] then append`. Appending the original word produces the full map `{'aet': ['eat', 'tea'], 'ant': ['tan']}`. Advance to the next word. Sorting the copy never changes the original word.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `word=tan` | `key: not assigned → ant` | `characters[0]: t → a; characters[1]: a → n; characters[2]: n → t; wordsByKey.ant[0]: absent → tan` |
+| word | characters before sort | characters after sort | key | key absent? (inside computeIfAbsent) | action | wordsByKey after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `tan` | `['t', 'a', 'n']` | `['a', 'n', 't']` | `ant` | `true` | `create [] then append` | `{'aet': ['eat', 'tea'], 'ant': ['tan']}` | `next word` |
 
 **Iteration/check 4 — word = `ate`.**
 
 Read word `ate`. Copy it into characters `['a', 't', 'e']`, then sort that copy into `['a', 'e', 't']`. Construct key `aet`. Inside `computeIfAbsent`, the key-absent decision is `false`; `reuse list then append`. Appending the original word produces the full map `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan']}`. Advance to the next word. Sorting the copy never changes the original word.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `word=ate` | `key: not assigned → aet` | `characters[1]: t → e; characters[2]: e → t; wordsByKey.aet[2]: absent → ate` |
+| word | characters before sort | characters after sort | key | key absent? (inside computeIfAbsent) | action | wordsByKey after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `ate` | `['a', 't', 'e']` | `['a', 'e', 't']` | `aet` | `false` | `reuse list then append` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan']}` | `next word` |
 
 **Iteration/check 5 — word = `nat`.**
 
 Read word `nat`. Copy it into characters `['n', 'a', 't']`, then sort that copy into `['a', 'n', 't']`. Construct key `ant`. Inside `computeIfAbsent`, the key-absent decision is `false`; `reuse list then append`. Appending the original word produces the full map `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat']}`. Advance to the next word. Sorting the copy never changes the original word.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `word=nat` | `key: not assigned → ant` | `characters[0]: n → a; characters[1]: a → n; wordsByKey.ant[1]: absent → nat` |
+| word | characters before sort | characters after sort | key | key absent? (inside computeIfAbsent) | action | wordsByKey after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `nat` | `['n', 'a', 't']` | `['a', 'n', 't']` | `ant` | `false` | `reuse list then append` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat']}` | `next word` |
 
 **Iteration/check 6 — word = `bat`.**
 
 Read word `bat`. Copy it into characters `['b', 'a', 't']`, then sort that copy into `['a', 'b', 't']`. Construct key `abt`. Inside `computeIfAbsent`, the key-absent decision is `true`; `create [] then append`. Appending the original word produces the full map `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat'], 'abt': ['bat']}`. Advance to the next word. Sorting the copy never changes the original word.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `word=bat` | `key: not assigned → abt` | `characters[0]: b → a; characters[1]: a → b; wordsByKey.abt[0]: absent → bat` |
+| word | characters before sort | characters after sort | key | key absent? (inside computeIfAbsent) | action | wordsByKey after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `bat` | `['b', 'a', 't']` | `['a', 'b', 't']` | `abt` | `true` | `create [] then append` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat'], 'abt': ['bat']}` | `next word` |
 
 There is no explicit `if` in this Java loop: `computeIfAbsent` makes the missing-key decision internally. After all six words, return the grouped values in a new outer list; group order is unspecified.
 

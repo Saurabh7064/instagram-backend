@@ -36,7 +36,7 @@ For index `2` in `[1,2,3,4,5,6,1]`, left-side product is `1×2=2`; right-side pr
 
 ## Block-by-block code walkthrough
 
-Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+Original snapshots are retained. Where a value changes several times, its cell shows the sequence ending at the final value.
 
 Input stays `numbers=[1,2,3,4,5,6,1]` during both passes.
 
@@ -62,45 +62,45 @@ The first assignment records only values strictly left of `index`. The following
 
 **Left-pass iteration `index=0`.** Test `0<7 → true`. Before this position, the left product is `1`. Save `answer[0]=1`, making the array `[1, 0, 0, 0, 0, 0, 0]`. Then multiply `1×1=1` and store it in `prefixProduct` for the next position. Execute `index++` to `1`. No conditional branch exists inside the loop.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=0` | `index: 0 → 1` | `[0]: 0 → 1` |
+| index | condition | prefixProduct before | answer after assignment | prefixProduct after multiply | next |
+| --- | --- | --- | --- | --- | --- |
+| `0` | `0<7 → true` | `1` | `[1, 0, 0, 0, 0, 0, 0]` | `1` | `index=1` |
 
 **Left-pass iteration `index=1`.** Test `1<7 → true`. Before this position, the left product is `1`. Save `answer[1]=1`, making the array `[1, 1, 0, 0, 0, 0, 0]`. Then multiply `1×2=2` and store it in `prefixProduct` for the next position. Execute `index++` to `2`. No conditional branch exists inside the loop.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=1` | `index: 1 → 2; prefixProduct: 1 → 2` | `[1]: 0 → 1` |
+| index | condition | prefixProduct before | answer after assignment | prefixProduct after multiply | next |
+| --- | --- | --- | --- | --- | --- |
+| `1` | `1<7 → true` | `1` | `[1, 1, 0, 0, 0, 0, 0]` | `2` | `index=2` |
 
 **Left-pass iteration `index=2`.** Test `2<7 → true`. Before this position, the left product is `2`. Save `answer[2]=2`, making the array `[1, 1, 2, 0, 0, 0, 0]`. Then multiply `2×3=6` and store it in `prefixProduct` for the next position. Execute `index++` to `3`. No conditional branch exists inside the loop.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=2` | `index: 2 → 3; prefixProduct: 2 → 6` | `[2]: 0 → 2` |
+| index | condition | prefixProduct before | answer after assignment | prefixProduct after multiply | next |
+| --- | --- | --- | --- | --- | --- |
+| `2` | `2<7 → true` | `2` | `[1, 1, 2, 0, 0, 0, 0]` | `6` | `index=3` |
 
 **Left-pass iteration `index=3`.** Test `3<7 → true`. Before this position, the left product is `6`. Save `answer[3]=6`, making the array `[1, 1, 2, 6, 0, 0, 0]`. Then multiply `6×4=24` and store it in `prefixProduct` for the next position. Execute `index++` to `4`. No conditional branch exists inside the loop.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=3` | `index: 3 → 4; prefixProduct: 6 → 24` | `[3]: 0 → 6` |
+| index | condition | prefixProduct before | answer after assignment | prefixProduct after multiply | next |
+| --- | --- | --- | --- | --- | --- |
+| `3` | `3<7 → true` | `6` | `[1, 1, 2, 6, 0, 0, 0]` | `24` | `index=4` |
 
 **Left-pass iteration `index=4`.** Test `4<7 → true`. Before this position, the left product is `24`. Save `answer[4]=24`, making the array `[1, 1, 2, 6, 24, 0, 0]`. Then multiply `24×5=120` and store it in `prefixProduct` for the next position. Execute `index++` to `5`. No conditional branch exists inside the loop.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=4` | `index: 4 → 5; prefixProduct: 24 → 120` | `[4]: 0 → 24` |
+| index | condition | prefixProduct before | answer after assignment | prefixProduct after multiply | next |
+| --- | --- | --- | --- | --- | --- |
+| `4` | `4<7 → true` | `24` | `[1, 1, 2, 6, 24, 0, 0]` | `120` | `index=5` |
 
 **Left-pass iteration `index=5`.** Test `5<7 → true`. Before this position, the left product is `120`. Save `answer[5]=120`, making the array `[1, 1, 2, 6, 24, 120, 0]`. Then multiply `120×6=720` and store it in `prefixProduct` for the next position. Execute `index++` to `6`. No conditional branch exists inside the loop.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=5` | `index: 5 → 6; prefixProduct: 120 → 720` | `[5]: 0 → 120` |
+| index | condition | prefixProduct before | answer after assignment | prefixProduct after multiply | next |
+| --- | --- | --- | --- | --- | --- |
+| `5` | `5<7 → true` | `120` | `[1, 1, 2, 6, 24, 120, 0]` | `720` | `index=6` |
 
 **Left-pass iteration `index=6`.** Test `6<7 → true`. Before this position, the left product is `720`. Save `answer[6]=720`, making the array `[1, 1, 2, 6, 24, 120, 720]`. Then multiply `720×1=720` and store it in `prefixProduct` for the next position. Execute `index++` to `7`. No conditional branch exists inside the loop.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=6` | `index: 6 → 7` | `[6]: 0 → 720` |
+| index | condition | prefixProduct before | answer after assignment | prefixProduct after multiply | next |
+| --- | --- | --- | --- | --- | --- |
+| `6` | `6<7 → true` | `720` | `[1, 1, 2, 6, 24, 120, 720]` | `720` | `index=7` |
 
 After index `6`, the increment makes `index=7`; `7<7 → false` and the first loop exits. Its local index leaves scope; the next loop declares a fresh index.
 
@@ -118,45 +118,45 @@ Initialize `suffixProduct=1` because nothing is right of the last position. Star
 
 **Right-pass iteration `index=6`.** Check `6>=0 → true`. Read saved left product `720` and right product `1`. Multiply `720×1=720` into `answer[6]`. Then prepare the next right-side product: `1×1=1`. Execute `index--`, producing `5`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=6` | `index: 6 → 5` | `—` |
+| index | condition | answer before | suffixProduct before | answer after multiplication | suffixProduct after | next |
+| --- | --- | --- | --- | --- | --- | --- |
+| `6` | `6>=0 → true` | `[1, 1, 2, 6, 24, 120, 720]` | `1` | `[1, 1, 2, 6, 24, 120, 720]` | `1` | `index=5` |
 
 **Right-pass iteration `index=5`.** Check `5>=0 → true`. Read saved left product `120` and right product `1`. Multiply `120×1=120` into `answer[5]`. Then prepare the next right-side product: `1×6=6`. Execute `index--`, producing `4`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=5` | `index: 5 → 4; suffixProduct: 1 → 6` | `—` |
+| index | condition | answer before | suffixProduct before | answer after multiplication | suffixProduct after | next |
+| --- | --- | --- | --- | --- | --- | --- |
+| `5` | `5>=0 → true` | `[1, 1, 2, 6, 24, 120, 720]` | `1` | `[1, 1, 2, 6, 24, 120, 720]` | `6` | `index=4` |
 
 **Right-pass iteration `index=4`.** Check `4>=0 → true`. Read saved left product `24` and right product `6`. Multiply `24×6=144` into `answer[4]`. Then prepare the next right-side product: `6×5=30`. Execute `index--`, producing `3`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=4` | `index: 4 → 3; suffixProduct: 6 → 30` | `[4]: 24 → 144` |
+| index | condition | answer before | suffixProduct before | answer after multiplication | suffixProduct after | next |
+| --- | --- | --- | --- | --- | --- | --- |
+| `4` | `4>=0 → true` | `[1, 1, 2, 6, 24, 120, 720]` | `6` | `[1, 1, 2, 6, 144, 120, 720]` | `30` | `index=3` |
 
 **Right-pass iteration `index=3`.** Check `3>=0 → true`. Read saved left product `6` and right product `30`. Multiply `6×30=180` into `answer[3]`. Then prepare the next right-side product: `30×4=120`. Execute `index--`, producing `2`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=3` | `index: 3 → 2; suffixProduct: 30 → 120` | `[3]: 6 → 180` |
+| index | condition | answer before | suffixProduct before | answer after multiplication | suffixProduct after | next |
+| --- | --- | --- | --- | --- | --- | --- |
+| `3` | `3>=0 → true` | `[1, 1, 2, 6, 144, 120, 720]` | `30` | `[1, 1, 2, 180, 144, 120, 720]` | `120` | `index=2` |
 
 **Right-pass iteration `index=2`.** Check `2>=0 → true`. Read saved left product `2` and right product `120`. Multiply `2×120=240` into `answer[2]`. Then prepare the next right-side product: `120×3=360`. Execute `index--`, producing `1`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=2` | `index: 2 → 1; suffixProduct: 120 → 360` | `[2]: 2 → 240` |
+| index | condition | answer before | suffixProduct before | answer after multiplication | suffixProduct after | next |
+| --- | --- | --- | --- | --- | --- | --- |
+| `2` | `2>=0 → true` | `[1, 1, 2, 180, 144, 120, 720]` | `120` | `[1, 1, 240, 180, 144, 120, 720]` | `360` | `index=1` |
 
 **Right-pass iteration `index=1`.** Check `1>=0 → true`. Read saved left product `1` and right product `360`. Multiply `1×360=360` into `answer[1]`. Then prepare the next right-side product: `360×2=720`. Execute `index--`, producing `0`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=1` | `index: 1 → 0; suffixProduct: 360 → 720` | `[1]: 1 → 360` |
+| index | condition | answer before | suffixProduct before | answer after multiplication | suffixProduct after | next |
+| --- | --- | --- | --- | --- | --- | --- |
+| `1` | `1>=0 → true` | `[1, 1, 240, 180, 144, 120, 720]` | `360` | `[1, 360, 240, 180, 144, 120, 720]` | `720` | `index=0` |
 
 **Right-pass iteration `index=0`.** Check `0>=0 → true`. Read saved left product `1` and right product `720`. Multiply `1×720=720` into `answer[0]`. Then prepare the next right-side product: `720×1=720`. Execute `index--`, producing `-1`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=0` | `index: 0 → -1` | `[0]: 1 → 720` |
+| index | condition | answer before | suffixProduct before | answer after multiplication | suffixProduct after | next |
+| --- | --- | --- | --- | --- | --- | --- |
+| `0` | `0>=0 → true` | `[1, 360, 240, 180, 144, 120, 720]` | `720` | `[720, 360, 240, 180, 144, 120, 720]` | `720` | `index=-1` |
 
 ### Block 4 — Return the constructed array
 

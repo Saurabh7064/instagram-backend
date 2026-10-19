@@ -29,7 +29,7 @@ For input `[1,2,1]`, first positions `0,1,2` receive `1,2,1`; output positions `
 
 ## Block-by-block code walkthrough
 
-Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+Original snapshots are retained. Where a value changes several times, its cell shows the sequence ending at the final value.
 
 Use `numbers=[1,2,1]`, length `3`, for both implementations. We explain the stream version first, then compare the loop rather than assuming short code is always preferable.
 
@@ -51,39 +51,39 @@ return IntStream.concat(Arrays.stream(numbers), Arrays.stream(numbers)).toArray(
 
 **Emission 0: first traversal, source position `0`.** Read `numbers[0]=1` from the unchanged input. Include `1` at logical output position `0`, so output values so far are `[1]`. Continue with the next value of this traversal. No user-written `if`, callback, or index update runs in this implementation; those are library-controlled traversal decisions.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `logical output position=0` | `—` | `logical output[0]: absent → 1` |
+| logical output position | traversal | source position (explanatory) | value | logical values so far | input after |
+| --- | --- | --- | --- | --- | --- |
+| `0` | `first` | `0` | `1` | `[1]` | `[1, 2, 1]` |
 
 **Emission 1: first traversal, source position `1`.** Read `numbers[1]=2` from the unchanged input. Include `2` at logical output position `1`, so output values so far are `[1, 2]`. Continue with the next value of this traversal. No user-written `if`, callback, or index update runs in this implementation; those are library-controlled traversal decisions.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `logical output position=1` | `—` | `logical output[1]: absent → 2` |
+| logical output position | traversal | source position (explanatory) | value | logical values so far | input after |
+| --- | --- | --- | --- | --- | --- |
+| `1` | `first` | `1` | `2` | `[1, 2]` | `[1, 2, 1]` |
 
 **Emission 2: first traversal, source position `2`.** Read `numbers[2]=1` from the unchanged input. Include `1` at logical output position `2`, so output values so far are `[1, 2, 1]`. The first traversal now has no next value; proceed to the second traversal. No user-written `if`, callback, or index update runs in this implementation; those are library-controlled traversal decisions.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `logical output position=2` | `—` | `logical output[2]: absent → 1` |
+| logical output position | traversal | source position (explanatory) | value | logical values so far | input after |
+| --- | --- | --- | --- | --- | --- |
+| `2` | `first` | `2` | `1` | `[1, 2, 1]` | `[1, 2, 1]` |
 
 **Emission 3: second traversal, source position `0`.** Read `numbers[0]=1` from the unchanged input. Include `1` at logical output position `3`, so output values so far are `[1, 2, 1, 1]`. Continue with the next value of this traversal. No user-written `if`, callback, or index update runs in this implementation; those are library-controlled traversal decisions.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `logical output position=3` | `—` | `logical output[3]: absent → 1` |
+| logical output position | traversal | source position (explanatory) | value | logical values so far | input after |
+| --- | --- | --- | --- | --- | --- |
+| `3` | `second` | `0` | `1` | `[1, 2, 1, 1]` | `[1, 2, 1]` |
 
 **Emission 4: second traversal, source position `1`.** Read `numbers[1]=2` from the unchanged input. Include `2` at logical output position `4`, so output values so far are `[1, 2, 1, 1, 2]`. Continue with the next value of this traversal. No user-written `if`, callback, or index update runs in this implementation; those are library-controlled traversal decisions.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `logical output position=4` | `—` | `logical output[4]: absent → 2` |
+| logical output position | traversal | source position (explanatory) | value | logical values so far | input after |
+| --- | --- | --- | --- | --- | --- |
+| `4` | `second` | `1` | `2` | `[1, 2, 1, 1, 2]` | `[1, 2, 1]` |
 
 **Emission 5: second traversal, source position `2`.** Read `numbers[2]=1` from the unchanged input. Include `1` at logical output position `5`, so output values so far are `[1, 2, 1, 1, 2, 1]`. The second traversal now has no next value; finish toArray and return. No user-written `if`, callback, or index update runs in this implementation; those are library-controlled traversal decisions.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `logical output position=5` | `—` | `logical output[5]: absent → 1` |
+| logical output position | traversal | source position (explanatory) | value | logical values so far | input after |
+| --- | --- | --- | --- | --- | --- |
+| `5` | `second` | `2` | `1` | `[1, 2, 1, 1, 2, 1]` | `[1, 2, 1]` |
 
 The method returns `[1,2,1,1,2,1]`. The result is a new modifiable array. There is no later statement or early-match branch; exhausting both sources completes the result. Empty input gives two empty traversals, zero emissions, and a returned `[]`.
 
@@ -108,21 +108,21 @@ At each valid input index, read its value and write it first at the same result 
 
 **Loop iteration `index=0`.** Check `0<3 → true`. Read `1` and write `result[0]=1`, giving `[1, 0, 0, 0, 0, 0]`. Calculate the second destination `0+3=3` and write `1` there, giving `[1, 0, 0, 1, 0, 0]`. Input stays `[1, 2, 1]`. Execute `index++`, producing `1`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=0` | `index: 0 → 1` | `[0]: 0 → 1; [3]: 0 → 1` |
+| index | condition | value | after first write | second destination | after second write | next |
+| --- | --- | --- | --- | --- | --- | --- |
+| `0` | `0<3 → true` | `1` | `[1, 0, 0, 0, 0, 0]` | `3` | `[1, 0, 0, 1, 0, 0]` | `index=1` |
 
 **Loop iteration `index=1`.** Check `1<3 → true`. Read `2` and write `result[1]=2`, giving `[1, 2, 0, 1, 0, 0]`. Calculate the second destination `1+3=4` and write `2` there, giving `[1, 2, 0, 1, 2, 0]`. Input stays `[1, 2, 1]`. Execute `index++`, producing `2`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=1` | `index: 1 → 2` | `[1]: 0 → 2; [4]: 0 → 2` |
+| index | condition | value | after first write | second destination | after second write | next |
+| --- | --- | --- | --- | --- | --- | --- |
+| `1` | `1<3 → true` | `2` | `[1, 2, 0, 1, 0, 0]` | `4` | `[1, 2, 0, 1, 2, 0]` | `index=2` |
 
 **Loop iteration `index=2`.** Check `2<3 → true`. Read `1` and write `result[2]=1`, giving `[1, 2, 1, 1, 2, 0]`. Calculate the second destination `2+3=5` and write `1` there, giving `[1, 2, 1, 1, 2, 1]`. Input stays `[1, 2, 1]`. Execute `index++`, producing `3`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=2` | `index: 2 → 3` | `[2]: 0 → 1; [5]: 0 → 1` |
+| index | condition | value | after first write | second destination | after second write | next |
+| --- | --- | --- | --- | --- | --- | --- |
+| `2` | `2<3 → true` | `1` | `[1, 2, 1, 1, 2, 0]` | `5` | `[1, 2, 1, 1, 2, 1]` | `index=3` |
 
 ### Block 5 — Return the loop result after exhaustion
 

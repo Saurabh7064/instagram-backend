@@ -54,4 +54,4 @@ The original normalization Java files remain at their old paths and now belong t
 
 Start with the [learning backlog](./learning-backlog.md); later lessons remain `TODO` until the current lesson's stop/go criteria are met.
 
-Debugger-table preference: keep one row per iteration and show only changes, preserving intermediate values as compact arrow paths in a cell. Use `—` for unchanged state. Keep the explanation concise; do not expand every operation into another table row.
+Keep the original debugger-table columns and full context. If one value changes several times within an iteration, show the intermediate values in that same cell (for example `2 → 3 → 2`); do not replace the table with a changes-only summary.

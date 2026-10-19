@@ -58,7 +58,7 @@ For `"ADOBECODEBANC"` and `"ABC"`:
 
 ## Block-by-block code walkthrough
 
-Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+Original snapshots are retained. Where a value changes several times, its cell shows the sequence ending at the final value.
 
 Use `source="ADOBECODEBANC"`, `target="ABC"`. Source indexes `0..12` hold `A,D,O,B,E,C,O,D,E,B,A,N,C`. The requirements are built first; each later block shows its own mutations and branch results. Supporting snapshots use the actual `right` index and phase to connect each mutation to its complete iteration. Map entries are displayed in insertion order for readability; Java HashMap order is unspecified.
 
@@ -296,107 +296,105 @@ Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and cont
 
 Read source index `0`, character `A`. `windowCounts.merge` adds one `A` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `if` condition left to right: `containsKey(A) → true; 1 == 1 → true`. The `if` is true, so `formedGroups++` changes `0 → 1`. Next check `while (formedGroups == requiredGroups)`: `1 == 3 → false; stop shrinking`. The completed outer iteration has left `0`, formed groups `1`, best `(start,length)` `(0,2147483647)`, and full window map `{'A': 1}`. The `for` loop then runs `right++` and checks its condition again.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=0; left=0` | `formedGroups: 0 → 1` | `A: absent → 1` |
+| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `0` | `A` | `containsKey(A) → true; 1 == 1 → true` | `1 == 3 → false; stop shrinking` | `0` | `1` | `(0,2147483647)` | `{'A': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 2 — right = `1`.**
 
 Read source index `1`, character `D`. `windowCounts.merge` adds one `D` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `if` condition left to right: `containsKey(D) → false; equality Skipped (short circuit)`. The `if` is false, so skip `formedGroups++`; it stays `1`. Next check `while (formedGroups == requiredGroups)`: `1 == 3 → false; stop shrinking`. The completed outer iteration has left `0`, formed groups `1`, best `(start,length)` `(0,2147483647)`, and full window map `{'A': 1, 'D': 1}`. The `for` loop then runs `right++` and checks its condition again.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=1; left=0` | `—` | `D: absent → 1` |
+| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `1` | `D` | `containsKey(D) → false; equality Skipped (short circuit)` | `1 == 3 → false; stop shrinking` | `0` | `1` | `(0,2147483647)` | `{'A': 1, 'D': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 3 — right = `2`.**
 
 Read source index `2`, character `O`. `windowCounts.merge` adds one `O` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `if` condition left to right: `containsKey(O) → false; equality Skipped (short circuit)`. The `if` is false, so skip `formedGroups++`; it stays `1`. Next check `while (formedGroups == requiredGroups)`: `1 == 3 → false; stop shrinking`. The completed outer iteration has left `0`, formed groups `1`, best `(start,length)` `(0,2147483647)`, and full window map `{'A': 1, 'D': 1, 'O': 1}`. The `for` loop then runs `right++` and checks its condition again.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=2; left=0` | `—` | `O: absent → 1` |
+| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `2` | `O` | `containsKey(O) → false; equality Skipped (short circuit)` | `1 == 3 → false; stop shrinking` | `0` | `1` | `(0,2147483647)` | `{'A': 1, 'D': 1, 'O': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 4 — right = `3`.**
 
 Read source index `3`, character `B`. `windowCounts.merge` adds one `B` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `if` condition left to right: `containsKey(B) → true; 1 == 1 → true`. The `if` is true, so `formedGroups++` changes `1 → 2`. Next check `while (formedGroups == requiredGroups)`: `2 == 3 → false; stop shrinking`. The completed outer iteration has left `0`, formed groups `2`, best `(start,length)` `(0,2147483647)`, and full window map `{'A': 1, 'D': 1, 'O': 1, 'B': 1}`. The `for` loop then runs `right++` and checks its condition again.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=3; left=0` | `formedGroups: 1 → 2` | `B: absent → 1` |
+| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `3` | `B` | `containsKey(B) → true; 1 == 1 → true` | `2 == 3 → false; stop shrinking` | `0` | `2` | `(0,2147483647)` | `{'A': 1, 'D': 1, 'O': 1, 'B': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 5 — right = `4`.**
 
 Read source index `4`, character `E`. `windowCounts.merge` adds one `E` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `if` condition left to right: `containsKey(E) → false; equality Skipped (short circuit)`. The `if` is false, so skip `formedGroups++`; it stays `2`. Next check `while (formedGroups == requiredGroups)`: `2 == 3 → false; stop shrinking`. The completed outer iteration has left `0`, formed groups `2`, best `(start,length)` `(0,2147483647)`, and full window map `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1}`. The `for` loop then runs `right++` and checks its condition again.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=4; left=0` | `—` | `E: absent → 1` |
+| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `4` | `E` | `containsKey(E) → false; equality Skipped (short circuit)` | `2 == 3 → false; stop shrinking` | `0` | `2` | `(0,2147483647)` | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 6 — right = `5`.**
 
-Here `formedGroups: 2 → 3 → 2` includes both the incoming increment and the outgoing decrement after removing A.
-
 Read source index `5`, character `C`. `windowCounts.merge` adds one `C` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `if` condition left to right: `containsKey(C) → true; 1 == 1 → true`. The `if` is true, so `formedGroups++` changes `2 → 3`. Next check `while (formedGroups == requiredGroups)`: `3==3 true; length=5-0+1=6; shorter=true; remove A@0; left=1; required=true; below required=true; formed=2; 2 == 3 → false; stop shrinking`. The completed outer iteration has left `1`, formed groups `2`, best `(start,length)` `(0,6)`, and full window map `{'A': 0, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 1}`. The `for` loop then runs `right++` and checks its condition again.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=5; left=0` | `formedGroups: 2 → 3 → 2; left: 0 → 1; bestLength: 2147483647 → 6` | `A: 1 → 0; C: absent → 1` |
+| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `5` | `C` | `containsKey(C) → true; 1 == 1 → true` | `3==3 true; length=5-0+1=6; shorter=true; remove A@0; left=1; required=true; below required=true; formed=2; 2 == 3 → false; stop shrinking` | `1` | `2 → 3 → 2` | `(0,6)` | `{'A': 0, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 7 — right = `6`.**
 
 Read source index `6`, character `O`. `windowCounts.merge` adds one `O` occurrence, changing its count `1 → 2`. Evaluate the incoming-group `if` condition left to right: `containsKey(O) → false; equality Skipped (short circuit)`. The `if` is false, so skip `formedGroups++`; it stays `2`. Next check `while (formedGroups == requiredGroups)`: `2 == 3 → false; stop shrinking`. The completed outer iteration has left `1`, formed groups `2`, best `(start,length)` `(0,6)`, and full window map `{'A': 0, 'D': 1, 'O': 2, 'B': 1, 'E': 1, 'C': 1}`. The `for` loop then runs `right++` and checks its condition again.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=6; left=1` | `—` | `O: 1 → 2` |
+| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `6` | `O` | `containsKey(O) → false; equality Skipped (short circuit)` | `2 == 3 → false; stop shrinking` | `1` | `2` | `(0,6)` | `{'A': 0, 'D': 1, 'O': 2, 'B': 1, 'E': 1, 'C': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 8 — right = `7`.**
 
 Read source index `7`, character `D`. `windowCounts.merge` adds one `D` occurrence, changing its count `1 → 2`. Evaluate the incoming-group `if` condition left to right: `containsKey(D) → false; equality Skipped (short circuit)`. The `if` is false, so skip `formedGroups++`; it stays `2`. Next check `while (formedGroups == requiredGroups)`: `2 == 3 → false; stop shrinking`. The completed outer iteration has left `1`, formed groups `2`, best `(start,length)` `(0,6)`, and full window map `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 1, 'C': 1}`. The `for` loop then runs `right++` and checks its condition again.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=7; left=1` | `—` | `D: 1 → 2` |
+| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `7` | `D` | `containsKey(D) → false; equality Skipped (short circuit)` | `2 == 3 → false; stop shrinking` | `1` | `2` | `(0,6)` | `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 1, 'C': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 9 — right = `8`.**
 
 Read source index `8`, character `E`. `windowCounts.merge` adds one `E` occurrence, changing its count `1 → 2`. Evaluate the incoming-group `if` condition left to right: `containsKey(E) → false; equality Skipped (short circuit)`. The `if` is false, so skip `formedGroups++`; it stays `2`. Next check `while (formedGroups == requiredGroups)`: `2 == 3 → false; stop shrinking`. The completed outer iteration has left `1`, formed groups `2`, best `(start,length)` `(0,6)`, and full window map `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 2, 'C': 1}`. The `for` loop then runs `right++` and checks its condition again.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=8; left=1` | `—` | `E: 1 → 2` |
+| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `8` | `E` | `containsKey(E) → false; equality Skipped (short circuit)` | `2 == 3 → false; stop shrinking` | `1` | `2` | `(0,6)` | `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 2, 'C': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 10 — right = `9`.**
 
 Read source index `9`, character `B`. `windowCounts.merge` adds one `B` occurrence, changing its count `1 → 2`. Evaluate the incoming-group `if` condition left to right: `containsKey(B) → true; 2 == 1 → false`. The `if` is false, so skip `formedGroups++`; it stays `2`. Next check `while (formedGroups == requiredGroups)`: `2 == 3 → false; stop shrinking`. The completed outer iteration has left `1`, formed groups `2`, best `(start,length)` `(0,6)`, and full window map `{'A': 0, 'D': 2, 'O': 2, 'B': 2, 'E': 2, 'C': 1}`. The `for` loop then runs `right++` and checks its condition again.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=9; left=1` | `—` | `B: 1 → 2` |
+| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `9` | `B` | `containsKey(B) → true; 2 == 1 → false` | `2 == 3 → false; stop shrinking` | `1` | `2` | `(0,6)` | `{'A': 0, 'D': 2, 'O': 2, 'B': 2, 'E': 2, 'C': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 11 — right = `10`.**
 
 Read source index `10`, character `A`. `windowCounts.merge` adds one `A` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `if` condition left to right: `containsKey(A) → true; 1 == 1 → true`. The `if` is true, so `formedGroups++` changes `2 → 3`. Next check `while (formedGroups == requiredGroups)`: `3==3 true; length=10-1+1=10; shorter=false; remove D@1; left=2; required=false; below required=Skipped; formed=3; 3==3 true; length=10-2+1=9; shorter=false; remove O@2; left=3; required=false; below required=Skipped; formed=3; 3==3 true; length=10-3+1=8; shorter=false; remove B@3; left=4; required=true; below required=false; formed=3; 3==3 true; length=10-4+1=7; shorter=false; remove E@4; left=5; required=false; below required=Skipped; formed=3; 3==3 true; length=10-5+1=6; shorter=false; remove C@5; left=6; required=true; below required=true; formed=2; 2 == 3 → false; stop shrinking`. The completed outer iteration has left `6`, formed groups `2`, best `(start,length)` `(0,6)`, and full window map `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0}`. The `for` loop then runs `right++` and checks its condition again.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=10; left=1` | `formedGroups: 2 → 3 → 2; left: 1 → 2 → 3 → 4 → 5 → 6` | `A: 0 → 1; D: 2 → 1; O: 2 → 1; B: 2 → 1; E: 2 → 1; C: 1 → 0` |
+| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `10` | `A` | `containsKey(A) → true; 1 == 1 → true` | `3==3 true; length=10-1+1=10; shorter=false; remove D@1; left=2; required=false; below required=Skipped; formed=3; 3==3 true; length=10-2+1=9; shorter=false; remove O@2; left=3; required=false; below required=Skipped; formed=3; 3==3 true; length=10-3+1=8; shorter=false; remove B@3; left=4; required=true; below required=false; formed=3; 3==3 true; length=10-4+1=7; shorter=false; remove E@4; left=5; required=false; below required=Skipped; formed=3; 3==3 true; length=10-5+1=6; shorter=false; remove C@5; left=6; required=true; below required=true; formed=2; 2 == 3 → false; stop shrinking` | `1 → 2 → 3 → 4 → 5 → 6` | `2 → 3 → 2` | `(0,6)` | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0}` | `right++; recheck for condition` |
 
 **Iteration/check 12 — right = `11`.**
 
 Read source index `11`, character `N`. `windowCounts.merge` adds one `N` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `if` condition left to right: `containsKey(N) → false; equality Skipped (short circuit)`. The `if` is false, so skip `formedGroups++`; it stays `2`. Next check `while (formedGroups == requiredGroups)`: `2 == 3 → false; stop shrinking`. The completed outer iteration has left `6`, formed groups `2`, best `(start,length)` `(0,6)`, and full window map `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0, 'N': 1}`. The `for` loop then runs `right++` and checks its condition again.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=11; left=6` | `—` | `N: absent → 1` |
+| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `11` | `N` | `containsKey(N) → false; equality Skipped (short circuit)` | `2 == 3 → false; stop shrinking` | `6` | `2` | `(0,6)` | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0, 'N': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 13 — right = `12`.**
 
 Read source index `12`, character `C`. `windowCounts.merge` adds one `C` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `if` condition left to right: `containsKey(C) → true; 1 == 1 → true`. The `if` is true, so `formedGroups++` changes `2 → 3`. Next check `while (formedGroups == requiredGroups)`: `3==3 true; length=12-6+1=7; shorter=false; remove O@6; left=7; required=false; below required=Skipped; formed=3; 3==3 true; length=12-7+1=6; shorter=false; remove D@7; left=8; required=false; below required=Skipped; formed=3; 3==3 true; length=12-8+1=5; shorter=true; remove E@8; left=9; required=false; below required=Skipped; formed=3; 3==3 true; length=12-9+1=4; shorter=true; remove B@9; left=10; required=true; below required=true; formed=2; 2 == 3 → false; stop shrinking`. The completed outer iteration has left `10`, formed groups `2`, best `(start,length)` `(9,4)`, and full window map `{'A': 1, 'D': 0, 'O': 0, 'B': 0, 'E': 0, 'C': 1, 'N': 1}`. The `for` loop then runs `right++` and checks its condition again.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=12; left=6` | `formedGroups: 2 → 3 → 2; left: 6 → 7 → 8 → 9 → 10; bestStart: 0 → 8 → 9; bestLength: 6 → 5 → 4` | `D: 1 → 0; O: 1 → 0; B: 1 → 0; E: 1 → 0; C: 0 → 1` |
+| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `12` | `C` | `containsKey(C) → true; 1 == 1 → true` | `3==3 true; length=12-6+1=7; shorter=false; remove O@6; left=7; required=false; below required=Skipped; formed=3; 3==3 true; length=12-7+1=6; shorter=false; remove D@7; left=8; required=false; below required=Skipped; formed=3; 3==3 true; length=12-8+1=5; shorter=true; remove E@8; left=9; required=false; below required=Skipped; formed=3; 3==3 true; length=12-9+1=4; shorter=true; remove B@9; left=10; required=true; below required=true; formed=2; 2 == 3 → false; stop shrinking` | `6 → 7 → 8 → 9 → 10` | `2 → 3 → 2` | `(0,6) → (8,5) → (9,4)` | `{'A': 1, 'D': 0, 'O': 0, 'B': 0, 'E': 0, 'C': 1, 'N': 1}` | `right++; recheck for condition` |
 
 Every outer guard `right < 13` is true for these rows. After right `12`, `13 < 13` is false; bestLength is `4`, so the no-answer guard is false and return `source.substring(9,13) = "BANC"`. A false required-key test skips its count comparison; the inner loop stops only when coverage is lost.
 

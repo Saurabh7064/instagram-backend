@@ -67,7 +67,7 @@ For `"AAAA"`, `k = 0`, every active character already matches: `4 - 4 = 0`. Resu
 
 ## Block-by-block code walkthrough
 
-Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+Original snapshots are retained. Where a value changes several times, its cell shows the sequence ending at the final value.
 
 Use `text="AABABBA"`, budget `1`, throughout. Text indexes `0..6` hold `A,A,B,A,B,B,A`. Each block includes the relevant scalar and frequency states; all array rows show 26 cells.
 
@@ -244,57 +244,57 @@ At `right=3`, `AABA` establishes a valid length `4`: keep three A characters and
 
 Read text index `0`, character `A`, mapped to array cell `0`. Increment that frequency cell, then preserve historical `maxFrequency`=`1`. Before removal, calculate the cost: `0-0+1-1=0`. The over-budget check is `false`; its removal operation is `Skipped`. Now left is `0` and frequencies are `A=1, B=0; C..Z=0`. Calculate maintained length `1` and preserve best length `1`. Next, `right++; continue`. Neither the historical maximum nor the stored pre-removal cost is decreased during removal.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=0; left=0` | `right: 0 → 1; maxFrequency: 0 → 1; bestLength: 0 → 1; incomingIndex: not assigned → 0; replacementsNeeded: not assigned → 0` | `frequency[0]: 0 → 1` |
+| right | incoming | incomingIndex | maxFrequency | replacementsNeeded before removal | needed > 1 | removal | left after | frequency after | length after | bestLength | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `0` | `A` | `0` | `1` | `0-0+1-1=0` | `false` | `Skipped` | `0` | `A=1, B=0; C..Z=0` | `1` | `1` | `right++; continue` |
 
 **Iteration/check 2 — right = `1`.**
 
 Read text index `1`, character `A`, mapped to array cell `0`. Increment that frequency cell, then preserve historical `maxFrequency`=`2`. Before removal, calculate the cost: `1-0+1-2=0`. The over-budget check is `false`; its removal operation is `Skipped`. Now left is `0` and frequencies are `A=2, B=0; C..Z=0`. Calculate maintained length `2` and preserve best length `2`. Next, `right++; continue`. Neither the historical maximum nor the stored pre-removal cost is decreased during removal.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=1; left=0` | `right: 1 → 2; maxFrequency: 1 → 2; bestLength: 1 → 2; incomingIndex: not assigned → 0; replacementsNeeded: not assigned → 0` | `frequency[0]: 1 → 2` |
+| right | incoming | incomingIndex | maxFrequency | replacementsNeeded before removal | needed > 1 | removal | left after | frequency after | length after | bestLength | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `1` | `A` | `0` | `2` | `1-0+1-2=0` | `false` | `Skipped` | `0` | `A=2, B=0; C..Z=0` | `2` | `2` | `right++; continue` |
 
 **Iteration/check 3 — right = `2`.**
 
 Read text index `2`, character `B`, mapped to array cell `1`. Increment that frequency cell, then preserve historical `maxFrequency`=`2`. Before removal, calculate the cost: `2-0+1-2=1`. The over-budget check is `false`; its removal operation is `Skipped`. Now left is `0` and frequencies are `A=2, B=1; C..Z=0`. Calculate maintained length `3` and preserve best length `3`. Next, `right++; continue`. Neither the historical maximum nor the stored pre-removal cost is decreased during removal.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=2; left=0` | `right: 2 → 3; bestLength: 2 → 3; incomingIndex: not assigned → 1; replacementsNeeded: not assigned → 1` | `frequency[1]: 0 → 1` |
+| right | incoming | incomingIndex | maxFrequency | replacementsNeeded before removal | needed > 1 | removal | left after | frequency after | length after | bestLength | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `2` | `B` | `1` | `2` | `2-0+1-2=1` | `false` | `Skipped` | `0` | `A=2, B=1; C..Z=0` | `3` | `3` | `right++; continue` |
 
 **Iteration/check 4 — right = `3`.**
 
 Read text index `3`, character `A`, mapped to array cell `0`. Increment that frequency cell, then preserve historical `maxFrequency`=`3`. Before removal, calculate the cost: `3-0+1-3=1`. The over-budget check is `false`; its removal operation is `Skipped`. Now left is `0` and frequencies are `A=3, B=1; C..Z=0`. Calculate maintained length `4` and preserve best length `4`. Next, `right++; continue`. Neither the historical maximum nor the stored pre-removal cost is decreased during removal.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=3; left=0` | `right: 3 → 4; maxFrequency: 2 → 3; bestLength: 3 → 4; incomingIndex: not assigned → 0; replacementsNeeded: not assigned → 1` | `frequency[0]: 2 → 3` |
+| right | incoming | incomingIndex | maxFrequency | replacementsNeeded before removal | needed > 1 | removal | left after | frequency after | length after | bestLength | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `3` | `A` | `0` | `3` | `3-0+1-3=1` | `false` | `Skipped` | `0` | `A=3, B=1; C..Z=0` | `4` | `4` | `right++; continue` |
 
 **Iteration/check 5 — right = `4`.**
 
 Read text index `4`, character `B`, mapped to array cell `1`. Increment that frequency cell, then preserve historical `maxFrequency`=`3`. Before removal, calculate the cost: `4-0+1-3=2`. The over-budget check is `true`; its removal operation is `A@0; cell=0; left=1`. Now left is `1` and frequencies are `A=2, B=2; C..Z=0`. Calculate maintained length `4` and preserve best length `4`. Next, `right++; continue`. Neither the historical maximum nor the stored pre-removal cost is decreased during removal.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=4; left=0` | `right: 4 → 5; left: 0 → 1; incomingIndex: not assigned → 1; replacementsNeeded: not assigned → 2; outgoingIndex: not assigned → 0` | `frequency[0]: 3 → 2; frequency[1]: 1 → 2` |
+| right | incoming | incomingIndex | maxFrequency | replacementsNeeded before removal | needed > 1 | removal | left after | frequency after | length after | bestLength | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `4` | `B` | `1` | `3` | `4-0+1-3=2` | `true` | `A@0; cell=0; left=1` | `1` | `A=2, B=2; C..Z=0` | `4` | `4` | `right++; continue` |
 
 **Iteration/check 6 — right = `5`.**
 
 Read text index `5`, character `B`, mapped to array cell `1`. Increment that frequency cell, then preserve historical `maxFrequency`=`3`. Before removal, calculate the cost: `5-1+1-3=2`. The over-budget check is `true`; its removal operation is `A@1; cell=0; left=2`. Now left is `2` and frequencies are `A=1, B=3; C..Z=0`. Calculate maintained length `4` and preserve best length `4`. Next, `right++; continue`. Neither the historical maximum nor the stored pre-removal cost is decreased during removal.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=5; left=1` | `right: 5 → 6; left: 1 → 2; incomingIndex: not assigned → 1; replacementsNeeded: not assigned → 2; outgoingIndex: not assigned → 0` | `frequency[0]: 2 → 1; frequency[1]: 2 → 3` |
+| right | incoming | incomingIndex | maxFrequency | replacementsNeeded before removal | needed > 1 | removal | left after | frequency after | length after | bestLength | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `5` | `B` | `1` | `3` | `5-1+1-3=2` | `true` | `A@1; cell=0; left=2` | `2` | `A=1, B=3; C..Z=0` | `4` | `4` | `right++; continue` |
 
 **Iteration/check 7 — right = `6`.**
 
 Read text index `6`, character `A`, mapped to array cell `0`. Increment that frequency cell, then preserve historical `maxFrequency`=`3`. Before removal, calculate the cost: `6-2+1-3=2`. The over-budget check is `true`; its removal operation is `B@2; cell=1; left=3`. Now left is `3` and frequencies are `A=2, B=2; C..Z=0`. Calculate maintained length `4` and preserve best length `4`. Next, `right++; continue`. Neither the historical maximum nor the stored pre-removal cost is decreased during removal.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `right=6; left=2` | `right: 6 → 7; left: 2 → 3; incomingIndex: not assigned → 0; replacementsNeeded: not assigned → 2; outgoingIndex: not assigned → 1` | `frequency[0]: 1 → 2; frequency[1]: 3 → 2` |
+| right | incoming | incomingIndex | maxFrequency | replacementsNeeded before removal | needed > 1 | removal | left after | frequency after | length after | bestLength | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `6` | `A` | `0` | `3` | `6-2+1-3=2` | `true` | `B@2; cell=1; left=3` | `3` | `A=2, B=2; C..Z=0` | `4` | `4` | `right++; continue` |
 
 For each row, `right < 7` is true. After right `6`, the increment produces `7 < 7 → false`; return `4`. The stored cost is not recalculated after removal, and maxFrequency stays historical. The full 26-cell tables beside insertion/removal show each mutation separately.
 

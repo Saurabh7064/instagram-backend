@@ -39,7 +39,7 @@ The examples accept a non-null array, with values between `-1,000,000` and `1,00
 
 ## Block-by-block code walkthrough
 
-Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+Original snapshots are retained. Where a value changes several times, its cell shows the sequence ending at the final value.
 
 Keep input `value=3` for the scalar program and `numbers=[-2,0,3]` for the array program beside the code.
 
@@ -81,21 +81,21 @@ Start at index zero. Check the bound before reading an element. The assignment w
 
 **Iteration `index=0`.** Check `0<3 → true`. Read `numbers[0]=-2`. Call `doubleValue(-2)`, which returns `-2×2=-4`. Assign only `result[0]`; it becomes `[-4, 0, 0]`. The input stays `[-2, 0, 3]`. Execute `index++`, making `1`. No branch is hidden between these steps.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=0` | `index: 0 → 1` | `[0]: 0 → -4` |
+| index | condition | input read | helper return | result after | numbers after | next |
+| --- | --- | --- | --- | --- | --- | --- |
+| `0` | `0<3 → true` | `-2` | `-4` | `[-4, 0, 0]` | `[-2, 0, 3]` | `index=1` |
 
 **Iteration `index=1`.** Check `1<3 → true`. Read `numbers[1]=0`. Call `doubleValue(0)`, which returns `0×2=0`. Assign only `result[1]`; it becomes `[-4, 0, 0]`. The input stays `[-2, 0, 3]`. Execute `index++`, making `2`. No branch is hidden between these steps.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=1` | `index: 1 → 2` | `—` |
+| index | condition | input read | helper return | result after | numbers after | next |
+| --- | --- | --- | --- | --- | --- | --- |
+| `1` | `1<3 → true` | `0` | `0` | `[-4, 0, 0]` | `[-2, 0, 3]` | `index=2` |
 
 **Iteration `index=2`.** Check `2<3 → true`. Read `numbers[2]=3`. Call `doubleValue(3)`, which returns `3×2=6`. Assign only `result[2]`; it becomes `[-4, 0, 6]`. The input stays `[-2, 0, 3]`. Execute `index++`, making `3`. No branch is hidden between these steps.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=2` | `index: 2 → 3` | `[2]: 0 → 6` |
+| index | condition | input read | helper return | result after | numbers after | next |
+| --- | --- | --- | --- | --- | --- | --- |
+| `2` | `2<3 → true` | `3` | `6` | `[-4, 0, 6]` | `[-2, 0, 3]` | `index=3` |
 
 ### Block 4 — Return values without exposing a change to the input
 

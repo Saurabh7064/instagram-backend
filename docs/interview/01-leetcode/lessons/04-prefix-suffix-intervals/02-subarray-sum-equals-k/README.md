@@ -37,7 +37,7 @@ The algebra comes from `current total - earlier total = target`, rearranged to `
 
 ## Block-by-block code walkthrough
 
-Debugger tables list only changes: arrows show successive values, `—` means unchanged, `absent` means an entry does not exist, and `not assigned` marks a newly assigned local.
+Original snapshots are retained. Where a value changes several times, its cell shows the sequence ending at the final value.
 
 Use `numbers=[1,-1,1,1,-1,1,2]`, `target=2`. Every row below is one complete outer iteration, including the map update after lookup.
 
@@ -71,45 +71,45 @@ The map must contain only earlier boundaries during lookup. Recording the curren
 
 **Iteration `index=0`.** Check `0 < 7 → true`. Read `1` and update the running total: `0+(1)=1`. Calculate needed earlier total `1-2=-1`. Look it up in `{0: 1}`: the key is absent, so the default is `0`. Update the answer `0+0=0`. Now record total `1`: its frequency changes `0 → 1`. Execute `index++`, producing `1`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=0` | `index: 0 → 1; prefixSum: 0 → 1; needed: not assigned → -1` | `1: absent → 1` |
+| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `0` | `0<7 → true` | `1` | `1` | `-1` | `0` | `0` | `{0: 1}` | `{0: 1, 1: 1}` | `index=1` |
 
 **Iteration `index=1`.** Check `1 < 7 → true`. Read `-1` and update the running total: `1+(-1)=0`. Calculate needed earlier total `0-2=-2`. Look it up in `{0: 1, 1: 1}`: the key is absent, so the default is `0`. Update the answer `0+0=0`. Now record total `0`: its frequency changes `1 → 2`. Execute `index++`, producing `2`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=1` | `index: 1 → 2; prefixSum: 1 → 0; needed: not assigned → -2` | `0: 1 → 2` |
+| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `1` | `1<7 → true` | `-1` | `0` | `-2` | `0` | `0` | `{0: 1, 1: 1}` | `{0: 2, 1: 1}` | `index=2` |
 
 **Iteration `index=2`.** Check `2 < 7 → true`. Read `1` and update the running total: `0+(1)=1`. Calculate needed earlier total `1-2=-1`. Look it up in `{0: 2, 1: 1}`: the key is absent, so the default is `0`. Update the answer `0+0=0`. Now record total `1`: its frequency changes `1 → 2`. Execute `index++`, producing `3`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=2` | `index: 2 → 3; prefixSum: 0 → 1; needed: not assigned → -1` | `1: 1 → 2` |
+| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `2` | `2<7 → true` | `1` | `1` | `-1` | `0` | `0` | `{0: 2, 1: 1}` | `{0: 2, 1: 2}` | `index=3` |
 
 **Iteration `index=3`.** Check `3 < 7 → true`. Read `1` and update the running total: `1+(1)=2`. Calculate needed earlier total `2-2=0`. Look it up in `{0: 2, 1: 2}`: the key is present with frequency `2`. Update the answer `0+2=2`. Now record total `2`: its frequency changes `0 → 1`. Execute `index++`, producing `4`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=3` | `index: 3 → 4; prefixSum: 1 → 2; answer: 0 → 2; needed: not assigned → 0` | `2: absent → 1` |
+| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `3` | `3<7 → true` | `1` | `2` | `0` | `2` | `2` | `{0: 2, 1: 2}` | `{0: 2, 1: 2, 2: 1}` | `index=4` |
 
 **Iteration `index=4`.** Check `4 < 7 → true`. Read `-1` and update the running total: `2+(-1)=1`. Calculate needed earlier total `1-2=-1`. Look it up in `{0: 2, 1: 2, 2: 1}`: the key is absent, so the default is `0`. Update the answer `2+0=2`. Now record total `1`: its frequency changes `2 → 3`. Execute `index++`, producing `5`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=4` | `index: 4 → 5; prefixSum: 2 → 1; needed: not assigned → -1` | `1: 2 → 3` |
+| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `4` | `4<7 → true` | `-1` | `1` | `-1` | `0` | `2` | `{0: 2, 1: 2, 2: 1}` | `{0: 2, 1: 3, 2: 1}` | `index=5` |
 
 **Iteration `index=5`.** Check `5 < 7 → true`. Read `1` and update the running total: `1+(1)=2`. Calculate needed earlier total `2-2=0`. Look it up in `{0: 2, 1: 3, 2: 1}`: the key is present with frequency `2`. Update the answer `2+2=4`. Now record total `2`: its frequency changes `1 → 2`. Execute `index++`, producing `6`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=5` | `index: 5 → 6; prefixSum: 1 → 2; answer: 2 → 4; needed: not assigned → 0` | `2: 1 → 2` |
+| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `5` | `5<7 → true` | `1` | `2` | `0` | `2` | `4` | `{0: 2, 1: 3, 2: 1}` | `{0: 2, 1: 3, 2: 2}` | `index=6` |
 
 **Iteration `index=6`.** Check `6 < 7 → true`. Read `2` and update the running total: `2+(2)=4`. Calculate needed earlier total `4-2=2`. Look it up in `{0: 2, 1: 3, 2: 2}`: the key is present with frequency `2`. Update the answer `4+2=6`. Now record total `4`: its frequency changes `0 → 1`. Execute `index++`, producing `7`.
 
-| Iteration | Scalar change paths | Collection change paths |
-| --- | --- | --- |
-| `index=6` | `index: 6 → 7; prefixSum: 2 → 4; answer: 4 → 6; needed: not assigned → 2` | `4: absent → 1` |
+| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `6` | `6<7 → true` | `2` | `4` | `2` | `2` | `6` | `{0: 2, 1: 3, 2: 2}` | `{0: 2, 1: 3, 2: 2, 4: 1}` | `index=7` |
 
 ### Block 3 — Finish only after every endpoint has been counted
 
