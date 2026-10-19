@@ -709,3 +709,9 @@ For every new feature or learning concept:
 - Concept: sets preserve distinct membership, while counts preserve repeated requirements; group count and required copies are separate quantities. The related checkpoint now identifies its separate input explicitly.
 - Docs: [Minimum Window Substring](./interview/01-leetcode/lessons/03-sliding-window/05-minimum-window-substring/README.md).
 - Verification: reviewed both input/count derivations; checked main-example consistency, table columns, balanced code fences, three explained checkpoints, and `git diff --check`. Documentation clarification only; no Java/API/UI behavior or learner/backlog status changed. Unrelated working-tree edits are excluded.
+
+## Single-input lesson explanations — 2026-10-18
+
+- Commit: `e138f4f` — saved the learner preference that conceptual explanations, walkthroughs, debugger tables, and related checkpoints use one fixed input without switching to counterexamples.
+- Updated [Minimum Window Substring](./interview/01-leetcode/lessons/03-sliding-window/05-minimum-window-substring/README.md) to explain counts using two B occurrences in the same ADOBECODEBANC / ABC execution: window 3..10 has B twice; removing index 3 leaves the B at index 9. Removed the separate duplicate-target input and kept its checkpoint on the main trace.
+- Verification: checked the source slices and B counts, preserved three answered checkpoints, balanced code fences, and `git diff --check`. Documentation only; no source-code behavior, learner status, or backlog completion status changes. Additional edge-case checks remain in the runnable programs.
