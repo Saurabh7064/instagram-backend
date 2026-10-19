@@ -30,7 +30,7 @@ Assumptions follow LeetCode: both inputs contain English letters, `1 <= source.l
 
 ## First understand how to find the answer
 
-A **required group** is one distinct target character with its required count. For target `"AABC"`, the groups are `A:2`, `B:1`, and `C:1`; therefore `requiredGroups = 3`, not `4`.
+The main worked example throughout this walkthrough is `source="ADOBECODEBANC"`, `target="ABC"`. A **required group** is one distinct target character with its required count. Here the groups are `A:1`, `B:1`, and `C:1`, so `requiredGroups = 3`.
 
 A group becomes **formed** only when the active window reaches its required count.
 
@@ -77,11 +77,19 @@ for (char value : target.toCharArray()) {
 
 **What it evaluates:** `merge` inserts count `1` for a new character or adds `1` to its existing count.
 
-**Concrete result:** target `"AABC"` becomes `{A=2, B=1, C=1}`.
+**Concrete result for our main input:** target `"ABC"` becomes `{A=1, B=1, C=1}`.
 
 **Why it is needed:** a covering window must satisfy duplicates, not merely contain each distinct character once.
 
-**What fails without it:** a set would accept `"ABC"` for target `"AABC"`, even though one `A` is missing.
+**Why counts rather than a set?** Our main target `"ABC"` has no repeated letters, so it does not by itself demonstrate the duplicate-count problem. To see that problem, use the **separate example already listed above: `source="a"`, `target="aa"`**. This changes the input only for this comparison; the main debugger trace still uses `"ADOBECODEBANC"` / `"ABC"`.
+
+A set remembers only which letters occur. Both `"a"` and `"aa"` produce the set `{a}`, so a distinct-letter-only test would incorrectly call the one-character source sufficient. Counts instead record that the target needs `a:2`, while the source supplies only `a:1`: `1 < 2`, so one `a` is missing and no valid window exists. The correct result for this separate example is `""`.
+
+| Explicitly separate example | Target requirement | Available source count | Distinct-letter-only test | Correct count test |
+|---|---|---|---|---|
+| `source="a", target="aa"` | `a:2` | `a:1` | `{a}` contains `{a}` → incorrectly accepts | `1 >= 2` → false; return `""` |
+
+**Return to the main input:** `source="ADOBECODEBANC"`, `target="ABC"`; the next table counts `A`, `B`, and `C` once each.
 
 **Equivalent clearer form:** `put(value, getOrDefault(value, 0) + 1)` performs the same update.
 
@@ -109,7 +117,7 @@ int bestLength = Integer.MAX_VALUE;
 
 **What it evaluates:** the active window is empty, no requirement is formed, and no answer has been found.
 
-**Concrete result:** target `"AABC"` has `requiredGroups = 3` because there are three distinct keys.
+**Concrete result for our main input:** target `"ABC"` has `requiredGroups = 3` because `neededCounts` has the three keys `A`, `B`, and `C`.
 
 **Why `Integer.MAX_VALUE`:** it is a sentinel meaning “no candidate yet”; every real window length is smaller.
 
@@ -494,9 +502,9 @@ static String minWindow(String source, String target) {
 ## Questions and explained answers
 
 <details>
-<summary>1. For target AABC, why is requiredGroups 3 rather than 4?</summary>
+<summary>1. In the separate source="a", target="aa" example, why is requiredGroups 1 rather than 2?</summary>
 
-Groups count distinct required characters: `A`, `B`, and `C`. The count `A:2` is stored inside the `A` group.
+This checkpoint uses the separately labeled duplicate-count example, not the main ABC trace. There is one distinct required character, `a`, so `requiredGroups=1`. Its required count is stored as `neededCounts[a]=2`; a source count of one cannot form that group. In the main `target="ABC"` example, the three distinct characters instead give `requiredGroups=3`.
 
 </details>
 
