@@ -355,6 +355,8 @@ return bestSum / (double) windowSize;
 Runnable file: [MaximumAverageSubarraySolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/slidingwindow/fixedaverage/MaximumAverageSubarraySolution.java)
 
 ```java
+// numbers index: 0  1  2  3  4 5
+// numbers      : 1 12 -5 -6 50 3
 // Input: numbers = [1, 12, -5, -6, 50, 3]; windowSize = 4
 // Expected return: 12.75
 

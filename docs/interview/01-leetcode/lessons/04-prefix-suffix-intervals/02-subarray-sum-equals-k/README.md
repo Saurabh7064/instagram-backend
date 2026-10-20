@@ -187,6 +187,8 @@ The six matching ranges are `[0,3]`, `[2,3]`, `[0,5]`, `[2,5]`, `[4,6]`, and `[6
 Runnable reference: [SubarraySumEqualsKSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/prefixintervals/subarraysum/SubarraySumEqualsKSolution.java). The walkthrough immediately above explains the complete algorithm below; the `main` runner and assertions are in the linked Java file.
 
 ```java
+// numbers index: 0  1 2 3  4 5 6
+// numbers      : 1 -1 1 1 -1 1 2
 // Input: numbers=[1,-1,1,1,-1,1,2]; target=2
 // Expected return: 6
 

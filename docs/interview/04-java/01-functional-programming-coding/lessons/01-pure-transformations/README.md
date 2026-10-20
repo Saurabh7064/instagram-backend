@@ -133,6 +133,8 @@ return result;
 Runnable reference: [PureFunctionsSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/functionalprogramming/foundations/PureFunctionsSolution.java). Read the walkthrough immediately above before this complete listing.
 
 ```java
+// numbers index:  0 1 2
+// numbers      : -2 0 3
 // Input: value=3; numbers=[-2,0,3]
 // Expected return: doubleValue -> 6; doubleNumbers -> [-4,0,6]
 

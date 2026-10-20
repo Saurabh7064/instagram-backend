@@ -158,6 +158,8 @@ For `value=3`, this helper calculates `3*2=6` and returns it. It changes no exte
 Runnable reference: [FunctionsAsValuesSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/functionalprogramming/functionsasvalues/FunctionsAsValuesSolution.java). Read the walkthrough immediately above before this complete listing.
 
 ```java
+// numbers index:  0 1 2
+// numbers      : -2 0 3
 // Input: numbers=[-2,0,3]; operation=value -> value*2 OR value -> value+3
 // Expected return: [-4,0,6] OR [1,3,6]
 

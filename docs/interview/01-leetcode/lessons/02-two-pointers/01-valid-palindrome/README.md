@@ -321,6 +321,9 @@ The character locals leave scope at the closing brace; the “next outer check�
 ## Reference approach
 
 ```java
+// text index: 0 1 2 3 4
+// text      : A , b ␠ a
+// ␠ denotes a space in the original string below.
 // Input: text = "A,b a"
 // Expected return: true
 

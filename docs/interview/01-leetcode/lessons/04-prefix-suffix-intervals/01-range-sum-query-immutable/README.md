@@ -203,6 +203,8 @@ The total through the inclusive right endpoint lives at `right+1`; the unwanted 
 Runnable reference: [RangeSumQuerySolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/prefixintervals/rangesum/RangeSumQuerySolution.java). The walkthrough immediately above explains the complete algorithm below; the `main` runner and assertions are in the linked Java file.
 
 ```java
+// numbers index:  0 1 2  3 4  5 6
+// numbers      : -2 0 3 -5 2 -1 4
 // Input: numbers=[-2,0,3,-5,2,-1,4]; queries=[0,2],[2,5],[0,6],[3,3]
 // Expected return: 1, -1, 1, -5
 

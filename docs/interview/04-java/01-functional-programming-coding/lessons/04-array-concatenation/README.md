@@ -186,6 +186,8 @@ return result;
 Runnable reference: [ArrayConcatenationSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/functionalprogramming/arrayconcatenation/ArrayConcatenationSolution.java). Read the walkthrough immediately above before this complete listing.
 
 ```java
+// numbers index: 0 1 2
+// numbers      : 1 2 1
 // Input: numbers=[1,2,1]
 // Expected return: [1,2,1,1,2,1] from either method
 

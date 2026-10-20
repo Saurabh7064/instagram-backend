@@ -245,6 +245,8 @@ return answer;
 Runnable reference: [ProductExceptSelfSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/prefixintervals/productexceptself/ProductExceptSelfSolution.java). The walkthrough immediately above explains the complete algorithm below; the `main` runner and assertions are in the linked Java file.
 
 ```java
+// numbers index: 0 1 2 3 4 5 6
+// numbers      : 1 2 3 4 5 6 1
 // Input: numbers=[1,2,3,4,5,6,1]
 // Expected return: [720,360,240,180,144,120,720]
 

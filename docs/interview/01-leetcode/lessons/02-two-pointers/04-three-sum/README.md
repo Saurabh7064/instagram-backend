@@ -566,6 +566,11 @@ After anchor `3`, the outer increment makes `anchor=4`; `4 < sorted.length-2` is
 ## Reference approach
 
 ```java
+// numbers index:  0 1 2 3  4  5
+// numbers      : -1 0 1 2 -1 -4
+// sorted index:  0  1  2 3 4 5
+// sorted      : -4 -1 -1 0 1 2
+// sorted is the copied/sorted working array; pointer indexes refer to it.
 // Input: numbers = [-1, 0, 1, 2, -1, -4]
 // Expected return: [[-1, -1, 2], [-1, 0, 1]]
 

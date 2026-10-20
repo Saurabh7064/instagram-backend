@@ -339,6 +339,8 @@ return bestLength;
 ## Reference approach
 
 ```java
+// text index: 0 1 2 3 4 5 6 7
+// text      : a b c a b c b b
 // Input: text = "abcabcbb"
 // Expected return: 3
 

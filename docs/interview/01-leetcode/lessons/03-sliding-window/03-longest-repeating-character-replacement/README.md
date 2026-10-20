@@ -373,6 +373,8 @@ return bestLength;
 ## Reference approach
 
 ```java
+// text index: 0 1 2 3 4 5 6
+// text      : A A B A B B A
 // Input: text = "AABABBA"; replacementsAllowed = 1
 // Expected return: 4
 

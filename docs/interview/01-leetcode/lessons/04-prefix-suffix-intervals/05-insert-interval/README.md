@@ -188,6 +188,11 @@ The list has size `3`. Allocate three outer row slots with `new int[3][]`; `toAr
 Runnable reference: [InsertIntervalSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/prefixintervals/insertinterval/InsertIntervalSolution.java). The walkthrough immediately above explains the complete algorithm below; the `main` runner and assertions are in the linked Java file.
 
 ```java
+// intervals index:     0     1     2      3       4
+// intervals      : [1,2] [3,5] [6,7] [8,10] [12,16]
+// Endpoint indexes inside each interval: [0]=start, [1]=end.
+// newInterval index: 0 1
+// newInterval      : 4 8
 // Input: intervals=[[1,2],[3,5],[6,7],[8,10],[12,16]]; newInterval=[4,8]
 // Expected return: [[1,2],[3,10],[12,16]]
 

@@ -240,6 +240,8 @@ The pointer pairs are `(0,4) → (0,3) → (1,3)`. At `(1,3)`, `-2 + 3 = 1`; ret
 ## Reference approach
 
 ```java
+// numbers index:  0  1 2 3 4
+// numbers      : -5 -2 0 3 9
 // Input: numbers = [-5, -2, 0, 3, 9]; target = 1
 // Expected return: [2, 4] (one-based indexes)
 

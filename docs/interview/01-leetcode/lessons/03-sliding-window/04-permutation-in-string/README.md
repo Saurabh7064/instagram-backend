@@ -275,6 +275,10 @@ return false;
 ## Reference approach
 
 ```java
+// pattern index: 0 1
+// pattern      : a b
+// text index: 0 1 2 3 4 5 6 7
+// text      : e i d b a o o o
 // Input: pattern = "ab"; text = "eidbaooo"
 // Expected return: true (window "ba")
 

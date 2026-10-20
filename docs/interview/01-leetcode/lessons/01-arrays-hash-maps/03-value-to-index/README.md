@@ -302,6 +302,8 @@ At index `2`, the complement is `6 - 4 = 2`, and lookup finds index `1`. Return 
 ## Reference approach
 
 ```java
+// numbers index: 0 1 2
+// numbers      : 3 2 4
 // Input: numbers = [3, 2, 4]; target = 6
 // Expected return: [1, 2] (zero-based indexes)
 

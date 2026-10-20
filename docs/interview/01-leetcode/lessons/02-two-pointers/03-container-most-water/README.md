@@ -374,6 +374,8 @@ The maximum is found at indexes `1` and `8`: width `8 - 1 = 7`, limiting height 
 ## Reference approach
 
 ```java
+// heights index: 0 1 2 3 4 5 6 7 8
+// heights      : 1 8 6 2 5 4 8 3 7
 // Input: heights = [1, 8, 6, 2, 5, 4, 8, 3, 7]
 // Expected return: 49
 

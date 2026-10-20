@@ -197,6 +197,12 @@ return merged.toArray(new int[merged.size()][]);
 Runnable reference: [MergeIntervalsSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/prefixintervals/mergeintervals/MergeIntervalsSolution.java). The walkthrough immediately above explains the complete algorithm below; the `main` runner and assertions are in the linked Java file.
 
 ```java
+// intervals index:      0     1     2       3
+// intervals      : [8,10] [1,3] [2,6] [15,18]
+// Endpoint indexes inside each interval: [0]=start, [1]=end.
+// sorted index:     0     1      2       3
+// sorted      : [1,3] [2,6] [8,10] [15,18]
+// sorted is the copied working order; scan indexes refer to it.
 // Input: intervals=[[8,10],[1,3],[2,6],[15,18]]
 // Expected return: [[1,6],[8,10],[15,18]]
 

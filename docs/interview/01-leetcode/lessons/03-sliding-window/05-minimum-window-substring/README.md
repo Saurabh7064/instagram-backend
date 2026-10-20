@@ -594,6 +594,10 @@ After the last contraction: `right=12`, `left=10`, `formedGroups=2`, `bestStart=
 ## Reference approach
 
 ```java
+// source index: 0 1 2 3 4 5 6 7 8 9 10 11 12
+// source      : A D O B E C O D E B  A  N  C
+// target index: 0 1 2
+// target      : A B C
 // Input: source = "ADOBECODEBANC"; target = "ABC"
 // Expected return: "BANC"
 
