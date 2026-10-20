@@ -247,27 +247,41 @@ If insertion happened first, index `0` could find itself when current value `3` 
 
 **Iteration/check 1 — index = `0`.**
 
-Begin with index `0`; the loop condition is `0 < 3 → true`. Read `3` and calculate the missing partner: `6 - 3 = 3`. Looking up that partner returns `null`, so `earlierIndex != null` is `false`. The insertion operation is `put(3,0)`; the map afterward is `{3: 0}`. Next, `index++; continue`. A found partner returns before insertion; a missing partner stores the current index for later iterations.
+- **✅ `for` condition `index < numbers.length`:** `0 < 3 → true`; read `numbers[0]=3`.
+- `int complement = target - numbers[index]`: `6 - 3 = 3`.
+- `Integer earlierIndex = earlierIndexByValue.get(complement)`: `get(3) → null`.
+- **❌ `if (earlierIndex != null)`:** `null != null → false`; skip the return.
+- `earlierIndexByValue.put(numbers[index], index)` stores `put(3,0)`; map `{} → {3: 0}`.
+- `index++`: `0 → 1`; continue to the next `for` check.
 
 | index | loop condition | value | complement | earlierIndex | earlierIndex != null | insertion | map after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `0 < 3 → true` | `3` | `6 - 3 = 3` | `null` | `false` | `put(3,0)` | `{3: 0}` | `index++; continue` |
+| `0` | `✅ 0 < 3 → true` | `3` | `6 - 3 = 3` | `null` | `❌ false` | `put(3,0)` | `{3: 0}` | `index++; continue` |
 
 **Iteration/check 2 — index = `1`.**
 
-Begin with index `1`; the loop condition is `1 < 3 → true`. Read `2` and calculate the missing partner: `6 - 2 = 4`. Looking up that partner returns `null`, so `earlierIndex != null` is `false`. The insertion operation is `put(2,1)`; the map afterward is `{3: 0, 2: 1}`. Next, `index++; continue`. A found partner returns before insertion; a missing partner stores the current index for later iterations.
+- **✅ `for` condition `index < numbers.length`:** `1 < 3 → true`; read `numbers[1]=2`.
+- `int complement = target - numbers[index]`: `6 - 2 = 4`.
+- `Integer earlierIndex = earlierIndexByValue.get(complement)`: `get(4) → null`.
+- **❌ `if (earlierIndex != null)`:** `null != null → false`; skip the return.
+- `earlierIndexByValue.put(numbers[index], index)` stores `put(2,1)`; map `{3: 0} → {3: 0, 2: 1}`.
+- `index++`: `1 → 2`; continue to the next `for` check.
 
 | index | loop condition | value | complement | earlierIndex | earlierIndex != null | insertion | map after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1 < 3 → true` | `2` | `6 - 2 = 4` | `null` | `false` | `put(2,1)` | `{3: 0, 2: 1}` | `index++; continue` |
+| `1` | `✅ 1 < 3 → true` | `2` | `6 - 2 = 4` | `null` | `❌ false` | `put(2,1)` | `{3: 0, 2: 1}` | `index++; continue` |
 
 **Iteration/check 3 — index = `2`.**
 
-Begin with index `2`; the loop condition is `2 < 3 → true`. Read `4` and calculate the missing partner: `6 - 4 = 2`. Looking up that partner returns `1`, so `earlierIndex != null` is `true`. The insertion operation is `Skipped`; the map afterward is `{3: 0, 2: 1}`. Next, `return [1,2]; stop`. A found partner returns before insertion; a missing partner stores the current index for later iterations.
+- **✅ `for` condition `index < numbers.length`:** `2 < 3 → true`; read `numbers[2]=4`.
+- `int complement = target - numbers[index]`: `6 - 4 = 2`.
+- `Integer earlierIndex = earlierIndexByValue.get(complement)`: `get(2) → 1`.
+- **✅ `if (earlierIndex != null)`:** `1 != null → true`; execute `return new int[] {earlierIndex, index}` → `[1,2]`.
+- `earlierIndexByValue.put`, `index++`, later loop checks, and the terminal exception are `Skipped`; map stays `{3: 0, 2: 1}`.
 
 | index | loop condition | value | complement | earlierIndex | earlierIndex != null | insertion | map after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2 < 3 → true` | `4` | `6 - 4 = 2` | `1` | `true` | `Skipped` | `{3: 0, 2: 1}` | `return [1,2]; stop` |
+| `2` | `✅ 2 < 3 → true` | `4` | `6 - 4 = 2` | `1` | `✅ true` | `Skipped` | `{3: 0, 2: 1}` | `return [1,2]; stop` |
 
 The successful lookup returns before storing index `2`. There is no exhausted-loop exception on this input.
 

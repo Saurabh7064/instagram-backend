@@ -126,7 +126,8 @@ long windowSum = 0;
 
 **Debugger state at this block:**
 
-For `numbers=[1,12,-5,-6,50,3]`, `windowSize=4`, initialize `windowSum=0` as a `long`. Neither loop has started.
+- Inputs: `numbers=[1,12,-5,-6,50,3]`, `windowSize=4`; the array stays unchanged.
+- `long windowSum = 0` creates the rolling sum; neither loop has started.
 
 ### Block 2 — Build exactly the first complete window
 
@@ -158,43 +159,57 @@ for (int index = 0; index < windowSize; index++) {
 
 **Iteration/check 1 — index = `0`.**
 
-At initial-window index `0`, test the first-loop condition: `0 < 4 → true`. The addition produces `0+(1)=1`. Next, `index++; continue`. A false loop test skips the addition; the completed first-window sum then initializes `bestSum`.
+- **✅ `for (index < windowSize)`:** `0 < 4 → true`; enter the first-window loop.
+- `windowSum += numbers[index]` reads `numbers[0]=1`: `0 + (1) = 1`.
+- **State:** `windowSum=1`; `bestSum`, `right`, and `outgoingIndex` are not assigned yet.
+- `index++`: `0 → 1`; **✅ `for (index < windowSize)`:** `1 < 4 → true` next.
 
 | index | index < windowSize | windowSum after addition | next action |
 | --- | --- | --- | --- |
-| `0` | `0 < 4 → true` | `0+(1)=1` | `index++; continue` |
+| `0` | `✅ 0 < 4 → true` | `0+(1)=1` | `index++: 0 → 1; ✅ for (index < windowSize): 1 < 4 → true; continue` |
 
 **Iteration/check 2 — index = `1`.**
 
-At initial-window index `1`, test the first-loop condition: `1 < 4 → true`. The addition produces `1+(12)=13`. Next, `index++; continue`. A false loop test skips the addition; the completed first-window sum then initializes `bestSum`.
+- **✅ `for (index < windowSize)`:** `1 < 4 → true`; enter the first-window loop.
+- `windowSum += numbers[index]` reads `numbers[1]=12`: `1 + (12) = 13`.
+- **State:** `windowSum=13`; `bestSum`, `right`, and `outgoingIndex` are not assigned yet.
+- `index++`: `1 → 2`; **✅ `for (index < windowSize)`:** `2 < 4 → true` next.
 
 | index | index < windowSize | windowSum after addition | next action |
 | --- | --- | --- | --- |
-| `1` | `1 < 4 → true` | `1+(12)=13` | `index++; continue` |
+| `1` | `✅ 1 < 4 → true` | `1+(12)=13` | `index++: 1 → 2; ✅ for (index < windowSize): 2 < 4 → true; continue` |
 
 **Iteration/check 3 — index = `2`.**
 
-At initial-window index `2`, test the first-loop condition: `2 < 4 → true`. The addition produces `13+(-5)=8`. Next, `index++; continue`. A false loop test skips the addition; the completed first-window sum then initializes `bestSum`.
+- **✅ `for (index < windowSize)`:** `2 < 4 → true`; enter the first-window loop.
+- `windowSum += numbers[index]` reads `numbers[2]=-5`: `13 + (-5) = 8`.
+- **State:** `windowSum=8`; `bestSum`, `right`, and `outgoingIndex` are not assigned yet.
+- `index++`: `2 → 3`; **✅ `for (index < windowSize)`:** `3 < 4 → true` next.
 
 | index | index < windowSize | windowSum after addition | next action |
 | --- | --- | --- | --- |
-| `2` | `2 < 4 → true` | `13+(-5)=8` | `index++; continue` |
+| `2` | `✅ 2 < 4 → true` | `13+(-5)=8` | `index++: 2 → 3; ✅ for (index < windowSize): 3 < 4 → true; continue` |
 
 **Iteration/check 4 — index = `3`.**
 
-At initial-window index `3`, test the first-loop condition: `3 < 4 → true`. The addition produces `8+(-6)=2`. Next, `index++; continue`. A false loop test skips the addition; the completed first-window sum then initializes `bestSum`.
+- **✅ `for (index < windowSize)`:** `3 < 4 → true`; enter the first-window loop.
+- `windowSum += numbers[index]` reads `numbers[3]=-6`: `8 + (-6) = 2`.
+- **State:** `windowSum=2`; `bestSum`, `right`, and `outgoingIndex` are not assigned yet.
+- `index++`: `3 → 4`; **❌ `for (index < windowSize)`:** `4 < 4 → false`; exit this loop next.
 
 | index | index < windowSize | windowSum after addition | next action |
 | --- | --- | --- | --- |
-| `3` | `3 < 4 → true` | `8+(-6)=2` | `index++; continue` |
+| `3` | `✅ 3 < 4 → true` | `8+(-6)=2` | `index++: 3 → 4; ❌ for (index < windowSize): 4 < 4 → false; exit loop` |
 
 **Iteration/check 5 — index = `4`.**
 
-At initial-window index `4`, test the first-loop condition: `4 < 4 → false`. The addition produces `unchanged: 2`. Next, `exit; bestSum=2`. A false loop test skips the addition; the completed first-window sum then initializes `bestSum`.
+- **❌ `for (index < windowSize)`:** `4 < 4 → false`; exit the first loop.
+- Skip `windowSum += numbers[index]`; `windowSum=2` remains. `numbers[4]` is not read by this loop.
+- `index` leaves scope; next execute `long bestSum = windowSum` → `bestSum=2`.
 
 | index | index < windowSize | windowSum after addition | next action |
 | --- | --- | --- | --- |
-| `4` | `4 < 4 → false` | `unchanged: 2` | `exit; bestSum=2` |
+| `4` | `❌ 4 < 4 → false` | `unchanged: 2` | `exit; bestSum=2` |
 
 This loop has no conditional branch in its body; its loop condition is still shown explicitly.
 
@@ -206,11 +221,11 @@ long bestSum = windowSum;
 
 **What it evaluates:** the first complete window becomes the best known candidate.
 
-**Concrete result:** for `[-5, -3]` with `k = 1`, `bestSum` starts at `-5`, not `0`.
+**Concrete result:** the first window `[1,12,-5,-6]` sums to `1 + 12 - 5 - 6 = 2`, so `bestSum=2`.
 
 **Why it is needed:** every candidate may be negative.
 
-**What fails without it:** `bestSum = 0` invents a nonexistent window and would return `0.0` instead of `-3.0`.
+**What fails without it:** initializing to `0` would invent a better result whenever every real window has a negative sum.
 
 **Equivalent clearer form:** `long maximumWindowSum = windowSum;` is the same operation with a more explicit name.
 
@@ -274,27 +289,41 @@ bestSum = Math.max(bestSum, windowSum);
 
 **Iteration/check 1 — right = `4`.**
 
-At `right`=`4`, test the sliding-loop condition: `4 < 6 → true`. Compute the outgoing position: `4-4=0`. Add the incoming value first, giving `2+50=52`; subtract the outgoing value next, giving `52-(1)=51`. `Math.max` preserves `bestSum`=`51`. Next, `right++; continue`. On a false loop test, none of the slide operations run.
+- **✅ `for (right < numbers.length)`:** `4 < 6 → true`; enter the slide loop.
+- `int outgoingIndex = right - windowSize`: `4 - 4 = 0`.
+- `windowSum += numbers[right]` reads `numbers[4]=50`: `2 + 50 = 52`.
+- `windowSum -= numbers[outgoingIndex]` reads `numbers[0]=1`: `52 - (1) = 51`.
+- `bestSum = Math.max(bestSum, windowSum)`: `max(2, 51) = 51`; `bestSum: 2 → 51`.
+- **State:** `right=4, outgoingIndex=0, windowSum=51, bestSum=51, windowSize=4`; `numbers` is unchanged.
+- `right++`: `4 → 5`; **✅ `for (right < numbers.length)`:** `5 < 6 → true` next.
 
 | right | right < numbers.length | outgoingIndex | sum after add | sum after removal | bestSum after | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `4` | `4 < 6 → true` | `4-4=0` | `2+50=52` | `52-(1)=51` | `51` | `right++; continue` |
+| `4` | `✅ 4 < 6 → true` | `4-4=0` | `2+50=52` | `52-(1)=51` | `51` | `right++: 4 → 5; ✅ for (right < numbers.length): 5 < 6 → true; continue` |
 
 **Iteration/check 2 — right = `5`.**
 
-At `right`=`5`, test the sliding-loop condition: `5 < 6 → true`. Compute the outgoing position: `5-4=1`. Add the incoming value first, giving `51+3=54`; subtract the outgoing value next, giving `54-(12)=42`. `Math.max` preserves `bestSum`=`51`. Next, `right++; continue`. On a false loop test, none of the slide operations run.
+- **✅ `for (right < numbers.length)`:** `5 < 6 → true`; enter the slide loop.
+- `int outgoingIndex = right - windowSize`: `5 - 4 = 1`.
+- `windowSum += numbers[right]` reads `numbers[5]=3`: `51 + 3 = 54`.
+- `windowSum -= numbers[outgoingIndex]` reads `numbers[1]=12`: `54 - (12) = 42`.
+- `bestSum = Math.max(bestSum, windowSum)`: `max(51, 42) = 51`; `bestSum: 51 → 51`.
+- **State:** `right=5, outgoingIndex=1, windowSum=42, bestSum=51, windowSize=4`; `numbers` is unchanged.
+- `right++`: `5 → 6`; **❌ `for (right < numbers.length)`:** `6 < 6 → false`; exit this loop next.
 
 | right | right < numbers.length | outgoingIndex | sum after add | sum after removal | bestSum after | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `5` | `5 < 6 → true` | `5-4=1` | `51+3=54` | `54-(12)=42` | `51` | `right++; continue` |
+| `5` | `✅ 5 < 6 → true` | `5-4=1` | `51+3=54` | `54-(12)=42` | `51` | `right++: 5 → 6; ❌ for (right < numbers.length): 6 < 6 → false; exit loop` |
 
 **Iteration/check 3 — right = `6`.**
 
-At `right`=`6`, test the sliding-loop condition: `6 < 6 → false`. Compute the outgoing position: `Skipped`. Add the incoming value first, giving `Skipped`; subtract the outgoing value next, giving `Skipped`. `Math.max` preserves `bestSum`=`51`. Next, `exit; return 51/4.0=12.75`. On a false loop test, none of the slide operations run.
+- **❌ `for (right < numbers.length)`:** `6 < 6 → false`; exit the slide loop.
+- Skip `outgoingIndex` creation, both `windowSum` updates, and `Math.max`; `windowSum=42`, `bestSum=51` remain.
+- Next execute `return bestSum / (double) windowSize`: `51 / 4.0 = 12.75`.
 
 | right | right < numbers.length | outgoingIndex | sum after add | sum after removal | bestSum after | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `6` | `6 < 6 → false` | `Skipped` | `Skipped` | `Skipped` | `51` | `exit; return 51/4.0=12.75` |
+| `6` | `❌ 6 < 6 → false` | `Skipped` | `Skipped` | `Skipped` | `51` | `exit; return 51/4.0=12.75` |
 
 No `if` exists in this loop: `Math.max` preserves the larger sum on each completed slide.
 
@@ -316,7 +345,10 @@ return bestSum / (double) windowSize;
 
 **Debugger state at this block:**
 
-The first loop exits when `index=4`, because `4 < 4` is false. The second exits when `right=6`, because `6 < 6` is false. Return `bestSum / (double) windowSize = 51 / 4.0 = 12.75`; the cast preserves the fractional part. The winning window `[12,-5,-6,50]` sums to `12 - 5 - 6 + 50 = 51`.
+- **❌ `for (index < windowSize)`:** `4 < 4 → false`; the first window is complete.
+- **❌ `for (right < numbers.length)`:** `6 < 6 → false`; all slides are complete.
+- `return bestSum / (double) windowSize`: `51 / 4.0 = 12.75`; the cast preserves the fraction.
+- Winning window: `[12,-5,-6,50]`; `12 - 5 - 6 + 50 = 51`.
 
 ## Complete reference solution
 

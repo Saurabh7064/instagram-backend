@@ -49,37 +49,67 @@ return IntStream.concat(Arrays.stream(numbers), Arrays.stream(numbers)).toArray(
 
 `concat` describes “the first stream, then the second”; `toArray()` starts traversal and returns the resulting array. The internal buffer and traversal counters are not variables in this method. The following per-element observations show the logical output values; they do not promise a particular hidden allocation strategy. Without `toArray`, the expression would still be a stream rather than the required array. Equivalent: assign the concat result to a stream local and then call toArray once.
 
-**Emission 0: first traversal, source position `0`.** Read `numbers[0]=1` from the unchanged input. Include `1` at logical output position `0`, so output values so far are `[1]`. Continue with the next value of this traversal. No user-written `if`, callback, or index update runs in this implementation; those are library-controlled traversal decisions.
+**Emission 0: first traversal, source position `0`.**
+
+- `toArray()` consumes the first traversal created by `Arrays.stream(numbers)`; read `numbers[0]=1`.
+- `IntStream.concat(...)` emits `1` at logical output position `0`; observed values become `[1]`.
+- The library continues to the next source value.
+- `numbers=[1,2,1]` stays unchanged; these positions describe observations, not Java index variables.
 
 | logical output position | traversal | source position (explanatory) | value | logical values so far | input after |
 | --- | --- | --- | --- | --- | --- |
 | `0` | `first` | `0` | `1` | `[1]` | `[1, 2, 1]` |
 
-**Emission 1: first traversal, source position `1`.** Read `numbers[1]=2` from the unchanged input. Include `2` at logical output position `1`, so output values so far are `[1, 2]`. Continue with the next value of this traversal. No user-written `if`, callback, or index update runs in this implementation; those are library-controlled traversal decisions.
+**Emission 1: first traversal, source position `1`.**
+
+- `toArray()` consumes the first traversal created by `Arrays.stream(numbers)`; read `numbers[1]=2`.
+- `IntStream.concat(...)` emits `2` at logical output position `1`; observed values become `[1, 2]`.
+- The library continues to the next source value.
+- `numbers=[1,2,1]` stays unchanged; these positions describe observations, not Java index variables.
 
 | logical output position | traversal | source position (explanatory) | value | logical values so far | input after |
 | --- | --- | --- | --- | --- | --- |
 | `1` | `first` | `1` | `2` | `[1, 2]` | `[1, 2, 1]` |
 
-**Emission 2: first traversal, source position `2`.** Read `numbers[2]=1` from the unchanged input. Include `1` at logical output position `2`, so output values so far are `[1, 2, 1]`. The first traversal now has no next value; proceed to the second traversal. No user-written `if`, callback, or index update runs in this implementation; those are library-controlled traversal decisions.
+**Emission 2: first traversal, source position `2`.**
+
+- `toArray()` consumes the first traversal created by `Arrays.stream(numbers)`; read `numbers[2]=1`.
+- `IntStream.concat(...)` emits `1` at logical output position `2`; observed values become `[1, 2, 1]`.
+- The first traversal ends; `concat` continues with the second traversal.
+- `numbers=[1,2,1]` stays unchanged; these positions describe observations, not Java index variables.
 
 | logical output position | traversal | source position (explanatory) | value | logical values so far | input after |
 | --- | --- | --- | --- | --- | --- |
 | `2` | `first` | `2` | `1` | `[1, 2, 1]` | `[1, 2, 1]` |
 
-**Emission 3: second traversal, source position `0`.** Read `numbers[0]=1` from the unchanged input. Include `1` at logical output position `3`, so output values so far are `[1, 2, 1, 1]`. Continue with the next value of this traversal. No user-written `if`, callback, or index update runs in this implementation; those are library-controlled traversal decisions.
+**Emission 3: second traversal, source position `0`.**
+
+- `toArray()` consumes the second traversal created by `Arrays.stream(numbers)`; read `numbers[0]=1`.
+- `IntStream.concat(...)` emits `1` at logical output position `3`; observed values become `[1, 2, 1, 1]`.
+- The library continues to the next source value.
+- `numbers=[1,2,1]` stays unchanged; these positions describe observations, not Java index variables.
 
 | logical output position | traversal | source position (explanatory) | value | logical values so far | input after |
 | --- | --- | --- | --- | --- | --- |
 | `3` | `second` | `0` | `1` | `[1, 2, 1, 1]` | `[1, 2, 1]` |
 
-**Emission 4: second traversal, source position `1`.** Read `numbers[1]=2` from the unchanged input. Include `2` at logical output position `4`, so output values so far are `[1, 2, 1, 1, 2]`. Continue with the next value of this traversal. No user-written `if`, callback, or index update runs in this implementation; those are library-controlled traversal decisions.
+**Emission 4: second traversal, source position `1`.**
+
+- `toArray()` consumes the second traversal created by `Arrays.stream(numbers)`; read `numbers[1]=2`.
+- `IntStream.concat(...)` emits `2` at logical output position `4`; observed values become `[1, 2, 1, 1, 2]`.
+- The library continues to the next source value.
+- `numbers=[1,2,1]` stays unchanged; these positions describe observations, not Java index variables.
 
 | logical output position | traversal | source position (explanatory) | value | logical values so far | input after |
 | --- | --- | --- | --- | --- | --- |
 | `4` | `second` | `1` | `2` | `[1, 2, 1, 1, 2]` | `[1, 2, 1]` |
 
-**Emission 5: second traversal, source position `2`.** Read `numbers[2]=1` from the unchanged input. Include `1` at logical output position `5`, so output values so far are `[1, 2, 1, 1, 2, 1]`. The second traversal now has no next value; finish toArray and return. No user-written `if`, callback, or index update runs in this implementation; those are library-controlled traversal decisions.
+**Emission 5: second traversal, source position `2`.**
+
+- `toArray()` consumes the second traversal created by `Arrays.stream(numbers)`; read `numbers[2]=1`.
+- `IntStream.concat(...)` emits `1` at logical output position `5`; observed values become `[1, 2, 1, 1, 2, 1]`.
+- The second traversal ends; `toArray()` completes and `return` returns `[1,2,1,1,2,1]`.
+- `numbers=[1,2,1]` stays unchanged; these positions describe observations, not Java index variables.
 
 | logical output position | traversal | source position (explanatory) | value | logical values so far | input after |
 | --- | --- | --- | --- | --- | --- |
@@ -93,7 +123,10 @@ The method returns `[1,2,1,1,2,1]`. The result is a new modifiable array. There 
 int[] result = new int[2 * numbers.length];
 ```
 
-For the loop alternative, `2*3=6`; allocate `result=[0,0,0,0,0,0]`. This is a new independent array, not a second name for numbers. Forgetting the second half would leave no room for the repeated values. Equivalent: `int outputLength=2*numbers.length` before allocation. Under `n<=1000`, this length arithmetic cannot overflow.
+- `int[] result = new int[2 * numbers.length]` reads length `3`; `2 × 3 = 6` allocates `result=[0,0,0,0,0,0]`.
+- `numbers=[1,2,1]` stays unchanged; the loop writes into this independent result.
+
+Forgetting the second half would leave no room for the repeated values. Equivalent: `int outputLength=2*numbers.length` before allocation. Under `n<=1000`, this length arithmetic cannot overflow.
 
 ### Block 4 — Write each value to both of its required positions
 
@@ -106,23 +139,38 @@ for (int index = 0; index < numbers.length; index++) {
 
 At each valid input index, read its value and write it first at the same result position, then at the corresponding position `n` cells later. Both writes target the new array. Using `index+1` for the second destination would overwrite neighboring first-half values instead. Equivalent: save the read value in a local, then assign both cells from that local.
 
-**Loop iteration `index=0`.** Check `0<3 → true`. Read `1` and write `result[0]=1`, giving `[1, 0, 0, 0, 0, 0]`. Calculate the second destination `0+3=3` and write `1` there, giving `[1, 0, 0, 1, 0, 0]`. Input stays `[1, 2, 1]`. Execute `index++`, producing `1`.
+**Loop iteration `index=0`.**
+
+- **✅ `for` condition `index < numbers.length`:** `0 < 3 → true`; enter the body.
+- `result[index] = numbers[index]` reads `numbers[0]=1` and writes `result[0]`: `0 → 1`.
+- `result[index + numbers.length] = numbers[index]` calculates `0 + 3 = 3`, reads `1`, and writes `result[3]`: `0 → 1`. Both array snapshots are below.
+- `index++`: `0 → 1`; continue to the next `for` check. `numbers=[1,2,1]` stays unchanged.
 
 | index | condition | value | after first write | second destination | after second write | next |
 | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `0<3 → true` | `1` | `[1, 0, 0, 0, 0, 0]` | `3` | `[1, 0, 0, 1, 0, 0]` | `index=1` |
+| `0` | `✅ 0<3 → true` | `1` | `[1, 0, 0, 0, 0, 0]` | `3` | `[1, 0, 0, 1, 0, 0]` | `index=1` |
 
-**Loop iteration `index=1`.** Check `1<3 → true`. Read `2` and write `result[1]=2`, giving `[1, 2, 0, 1, 0, 0]`. Calculate the second destination `1+3=4` and write `2` there, giving `[1, 2, 0, 1, 2, 0]`. Input stays `[1, 2, 1]`. Execute `index++`, producing `2`.
+**Loop iteration `index=1`.**
+
+- **✅ `for` condition `index < numbers.length`:** `1 < 3 → true`; enter the body.
+- `result[index] = numbers[index]` reads `numbers[1]=2` and writes `result[1]`: `0 → 2`.
+- `result[index + numbers.length] = numbers[index]` calculates `1 + 3 = 4`, reads `2`, and writes `result[4]`: `0 → 2`. Both array snapshots are below.
+- `index++`: `1 → 2`; continue to the next `for` check. `numbers=[1,2,1]` stays unchanged.
 
 | index | condition | value | after first write | second destination | after second write | next |
 | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1<3 → true` | `2` | `[1, 2, 0, 1, 0, 0]` | `4` | `[1, 2, 0, 1, 2, 0]` | `index=2` |
+| `1` | `✅ 1<3 → true` | `2` | `[1, 2, 0, 1, 0, 0]` | `4` | `[1, 2, 0, 1, 2, 0]` | `index=2` |
 
-**Loop iteration `index=2`.** Check `2<3 → true`. Read `1` and write `result[2]=1`, giving `[1, 2, 1, 1, 2, 0]`. Calculate the second destination `2+3=5` and write `1` there, giving `[1, 2, 1, 1, 2, 1]`. Input stays `[1, 2, 1]`. Execute `index++`, producing `3`.
+**Loop iteration `index=2`.**
+
+- **✅ `for` condition `index < numbers.length`:** `2 < 3 → true`; enter the body.
+- `result[index] = numbers[index]` reads `numbers[2]=1` and writes `result[2]`: `0 → 1`.
+- `result[index + numbers.length] = numbers[index]` calculates `2 + 3 = 5`, reads `1`, and writes `result[5]`: `0 → 1`. Both array snapshots are below.
+- `index++`: `2 → 3`; continue to the next `for` check. `numbers=[1,2,1]` stays unchanged.
 
 | index | condition | value | after first write | second destination | after second write | next |
 | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2<3 → true` | `1` | `[1, 2, 1, 1, 2, 0]` | `5` | `[1, 2, 1, 1, 2, 1]` | `index=3` |
+| `2` | `✅ 2<3 → true` | `1` | `[1, 2, 1, 1, 2, 0]` | `5` | `[1, 2, 1, 1, 2, 1]` | `index=3` |
 
 ### Block 5 — Return the loop result after exhaustion
 
@@ -130,7 +178,8 @@ At each valid input index, read its value and write it first at the same result 
 return result;
 ```
 
-The last increment makes index `3`; `3<3 → false` skips both writes. Return `[1,2,1,1,2,1]`, equal in values to the stream result. For empty input, allocate length zero, skip `0<0`, and return `[]`. Returning the input instead would have the wrong length and would share the original object. Equivalent: name the returned array `concatenated`.
+- **❌ `for` condition `index < numbers.length`:** `3 < 3 → false`; skip both assignments.
+- `return result` returns `[1,2,1,1,2,1]`, equal in values to the stream result. For empty input, allocate length zero, skip `0<0`, and return `[]`. Returning the input instead would have the wrong length and would share the original object. Equivalent: name the returned array `concatenated`.
 
 ## Complete reference solution
 

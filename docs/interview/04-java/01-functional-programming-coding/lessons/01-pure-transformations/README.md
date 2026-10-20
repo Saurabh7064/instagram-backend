@@ -55,6 +55,10 @@ The parameter receives the caller’s integer. Evaluate `value*2`; for `value=3`
 
 This function is pure for the stated inputs because its result depends only on the argument and it changes nothing outside itself. A method named `doubleValue` that secretly increments a shared counter would fail the second condition even if it returned six every time.
 
+- `doubleValue(3)` receives `value=3`; `return value * 2` calculates `3 × 2 = 6` and finishes the call.
+- `doubleValue(3)` again receives `value=3`; the same calculation returns `6`, with no outside change.
+- `doubleValue(-2)` receives `value=-2`; `return value * 2` calculates `-2 × 2 = -4` and finishes the call.
+
 | call | read argument | calculation | return | outside changes |
 | --- | --- | --- | --- | --- |
 | `doubleValue(3)` | `3` | `3*2` | `6` | `none` |
@@ -67,7 +71,10 @@ This function is pure for the stated inputs because its result depends only on t
 int[] result = new int[numbers.length];
 ```
 
-Read `numbers.length=3`; allocate `result=[0,0,0]`. It is a different array from `numbers=[-2,0,3]`. The array is locally created so filling it does not overwrite caller-owned input. Allocating output is different from changing an existing input object. Reusing `result=numbers` would merely give the same input array another name and later writes would mutate it. Equivalent: name the variable `doubledNumbers` to make its purpose explicit.
+- `int[] result = new int[numbers.length]` reads length `3`; allocate `result=[0,0,0]`.
+- `numbers=[-2,0,3]` stays unchanged; `result` is an independent array.
+
+The array is locally created so filling it does not overwrite caller-owned input. Allocating output is different from changing an existing input object. Reusing `result=numbers` would merely give the same input array another name and later writes would mutate it. Equivalent: name the variable `doubledNumbers` to make its purpose explicit.
 
 ### Block 3 — Apply the same pure calculation to each input
 
@@ -79,23 +86,38 @@ for (int index = 0; index < numbers.length; index++) {
 
 Start at index zero. Check the bound before reading an element. The assignment writes a newly owned result cell, never `numbers[index]`. The loop has changing local state, but callers cannot observe it while this ordinary calculation runs; this does not make the method impure. Equivalent: inline `numbers[index]*2`, although the named helper makes the reusable calculation explicit.
 
-**Iteration `index=0`.** Check `0<3 → true`. Read `numbers[0]=-2`. Call `doubleValue(-2)`, which returns `-2×2=-4`. Assign only `result[0]`; it becomes `[-4, 0, 0]`. The input stays `[-2, 0, 3]`. Execute `index++`, making `1`. No branch is hidden between these steps.
+**Iteration `index=0`.**
+
+- **✅ `for` condition `index < numbers.length`:** `0 < 3 → true`; enter the body.
+- `doubleValue(numbers[index])` reads `numbers[0]=-2`; the helper executes `return value * 2`: `-2 × 2 = -4`.
+- `result[index] = ...` writes `result[0]`: `0 → -4`. The full result is below; `numbers=[-2,0,3]` stays unchanged.
+- `index++`: `0 → 1`; continue to the next `for` check.
 
 | index | condition | input read | helper return | result after | numbers after | next |
 | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `0<3 → true` | `-2` | `-4` | `[-4, 0, 0]` | `[-2, 0, 3]` | `index=1` |
+| `0` | `✅ 0<3 → true` | `-2` | `-4` | `[-4, 0, 0]` | `[-2, 0, 3]` | `index=1` |
 
-**Iteration `index=1`.** Check `1<3 → true`. Read `numbers[1]=0`. Call `doubleValue(0)`, which returns `0×2=0`. Assign only `result[1]`; it becomes `[-4, 0, 0]`. The input stays `[-2, 0, 3]`. Execute `index++`, making `2`. No branch is hidden between these steps.
+**Iteration `index=1`.**
+
+- **✅ `for` condition `index < numbers.length`:** `1 < 3 → true`; enter the body.
+- `doubleValue(numbers[index])` reads `numbers[1]=0`; the helper executes `return value * 2`: `0 × 2 = 0`.
+- `result[index] = ...` writes `result[1]`: `0 → 0`. The full result is below; `numbers=[-2,0,3]` stays unchanged.
+- `index++`: `1 → 2`; continue to the next `for` check.
 
 | index | condition | input read | helper return | result after | numbers after | next |
 | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1<3 → true` | `0` | `0` | `[-4, 0, 0]` | `[-2, 0, 3]` | `index=2` |
+| `1` | `✅ 1<3 → true` | `0` | `0` | `[-4, 0, 0]` | `[-2, 0, 3]` | `index=2` |
 
-**Iteration `index=2`.** Check `2<3 → true`. Read `numbers[2]=3`. Call `doubleValue(3)`, which returns `3×2=6`. Assign only `result[2]`; it becomes `[-4, 0, 6]`. The input stays `[-2, 0, 3]`. Execute `index++`, making `3`. No branch is hidden between these steps.
+**Iteration `index=2`.**
+
+- **✅ `for` condition `index < numbers.length`:** `2 < 3 → true`; enter the body.
+- `doubleValue(numbers[index])` reads `numbers[2]=3`; the helper executes `return value * 2`: `3 × 2 = 6`.
+- `result[index] = ...` writes `result[2]`: `0 → 6`. The full result is below; `numbers=[-2,0,3]` stays unchanged.
+- `index++`: `2 → 3`; continue to the next `for` check.
 
 | index | condition | input read | helper return | result after | numbers after | next |
 | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2<3 → true` | `3` | `6` | `[-4, 0, 6]` | `[-2, 0, 3]` | `index=3` |
+| `2` | `✅ 2<3 → true` | `3` | `6` | `[-4, 0, 6]` | `[-2, 0, 3]` | `index=3` |
 
 ### Block 4 — Return values without exposing a change to the input
 
@@ -103,7 +125,8 @@ Start at index zero. Check the bound before reading an element. The assignment w
 return result;
 ```
 
-After the increment to `index=3`, `3<3 → false`; skip the body and return `[-4,0,6]`. The original still contains `[-2,0,3]`. A second call creates another result with the same values. Returned arrays are modifiable by their owner, but modifying one does not change the original or a separate call’s result. Returning `numbers` would return the wrong values and share the input object. Equivalent: return a clearly named `doubledNumbers` variable.
+- **❌ `for` condition `index < numbers.length`:** `3 < 3 → false`; skip the helper call and assignment.
+- `return result` returns `[-4,0,6]`; `numbers` stays `[-2,0,3]`. A second call creates another result with the same values. Returned arrays are modifiable by their owner, but modifying one does not change the original or a separate call’s result. Returning `numbers` would return the wrong values and share the input object. Equivalent: return a clearly named `doubledNumbers` variable.
 
 ## Complete reference solution
 

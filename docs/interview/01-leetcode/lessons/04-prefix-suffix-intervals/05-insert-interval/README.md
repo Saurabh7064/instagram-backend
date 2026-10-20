@@ -49,7 +49,10 @@ int start = newInterval[0];
 int end = newInterval[1];
 ```
 
-Create `result=[]`; set `index=0`, `start=4`, `end=8`. Reading endpoints into local integers lets the new combined range expand without editing `newInterval`. If we edited the provided row directly, caller-owned state would change. Equivalent: clone the new row and edit that independent copy, but two scalars expose the state clearly. Empty intervals need no early guard because every loop checks length before reading a row.
+- `new ArrayList<>()` creates `result=[]`; `int index = 0` starts at the first row.
+- `int start = newInterval[0]` reads `4`; `int end = newInterval[1]` reads `8`.
+
+Reading endpoints into local integers lets the new combined range expand without editing `newInterval`. If we edited the provided row directly, caller-owned state would change. Equivalent: clone the new row and edit that independent copy, but two scalars expose the state clearly. Empty intervals need no early guard because every loop checks length before reading a row.
 
 ### Block 2 — Copy every interval strictly before the new one
 
@@ -62,17 +65,24 @@ while (index < intervals.length && intervals[index][1] < start) {
 
 Java evaluates `&&` left to right. First ensure `index` refers to an existing row. Only then read its end and compare it to `start`. Strict `<` leaves a touching endpoint for the overlap loop. `clone()` creates an independent row, `add` appends that row, and only then `index++` advances. Equivalent: separately test the bound and break when the row end is not strictly before start. Using `<=` would wrongly separate touching intervals.
 
-**Before-loop iteration `index=0`.** Check `0<5 → true`; read end `2` and evaluate `2<4 → true`. Enter the body, copy `[1,2]`, append it, then increment index to `1`. Endpoints stay `start=4,end=8`.
+**Before-loop iteration `index=0`.**
+
+- **✅ `while (index < intervals.length && intervals[index][1] < start)`:** first **✅ `index < intervals.length`:** `0 < 5 → true`; then **✅ `intervals[index][1] < start`:** `2 < 4 → true`; enter the body.
+- `result.add(intervals[index].clone())` reads `[1,2]`, copies it, and appends it: `result`: `[] → [[1,2]]`.
+- `index++`: `0 → 1`; `start=4, end=8` stay unchanged. Recheck the same `while` next.
 
 | index before | bounds check | end < start | action | result after | start/end | index after |
 | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `0<5 → true` | `2<4 → true` | `copy [1,2]` | `[[1, 2]]` | `[4, 8]` | `1` |
+| `0` | `✅ 0<5 → true` | `✅ 2<4 → true` | `copy [1,2]` | `[[1, 2]]` | `[4, 8]` | `1` |
 
-**Before-loop stopping check `index=1`.** `1<5 → true`, but the row `[3,5]` has `5<4 → false`. Skip its body: do not copy or increment. Keep index `1` for the overlap loop, so this row is not lost.
+**Before-loop stopping check `index=1`.**
+
+- **❌ `while (index < intervals.length && intervals[index][1] < start)`:** first **✅ `index < intervals.length`:** `1 < 5 → true`; then **❌ `intervals[index][1] < start`:** `5 < 4 → false`.
+- Skip `result.add(...)` and `index++`; `index=1, start=4, end=8, result=[[1,2]]` stay unchanged. Continue to the overlap loop at this same row.
 
 | index | bounds | end < start | body | result | next action |
 | --- | --- | --- | --- | --- | --- |
-| `1` | `1<5 → true` | `5<4 → false` | `Skipped` | `[[1, 2]]` | `enter overlap loop at index=1` |
+| `1` | `✅ 1<5 → true` | `❌ 5<4 → false` | `Skipped` | `[[1, 2]]` | `enter overlap loop at index=1` |
 
 ### Block 3 — Expand across every overlapping row
 
@@ -86,29 +96,47 @@ while (index < intervals.length && intervals[index][0] <= end) {
 
 At this point every earlier row was strictly before the new start. Any remaining row starting at or before `end` therefore meets the combined range. `Math.min` keeps the earlier start; `Math.max` keeps the later end. The changed end describes all coverage accumulated so far and is used in the **next** condition. Under this problem’s promise that old intervals are disjoint, extending past the original new end cannot unexpectedly connect another old interval: that later interval starts beyond the extended old interval’s end. Keeping the updated end still makes the covered-range invariant explicit. Equivalent: `currentStart` and `currentEnd` locals can make the two row reads more explicit. Failing to preserve the larger end would lose the covered tail of the last merged interval.
 
-**Overlap iteration `index=1`.** Bounds check `1<5 → true`; read current row `[3, 5]`. Compare its start with the latest end: `3 <= 8 → true`, so enter. Set start to `min(4,3)=3` and end to `max(8,5)=8`. Do not append yet: this combined interval is still unfinished. Increment index to `2`; the output remains `[[1, 2]]`.
+**Overlap iteration `index=1`.**
+
+- **✅ `while (index < intervals.length && intervals[index][0] <= end)`:** first **✅ `index < intervals.length`:** `1 < 5 → true`; then **✅ `intervals[index][0] <= end`:** `3 <= 8 → true`; enter the body.
+- `start = Math.min(start, intervals[index][0])`: `min(4,3)=3`, so `start`: `4 → 3`.
+- `end = Math.max(end, intervals[index][1])`: `max(8,5)=8`, so `end`: `8 → 8`.
+- `index++`: `1 → 2`; recheck this `while` using the updated end. `result=[[1,2]]` stays unchanged; no append occurs in this loop.
 
 | index | bounds | current | start <= end | start update | end update | result after | next index |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1<5 → true` | `[3, 5]` | `3<=8 → true` | `min(4,3)=3` | `max(8,5)=8` | `[[1, 2]]` | `2` |
+| `1` | `✅ 1<5 → true` | `[3, 5]` | `✅ 3<=8 → true` | `min(4,3)=3` | `max(8,5)=8` | `[[1, 2]]` | `2` |
 
-**Overlap iteration `index=2`.** Bounds check `2<5 → true`; read current row `[6, 7]`. Compare its start with the latest end: `6 <= 8 → true`, so enter. Set start to `min(3,6)=3` and end to `max(8,7)=8`. Do not append yet: this combined interval is still unfinished. Increment index to `3`; the output remains `[[1, 2]]`.
+**Overlap iteration `index=2`.**
+
+- **✅ `while (index < intervals.length && intervals[index][0] <= end)`:** first **✅ `index < intervals.length`:** `2 < 5 → true`; then **✅ `intervals[index][0] <= end`:** `6 <= 8 → true`; enter the body.
+- `start = Math.min(start, intervals[index][0])`: `min(3,6)=3`, so `start`: `3 → 3`.
+- `end = Math.max(end, intervals[index][1])`: `max(8,7)=8`, so `end`: `8 → 8`.
+- `index++`: `2 → 3`; recheck this `while` using the updated end. `result=[[1,2]]` stays unchanged; no append occurs in this loop.
 
 | index | bounds | current | start <= end | start update | end update | result after | next index |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2<5 → true` | `[6, 7]` | `6<=8 → true` | `min(3,6)=3` | `max(8,7)=8` | `[[1, 2]]` | `3` |
+| `2` | `✅ 2<5 → true` | `[6, 7]` | `✅ 6<=8 → true` | `min(3,6)=3` | `max(8,7)=8` | `[[1, 2]]` | `3` |
 
-**Overlap iteration `index=3`.** Bounds check `3<5 → true`; read current row `[8, 10]`. Compare its start with the latest end: `8 <= 8 → true`, so enter. Set start to `min(3,8)=3` and end to `max(8,10)=10`. Do not append yet: this combined interval is still unfinished. Increment index to `4`; the output remains `[[1, 2]]`.
+**Overlap iteration `index=3`.**
+
+- **✅ `while (index < intervals.length && intervals[index][0] <= end)`:** first **✅ `index < intervals.length`:** `3 < 5 → true`; then **✅ `intervals[index][0] <= end`:** `8 <= 8 → true`; enter the body.
+- `start = Math.min(start, intervals[index][0])`: `min(3,8)=3`, so `start`: `3 → 3`.
+- `end = Math.max(end, intervals[index][1])`: `max(8,10)=10`, so `end`: `8 → 10`.
+- `index++`: `3 → 4`; recheck this `while` using the updated end. `result=[[1,2]]` stays unchanged; no append occurs in this loop.
 
 | index | bounds | current | start <= end | start update | end update | result after | next index |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `3<5 → true` | `[8, 10]` | `8<=8 → true` | `min(3,8)=3` | `max(8,10)=10` | `[[1, 2]]` | `4` |
+| `3` | `✅ 3<5 → true` | `[8, 10]` | `✅ 8<=8 → true` | `min(3,8)=3` | `max(8,10)=10` | `[[1, 2]]` | `4` |
 
-**Overlap-loop stopping check `index=4`.** Bounds `4<5 → true`; next start `12 <= 10 → false`. Skip both endpoint updates and the increment. Keep `start=3,end=10,index=4`. Row `[12,16]` belongs to the after region and has not been consumed.
+**Overlap-loop stopping check `index=4`.**
+
+- **❌ `while (index < intervals.length && intervals[index][0] <= end)`:** first **✅ `index < intervals.length`:** `4 < 5 → true`; then **❌ `intervals[index][0] <= end`:** `12 <= 10 → false`.
+- Skip both endpoint assignments and `index++`; `index=4, start=3, end=10, result=[[1,2]]` stay unchanged. Continue to append the combined range.
 
 | index | bounds | start <= end | body | start/end after | next |
 | --- | --- | --- | --- | --- | --- |
-| `4` | `4<5 → true` | `12<=10 → false` | `Skipped` | `[3, 10]` | `append combined range` |
+| `4` | `✅ 4<5 → true` | `❌ 12<=10 → false` | `Skipped` | `[3, 10]` | `append combined range` |
 
 ### Block 4 — Save the combined interval exactly once
 
@@ -116,7 +144,10 @@ At this point every earlier row was strictly before the new start. Any remaining
 result.add(new int[] {start, end});
 ```
 
-Create a new row `[3,10]` and append it: `result=[[1,2],[3,10]]`. `index` stays `4`; `intervals` and `newInterval` stay unchanged. Without this append the inserted interval would disappear. Appending inside the overlap loop would produce intermediate ranges or none at all when there were no overlaps. Equivalent: name the new row `combined` before adding it.
+- `result.add(new int[] {start, end})` creates `[3,10]` and appends it: `[[1,2]] → [[1,2],[3,10]]`.
+- `index=4, start=3, end=10` stay unchanged; continue to the after loop. Both input arrays stay unchanged.
+
+Without this append the inserted interval would disappear. Appending inside the overlap loop would produce intermediate ranges or none at all when there were no overlaps. Equivalent: name the new row `combined` before adding it.
 
 ### Block 5 — Copy remaining rows and finish the scan
 
@@ -129,13 +160,20 @@ while (index < intervals.length) {
 
 Every remaining start is beyond the combined end, and the original rows are disjoint, so no more merging is needed. Copy each row into the result rather than storing an input row reference. There is no second condition or inner branch in this loop. Equivalent: a `for` loop starting from the current index; do not reset index to zero.
 
-**After-loop iteration `index=4`.** Evaluate `4<5 → true`; clone `[12,16]`, append it, and increment index to `5`. The result becomes `[[1,2],[3,10],[12,16]]`.
+**After-loop iteration `index=4`.**
+
+- **✅ `while (index < intervals.length)`:** `4 < 5 → true`; enter the body.
+- `result.add(intervals[index].clone())` reads `[12,16]`, copies it, and appends it: `[[1,2],[3,10]] → [[1,2],[3,10],[12,16]]`.
+- `index++`: `4 → 5`; `start=3, end=10` stay unchanged. Recheck this `while` next.
 
 | index | condition | row copied | result after | next |
 | --- | --- | --- | --- | --- |
-| `4` | `4<5 → true` | `[12, 16]` | `[[1, 2], [3, 10], [12, 16]]` | `index=5` |
+| `4` | `✅ 4<5 → true` | `[12, 16]` | `[[1, 2], [3, 10], [12, 16]]` | `index=5` |
 
-**After-loop stopping check `index=5`.** `5<5 → false`. Skip the body; `intervals[5]` is never read and no out-of-bounds access occurs. If this exhaustion had happened in either earlier loop, the false first operand of `&&` would also have skipped the endpoint comparison.
+**After-loop stopping check `index=5`.**
+
+- **❌ `while (index < intervals.length)`:** `5 < 5 → false`; skip the append and increment. `intervals[5]` is never read.
+- `index=5, start=3, end=10, result=[[1,2],[3,10],[12,16]]`; continue to the return.
 
 ### Block 6 — Return an array of independent output rows
 

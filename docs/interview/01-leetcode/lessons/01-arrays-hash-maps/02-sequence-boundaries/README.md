@@ -183,18 +183,18 @@ for (int value : unique) {
 
 | operation | value | unique | hasPredecessor | current | length | longest |
 | --- | --- | --- | --- | --- | --- | --- |
-| `initialize run` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `1` | `1` | `0` |
-| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `2` | `2` | `0` |
-| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `3` | `3` | `0` |
-| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `4` | `4` | `0` |
-| `successor absent; update longest` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `4` | `4` | `4` |
-| `skip: predecessor exists` | `2` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
-| `skip: predecessor exists` | `3` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
-| `skip: predecessor exists` | `4` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
-| `initialize run` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
-| `successor absent; update longest` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
-| `initialize run` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
-| `successor absent; update longest` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
+| `initialize run` | `1` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `1` | `1` | `0` |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `2` | `2` | `0` |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `3` | `3` | `0` |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `4` | `4` | `0` |
+| `successor absent; update longest` | `1` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `4` | `4` | `4` |
+| `skip: predecessor exists` | `2` | `[1, 2, 3, 4, 100, 200]` | `✅ true` | `—` | `—` | `4` |
+| `skip: predecessor exists` | `3` | `[1, 2, 3, 4, 100, 200]` | `✅ true` | `—` | `—` | `4` |
+| `skip: predecessor exists` | `4` | `[1, 2, 3, 4, 100, 200]` | `✅ true` | `—` | `—` | `4` |
+| `initialize run` | `100` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `100` | `1` | `4` |
+| `successor absent; update longest` | `100` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `100` | `1` | `4` |
+| `initialize run` | `200` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `200` | `1` | `4` |
+| `successor absent; update longest` | `200` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `200` | `1` | `4` |
 
 ### Block 4 — Decide whether a value has a predecessor
 
@@ -216,12 +216,12 @@ Read the line from left to right:
 
 | operation | value | unique | hasPredecessor | current | length | longest |
 | --- | --- | --- | --- | --- | --- | --- |
-| `initialize run` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `1` | `1` | `0` |
-| `skip: predecessor exists` | `2` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
-| `skip: predecessor exists` | `3` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
-| `skip: predecessor exists` | `4` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
-| `initialize run` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
-| `initialize run` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
+| `initialize run` | `1` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `1` | `1` | `0` |
+| `skip: predecessor exists` | `2` | `[1, 2, 3, 4, 100, 200]` | `✅ true` | `—` | `—` | `4` |
+| `skip: predecessor exists` | `3` | `[1, 2, 3, 4, 100, 200]` | `✅ true` | `—` | `—` | `4` |
+| `skip: predecessor exists` | `4` | `[1, 2, 3, 4, 100, 200]` | `✅ true` | `—` | `—` | `4` |
+| `initialize run` | `100` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `100` | `1` | `4` |
+| `initialize run` | `200` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `200` | `1` | `4` |
 
 ### Why `!= Integer.MIN_VALUE`?
 
@@ -304,12 +304,12 @@ Without this guard, `1`, `2`, `3`, and `4` would all rescan suffixes of the same
 
 | operation | value | unique | hasPredecessor | current | length | longest |
 | --- | --- | --- | --- | --- | --- | --- |
-| `initialize run` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `1` | `1` | `0` |
-| `skip: predecessor exists` | `2` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
-| `skip: predecessor exists` | `3` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
-| `skip: predecessor exists` | `4` | `[1, 2, 3, 4, 100, 200]` | `true` | `—` | `—` | `4` |
-| `initialize run` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
-| `initialize run` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
+| `initialize run` | `1` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `1` | `1` | `0` |
+| `skip: predecessor exists` | `2` | `[1, 2, 3, 4, 100, 200]` | `✅ true` | `—` | `—` | `4` |
+| `skip: predecessor exists` | `3` | `[1, 2, 3, 4, 100, 200]` | `✅ true` | `—` | `—` | `4` |
+| `skip: predecessor exists` | `4` | `[1, 2, 3, 4, 100, 200]` | `✅ true` | `—` | `—` | `4` |
+| `initialize run` | `100` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `100` | `1` | `4` |
+| `initialize run` | `200` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `200` | `1` | `4` |
 
 ### Block 6 — Count the current value first
 
@@ -330,9 +330,9 @@ Without `length = 1`, a one-value run would be reported as zero; without a separ
 
 | operation | value | unique | hasPredecessor | current | length | longest |
 | --- | --- | --- | --- | --- | --- | --- |
-| `initialize run` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `1` | `1` | `0` |
-| `initialize run` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
-| `initialize run` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
+| `initialize run` | `1` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `1` | `1` | `0` |
+| `initialize run` | `100` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `100` | `1` | `4` |
+| `initialize run` | `200` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `200` | `1` | `4` |
 
 ### Block 7 — Look for the next value safely
 
@@ -355,12 +355,12 @@ Read the condition from left to right:
 
 | operation | value | unique | hasPredecessor | current | length | longest |
 | --- | --- | --- | --- | --- | --- | --- |
-| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `2` | `2` | `0` |
-| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `3` | `3` | `0` |
-| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `4` | `4` | `0` |
-| `successor absent; update longest` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `4` | `4` | `4` |
-| `successor absent; update longest` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
-| `successor absent; update longest` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `2` | `2` | `0` |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `3` | `3` | `0` |
+| `advance current and length` | `1` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `4` | `4` | `0` |
+| `successor absent; update longest` | `1` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `4` | `4` | `4` |
+| `successor absent; update longest` | `100` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `100` | `1` | `4` |
+| `successor absent; update longest` | `200` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `200` | `1` | `4` |
 
 ### Why `!= Integer.MAX_VALUE`?
 
@@ -406,60 +406,87 @@ Without this update, the method forgets completed runs and always returns its in
 
 | operation | value | unique | hasPredecessor | current | length | longest |
 | --- | --- | --- | --- | --- | --- | --- |
-| `successor absent; update longest` | `1` | `[1, 2, 3, 4, 100, 200]` | `false` | `4` | `4` | `4` |
-| `successor absent; update longest` | `100` | `[1, 2, 3, 4, 100, 200]` | `false` | `100` | `1` | `4` |
-| `successor absent; update longest` | `200` | `[1, 2, 3, 4, 100, 200]` | `false` | `200` | `1` | `4` |
+| `successor absent; update longest` | `1` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `4` | `4` | `4` |
+| `successor absent; update longest` | `100` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `100` | `1` | `4` |
+| `successor absent; update longest` | `200` | `[1, 2, 3, 4, 100, 200]` | `❌ false` | `200` | `1` | `4` |
 
 
 **Narrated execution — follow each operation, then check its values:**
 
 **Iteration/check 1 — value = `1`.**
 
-Choose distinct value `1`. The lower-bound guard is `true`, so it is safe to ask whether its predecessor exists: `contains(0) → false`. The start-of-run condition is `!false → true`. The successor checks execute as follows: `2 present → true; 3 present → true; 4 present → true; 5 absent → false`. The run-local state is `current=4, length=4`; the best completed length is now `4`. Move to the next distinct value. When a predecessor exists, skip run initialization, successor scanning, and the best-length update entirely.
+- **✅ `for (int value : unique)`:** assign `value=1` in this permitted set order.
+- `hasPredecessor` evaluates **✅ `value != Integer.MIN_VALUE`:** `1 != -2147483648 → true`, then **❌ `unique.contains(value - 1)`:** `contains(1 - 1 = 0) → false`; assign `hasPredecessor=false`.
+- **✅ `if (!hasPredecessor)`:** `!false → true`; initialize `length=1`, `current=1`.
+- **✅ Successor `while`:** **✅ `current != Integer.MAX_VALUE`:** `1 != 2147483647 → true`; **✅ `unique.contains(current + 1)`:** `contains(2) → true`; execute `current++`: `1 → 2`, then `length++`: `1 → 2`.
+- **✅ Successor `while`:** **✅ `current != Integer.MAX_VALUE`:** `2 != 2147483647 → true`; **✅ `unique.contains(current + 1)`:** `contains(3) → true`; execute `current++`: `2 → 3`, then `length++`: `2 → 3`.
+- **✅ Successor `while`:** **✅ `current != Integer.MAX_VALUE`:** `3 != 2147483647 → true`; **✅ `unique.contains(current + 1)`:** `contains(4) → true`; execute `current++`: `3 → 4`, then `length++`: `3 → 4`.
+- **❌ Successor `while`:** **✅ `current != Integer.MAX_VALUE`:** `4 != 2147483647 → true`; **❌ `unique.contains(current + 1)`:** `contains(5) → false`; stop the run.
+- `longest = Math.max(longest, length)`: `max(0,4)=4`; `longest` changes `0 → 4`. Run ends with `current=4`, `length=4`.
+- **State:** `value=1`, `hasPredecessor=false`, `longest=4`; `unique` remains `{1,2,3,4,100,200}`. Continue to the next distinct value.
 
 | value | value != MIN_VALUE | predecessor lookup | if (!hasPredecessor) | successor while checks (current != MAX_VALUE is true here) | run after | longest after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `true` | `contains(0) → false` | `!false → true` | `2 present → true; 3 present → true; 4 present → true; 5 absent → false` | `current=1 → 2 → 3 → 4, length=1 → 2 → 3 → 4` | `4` | `next distinct value` |
+| `1` | `✅ true` | `❌ contains(0) → false` | `✅ !false → true` | `✅ 2 present → true; ✅ 3 present → true; ✅ 4 present → true; ❌ 5 absent → false` | `current=1 → 2 → 3 → 4, length=1 → 2 → 3 → 4` | `4` | `next distinct value` |
 
 **Iteration/check 2 — value = `2`.**
 
-Choose distinct value `2`. The lower-bound guard is `true`, so it is safe to ask whether its predecessor exists: `contains(1) → true`. The start-of-run condition is `!true → false`. The successor checks execute as follows: `Skipped`. The run-local state is `Skipped`; the best completed length is now `4`. Move to the next distinct value. When a predecessor exists, skip run initialization, successor scanning, and the best-length update entirely.
+- **✅ `for (int value : unique)`:** assign `value=2` in this permitted set order.
+- `hasPredecessor` evaluates **✅ `value != Integer.MIN_VALUE`:** `2 != -2147483648 → true`, then **✅ `unique.contains(value - 1)`:** `contains(2 - 1 = 1) → true`; assign `hasPredecessor=true`.
+- **❌ `if (!hasPredecessor)`:** `!true → false`; skip run initialization, the successor `while`, and `Math.max`; run locals do not exist in this iteration.
+- **State:** `value=2`, `hasPredecessor=true`, `longest=4`; `unique` remains `{1,2,3,4,100,200}`. Continue to the next distinct value.
 
 | value | value != MIN_VALUE | predecessor lookup | if (!hasPredecessor) | successor while checks (current != MAX_VALUE is true here) | run after | longest after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `true` | `contains(1) → true` | `!true → false` | `Skipped` | `Skipped` | `4` | `next distinct value` |
+| `2` | `✅ true` | `✅ contains(1) → true` | `❌ !true → false` | `Skipped` | `Skipped` | `4` | `next distinct value` |
 
 **Iteration/check 3 — value = `3`.**
 
-Choose distinct value `3`. The lower-bound guard is `true`, so it is safe to ask whether its predecessor exists: `contains(2) → true`. The start-of-run condition is `!true → false`. The successor checks execute as follows: `Skipped`. The run-local state is `Skipped`; the best completed length is now `4`. Move to the next distinct value. When a predecessor exists, skip run initialization, successor scanning, and the best-length update entirely.
+- **✅ `for (int value : unique)`:** assign `value=3` in this permitted set order.
+- `hasPredecessor` evaluates **✅ `value != Integer.MIN_VALUE`:** `3 != -2147483648 → true`, then **✅ `unique.contains(value - 1)`:** `contains(3 - 1 = 2) → true`; assign `hasPredecessor=true`.
+- **❌ `if (!hasPredecessor)`:** `!true → false`; skip run initialization, the successor `while`, and `Math.max`; run locals do not exist in this iteration.
+- **State:** `value=3`, `hasPredecessor=true`, `longest=4`; `unique` remains `{1,2,3,4,100,200}`. Continue to the next distinct value.
 
 | value | value != MIN_VALUE | predecessor lookup | if (!hasPredecessor) | successor while checks (current != MAX_VALUE is true here) | run after | longest after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `true` | `contains(2) → true` | `!true → false` | `Skipped` | `Skipped` | `4` | `next distinct value` |
+| `3` | `✅ true` | `✅ contains(2) → true` | `❌ !true → false` | `Skipped` | `Skipped` | `4` | `next distinct value` |
 
 **Iteration/check 4 — value = `4`.**
 
-Choose distinct value `4`. The lower-bound guard is `true`, so it is safe to ask whether its predecessor exists: `contains(3) → true`. The start-of-run condition is `!true → false`. The successor checks execute as follows: `Skipped`. The run-local state is `Skipped`; the best completed length is now `4`. Move to the next distinct value. When a predecessor exists, skip run initialization, successor scanning, and the best-length update entirely.
+- **✅ `for (int value : unique)`:** assign `value=4` in this permitted set order.
+- `hasPredecessor` evaluates **✅ `value != Integer.MIN_VALUE`:** `4 != -2147483648 → true`, then **✅ `unique.contains(value - 1)`:** `contains(4 - 1 = 3) → true`; assign `hasPredecessor=true`.
+- **❌ `if (!hasPredecessor)`:** `!true → false`; skip run initialization, the successor `while`, and `Math.max`; run locals do not exist in this iteration.
+- **State:** `value=4`, `hasPredecessor=true`, `longest=4`; `unique` remains `{1,2,3,4,100,200}`. Continue to the next distinct value.
 
 | value | value != MIN_VALUE | predecessor lookup | if (!hasPredecessor) | successor while checks (current != MAX_VALUE is true here) | run after | longest after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `4` | `true` | `contains(3) → true` | `!true → false` | `Skipped` | `Skipped` | `4` | `next distinct value` |
+| `4` | `✅ true` | `✅ contains(3) → true` | `❌ !true → false` | `Skipped` | `Skipped` | `4` | `next distinct value` |
 
 **Iteration/check 5 — value = `100`.**
 
-Choose distinct value `100`. The lower-bound guard is `true`, so it is safe to ask whether its predecessor exists: `contains(99) → false`. The start-of-run condition is `!false → true`. The successor checks execute as follows: `101 absent → false`. The run-local state is `current=100, length=1`; the best completed length is now `4`. Move to the next distinct value. When a predecessor exists, skip run initialization, successor scanning, and the best-length update entirely.
+- **✅ `for (int value : unique)`:** assign `value=100` in this permitted set order.
+- `hasPredecessor` evaluates **✅ `value != Integer.MIN_VALUE`:** `100 != -2147483648 → true`, then **❌ `unique.contains(value - 1)`:** `contains(100 - 1 = 99) → false`; assign `hasPredecessor=false`.
+- **✅ `if (!hasPredecessor)`:** `!false → true`; initialize `length=1`, `current=100`.
+- **❌ Successor `while`:** **✅ `current != Integer.MAX_VALUE`:** `100 != 2147483647 → true`; **❌ `unique.contains(current + 1)`:** `contains(101) → false`; stop the run.
+- `longest = Math.max(longest, length)`: `max(4,1)=4`; `longest` changes `4 → 4`. Run ends with `current=100`, `length=1`.
+- **State:** `value=100`, `hasPredecessor=false`, `longest=4`; `unique` remains `{1,2,3,4,100,200}`. Continue to the next distinct value.
 
 | value | value != MIN_VALUE | predecessor lookup | if (!hasPredecessor) | successor while checks (current != MAX_VALUE is true here) | run after | longest after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `100` | `true` | `contains(99) → false` | `!false → true` | `101 absent → false` | `current=100, length=1` | `4` | `next distinct value` |
+| `100` | `✅ true` | `❌ contains(99) → false` | `✅ !false → true` | `❌ 101 absent → false` | `current=100, length=1` | `4` | `next distinct value` |
 
 **Iteration/check 6 — value = `200`.**
 
-Choose distinct value `200`. The lower-bound guard is `true`, so it is safe to ask whether its predecessor exists: `contains(199) → false`. The start-of-run condition is `!false → true`. The successor checks execute as follows: `201 absent → false`. The run-local state is `current=200, length=1`; the best completed length is now `4`. Move to the next distinct value. When a predecessor exists, skip run initialization, successor scanning, and the best-length update entirely.
+- **✅ `for (int value : unique)`:** assign `value=200` in this permitted set order.
+- `hasPredecessor` evaluates **✅ `value != Integer.MIN_VALUE`:** `200 != -2147483648 → true`, then **❌ `unique.contains(value - 1)`:** `contains(200 - 1 = 199) → false`; assign `hasPredecessor=false`.
+- **✅ `if (!hasPredecessor)`:** `!false → true`; initialize `length=1`, `current=200`.
+- **❌ Successor `while`:** **✅ `current != Integer.MAX_VALUE`:** `200 != 2147483647 → true`; **❌ `unique.contains(current + 1)`:** `contains(201) → false`; stop the run.
+- `longest = Math.max(longest, length)`: `max(4,1)=4`; `longest` changes `4 → 4`. Run ends with `current=200`, `length=1`.
+- **State:** `value=200`, `hasPredecessor=false`, `longest=4`; `unique` remains `{1,2,3,4,100,200}`. **❌ Enhanced `for`:** no next value; exit and `return longest` → `4`.
 
 | value | value != MIN_VALUE | predecessor lookup | if (!hasPredecessor) | successor while checks (current != MAX_VALUE is true here) | run after | longest after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `200` | `true` | `contains(199) → false` | `!false → true` | `201 absent → false` | `current=200, length=1` | `4` | `next distinct value` |
+| `200` | `✅ true` | `❌ contains(199) → false` | `✅ !false → true` | `❌ 201 absent → false` | `current=200, length=1` | `4` | `next distinct value` |
 
 This uses the permitted set order `1,2,3,4,100,200`; Java does not promise that order. A predecessor skips the entire run scan. After the sixth value, the enhanced loop is exhausted; return `4`. Existing boundary examples explain the MIN/MAX short circuits.
 

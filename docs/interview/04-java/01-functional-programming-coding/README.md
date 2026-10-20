@@ -25,7 +25,7 @@ Build practical Java functional-programming skill by understanding the concept, 
 1. Start with the conceptual question and explain the problem the concept solves.
 2. Define at most three unfamiliar terms, using a small worked calculation before library syntax.
 3. Give one or two directly runnable programs related to that same concept, with separate practice and reference files.
-4. Interleave small code blocks, why they exist, narrated execution for each iteration, and exact value tables. Explain guards, allocations, callback invocations, discarded values, and termination. A stream’s logical emitted values are not a claim about hidden counters or buffers.
+4. Interleave small code blocks, why they exist, concise execution bullets for each iteration/callback, and exact value tables. Explain guards, allocations, callback invocations, discarded values, and termination. A stream’s logical emitted values are not a claim about hidden counters or buffers.
 5. Add a focused LeetCode bridge when it fits naturally, after its prerequisites. Compare with a loop and preserve algorithmic complexity; do not force a stream onto every problem.
 6. Check understanding through prediction, a plain-language explanation, and an implementation attempt. Artifact readiness does not earn comprehension credit.
 
@@ -55,3 +55,5 @@ The original normalization Java files remain at their old paths and now belong t
 Start with the [learning backlog](./learning-backlog.md); later lessons remain `TODO` until the current lesson's stop/go criteria are met.
 
 Keep the original debugger-table columns and full context. If one value changes several times within an iteration, show the intermediate values in that same cell (for example `2 → 3 → 2`); do not replace the table with a changes-only summary.
+
+Write each execution as concise bullets: actual statement/API → concrete values and changes → evaluated condition and executed/skipped branch → final state → next action/return. Place ✅ or ❌ before evaluated conditions, retain true/false, and leave skipped checks unmarked. Keep each original value table immediately after its bullet list, including full collection context and in-cell change paths.

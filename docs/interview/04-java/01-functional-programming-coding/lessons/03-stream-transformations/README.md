@@ -55,7 +55,7 @@ return words.stream()
 .filter(word -> !word.isEmpty())
 ```
 
-This lambda receives the already-trimmed word. `isEmpty()` returns true only when its length is zero; `!` reverses it, making filter’s keep decision. For `"Alice"`, `isEmpty=false`, `!false=true`, so keep it. For `""`, `isEmpty=true`, `!true=false`, so discard it and skip later operations for that word. Filtering before trimming would keep `"   "`, since its original length is three. Equivalent: `word -> word.length() > 0`.
+This lambda receives the already-trimmed word. `isEmpty()` returns true only when its length is zero; `!` reverses it, making filter’s keep decision. For `"Alice"`, **❌ `word.isEmpty()`:** false; **✅ `!word.isEmpty()`:** `!false → true`, so keep it. For `""`, **✅ `word.isEmpty()`:** true; **❌ `!word.isEmpty()`:** `!true → false`, so discard it and skip later operations for that word. Filtering before trimming would keep `"   "`, since its original length is three. Equivalent: `word -> word.length() > 0`.
 
 ### Block 4 — Normalize surviving values predictably
 
@@ -73,35 +73,63 @@ For each survivor, calculate a lowercased String value. `Locale.ROOT` supplies l
 
 This call starts the traversal, keeps source order, and produces an unmodifiable result list. It does not promise a fresh list identity for every equal result, so compare values with equals rather than `==`. There is no externally accessible output list being appended by your code; the “collected values so far” below are a conceptual sequential trace. Without a result-gathering operation, the declared List-returning method would not return the required list. If callers need a modifiable list, explicitly copy the finished result into `new ArrayList<>(result)` outside this method’s contract. [Stream.toList contract](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/Stream.html#toList()).
 
-**Word 0: input `" Alice "`.** The traversal has this next source element. Trim it to `"Alice"`. Evaluate `isEmpty() → false`, then negate it: keep condition `true`. The filter passes it, so calculate lowercase `"alice"` and include that value in the result. The conceptual result values so far are `["alice"]`. The original list is still `[" Alice ", "", "BOB", "   ", "Chloë"]`. Continue with the next source element.
+**Word 0: input `" Alice "`.**
+
+- `map(String::trim)` reads word `" Alice "`; `word.trim()` returns `"Alice"`.
+- **❌ `word.isEmpty()`:** `false`; **✅ filter `!word.isEmpty()`:** `!false → true`.
+- The filter keeps `"Alice"`; `map(word -> word.toLowerCase(Locale.ROOT))` returns `"alice"`.
+- `toList()` includes this value; conceptual output: `[] → ["alice"]`.
+- The stream library continues to the next word; the source list stays unchanged.
 
 | source position (explanatory, not a Java index variable) | original | after trim | isEmpty | filter keep | lowercase | conceptual collected values | source after |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `" Alice "` | `"Alice"` | `false` | `true` | `"alice"` | `["alice"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
+| `0` | `" Alice "` | `"Alice"` | `❌ false` | `✅ true` | `"alice"` | `["alice"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
 
-**Word 1: input `""`.** The traversal has this next source element. Trim it to `""`. Evaluate `isEmpty() → true`, then negate it: keep condition `false`. The filter discards it; the lowercase calculation is not invoked and no result value is added. The conceptual result values so far are `["alice"]`. The original list is still `[" Alice ", "", "BOB", "   ", "Chloë"]`. Continue with the next source element.
+**Word 1: input `""`.**
 
-| source position (explanatory, not a Java index variable) | original | after trim | isEmpty | filter keep | lowercase | conceptual collected values | source after |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `""` | `""` | `true` | `false` | `Skipped` | `["alice"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
-
-**Word 2: input `"BOB"`.** The traversal has this next source element. Trim it to `"BOB"`. Evaluate `isEmpty() → false`, then negate it: keep condition `true`. The filter passes it, so calculate lowercase `"bob"` and include that value in the result. The conceptual result values so far are `["alice", "bob"]`. The original list is still `[" Alice ", "", "BOB", "   ", "Chloë"]`. Continue with the next source element.
-
-| source position (explanatory, not a Java index variable) | original | after trim | isEmpty | filter keep | lowercase | conceptual collected values | source after |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `"BOB"` | `"BOB"` | `false` | `true` | `"bob"` | `["alice", "bob"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
-
-**Word 3: input `"   "`.** The traversal has this next source element. Trim it to `""`. Evaluate `isEmpty() → true`, then negate it: keep condition `false`. The filter discards it; the lowercase calculation is not invoked and no result value is added. The conceptual result values so far are `["alice", "bob"]`. The original list is still `[" Alice ", "", "BOB", "   ", "Chloë"]`. Continue with the next source element.
+- `map(String::trim)` reads word `""`; `word.trim()` returns `""`.
+- **✅ `word.isEmpty()`:** `true`; **❌ filter `!word.isEmpty()`:** `!true → false`.
+- The filter discards `""`; lowercase is `Skipped`, with no emitted value. Conceptual output stays `["alice"]`.
+- The stream library continues to the next word; the source list stays unchanged.
 
 | source position (explanatory, not a Java index variable) | original | after trim | isEmpty | filter keep | lowercase | conceptual collected values | source after |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `"   "` | `""` | `true` | `false` | `Skipped` | `["alice", "bob"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
+| `1` | `""` | `""` | `✅ true` | `❌ false` | `Skipped` | `["alice"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
 
-**Word 4: input `"Chloë"`.** The traversal has this next source element. Trim it to `"Chloë"`. Evaluate `isEmpty() → false`, then negate it: keep condition `true`. The filter passes it, so calculate lowercase `"chloë"` and include that value in the result. The conceptual result values so far are `["alice", "bob", "chloë"]`. The original list is still `[" Alice ", "", "BOB", "   ", "Chloë"]`. Continue with the next source element.
+**Word 2: input `"BOB"`.**
+
+- `map(String::trim)` reads word `"BOB"`; `word.trim()` returns `"BOB"`.
+- **❌ `word.isEmpty()`:** `false`; **✅ filter `!word.isEmpty()`:** `!false → true`.
+- The filter keeps `"BOB"`; `map(word -> word.toLowerCase(Locale.ROOT))` returns `"bob"`.
+- `toList()` includes this value; conceptual output: `["alice"] → ["alice", "bob"]`.
+- The stream library continues to the next word; the source list stays unchanged.
 
 | source position (explanatory, not a Java index variable) | original | after trim | isEmpty | filter keep | lowercase | conceptual collected values | source after |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `4` | `"Chloë"` | `"Chloë"` | `false` | `true` | `"chloë"` | `["alice", "bob", "chloë"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
+| `2` | `"BOB"` | `"BOB"` | `❌ false` | `✅ true` | `"bob"` | `["alice", "bob"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
+
+**Word 3: input `"   "`.**
+
+- `map(String::trim)` reads word `"   "`; `word.trim()` returns `""`.
+- **✅ `word.isEmpty()`:** `true`; **❌ filter `!word.isEmpty()`:** `!true → false`.
+- The filter discards `""`; lowercase is `Skipped`, with no emitted value. Conceptual output stays `["alice", "bob"]`.
+- The stream library continues to the next word; the source list stays unchanged.
+
+| source position (explanatory, not a Java index variable) | original | after trim | isEmpty | filter keep | lowercase | conceptual collected values | source after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `3` | `"   "` | `""` | `✅ true` | `❌ false` | `Skipped` | `["alice", "bob"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
+
+**Word 4: input `"Chloë"`.**
+
+- `map(String::trim)` reads word `"Chloë"`; `word.trim()` returns `"Chloë"`.
+- **❌ `word.isEmpty()`:** `false`; **✅ filter `!word.isEmpty()`:** `!false → true`.
+- The filter keeps `"Chloë"`; `map(word -> word.toLowerCase(Locale.ROOT))` returns `"chloë"`.
+- `toList()` includes this value; conceptual output: `["alice", "bob"] → ["alice", "bob", "chloë"]`.
+- `toList()` reaches the end and the return expression returns `["alice","bob","chloë"]`; the source list stays unchanged.
+
+| source position (explanatory, not a Java index variable) | original | after trim | isEmpty | filter keep | lowercase | conceptual collected values | source after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `4` | `"Chloë"` | `"Chloë"` | `❌ false` | `✅ true` | `"chloë"` | `["alice", "bob", "chloë"]` | `[" Alice ", "", "BOB", "   ", "Chloë"]` |
 
 After source position `4`, there is no next source element. There is no application-level `index++` or loop condition in this reference: the stream library controls traversal. `toList` completes, and the return expression returns `["alice", "bob", "chloë"]`. No hidden lowercase invocation is owed to discarded words.
 

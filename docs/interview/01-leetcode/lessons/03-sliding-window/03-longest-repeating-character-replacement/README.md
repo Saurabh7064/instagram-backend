@@ -92,7 +92,9 @@ int maxFrequency = 0;
 
 **Debugger state at this block:**
 
-For `text="AABABBA"`, `replacementsAllowed=1`, initialize `left=0`, `bestLength=0`, `maxFrequency=0`. Array cells `0..25` correspond to `A..Z`; every count starts at zero.
+- Inputs: `text="AABABBA"`, `replacementsAllowed=1`; the string stays unchanged.
+- `new int[26]` creates `frequency`; cells `0..25` mean `A..Z`, each initially `0`.
+- Initialize `left=0`, `bestLength=0`, `maxFrequency=0`; `right` has not started.
 
 | Debugger step | Exact operation | Full `frequency` array |
 |:---|:---|:---|
@@ -120,13 +122,13 @@ Adding a letter increments its cell; `Math.max` keeps the largest frequency obse
 
 | `right` | Incoming | `incomingIndex` | `left` | Window | A count | B count | `maxFrequency` | `replacementsNeeded = right - left + 1 - maxFrequency` | `bestLength` | `> 1`? |
 |---:|:---:|---:|---:|:---|---:|---:|---:|:---|---:|:---:|
-| 0 | A | 0 | 0 | `A` | 1 | 0 | 1 | `0 - 0 + 1 - 1 = 0` | 0 | false |
-| 1 | A | 0 | 0 | `AA` | 2 | 0 | 2 | `1 - 0 + 1 - 2 = 0` | 1 | false |
-| 2 | B | 1 | 0 | `AAB` | 2 | 1 | 2 | `2 - 0 + 1 - 2 = 1` | 2 | false |
-| 3 | A | 0 | 0 | `AABA` | 3 | 1 | 3 | `3 - 0 + 1 - 3 = 1` | 3 | false |
-| 4 | B | 1 | 0 | `AABAB` | 3 | 2 | 3 | `4 - 0 + 1 - 3 = 2` | 4 | true |
-| 5 | B | 1 | 1 | `ABABB` | 2 | 3 | 3 | `5 - 1 + 1 - 3 = 2` | 4 | true |
-| 6 | A | 0 | 2 | `BABBA` | 2 | 3 | 3 | `6 - 2 + 1 - 3 = 2` | 4 | true |
+| 0 | A | 0 | 0 | `A` | 1 | 0 | 1 | `0 - 0 + 1 - 1 = 0` | 0 | ❌ false |
+| 1 | A | 0 | 0 | `AA` | 2 | 0 | 2 | `1 - 0 + 1 - 2 = 0` | 1 | ❌ false |
+| 2 | B | 1 | 0 | `AAB` | 2 | 1 | 2 | `2 - 0 + 1 - 2 = 1` | 2 | ❌ false |
+| 3 | A | 0 | 0 | `AABA` | 3 | 1 | 3 | `3 - 0 + 1 - 3 = 1` | 3 | ❌ false |
+| 4 | B | 1 | 0 | `AABAB` | 3 | 2 | 3 | `4 - 0 + 1 - 3 = 2` | 4 | ✅ true |
+| 5 | B | 1 | 1 | `ABABB` | 2 | 3 | 3 | `5 - 1 + 1 - 3 = 2` | 4 | ✅ true |
+| 6 | A | 0 | 2 | `BABBA` | 2 | 3 | 3 | `6 - 2 + 1 - 3 = 2` | 4 | ✅ true |
 
 Full frequency arrays immediately after each insertion (before removal):
 
@@ -160,13 +162,13 @@ Calculate the cost before moving left. The complete calculations are shown here 
 
 | `right` | Incoming | `incomingIndex` | `left` | Window | A count | B count | `maxFrequency` | `replacementsNeeded = right - left + 1 - maxFrequency` | `bestLength` | `> 1`? |
 |---:|:---:|---:|---:|:---|---:|---:|---:|:---|---:|:---:|
-| 0 | A | 0 | 0 | `A` | 1 | 0 | 1 | `0 - 0 + 1 - 1 = 0` | 0 | false |
-| 1 | A | 0 | 0 | `AA` | 2 | 0 | 2 | `1 - 0 + 1 - 2 = 0` | 1 | false |
-| 2 | B | 1 | 0 | `AAB` | 2 | 1 | 2 | `2 - 0 + 1 - 2 = 1` | 2 | false |
-| 3 | A | 0 | 0 | `AABA` | 3 | 1 | 3 | `3 - 0 + 1 - 3 = 1` | 3 | false |
-| 4 | B | 1 | 0 | `AABAB` | 3 | 2 | 3 | `4 - 0 + 1 - 3 = 2` | 4 | true |
-| 5 | B | 1 | 1 | `ABABB` | 2 | 3 | 3 | `5 - 1 + 1 - 3 = 2` | 4 | true |
-| 6 | A | 0 | 2 | `BABBA` | 2 | 3 | 3 | `6 - 2 + 1 - 3 = 2` | 4 | true |
+| 0 | A | 0 | 0 | `A` | 1 | 0 | 1 | `0 - 0 + 1 - 1 = 0` | 0 | ❌ false |
+| 1 | A | 0 | 0 | `AA` | 2 | 0 | 2 | `1 - 0 + 1 - 2 = 0` | 1 | ❌ false |
+| 2 | B | 1 | 0 | `AAB` | 2 | 1 | 2 | `2 - 0 + 1 - 2 = 1` | 2 | ❌ false |
+| 3 | A | 0 | 0 | `AABA` | 3 | 1 | 3 | `3 - 0 + 1 - 3 = 1` | 3 | ❌ false |
+| 4 | B | 1 | 0 | `AABAB` | 3 | 2 | 3 | `4 - 0 + 1 - 3 = 2` | 4 | ✅ true |
+| 5 | B | 1 | 1 | `ABABB` | 2 | 3 | 3 | `5 - 1 + 1 - 3 = 2` | 4 | ✅ true |
+| 6 | A | 0 | 2 | `BABBA` | 2 | 3 | 3 | `6 - 2 + 1 - 3 = 2` | 4 | ✅ true |
 This uses the historical `maxFrequency`. Once it is stale, the expression is a growth test rather than the exact current-window replacement count; the next blocks show that distinction.
 
 ### Block 4 — Move left when the budget is exceeded
@@ -235,68 +237,138 @@ return bestLength;
 | 4 | A at index 0 | 0 | 1 | `ABAB` | 3 | 2 | `max(4, 4) = 4` |
 | 5 | A at index 1 | 0 | 2 | `BABB` | 3 | 2 | `max(4, 4) = 4` |
 | 6 | B at index 2 | 1 | 3 | `ABBA` | 3 | 2 | `max(4, 4) = 4` |
-At `right=3`, `AABA` establishes a valid length `4`: keep three A characters and change its B once. Later maintained windows stay at length `4`, so the best cannot increase. The final `ABBA` has A=2, B=2 but historical `maxFrequency=3`. After `right++` makes `right=7`, `7 < 7` is false. Return `bestLength=4`; the return is after the loop, not inside each iteration.
+- At `right=3`, `"AABA"` records length `4`: keep three As and replace its B once.
+- Later maintained windows stay at length `4`; final `"ABBA"` has `A=2, B=2`, while historical `maxFrequency=3`.
+- `right++`: `6 → 7`; **❌ `for (right < text.length())`:** `7 < 7 → false`.
+- `return bestLength` runs after the loop and returns `4`.
 
 
 **Narrated execution — follow each operation, then check its values:**
 
 **Iteration/check 1 — right = `0`.**
 
-Read text index `0`, character `A`, mapped to array cell `0`. Increment that frequency cell, then preserve historical `maxFrequency`=`1`. Before removal, calculate the cost: `0-0+1-1=0`. The over-budget check is `false`; its removal operation is `Skipped`. Now left is `0` and frequencies are `A=1, B=0; C..Z=0`. Calculate maintained length `1` and preserve best length `1`. Next, `right++; continue`. Neither the historical maximum nor the stored pre-removal cost is decreased during removal.
+- **✅ `for (right < text.length())`:** `0 < 7 → true`; enter the loop.
+- `int incomingIndex = text.charAt(right) - 'A'` reads `'A'`: `'A' - 'A' = 0`.
+- `frequency[incomingIndex]++` changes `A` at cell `0`: `0 → 1`.
+- `maxFrequency = Math.max(maxFrequency, frequency[incomingIndex])`: `max(0, 1) = 1`.
+- `int replacementsNeeded = right - left + 1 - maxFrequency`: `0 - 0 + 1 - 1 = 0`.
+- **❌ `if (replacementsNeeded > replacementsAllowed)`:** `0 > 1 → false`; skip `outgoingIndex` creation, count decrement, and `left++`.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `0 - 0 + 1 = 1`; `max(0, 1) = 1`.
+- **State:** `left=0, incomingIndex=0, maxFrequency=1, replacementsNeeded=0, bestLength=1`; frequencies `A=1, B=0; C..Z=0`.
+- `right++`: `0 → 1`; **✅ `for (right < text.length())`:** `1 < 7 → true` next.
 
 | right | incoming | incomingIndex | maxFrequency | replacementsNeeded before removal | needed > 1 | removal | left after | frequency after | length after | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `A` | `0` | `1` | `0-0+1-1=0` | `false` | `Skipped` | `0` | `A=1, B=0; C..Z=0` | `1` | `1` | `right++; continue` |
+| `0` | `A` | `0` | `1` | `0-0+1-1=0` | `❌ if (replacementsNeeded > replacementsAllowed): 0 > 1 → false` | `Skipped` | `0` | `A=1, B=0; C..Z=0` | `1` | `1` | `right++: 0 → 1; ✅ for (right < text.length()): 1 < 7 → true; continue` |
 
 **Iteration/check 2 — right = `1`.**
 
-Read text index `1`, character `A`, mapped to array cell `0`. Increment that frequency cell, then preserve historical `maxFrequency`=`2`. Before removal, calculate the cost: `1-0+1-2=0`. The over-budget check is `false`; its removal operation is `Skipped`. Now left is `0` and frequencies are `A=2, B=0; C..Z=0`. Calculate maintained length `2` and preserve best length `2`. Next, `right++; continue`. Neither the historical maximum nor the stored pre-removal cost is decreased during removal.
+- **✅ `for (right < text.length())`:** `1 < 7 → true`; enter the loop.
+- `int incomingIndex = text.charAt(right) - 'A'` reads `'A'`: `'A' - 'A' = 0`.
+- `frequency[incomingIndex]++` changes `A` at cell `0`: `1 → 2`.
+- `maxFrequency = Math.max(maxFrequency, frequency[incomingIndex])`: `max(1, 2) = 2`.
+- `int replacementsNeeded = right - left + 1 - maxFrequency`: `1 - 0 + 1 - 2 = 0`.
+- **❌ `if (replacementsNeeded > replacementsAllowed)`:** `0 > 1 → false`; skip `outgoingIndex` creation, count decrement, and `left++`.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `1 - 0 + 1 = 2`; `max(1, 2) = 2`.
+- **State:** `left=0, incomingIndex=0, maxFrequency=2, replacementsNeeded=0, bestLength=2`; frequencies `A=2, B=0; C..Z=0`.
+- `right++`: `1 → 2`; **✅ `for (right < text.length())`:** `2 < 7 → true` next.
 
 | right | incoming | incomingIndex | maxFrequency | replacementsNeeded before removal | needed > 1 | removal | left after | frequency after | length after | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `A` | `0` | `2` | `1-0+1-2=0` | `false` | `Skipped` | `0` | `A=2, B=0; C..Z=0` | `2` | `2` | `right++; continue` |
+| `1` | `A` | `0` | `2` | `1-0+1-2=0` | `❌ if (replacementsNeeded > replacementsAllowed): 0 > 1 → false` | `Skipped` | `0` | `A=2, B=0; C..Z=0` | `2` | `2` | `right++: 1 → 2; ✅ for (right < text.length()): 2 < 7 → true; continue` |
 
 **Iteration/check 3 — right = `2`.**
 
-Read text index `2`, character `B`, mapped to array cell `1`. Increment that frequency cell, then preserve historical `maxFrequency`=`2`. Before removal, calculate the cost: `2-0+1-2=1`. The over-budget check is `false`; its removal operation is `Skipped`. Now left is `0` and frequencies are `A=2, B=1; C..Z=0`. Calculate maintained length `3` and preserve best length `3`. Next, `right++; continue`. Neither the historical maximum nor the stored pre-removal cost is decreased during removal.
+- **✅ `for (right < text.length())`:** `2 < 7 → true`; enter the loop.
+- `int incomingIndex = text.charAt(right) - 'A'` reads `'B'`: `'B' - 'A' = 1`.
+- `frequency[incomingIndex]++` changes `B` at cell `1`: `0 → 1`.
+- `maxFrequency = Math.max(maxFrequency, frequency[incomingIndex])`: `max(2, 1) = 2`.
+- `int replacementsNeeded = right - left + 1 - maxFrequency`: `2 - 0 + 1 - 2 = 1`.
+- **❌ `if (replacementsNeeded > replacementsAllowed)`:** `1 > 1 → false`; skip `outgoingIndex` creation, count decrement, and `left++`.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `2 - 0 + 1 = 3`; `max(2, 3) = 3`.
+- **State:** `left=0, incomingIndex=1, maxFrequency=2, replacementsNeeded=1, bestLength=3`; frequencies `A=2, B=1; C..Z=0`.
+- `right++`: `2 → 3`; **✅ `for (right < text.length())`:** `3 < 7 → true` next.
 
 | right | incoming | incomingIndex | maxFrequency | replacementsNeeded before removal | needed > 1 | removal | left after | frequency after | length after | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `B` | `1` | `2` | `2-0+1-2=1` | `false` | `Skipped` | `0` | `A=2, B=1; C..Z=0` | `3` | `3` | `right++; continue` |
+| `2` | `B` | `1` | `2` | `2-0+1-2=1` | `❌ if (replacementsNeeded > replacementsAllowed): 1 > 1 → false` | `Skipped` | `0` | `A=2, B=1; C..Z=0` | `3` | `3` | `right++: 2 → 3; ✅ for (right < text.length()): 3 < 7 → true; continue` |
 
 **Iteration/check 4 — right = `3`.**
 
-Read text index `3`, character `A`, mapped to array cell `0`. Increment that frequency cell, then preserve historical `maxFrequency`=`3`. Before removal, calculate the cost: `3-0+1-3=1`. The over-budget check is `false`; its removal operation is `Skipped`. Now left is `0` and frequencies are `A=3, B=1; C..Z=0`. Calculate maintained length `4` and preserve best length `4`. Next, `right++; continue`. Neither the historical maximum nor the stored pre-removal cost is decreased during removal.
+- **✅ `for (right < text.length())`:** `3 < 7 → true`; enter the loop.
+- `int incomingIndex = text.charAt(right) - 'A'` reads `'A'`: `'A' - 'A' = 0`.
+- `frequency[incomingIndex]++` changes `A` at cell `0`: `2 → 3`.
+- `maxFrequency = Math.max(maxFrequency, frequency[incomingIndex])`: `max(2, 3) = 3`.
+- `int replacementsNeeded = right - left + 1 - maxFrequency`: `3 - 0 + 1 - 3 = 1`.
+- **❌ `if (replacementsNeeded > replacementsAllowed)`:** `1 > 1 → false`; skip `outgoingIndex` creation, count decrement, and `left++`.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `3 - 0 + 1 = 4`; `max(3, 4) = 4`.
+- **State:** `left=0, incomingIndex=0, maxFrequency=3, replacementsNeeded=1, bestLength=4`; frequencies `A=3, B=1; C..Z=0`.
+- `right++`: `3 → 4`; **✅ `for (right < text.length())`:** `4 < 7 → true` next.
 
 | right | incoming | incomingIndex | maxFrequency | replacementsNeeded before removal | needed > 1 | removal | left after | frequency after | length after | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `A` | `0` | `3` | `3-0+1-3=1` | `false` | `Skipped` | `0` | `A=3, B=1; C..Z=0` | `4` | `4` | `right++; continue` |
+| `3` | `A` | `0` | `3` | `3-0+1-3=1` | `❌ if (replacementsNeeded > replacementsAllowed): 1 > 1 → false` | `Skipped` | `0` | `A=3, B=1; C..Z=0` | `4` | `4` | `right++: 3 → 4; ✅ for (right < text.length()): 4 < 7 → true; continue` |
 
 **Iteration/check 5 — right = `4`.**
 
-Read text index `4`, character `B`, mapped to array cell `1`. Increment that frequency cell, then preserve historical `maxFrequency`=`3`. Before removal, calculate the cost: `4-0+1-3=2`. The over-budget check is `true`; its removal operation is `A@0; cell=0; left=1`. Now left is `1` and frequencies are `A=2, B=2; C..Z=0`. Calculate maintained length `4` and preserve best length `4`. Next, `right++; continue`. Neither the historical maximum nor the stored pre-removal cost is decreased during removal.
+- **✅ `for (right < text.length())`:** `4 < 7 → true`; enter the loop.
+- `int incomingIndex = text.charAt(right) - 'A'` reads `'B'`: `'B' - 'A' = 1`.
+- `frequency[incomingIndex]++` changes `B` at cell `1`: `1 → 2`.
+- `maxFrequency = Math.max(maxFrequency, frequency[incomingIndex])`: `max(3, 2) = 3`.
+- `int replacementsNeeded = right - left + 1 - maxFrequency`: `4 - 0 + 1 - 3 = 2`.
+- **✅ `if (replacementsNeeded > replacementsAllowed)`:** `2 > 1 → true`; execute the removal branch.
+- `int outgoingIndex = text.charAt(left) - 'A'` reads `text.charAt(0)='A'`: `'A' - 'A' = 0`.
+- `frequency[outgoingIndex]--` changes `A`: `3 → 2`.
+- `left++`: `0 → 1`; `replacementsNeeded=2` and historical `maxFrequency=3` stay unchanged.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `4 - 1 + 1 = 4`; `max(4, 4) = 4`.
+- **State:** `left=1, incomingIndex=1, maxFrequency=3, replacementsNeeded=2, bestLength=4`; frequencies `A=2, B=2; C..Z=0`.
+- `right++`: `4 → 5`; **✅ `for (right < text.length())`:** `5 < 7 → true` next.
 
 | right | incoming | incomingIndex | maxFrequency | replacementsNeeded before removal | needed > 1 | removal | left after | frequency after | length after | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `4` | `B` | `1` | `3` | `4-0+1-3=2` | `true` | `A@0; cell=0; left=1` | `1` | `A=2, B=2; C..Z=0` | `4` | `4` | `right++; continue` |
+| `4` | `B` | `1` | `3` | `4-0+1-3=2` | `✅ if (replacementsNeeded > replacementsAllowed): 2 > 1 → true` | `outgoingIndex = text.charAt(0) - 'A': 'A' - 'A' = 0; frequency[outgoingIndex]--: 3 → 2; left++: 0 → 1` | `1` | `A=2, B=2; C..Z=0` | `4` | `4` | `right++: 4 → 5; ✅ for (right < text.length()): 5 < 7 → true; continue` |
 
 **Iteration/check 6 — right = `5`.**
 
-Read text index `5`, character `B`, mapped to array cell `1`. Increment that frequency cell, then preserve historical `maxFrequency`=`3`. Before removal, calculate the cost: `5-1+1-3=2`. The over-budget check is `true`; its removal operation is `A@1; cell=0; left=2`. Now left is `2` and frequencies are `A=1, B=3; C..Z=0`. Calculate maintained length `4` and preserve best length `4`. Next, `right++; continue`. Neither the historical maximum nor the stored pre-removal cost is decreased during removal.
+- **✅ `for (right < text.length())`:** `5 < 7 → true`; enter the loop.
+- `int incomingIndex = text.charAt(right) - 'A'` reads `'B'`: `'B' - 'A' = 1`.
+- `frequency[incomingIndex]++` changes `B` at cell `1`: `2 → 3`.
+- `maxFrequency = Math.max(maxFrequency, frequency[incomingIndex])`: `max(3, 3) = 3`.
+- `int replacementsNeeded = right - left + 1 - maxFrequency`: `5 - 1 + 1 - 3 = 2`.
+- **✅ `if (replacementsNeeded > replacementsAllowed)`:** `2 > 1 → true`; execute the removal branch.
+- `int outgoingIndex = text.charAt(left) - 'A'` reads `text.charAt(1)='A'`: `'A' - 'A' = 0`.
+- `frequency[outgoingIndex]--` changes `A`: `2 → 1`.
+- `left++`: `1 → 2`; `replacementsNeeded=2` and historical `maxFrequency=3` stay unchanged.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `5 - 2 + 1 = 4`; `max(4, 4) = 4`.
+- **State:** `left=2, incomingIndex=1, maxFrequency=3, replacementsNeeded=2, bestLength=4`; frequencies `A=1, B=3; C..Z=0`.
+- `right++`: `5 → 6`; **✅ `for (right < text.length())`:** `6 < 7 → true` next.
 
 | right | incoming | incomingIndex | maxFrequency | replacementsNeeded before removal | needed > 1 | removal | left after | frequency after | length after | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `5` | `B` | `1` | `3` | `5-1+1-3=2` | `true` | `A@1; cell=0; left=2` | `2` | `A=1, B=3; C..Z=0` | `4` | `4` | `right++; continue` |
+| `5` | `B` | `1` | `3` | `5-1+1-3=2` | `✅ if (replacementsNeeded > replacementsAllowed): 2 > 1 → true` | `outgoingIndex = text.charAt(1) - 'A': 'A' - 'A' = 0; frequency[outgoingIndex]--: 2 → 1; left++: 1 → 2` | `2` | `A=1, B=3; C..Z=0` | `4` | `4` | `right++: 5 → 6; ✅ for (right < text.length()): 6 < 7 → true; continue` |
 
 **Iteration/check 7 — right = `6`.**
 
-Read text index `6`, character `A`, mapped to array cell `0`. Increment that frequency cell, then preserve historical `maxFrequency`=`3`. Before removal, calculate the cost: `6-2+1-3=2`. The over-budget check is `true`; its removal operation is `B@2; cell=1; left=3`. Now left is `3` and frequencies are `A=2, B=2; C..Z=0`. Calculate maintained length `4` and preserve best length `4`. Next, `right++; continue`. Neither the historical maximum nor the stored pre-removal cost is decreased during removal.
+- **✅ `for (right < text.length())`:** `6 < 7 → true`; enter the loop.
+- `int incomingIndex = text.charAt(right) - 'A'` reads `'A'`: `'A' - 'A' = 0`.
+- `frequency[incomingIndex]++` changes `A` at cell `0`: `1 → 2`.
+- `maxFrequency = Math.max(maxFrequency, frequency[incomingIndex])`: `max(3, 2) = 3`.
+- `int replacementsNeeded = right - left + 1 - maxFrequency`: `6 - 2 + 1 - 3 = 2`.
+- **✅ `if (replacementsNeeded > replacementsAllowed)`:** `2 > 1 → true`; execute the removal branch.
+- `int outgoingIndex = text.charAt(left) - 'A'` reads `text.charAt(2)='B'`: `'B' - 'A' = 1`.
+- `frequency[outgoingIndex]--` changes `B`: `3 → 2`.
+- `left++`: `2 → 3`; `replacementsNeeded=2` and historical `maxFrequency=3` stay unchanged.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `6 - 3 + 1 = 4`; `max(4, 4) = 4`.
+- **State:** `left=3, incomingIndex=0, maxFrequency=3, replacementsNeeded=2, bestLength=4`; frequencies `A=2, B=2; C..Z=0`.
+- `right++`: `6 → 7`; **❌ `for (right < text.length())`:** `7 < 7 → false`; exit the loop.
 
 | right | incoming | incomingIndex | maxFrequency | replacementsNeeded before removal | needed > 1 | removal | left after | frequency after | length after | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `6` | `A` | `0` | `3` | `6-2+1-3=2` | `true` | `B@2; cell=1; left=3` | `3` | `A=2, B=2; C..Z=0` | `4` | `4` | `right++; continue` |
+| `6` | `A` | `0` | `3` | `6-2+1-3=2` | `✅ if (replacementsNeeded > replacementsAllowed): 2 > 1 → true` | `outgoingIndex = text.charAt(2) - 'A': 'B' - 'A' = 1; frequency[outgoingIndex]--: 3 → 2; left++: 2 → 3` | `3` | `A=2, B=2; C..Z=0` | `4` | `4` | `right++: 6 → 7; ❌ for (right < text.length()): 7 < 7 → false; exit loop` |
 
-For each row, `right < 7` is true. After right `6`, the increment produces `7 < 7 → false`; return `4`. The stored cost is not recalculated after removal, and maxFrequency stays historical. The full 26-cell tables beside insertion/removal show each mutation separately.
+- **❌ `for (right < text.length())`:** `7 < 7 → false`; exit the loop.
+- `return bestLength` returns `4`; final `left=3`, `maxFrequency=3`, stored `replacementsNeeded=2`.
+- `maxFrequency` stays historical; the full 26-cell insertion/removal tables preserve every array mutation.
 
 ## Reference approach
 

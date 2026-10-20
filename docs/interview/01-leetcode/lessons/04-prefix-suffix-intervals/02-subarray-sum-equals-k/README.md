@@ -50,7 +50,11 @@ int prefixSum = 0;
 int answer = 0;
 ```
 
-Create a map from a prefix-total value to its number of earlier occurrences. Store `{0:1}` because the boundary before index zero has sum zero once. Initialize `prefixSum=0` and `answer=0`. There is no input-length guard: an empty array simply executes no iterations and returns zero.
+- `new HashMap<>()` creates `countByPrefix={}` to store each earlier total’s frequency.
+- `countByPrefix.put(0, 1)` changes `{}` → `{0:1}`: the boundary before index zero has total zero once.
+- `int prefixSum = 0` and `int answer = 0` initialize the running total and matching-range count. No input-length guard runs.
+
+An empty array simply executes no iterations and returns zero.
 
 Without the seed, a range starting at index zero would have no matching earlier boundary. For `[2]`, target `2`, the desired lookup is zero; `{0:1}` contributes one answer. Equivalent: handle `prefixSum == target` separately, but the seed avoids that extra branch.
 
@@ -69,47 +73,103 @@ for (int index = 0; index < numbers.length; index++) {
 
 The map must contain only earlier boundaries during lookup. Recording the current total first would allow matching a boundary with itself: `[1]`, target `0` would incorrectly count an empty range (`1-1=0`). The current code looks up key `1` before inserting it, correctly contributing zero. A set cannot replace the map because it would lose multiple starts with the same total.
 
-**Iteration `index=0`.** Check `0 < 7 → true`. Read `1` and update the running total: `0+(1)=1`. Calculate needed earlier total `1-2=-1`. Look it up in `{0: 1}`: the key is absent, so the default is `0`. Update the answer `0+0=0`. Now record total `1`: its frequency changes `0 → 1`. Execute `index++`, producing `1`.
+**Iteration `index=0`.**
+
+- **✅ `for` condition `index < numbers.length`:** `0 < 7 → true`; enter the body.
+- `prefixSum += numbers[index]` reads `numbers[0]=1`; `0 + (1) = 1`, so `prefixSum`: `0 → 1`.
+- `int needed = prefixSum - target`: `1 - 2 = -1`.
+- `countByPrefix.getOrDefault(needed, 0)` looks up key `-1` → `0` (absent, use the default).
+- `answer += ...`: `0 + 0 = 0`, so `answer`: `0 → 0`.
+- `countByPrefix.merge(prefixSum, 1, Integer::sum)` records total `1`; its frequency changes `0 → 1`. The map before/after is below.
+- `index++`: `0 → 1`; continue to the next `for` check.
 
 | index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `0<7 → true` | `1` | `1` | `-1` | `0` | `0` | `{0: 1}` | `{0: 1, 1: 1}` | `index=1` |
+| `0` | `✅ 0<7 → true` | `1` | `1` | `-1` | `0` | `0` | `{0: 1}` | `{0: 1, 1: 1}` | `index=1` |
 
-**Iteration `index=1`.** Check `1 < 7 → true`. Read `-1` and update the running total: `1+(-1)=0`. Calculate needed earlier total `0-2=-2`. Look it up in `{0: 1, 1: 1}`: the key is absent, so the default is `0`. Update the answer `0+0=0`. Now record total `0`: its frequency changes `1 → 2`. Execute `index++`, producing `2`.
+**Iteration `index=1`.**
 
-| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1<7 → true` | `-1` | `0` | `-2` | `0` | `0` | `{0: 1, 1: 1}` | `{0: 2, 1: 1}` | `index=2` |
-
-**Iteration `index=2`.** Check `2 < 7 → true`. Read `1` and update the running total: `0+(1)=1`. Calculate needed earlier total `1-2=-1`. Look it up in `{0: 2, 1: 1}`: the key is absent, so the default is `0`. Update the answer `0+0=0`. Now record total `1`: its frequency changes `1 → 2`. Execute `index++`, producing `3`.
-
-| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2<7 → true` | `1` | `1` | `-1` | `0` | `0` | `{0: 2, 1: 1}` | `{0: 2, 1: 2}` | `index=3` |
-
-**Iteration `index=3`.** Check `3 < 7 → true`. Read `1` and update the running total: `1+(1)=2`. Calculate needed earlier total `2-2=0`. Look it up in `{0: 2, 1: 2}`: the key is present with frequency `2`. Update the answer `0+2=2`. Now record total `2`: its frequency changes `0 → 1`. Execute `index++`, producing `4`.
+- **✅ `for` condition `index < numbers.length`:** `1 < 7 → true`; enter the body.
+- `prefixSum += numbers[index]` reads `numbers[1]=-1`; `1 + (-1) = 0`, so `prefixSum`: `1 → 0`.
+- `int needed = prefixSum - target`: `0 - 2 = -2`.
+- `countByPrefix.getOrDefault(needed, 0)` looks up key `-2` → `0` (absent, use the default).
+- `answer += ...`: `0 + 0 = 0`, so `answer`: `0 → 0`.
+- `countByPrefix.merge(prefixSum, 1, Integer::sum)` records total `0`; its frequency changes `1 → 2`. The map before/after is below.
+- `index++`: `1 → 2`; continue to the next `for` check.
 
 | index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `3<7 → true` | `1` | `2` | `0` | `2` | `2` | `{0: 2, 1: 2}` | `{0: 2, 1: 2, 2: 1}` | `index=4` |
+| `1` | `✅ 1<7 → true` | `-1` | `0` | `-2` | `0` | `0` | `{0: 1, 1: 1}` | `{0: 2, 1: 1}` | `index=2` |
 
-**Iteration `index=4`.** Check `4 < 7 → true`. Read `-1` and update the running total: `2+(-1)=1`. Calculate needed earlier total `1-2=-1`. Look it up in `{0: 2, 1: 2, 2: 1}`: the key is absent, so the default is `0`. Update the answer `2+0=2`. Now record total `1`: its frequency changes `2 → 3`. Execute `index++`, producing `5`.
+**Iteration `index=2`.**
 
-| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `4` | `4<7 → true` | `-1` | `1` | `-1` | `0` | `2` | `{0: 2, 1: 2, 2: 1}` | `{0: 2, 1: 3, 2: 1}` | `index=5` |
-
-**Iteration `index=5`.** Check `5 < 7 → true`. Read `1` and update the running total: `1+(1)=2`. Calculate needed earlier total `2-2=0`. Look it up in `{0: 2, 1: 3, 2: 1}`: the key is present with frequency `2`. Update the answer `2+2=4`. Now record total `2`: its frequency changes `1 → 2`. Execute `index++`, producing `6`.
-
-| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `5` | `5<7 → true` | `1` | `2` | `0` | `2` | `4` | `{0: 2, 1: 3, 2: 1}` | `{0: 2, 1: 3, 2: 2}` | `index=6` |
-
-**Iteration `index=6`.** Check `6 < 7 → true`. Read `2` and update the running total: `2+(2)=4`. Calculate needed earlier total `4-2=2`. Look it up in `{0: 2, 1: 3, 2: 2}`: the key is present with frequency `2`. Update the answer `4+2=6`. Now record total `4`: its frequency changes `0 → 1`. Execute `index++`, producing `7`.
+- **✅ `for` condition `index < numbers.length`:** `2 < 7 → true`; enter the body.
+- `prefixSum += numbers[index]` reads `numbers[2]=1`; `0 + (1) = 1`, so `prefixSum`: `0 → 1`.
+- `int needed = prefixSum - target`: `1 - 2 = -1`.
+- `countByPrefix.getOrDefault(needed, 0)` looks up key `-1` → `0` (absent, use the default).
+- `answer += ...`: `0 + 0 = 0`, so `answer`: `0 → 0`.
+- `countByPrefix.merge(prefixSum, 1, Integer::sum)` records total `1`; its frequency changes `1 → 2`. The map before/after is below.
+- `index++`: `2 → 3`; continue to the next `for` check.
 
 | index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `6` | `6<7 → true` | `2` | `4` | `2` | `2` | `6` | `{0: 2, 1: 3, 2: 2}` | `{0: 2, 1: 3, 2: 2, 4: 1}` | `index=7` |
+| `2` | `✅ 2<7 → true` | `1` | `1` | `-1` | `0` | `0` | `{0: 2, 1: 1}` | `{0: 2, 1: 2}` | `index=3` |
+
+**Iteration `index=3`.**
+
+- **✅ `for` condition `index < numbers.length`:** `3 < 7 → true`; enter the body.
+- `prefixSum += numbers[index]` reads `numbers[3]=1`; `1 + (1) = 2`, so `prefixSum`: `1 → 2`.
+- `int needed = prefixSum - target`: `2 - 2 = 0`.
+- `countByPrefix.getOrDefault(needed, 0)` looks up key `0` → `2` earlier boundaries.
+- `answer += ...`: `0 + 2 = 2`, so `answer`: `0 → 2`.
+- `countByPrefix.merge(prefixSum, 1, Integer::sum)` records total `2`; its frequency changes `0 → 1`. The map before/after is below.
+- `index++`: `3 → 4`; continue to the next `for` check.
+
+| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `3` | `✅ 3<7 → true` | `1` | `2` | `0` | `2` | `2` | `{0: 2, 1: 2}` | `{0: 2, 1: 2, 2: 1}` | `index=4` |
+
+**Iteration `index=4`.**
+
+- **✅ `for` condition `index < numbers.length`:** `4 < 7 → true`; enter the body.
+- `prefixSum += numbers[index]` reads `numbers[4]=-1`; `2 + (-1) = 1`, so `prefixSum`: `2 → 1`.
+- `int needed = prefixSum - target`: `1 - 2 = -1`.
+- `countByPrefix.getOrDefault(needed, 0)` looks up key `-1` → `0` (absent, use the default).
+- `answer += ...`: `2 + 0 = 2`, so `answer`: `2 → 2`.
+- `countByPrefix.merge(prefixSum, 1, Integer::sum)` records total `1`; its frequency changes `2 → 3`. The map before/after is below.
+- `index++`: `4 → 5`; continue to the next `for` check.
+
+| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `4` | `✅ 4<7 → true` | `-1` | `1` | `-1` | `0` | `2` | `{0: 2, 1: 2, 2: 1}` | `{0: 2, 1: 3, 2: 1}` | `index=5` |
+
+**Iteration `index=5`.**
+
+- **✅ `for` condition `index < numbers.length`:** `5 < 7 → true`; enter the body.
+- `prefixSum += numbers[index]` reads `numbers[5]=1`; `1 + (1) = 2`, so `prefixSum`: `1 → 2`.
+- `int needed = prefixSum - target`: `2 - 2 = 0`.
+- `countByPrefix.getOrDefault(needed, 0)` looks up key `0` → `2` earlier boundaries.
+- `answer += ...`: `2 + 2 = 4`, so `answer`: `2 → 4`.
+- `countByPrefix.merge(prefixSum, 1, Integer::sum)` records total `2`; its frequency changes `1 → 2`. The map before/after is below.
+- `index++`: `5 → 6`; continue to the next `for` check.
+
+| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `5` | `✅ 5<7 → true` | `1` | `2` | `0` | `2` | `4` | `{0: 2, 1: 3, 2: 1}` | `{0: 2, 1: 3, 2: 2}` | `index=6` |
+
+**Iteration `index=6`.**
+
+- **✅ `for` condition `index < numbers.length`:** `6 < 7 → true`; enter the body.
+- `prefixSum += numbers[index]` reads `numbers[6]=2`; `2 + (2) = 4`, so `prefixSum`: `2 → 4`.
+- `int needed = prefixSum - target`: `4 - 2 = 2`.
+- `countByPrefix.getOrDefault(needed, 0)` looks up key `2` → `2` earlier boundaries.
+- `answer += ...`: `4 + 2 = 6`, so `answer`: `4 → 6`.
+- `countByPrefix.merge(prefixSum, 1, Integer::sum)` records total `4`; its frequency changes `0 → 1`. The map before/after is below.
+- `index++`: `6 → 7`; continue to the next `for` check.
+
+| index | loop test | value | prefixSum | needed | frequency found | answer after | map before lookup | map after recording | next |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `6` | `✅ 6<7 → true` | `2` | `4` | `2` | `2` | `6` | `{0: 2, 1: 3, 2: 2}` | `{0: 2, 1: 3, 2: 2, 4: 1}` | `index=7` |
 
 ### Block 3 — Finish only after every endpoint has been counted
 
@@ -117,7 +177,8 @@ The map must contain only earlier boundaries during lookup. Recording the curren
 return answer;
 ```
 
-The last increment makes `index=7`; `7 < 7 → false`, so skip the body. Return `answer=6`. There is no early return when a match appears: more endpoints and more starts can contribute. Returning `prefixSum` would return `4`, a total, not the number of qualifying ranges. Equivalent: name the variable `matchingRangeCount` to emphasize what is returned.
+- **❌ `for` condition `index < numbers.length`:** `7 < 7 → false`; skip the body.
+- `return answer` returns `6`; final `prefixSum=4` is not the answer. There is no early return when a match appears: more endpoints and more starts can contribute. Returning `prefixSum` would return `4`, a total, not the number of qualifying ranges. Equivalent: name the variable `matchingRangeCount` to emphasize what is returned.
 
 The six matching ranges are `[0,3]`, `[2,3]`, `[0,5]`, `[2,5]`, `[4,6]`, and `[6,6]`. Their exact sums are `1-1+1+1=2`, `1+1=2`, `1-1+1+1-1+1=2`, `1+1-1+1=2`, `-1+1+2=2`, and `2`. These positions explain the three pairs of contributions at endpoints `3`, `5`, and `6`.
 

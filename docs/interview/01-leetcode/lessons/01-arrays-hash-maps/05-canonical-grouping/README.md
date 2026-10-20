@@ -174,51 +174,81 @@ wordsByKey.computeIfAbsent(key, ignored -> new ArrayList<>())
 
 **Iteration/check 1 — word = `eat`.**
 
-Read word `eat`. Copy it into characters `['e', 'a', 't']`, then sort that copy into `['a', 'e', 't']`. Construct key `aet`. Inside `computeIfAbsent`, the key-absent decision is `true`; `create [] then append`. Appending the original word produces the full map `{'aet': ['eat']}`. Advance to the next word. Sorting the copy never changes the original word.
+- **✅ `for (String word : words)`:** read index `0` → `"eat"`.
+- `char[] characters = word.toCharArray()` creates `['e', 'a', 't']`; `Arrays.sort(characters)` changes the copy to `['a', 'e', 't']`.
+- `String key = new String(characters)` assigns `key="aet"`; original `word="eat"` is unchanged.
+- **✅ Key absent inside `wordsByKey.computeIfAbsent`:** `true`; execute `ignored -> new ArrayList<>()`, store the new empty list, then return it.
+- `.add(word)` changes that group `[] → ['eat']`; the table shows the full map.
+- Continue to the next word.
 
 | word | characters before sort | characters after sort | key | key absent? (inside computeIfAbsent) | action | wordsByKey after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `eat` | `['e', 'a', 't']` | `['a', 'e', 't']` | `aet` | `true` | `create [] then append` | `{'aet': ['eat']}` | `next word` |
+| `eat` | `['e', 'a', 't']` | `['a', 'e', 't']` | `aet` | `✅ true` | `create [] then append` | `{'aet': ['eat']}` | `next word` |
 
 **Iteration/check 2 — word = `tea`.**
 
-Read word `tea`. Copy it into characters `['t', 'e', 'a']`, then sort that copy into `['a', 'e', 't']`. Construct key `aet`. Inside `computeIfAbsent`, the key-absent decision is `false`; `reuse list then append`. Appending the original word produces the full map `{'aet': ['eat', 'tea']}`. Advance to the next word. Sorting the copy never changes the original word.
+- **✅ `for (String word : words)`:** read index `1` → `"tea"`.
+- `char[] characters = word.toCharArray()` creates `['t', 'e', 'a']`; `Arrays.sort(characters)` changes the copy to `['a', 'e', 't']`.
+- `String key = new String(characters)` assigns `key="aet"`; original `word="tea"` is unchanged.
+- **❌ Key absent inside `wordsByKey.computeIfAbsent`:** `false`; skip the creation lambda and return existing group `['eat']`.
+- `.add(word)` changes that group `['eat'] → ['eat', 'tea']`; the table shows the full map.
+- Continue to the next word.
 
 | word | characters before sort | characters after sort | key | key absent? (inside computeIfAbsent) | action | wordsByKey after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `tea` | `['t', 'e', 'a']` | `['a', 'e', 't']` | `aet` | `false` | `reuse list then append` | `{'aet': ['eat', 'tea']}` | `next word` |
+| `tea` | `['t', 'e', 'a']` | `['a', 'e', 't']` | `aet` | `❌ false` | `reuse list then append` | `{'aet': ['eat', 'tea']}` | `next word` |
 
 **Iteration/check 3 — word = `tan`.**
 
-Read word `tan`. Copy it into characters `['t', 'a', 'n']`, then sort that copy into `['a', 'n', 't']`. Construct key `ant`. Inside `computeIfAbsent`, the key-absent decision is `true`; `create [] then append`. Appending the original word produces the full map `{'aet': ['eat', 'tea'], 'ant': ['tan']}`. Advance to the next word. Sorting the copy never changes the original word.
+- **✅ `for (String word : words)`:** read index `2` → `"tan"`.
+- `char[] characters = word.toCharArray()` creates `['t', 'a', 'n']`; `Arrays.sort(characters)` changes the copy to `['a', 'n', 't']`.
+- `String key = new String(characters)` assigns `key="ant"`; original `word="tan"` is unchanged.
+- **✅ Key absent inside `wordsByKey.computeIfAbsent`:** `true`; execute `ignored -> new ArrayList<>()`, store the new empty list, then return it.
+- `.add(word)` changes that group `[] → ['tan']`; the table shows the full map.
+- Continue to the next word.
 
 | word | characters before sort | characters after sort | key | key absent? (inside computeIfAbsent) | action | wordsByKey after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `tan` | `['t', 'a', 'n']` | `['a', 'n', 't']` | `ant` | `true` | `create [] then append` | `{'aet': ['eat', 'tea'], 'ant': ['tan']}` | `next word` |
+| `tan` | `['t', 'a', 'n']` | `['a', 'n', 't']` | `ant` | `✅ true` | `create [] then append` | `{'aet': ['eat', 'tea'], 'ant': ['tan']}` | `next word` |
 
 **Iteration/check 4 — word = `ate`.**
 
-Read word `ate`. Copy it into characters `['a', 't', 'e']`, then sort that copy into `['a', 'e', 't']`. Construct key `aet`. Inside `computeIfAbsent`, the key-absent decision is `false`; `reuse list then append`. Appending the original word produces the full map `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan']}`. Advance to the next word. Sorting the copy never changes the original word.
+- **✅ `for (String word : words)`:** read index `3` → `"ate"`.
+- `char[] characters = word.toCharArray()` creates `['a', 't', 'e']`; `Arrays.sort(characters)` changes the copy to `['a', 'e', 't']`.
+- `String key = new String(characters)` assigns `key="aet"`; original `word="ate"` is unchanged.
+- **❌ Key absent inside `wordsByKey.computeIfAbsent`:** `false`; skip the creation lambda and return existing group `['eat', 'tea']`.
+- `.add(word)` changes that group `['eat', 'tea'] → ['eat', 'tea', 'ate']`; the table shows the full map.
+- Continue to the next word.
 
 | word | characters before sort | characters after sort | key | key absent? (inside computeIfAbsent) | action | wordsByKey after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `ate` | `['a', 't', 'e']` | `['a', 'e', 't']` | `aet` | `false` | `reuse list then append` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan']}` | `next word` |
+| `ate` | `['a', 't', 'e']` | `['a', 'e', 't']` | `aet` | `❌ false` | `reuse list then append` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan']}` | `next word` |
 
 **Iteration/check 5 — word = `nat`.**
 
-Read word `nat`. Copy it into characters `['n', 'a', 't']`, then sort that copy into `['a', 'n', 't']`. Construct key `ant`. Inside `computeIfAbsent`, the key-absent decision is `false`; `reuse list then append`. Appending the original word produces the full map `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat']}`. Advance to the next word. Sorting the copy never changes the original word.
+- **✅ `for (String word : words)`:** read index `4` → `"nat"`.
+- `char[] characters = word.toCharArray()` creates `['n', 'a', 't']`; `Arrays.sort(characters)` changes the copy to `['a', 'n', 't']`.
+- `String key = new String(characters)` assigns `key="ant"`; original `word="nat"` is unchanged.
+- **❌ Key absent inside `wordsByKey.computeIfAbsent`:** `false`; skip the creation lambda and return existing group `['tan']`.
+- `.add(word)` changes that group `['tan'] → ['tan', 'nat']`; the table shows the full map.
+- Continue to the next word.
 
 | word | characters before sort | characters after sort | key | key absent? (inside computeIfAbsent) | action | wordsByKey after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `nat` | `['n', 'a', 't']` | `['a', 'n', 't']` | `ant` | `false` | `reuse list then append` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat']}` | `next word` |
+| `nat` | `['n', 'a', 't']` | `['a', 'n', 't']` | `ant` | `❌ false` | `reuse list then append` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat']}` | `next word` |
 
 **Iteration/check 6 — word = `bat`.**
 
-Read word `bat`. Copy it into characters `['b', 'a', 't']`, then sort that copy into `['a', 'b', 't']`. Construct key `abt`. Inside `computeIfAbsent`, the key-absent decision is `true`; `create [] then append`. Appending the original word produces the full map `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat'], 'abt': ['bat']}`. Advance to the next word. Sorting the copy never changes the original word.
+- **✅ `for (String word : words)`:** read index `5` → `"bat"`.
+- `char[] characters = word.toCharArray()` creates `['b', 'a', 't']`; `Arrays.sort(characters)` changes the copy to `['a', 'b', 't']`.
+- `String key = new String(characters)` assigns `key="abt"`; original `word="bat"` is unchanged.
+- **✅ Key absent inside `wordsByKey.computeIfAbsent`:** `true`; execute `ignored -> new ArrayList<>()`, store the new empty list, then return it.
+- `.add(word)` changes that group `[] → ['bat']`; the table shows the full map.
+- **❌ Enhanced `for`:** no next word; `return new ArrayList<>(wordsByKey.values())` → `[[eat,tea,ate],[tan,nat],[bat]]` (group order unspecified).
 
 | word | characters before sort | characters after sort | key | key absent? (inside computeIfAbsent) | action | wordsByKey after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `bat` | `['b', 'a', 't']` | `['a', 'b', 't']` | `abt` | `true` | `create [] then append` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat'], 'abt': ['bat']}` | `next word` |
+| `bat` | `['b', 'a', 't']` | `['a', 'b', 't']` | `abt` | `✅ true` | `create [] then append` | `{'aet': ['eat', 'tea', 'ate'], 'ant': ['tan', 'nat'], 'abt': ['bat']}` | `next word` |
 
 There is no explicit `if` in this Java loop: `computeIfAbsent` makes the missing-key decision internally. After all six words, return the grouped values in a new outer list; group order is unspecified.
 

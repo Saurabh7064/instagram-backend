@@ -182,27 +182,38 @@ if (sum < target) {
 
 **Iteration/check 1 — left = `0`.**
 
-Begin with left index `0` and right index `4`; distinct-position check: `0 < 4 → true`. Add their values: `-5 + 9 = 4`. Equality with the target is `false`. Only if equality is false do we evaluate the smaller-than-target check: `false`. Next, `right=3`. A sum that is too small needs a larger left value; one that is too large needs a smaller right value.
+- **✅ `while (left < right)`:** `0 < 4 → true`.
+- `int sum = numbers[left] + numbers[right]`: `-5 + 9 = 4`.
+- **❌ `if (sum == target)`:** `4 == 1 → false`; skip the return.
+- **❌ `if (sum < target)`:** `4 < 1 → false`; skip `left++`; execute `right--` in `else`: `4 → 3`.
+- **State:** `left=0`, `right=3`, `sum=4`. Recheck `while (left < right)`.
 
 | left | right | loop condition | sum | sum == target | sum < target | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `4` | `0 < 4 → true` | `-5 + 9 = 4` | `false` | `false` | `right=3` |
+| `0` | `4` | `✅ 0 < 4 → true` | `-5 + 9 = 4` | `❌ false` | `❌ false` | `right=3` |
 
 **Iteration/check 2 — left = `0`.**
 
-Begin with left index `0` and right index `3`; distinct-position check: `0 < 3 → true`. Add their values: `-5 + 3 = -2`. Equality with the target is `false`. Only if equality is false do we evaluate the smaller-than-target check: `true`. Next, `left=1`. A sum that is too small needs a larger left value; one that is too large needs a smaller right value.
+- **✅ `while (left < right)`:** `0 < 3 → true`.
+- `int sum = numbers[left] + numbers[right]`: `-5 + 3 = -2`.
+- **❌ `if (sum == target)`:** `-2 == 1 → false`; skip the return.
+- **✅ `if (sum < target)`:** `-2 < 1 → true`; execute `left++`: `0 → 1`; skip `else`.
+- **State:** `left=1`, `right=3`, `sum=-2`. Recheck `while (left < right)`.
 
 | left | right | loop condition | sum | sum == target | sum < target | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `3` | `0 < 3 → true` | `-5 + 3 = -2` | `false` | `true` | `left=1` |
+| `0` | `3` | `✅ 0 < 3 → true` | `-5 + 3 = -2` | `❌ false` | `✅ true` | `left=1` |
 
 **Iteration/check 3 — left = `1`.**
 
-Begin with left index `1` and right index `3`; distinct-position check: `1 < 3 → true`. Add their values: `-2 + 3 = 1`. Equality with the target is `true`. Only if equality is false do we evaluate the smaller-than-target check: `Skipped (returned)`. Next, `return [2,4]; stop`. A sum that is too small needs a larger left value; one that is too large needs a smaller right value.
+- **✅ `while (left < right)`:** `1 < 3 → true`.
+- `int sum = numbers[left] + numbers[right]`: `-2 + 3 = 1`.
+- **✅ `if (sum == target)`:** `1 == 1 → true`; execute `return new int[] {left + 1, right + 1}`: `[1+1,3+1] → [2,4]`.
+- The smaller-than-target `if`, pointer movement, and next `while` check are `Skipped` after the return. **Final state:** `left=1`, `right=3`, `sum=1`.
 
 | left | right | loop condition | sum | sum == target | sum < target | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `3` | `1 < 3 → true` | `-2 + 3 = 1` | `true` | `Skipped (returned)` | `return [2,4]; stop` |
+| `1` | `3` | `✅ 1 < 3 → true` | `-2 + 3 = 1` | `✅ true` | `Skipped (returned)` | `return [2,4]; stop` |
 
 The equality branch returns before the smaller-than-target condition is evaluated. Return indexes `left+1=2`, `right+1=4`.
 

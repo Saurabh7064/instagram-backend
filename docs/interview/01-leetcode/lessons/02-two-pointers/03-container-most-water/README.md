@@ -239,75 +239,117 @@ if (heights[left] <= heights[right]) {
 
 **Iteration/check 1 — left = `0`.**
 
-Begin at boundary indexes `0` and `8`. Evaluate `left < right`: `0 < 8 → true`. If true, calculate width `8`, keep the shorter boundary height `1`, and multiply: `8*1=8`. Preserve the largest area, giving `bestArea`=`8`. The boundary-height comparison is `1 <= 7 → true`; next, `left=1`. On the terminating false loop check, all calculations and movements are skipped.
+- **✅ `while (left < right)`:** `0 < 8 → true`.
+- `int width = right - left`: `8 - 0 = 8`.
+- `int limitingHeight = Math.min(heights[left], heights[right])`: `min(1,7) = 1`.
+- `bestArea = Math.max(bestArea, width * limitingHeight)`: `8 * 1 = 8`, then `max(0,8) = 8`; `bestArea` changes `0 → 8`.
+- **✅ `if (heights[left] <= heights[right])`:** `1 <= 7 → true`; execute `left++`: `0 → 1`; skip `else`.
+- **State:** `left=1`, `right=8`, `width=8`, `limitingHeight=1`, `bestArea=8`; `heights` is unchanged. Recheck the `while`.
 
 | left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `8` | `0 < 8 → true` | `8` | `1` | `8*1=8` | `8` | `1 <= 7 → true` | `left=1` |
+| `0` | `8` | `✅ 0 < 8 → true` | `8` | `1` | `8*1=8` | `8` | `✅ 1 <= 7 → true` | `left=1` |
 
 **Iteration/check 2 — left = `1`.**
 
-Begin at boundary indexes `1` and `8`. Evaluate `left < right`: `1 < 8 → true`. If true, calculate width `7`, keep the shorter boundary height `7`, and multiply: `7*7=49`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `8 <= 7 → false`; next, `right=7`. On the terminating false loop check, all calculations and movements are skipped.
+- **✅ `while (left < right)`:** `1 < 8 → true`.
+- `int width = right - left`: `8 - 1 = 7`.
+- `int limitingHeight = Math.min(heights[left], heights[right])`: `min(8,7) = 7`.
+- `bestArea = Math.max(bestArea, width * limitingHeight)`: `7 * 7 = 49`, then `max(8,49) = 49`; `bestArea` changes `8 → 49`.
+- **❌ `if (heights[left] <= heights[right])`:** `8 <= 7 → false`; skip `left++`; execute `right--` in `else`: `8 → 7`.
+- **State:** `left=1`, `right=7`, `width=7`, `limitingHeight=7`, `bestArea=49`; `heights` is unchanged. Recheck the `while`.
 
 | left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `8` | `1 < 8 → true` | `7` | `7` | `7*7=49` | `49` | `8 <= 7 → false` | `right=7` |
+| `1` | `8` | `✅ 1 < 8 → true` | `7` | `7` | `7*7=49` | `49` | `❌ 8 <= 7 → false` | `right=7` |
 
 **Iteration/check 3 — left = `1`.**
 
-Begin at boundary indexes `1` and `7`. Evaluate `left < right`: `1 < 7 → true`. If true, calculate width `6`, keep the shorter boundary height `3`, and multiply: `6*3=18`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `8 <= 3 → false`; next, `right=6`. On the terminating false loop check, all calculations and movements are skipped.
+- **✅ `while (left < right)`:** `1 < 7 → true`.
+- `int width = right - left`: `7 - 1 = 6`.
+- `int limitingHeight = Math.min(heights[left], heights[right])`: `min(8,3) = 3`.
+- `bestArea = Math.max(bestArea, width * limitingHeight)`: `6 * 3 = 18`, then `max(49,18) = 49`; `bestArea` changes `49 → 49`.
+- **❌ `if (heights[left] <= heights[right])`:** `8 <= 3 → false`; skip `left++`; execute `right--` in `else`: `7 → 6`.
+- **State:** `left=1`, `right=6`, `width=6`, `limitingHeight=3`, `bestArea=49`; `heights` is unchanged. Recheck the `while`.
 
 | left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `7` | `1 < 7 → true` | `6` | `3` | `6*3=18` | `49` | `8 <= 3 → false` | `right=6` |
+| `1` | `7` | `✅ 1 < 7 → true` | `6` | `3` | `6*3=18` | `49` | `❌ 8 <= 3 → false` | `right=6` |
 
 **Iteration/check 4 — left = `1`.**
 
-Begin at boundary indexes `1` and `6`. Evaluate `left < right`: `1 < 6 → true`. If true, calculate width `5`, keep the shorter boundary height `8`, and multiply: `5*8=40`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `8 <= 8 → true`; next, `left=2`. On the terminating false loop check, all calculations and movements are skipped.
+- **✅ `while (left < right)`:** `1 < 6 → true`.
+- `int width = right - left`: `6 - 1 = 5`.
+- `int limitingHeight = Math.min(heights[left], heights[right])`: `min(8,8) = 8`.
+- `bestArea = Math.max(bestArea, width * limitingHeight)`: `5 * 8 = 40`, then `max(49,40) = 49`; `bestArea` changes `49 → 49`.
+- **✅ `if (heights[left] <= heights[right])`:** `8 <= 8 → true`; execute `left++`: `1 → 2`; skip `else`.
+- **State:** `left=2`, `right=6`, `width=5`, `limitingHeight=8`, `bestArea=49`; `heights` is unchanged. Recheck the `while`.
 
 | left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `6` | `1 < 6 → true` | `5` | `8` | `5*8=40` | `49` | `8 <= 8 → true` | `left=2` |
+| `1` | `6` | `✅ 1 < 6 → true` | `5` | `8` | `5*8=40` | `49` | `✅ 8 <= 8 → true` | `left=2` |
 
 **Iteration/check 5 — left = `2`.**
 
-Begin at boundary indexes `2` and `6`. Evaluate `left < right`: `2 < 6 → true`. If true, calculate width `4`, keep the shorter boundary height `6`, and multiply: `4*6=24`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `6 <= 8 → true`; next, `left=3`. On the terminating false loop check, all calculations and movements are skipped.
+- **✅ `while (left < right)`:** `2 < 6 → true`.
+- `int width = right - left`: `6 - 2 = 4`.
+- `int limitingHeight = Math.min(heights[left], heights[right])`: `min(6,8) = 6`.
+- `bestArea = Math.max(bestArea, width * limitingHeight)`: `4 * 6 = 24`, then `max(49,24) = 49`; `bestArea` changes `49 → 49`.
+- **✅ `if (heights[left] <= heights[right])`:** `6 <= 8 → true`; execute `left++`: `2 → 3`; skip `else`.
+- **State:** `left=3`, `right=6`, `width=4`, `limitingHeight=6`, `bestArea=49`; `heights` is unchanged. Recheck the `while`.
 
 | left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `6` | `2 < 6 → true` | `4` | `6` | `4*6=24` | `49` | `6 <= 8 → true` | `left=3` |
+| `2` | `6` | `✅ 2 < 6 → true` | `4` | `6` | `4*6=24` | `49` | `✅ 6 <= 8 → true` | `left=3` |
 
 **Iteration/check 6 — left = `3`.**
 
-Begin at boundary indexes `3` and `6`. Evaluate `left < right`: `3 < 6 → true`. If true, calculate width `3`, keep the shorter boundary height `2`, and multiply: `3*2=6`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `2 <= 8 → true`; next, `left=4`. On the terminating false loop check, all calculations and movements are skipped.
+- **✅ `while (left < right)`:** `3 < 6 → true`.
+- `int width = right - left`: `6 - 3 = 3`.
+- `int limitingHeight = Math.min(heights[left], heights[right])`: `min(2,8) = 2`.
+- `bestArea = Math.max(bestArea, width * limitingHeight)`: `3 * 2 = 6`, then `max(49,6) = 49`; `bestArea` changes `49 → 49`.
+- **✅ `if (heights[left] <= heights[right])`:** `2 <= 8 → true`; execute `left++`: `3 → 4`; skip `else`.
+- **State:** `left=4`, `right=6`, `width=3`, `limitingHeight=2`, `bestArea=49`; `heights` is unchanged. Recheck the `while`.
 
 | left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `6` | `3 < 6 → true` | `3` | `2` | `3*2=6` | `49` | `2 <= 8 → true` | `left=4` |
+| `3` | `6` | `✅ 3 < 6 → true` | `3` | `2` | `3*2=6` | `49` | `✅ 2 <= 8 → true` | `left=4` |
 
 **Iteration/check 7 — left = `4`.**
 
-Begin at boundary indexes `4` and `6`. Evaluate `left < right`: `4 < 6 → true`. If true, calculate width `2`, keep the shorter boundary height `5`, and multiply: `2*5=10`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `5 <= 8 → true`; next, `left=5`. On the terminating false loop check, all calculations and movements are skipped.
+- **✅ `while (left < right)`:** `4 < 6 → true`.
+- `int width = right - left`: `6 - 4 = 2`.
+- `int limitingHeight = Math.min(heights[left], heights[right])`: `min(5,8) = 5`.
+- `bestArea = Math.max(bestArea, width * limitingHeight)`: `2 * 5 = 10`, then `max(49,10) = 49`; `bestArea` changes `49 → 49`.
+- **✅ `if (heights[left] <= heights[right])`:** `5 <= 8 → true`; execute `left++`: `4 → 5`; skip `else`.
+- **State:** `left=5`, `right=6`, `width=2`, `limitingHeight=5`, `bestArea=49`; `heights` is unchanged. Recheck the `while`.
 
 | left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `4` | `6` | `4 < 6 → true` | `2` | `5` | `2*5=10` | `49` | `5 <= 8 → true` | `left=5` |
+| `4` | `6` | `✅ 4 < 6 → true` | `2` | `5` | `2*5=10` | `49` | `✅ 5 <= 8 → true` | `left=5` |
 
 **Iteration/check 8 — left = `5`.**
 
-Begin at boundary indexes `5` and `6`. Evaluate `left < right`: `5 < 6 → true`. If true, calculate width `1`, keep the shorter boundary height `4`, and multiply: `1*4=4`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `4 <= 8 → true`; next, `left=6`. On the terminating false loop check, all calculations and movements are skipped.
+- **✅ `while (left < right)`:** `5 < 6 → true`.
+- `int width = right - left`: `6 - 5 = 1`.
+- `int limitingHeight = Math.min(heights[left], heights[right])`: `min(4,8) = 4`.
+- `bestArea = Math.max(bestArea, width * limitingHeight)`: `1 * 4 = 4`, then `max(49,4) = 49`; `bestArea` changes `49 → 49`.
+- **✅ `if (heights[left] <= heights[right])`:** `4 <= 8 → true`; execute `left++`: `5 → 6`; skip `else`.
+- **State:** `left=6`, `right=6`, `width=1`, `limitingHeight=4`, `bestArea=49`; `heights` is unchanged. Recheck the `while`.
 
 | left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `5` | `6` | `5 < 6 → true` | `1` | `4` | `1*4=4` | `49` | `4 <= 8 → true` | `left=6` |
+| `5` | `6` | `✅ 5 < 6 → true` | `1` | `4` | `1*4=4` | `49` | `✅ 4 <= 8 → true` | `left=6` |
 
 **Iteration/check 9 — left = `6`.**
 
-Begin at boundary indexes `6` and `6`. Evaluate `left < right`: `6 < 6 → false`. If true, calculate width `Skipped`, keep the shorter boundary height `Skipped`, and multiply: `Skipped`. Preserve the largest area, giving `bestArea`=`49`. The boundary-height comparison is `Skipped`; next, `exit; return 49`. On the terminating false loop check, all calculations and movements are skipped.
+- **❌ `while (left < right)`:** `6 < 6 → false`; exit.
+- Width/height calculations, `Math.max`, and pointer `if` are `Skipped`; `bestArea` stays `49`.
+- **Final state:** `left=6`, `right=6`; execute `return bestArea` → `49`.
 
 | left | right | loop condition | width | limitingHeight | area | bestArea after | heights[left] <= heights[right] | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `6` | `6` | `6 < 6 → false` | `Skipped` | `Skipped` | `Skipped` | `49` | `Skipped` | `exit; return 49` |
+| `6` | `6` | `❌ 6 < 6 → false` | `Skipped` | `Skipped` | `Skipped` | `49` | `Skipped` | `exit; return 49` |
 
 The best is retained even as later areas decrease. Equal boundary heights take the `<=` branch and advance left.
 

@@ -292,11 +292,18 @@ Complete `windowCounts` at those same iteration phases:
 Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and contraction stops. Removing surplus B at right `10` changes B `2 → 1`; coverage remains satisfied. Removing C later changes C `1 → 0` and stops contraction. Zero-count keys remain in the map; they are not deleted.
 
 
-**Narrated execution — follow each operation, then check its values:**
+**Narrated execution — concise actions, then the debugger values:**
 
 **Iteration/check 1 — right = `0`.**
 
-Read source index `0`, character `A`. `windowCounts.merge` adds one `A` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `✅ if` condition left to right: `✅ containsKey(A) → true; ✅ 1 == 1 → true`. The condition is true, so `formedGroups++` changes `0 → 1`. Next check `❌ while (formedGroups == requiredGroups)`: `1 == 3 → false`; skip the inner loop. The completed outer iteration has left `0`, formed groups `1`, best `(start,length)` `(0,2147483647)`, and full window map `{'A': 1}`. The `for` loop then runs `right++` and checks its condition again.
+- `char incoming = source.charAt(right)` reads index `0` → `'A'`.
+- `windowCounts.merge(incoming, 1, Integer::sum)` changes A's count `0 → 1`.
+- **✅ Incoming `if`:** `neededCounts.containsKey(incoming)` → true; window count equals required count: `1 == 1 → true`.
+- Execute `formedGroups++`: `0 → 1`.
+- **❌ `while (formedGroups == requiredGroups)`:** `1 == 3 → false`; skip shrinking.
+- **State:** `left=0`, `formedGroups=1`, `bestStart=0`, `bestLength=2147483647`.
+- **Window map:** `{'A': 1}`.
+- `right++`: `0 → 1`; **✅ `for` condition:** `1 < 13 → true`; continue.
 
 | right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -304,7 +311,14 @@ Read source index `0`, character `A`. `windowCounts.merge` adds one `A` occurren
 
 **Iteration/check 2 — right = `1`.**
 
-Read source index `1`, character `D`. `windowCounts.merge` adds one `D` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `❌ if` condition left to right: `❌ containsKey(D) → false; equality Skipped (short circuit)`. The condition is false, so skip `formedGroups++`; it stays `1`. Next check `❌ while (formedGroups == requiredGroups)`: `1 == 3 → false`; skip the inner loop. The completed outer iteration has left `0`, formed groups `1`, best `(start,length)` `(0,2147483647)`, and full window map `{'A': 1, 'D': 1}`. The `for` loop then runs `right++` and checks its condition again.
+- `char incoming = source.charAt(right)` reads index `1` → `'D'`.
+- `windowCounts.merge(incoming, 1, Integer::sum)` changes D's count `0 → 1`.
+- **❌ Incoming `if`:** `neededCounts.containsKey(incoming)` → false; skip the count comparison (`&&` short circuit).
+- Skip `formedGroups++`; `formedGroups` stays `1`.
+- **❌ `while (formedGroups == requiredGroups)`:** `1 == 3 → false`; skip shrinking.
+- **State:** `left=0`, `formedGroups=1`, `bestStart=0`, `bestLength=2147483647`.
+- **Window map:** `{'A': 1, 'D': 1}`.
+- `right++`: `1 → 2`; **✅ `for` condition:** `2 < 13 → true`; continue.
 
 | right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -312,7 +326,14 @@ Read source index `1`, character `D`. `windowCounts.merge` adds one `D` occurren
 
 **Iteration/check 3 — right = `2`.**
 
-Read source index `2`, character `O`. `windowCounts.merge` adds one `O` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `❌ if` condition left to right: `❌ containsKey(O) → false; equality Skipped (short circuit)`. The condition is false, so skip `formedGroups++`; it stays `1`. Next check `❌ while (formedGroups == requiredGroups)`: `1 == 3 → false`; skip the inner loop. The completed outer iteration has left `0`, formed groups `1`, best `(start,length)` `(0,2147483647)`, and full window map `{'A': 1, 'D': 1, 'O': 1}`. The `for` loop then runs `right++` and checks its condition again.
+- `char incoming = source.charAt(right)` reads index `2` → `'O'`.
+- `windowCounts.merge(incoming, 1, Integer::sum)` changes O's count `0 → 1`.
+- **❌ Incoming `if`:** `neededCounts.containsKey(incoming)` → false; skip the count comparison (`&&` short circuit).
+- Skip `formedGroups++`; `formedGroups` stays `1`.
+- **❌ `while (formedGroups == requiredGroups)`:** `1 == 3 → false`; skip shrinking.
+- **State:** `left=0`, `formedGroups=1`, `bestStart=0`, `bestLength=2147483647`.
+- **Window map:** `{'A': 1, 'D': 1, 'O': 1}`.
+- `right++`: `2 → 3`; **✅ `for` condition:** `3 < 13 → true`; continue.
 
 | right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -320,7 +341,14 @@ Read source index `2`, character `O`. `windowCounts.merge` adds one `O` occurren
 
 **Iteration/check 4 — right = `3`.**
 
-Read source index `3`, character `B`. `windowCounts.merge` adds one `B` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `✅ if` condition left to right: `✅ containsKey(B) → true; ✅ 1 == 1 → true`. The condition is true, so `formedGroups++` changes `1 → 2`. Next check `❌ while (formedGroups == requiredGroups)`: `2 == 3 → false`; skip the inner loop. The completed outer iteration has left `0`, formed groups `2`, best `(start,length)` `(0,2147483647)`, and full window map `{'A': 1, 'D': 1, 'O': 1, 'B': 1}`. The `for` loop then runs `right++` and checks its condition again.
+- `char incoming = source.charAt(right)` reads index `3` → `'B'`.
+- `windowCounts.merge(incoming, 1, Integer::sum)` changes B's count `0 → 1`.
+- **✅ Incoming `if`:** `neededCounts.containsKey(incoming)` → true; window count equals required count: `1 == 1 → true`.
+- Execute `formedGroups++`: `1 → 2`.
+- **❌ `while (formedGroups == requiredGroups)`:** `2 == 3 → false`; skip shrinking.
+- **State:** `left=0`, `formedGroups=2`, `bestStart=0`, `bestLength=2147483647`.
+- **Window map:** `{'A': 1, 'D': 1, 'O': 1, 'B': 1}`.
+- `right++`: `3 → 4`; **✅ `for` condition:** `4 < 13 → true`; continue.
 
 | right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -328,7 +356,14 @@ Read source index `3`, character `B`. `windowCounts.merge` adds one `B` occurren
 
 **Iteration/check 5 — right = `4`.**
 
-Read source index `4`, character `E`. `windowCounts.merge` adds one `E` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `❌ if` condition left to right: `❌ containsKey(E) → false; equality Skipped (short circuit)`. The condition is false, so skip `formedGroups++`; it stays `2`. Next check `❌ while (formedGroups == requiredGroups)`: `2 == 3 → false`; skip the inner loop. The completed outer iteration has left `0`, formed groups `2`, best `(start,length)` `(0,2147483647)`, and full window map `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1}`. The `for` loop then runs `right++` and checks its condition again.
+- `char incoming = source.charAt(right)` reads index `4` → `'E'`.
+- `windowCounts.merge(incoming, 1, Integer::sum)` changes E's count `0 → 1`.
+- **❌ Incoming `if`:** `neededCounts.containsKey(incoming)` → false; skip the count comparison (`&&` short circuit).
+- Skip `formedGroups++`; `formedGroups` stays `2`.
+- **❌ `while (formedGroups == requiredGroups)`:** `2 == 3 → false`; skip shrinking.
+- **State:** `left=0`, `formedGroups=2`, `bestStart=0`, `bestLength=2147483647`.
+- **Window map:** `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1}`.
+- `right++`: `4 → 5`; **✅ `for` condition:** `5 < 13 → true`; continue.
 
 | right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -336,7 +371,22 @@ Read source index `4`, character `E`. `windowCounts.merge` adds one `E` occurren
 
 **Iteration/check 6 — right = `5`.**
 
-Read source index `5`, character `C`. `windowCounts.merge` adds one `C` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `✅ if` condition left to right: `✅ containsKey(C) → true; ✅ 1 == 1 → true`. The condition is true, so `formedGroups++` changes `2 → 3`. Check `✅ while (formedGroups == requiredGroups)`: `3 == 3 → true`. Calculate `candidateLength = right - left + 1`: `5 - 0 + 1 = 6`. `✅ if (candidateLength < bestLength)` is `6 < 2147483647 → true`, so execute `bestStart = left` → `0` and `bestLength = candidateLength` → `6`. `char outgoing = source.charAt(left)` reads `source.charAt(0)`, so `outgoing='A'`. `windowCounts.merge(outgoing, -1, Integer::sum)` subtracts one from A's count: `1 → 0`. `left++` moves `0 → 1`. The removal `✅ if` checks `✅ neededCounts.containsKey(outgoing)` with `outgoing='A'` → true, then `✅ windowCounts.get(outgoing) < neededCounts.get(outgoing)`: `0 < 1 → true`. The condition is true, so execute `formedGroups--`: `3 → 2`. Recheck `❌ while (formedGroups == requiredGroups)`: `2 == 3 → false`; exit the inner loop. The completed outer iteration has left `1`, formed groups `2`, best `(start,length)` `(0,6)`, and full window map `{'A': 0, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 1}`. The `for` loop then runs `right++` and checks its condition again.
+- `char incoming = source.charAt(right)` reads index `5` → `'C'`.
+- `windowCounts.merge(incoming, 1, Integer::sum)` changes C's count `0 → 1`.
+- **✅ Incoming `if`:** `neededCounts.containsKey(incoming)` → true; window count equals required count: `1 == 1 → true`.
+- Execute `formedGroups++`: `2 → 3`.
+- **✅ `while (formedGroups == requiredGroups)`:** `3 == 3 → true`; shrink the window.
+- Calculate `candidateLength = right - left + 1`: `5 - 0 + 1 = 6`.
+- **✅ `if (candidateLength < bestLength)`:** `6 < 2147483647 → true`; execute `bestStart = left` → `0` and `bestLength = candidateLength` → `6`.
+- `char outgoing = source.charAt(left)` reads index `0` → `'A'`.
+- `windowCounts.merge(outgoing, -1, Integer::sum)` changes A's count `1 → 0`.
+- `left++`: `0 → 1`.
+- **✅ Removal `if`:** `neededCounts.containsKey(outgoing)` → true; `windowCounts.get(outgoing) < neededCounts.get(outgoing)` → `0 < 1 → true`.
+- Execute `formedGroups--`: `3 → 2`.
+- **❌ `while (formedGroups == requiredGroups)`:** `2 == 3 → false`; stop shrinking.
+- **State:** `left=1`, `formedGroups=2`, `bestStart=0`, `bestLength=6`.
+- **Window map:** `{'A': 0, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 1}`.
+- `right++`: `5 → 6`; **✅ `for` condition:** `6 < 13 → true`; continue.
 
 | right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -344,7 +394,14 @@ Read source index `5`, character `C`. `windowCounts.merge` adds one `C` occurren
 
 **Iteration/check 7 — right = `6`.**
 
-Read source index `6`, character `O`. `windowCounts.merge` adds one `O` occurrence, changing its count `1 → 2`. Evaluate the incoming-group `❌ if` condition left to right: `❌ containsKey(O) → false; equality Skipped (short circuit)`. The condition is false, so skip `formedGroups++`; it stays `2`. Next check `❌ while (formedGroups == requiredGroups)`: `2 == 3 → false`; skip the inner loop. The completed outer iteration has left `1`, formed groups `2`, best `(start,length)` `(0,6)`, and full window map `{'A': 0, 'D': 1, 'O': 2, 'B': 1, 'E': 1, 'C': 1}`. The `for` loop then runs `right++` and checks its condition again.
+- `char incoming = source.charAt(right)` reads index `6` → `'O'`.
+- `windowCounts.merge(incoming, 1, Integer::sum)` changes O's count `1 → 2`.
+- **❌ Incoming `if`:** `neededCounts.containsKey(incoming)` → false; skip the count comparison (`&&` short circuit).
+- Skip `formedGroups++`; `formedGroups` stays `2`.
+- **❌ `while (formedGroups == requiredGroups)`:** `2 == 3 → false`; skip shrinking.
+- **State:** `left=1`, `formedGroups=2`, `bestStart=0`, `bestLength=6`.
+- **Window map:** `{'A': 0, 'D': 1, 'O': 2, 'B': 1, 'E': 1, 'C': 1}`.
+- `right++`: `6 → 7`; **✅ `for` condition:** `7 < 13 → true`; continue.
 
 | right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -352,7 +409,14 @@ Read source index `6`, character `O`. `windowCounts.merge` adds one `O` occurren
 
 **Iteration/check 8 — right = `7`.**
 
-Read source index `7`, character `D`. `windowCounts.merge` adds one `D` occurrence, changing its count `1 → 2`. Evaluate the incoming-group `❌ if` condition left to right: `❌ containsKey(D) → false; equality Skipped (short circuit)`. The condition is false, so skip `formedGroups++`; it stays `2`. Next check `❌ while (formedGroups == requiredGroups)`: `2 == 3 → false`; skip the inner loop. The completed outer iteration has left `1`, formed groups `2`, best `(start,length)` `(0,6)`, and full window map `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 1, 'C': 1}`. The `for` loop then runs `right++` and checks its condition again.
+- `char incoming = source.charAt(right)` reads index `7` → `'D'`.
+- `windowCounts.merge(incoming, 1, Integer::sum)` changes D's count `1 → 2`.
+- **❌ Incoming `if`:** `neededCounts.containsKey(incoming)` → false; skip the count comparison (`&&` short circuit).
+- Skip `formedGroups++`; `formedGroups` stays `2`.
+- **❌ `while (formedGroups == requiredGroups)`:** `2 == 3 → false`; skip shrinking.
+- **State:** `left=1`, `formedGroups=2`, `bestStart=0`, `bestLength=6`.
+- **Window map:** `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 1, 'C': 1}`.
+- `right++`: `7 → 8`; **✅ `for` condition:** `8 < 13 → true`; continue.
 
 | right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -360,7 +424,14 @@ Read source index `7`, character `D`. `windowCounts.merge` adds one `D` occurren
 
 **Iteration/check 9 — right = `8`.**
 
-Read source index `8`, character `E`. `windowCounts.merge` adds one `E` occurrence, changing its count `1 → 2`. Evaluate the incoming-group `❌ if` condition left to right: `❌ containsKey(E) → false; equality Skipped (short circuit)`. The condition is false, so skip `formedGroups++`; it stays `2`. Next check `❌ while (formedGroups == requiredGroups)`: `2 == 3 → false`; skip the inner loop. The completed outer iteration has left `1`, formed groups `2`, best `(start,length)` `(0,6)`, and full window map `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 2, 'C': 1}`. The `for` loop then runs `right++` and checks its condition again.
+- `char incoming = source.charAt(right)` reads index `8` → `'E'`.
+- `windowCounts.merge(incoming, 1, Integer::sum)` changes E's count `1 → 2`.
+- **❌ Incoming `if`:** `neededCounts.containsKey(incoming)` → false; skip the count comparison (`&&` short circuit).
+- Skip `formedGroups++`; `formedGroups` stays `2`.
+- **❌ `while (formedGroups == requiredGroups)`:** `2 == 3 → false`; skip shrinking.
+- **State:** `left=1`, `formedGroups=2`, `bestStart=0`, `bestLength=6`.
+- **Window map:** `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 2, 'C': 1}`.
+- `right++`: `8 → 9`; **✅ `for` condition:** `9 < 13 → true`; continue.
 
 | right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -368,7 +439,14 @@ Read source index `8`, character `E`. `windowCounts.merge` adds one `E` occurren
 
 **Iteration/check 10 — right = `9`.**
 
-Read source index `9`, character `B`. `windowCounts.merge` adds one `B` occurrence, changing its count `1 → 2`. Evaluate the incoming-group `❌ if` condition left to right: `✅ containsKey(B) → true; ❌ 2 == 1 → false`. The condition is false, so skip `formedGroups++`; it stays `2`. Next check `❌ while (formedGroups == requiredGroups)`: `2 == 3 → false`; skip the inner loop. The completed outer iteration has left `1`, formed groups `2`, best `(start,length)` `(0,6)`, and full window map `{'A': 0, 'D': 2, 'O': 2, 'B': 2, 'E': 2, 'C': 1}`. The `for` loop then runs `right++` and checks its condition again.
+- `char incoming = source.charAt(right)` reads index `9` → `'B'`.
+- `windowCounts.merge(incoming, 1, Integer::sum)` changes B's count `1 → 2`.
+- **❌ Incoming `if`:** `neededCounts.containsKey(incoming)` → true; window count equals required count: `2 == 1 → false`.
+- Skip `formedGroups++`; `formedGroups` stays `2`.
+- **❌ `while (formedGroups == requiredGroups)`:** `2 == 3 → false`; skip shrinking.
+- **State:** `left=1`, `formedGroups=2`, `bestStart=0`, `bestLength=6`.
+- **Window map:** `{'A': 0, 'D': 2, 'O': 2, 'B': 2, 'E': 2, 'C': 1}`.
+- `right++`: `9 → 10`; **✅ `for` condition:** `10 < 13 → true`; continue.
 
 | right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -376,7 +454,54 @@ Read source index `9`, character `B`. `windowCounts.merge` adds one `B` occurren
 
 **Iteration/check 11 — right = `10`.**
 
-Read source index `10`, character `A`. `windowCounts.merge` adds one `A` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `✅ if` condition left to right: `✅ containsKey(A) → true; ✅ 1 == 1 → true`. The condition is true, so `formedGroups++` changes `2 → 3`. Check `✅ while (formedGroups == requiredGroups)`: `3 == 3 → true`. Calculate `candidateLength = right - left + 1`: `10 - 1 + 1 = 10`. `❌ if (candidateLength < bestLength)` is `10 < 6 → false`; skip its assignments, keeping `bestStart=0, bestLength=6`. `char outgoing = source.charAt(left)` reads `source.charAt(1)`, so `outgoing='D'`. `windowCounts.merge(outgoing, -1, Integer::sum)` subtracts one from D's count: `2 → 1`. `left++` moves `1 → 2`. The removal `❌ if` checks `❌ neededCounts.containsKey(outgoing)` with `outgoing='D'` → false. Because of `&&`, skip `windowCounts.get(outgoing) < neededCounts.get(outgoing)` and the `formedGroups--` body; `formedGroups` stays `3`. Check `✅ while (formedGroups == requiredGroups)`: `3 == 3 → true`. Calculate `candidateLength = right - left + 1`: `10 - 2 + 1 = 9`. `❌ if (candidateLength < bestLength)` is `9 < 6 → false`; skip its assignments, keeping `bestStart=0, bestLength=6`. `char outgoing = source.charAt(left)` reads `source.charAt(2)`, so `outgoing='O'`. `windowCounts.merge(outgoing, -1, Integer::sum)` subtracts one from O's count: `2 → 1`. `left++` moves `2 → 3`. The removal `❌ if` checks `❌ neededCounts.containsKey(outgoing)` with `outgoing='O'` → false. Because of `&&`, skip `windowCounts.get(outgoing) < neededCounts.get(outgoing)` and the `formedGroups--` body; `formedGroups` stays `3`. Check `✅ while (formedGroups == requiredGroups)`: `3 == 3 → true`. Calculate `candidateLength = right - left + 1`: `10 - 3 + 1 = 8`. `❌ if (candidateLength < bestLength)` is `8 < 6 → false`; skip its assignments, keeping `bestStart=0, bestLength=6`. `char outgoing = source.charAt(left)` reads `source.charAt(3)`, so `outgoing='B'`. `windowCounts.merge(outgoing, -1, Integer::sum)` subtracts one from B's count: `2 → 1`. `left++` moves `3 → 4`. The removal `❌ if` checks `✅ neededCounts.containsKey(outgoing)` with `outgoing='B'` → true, then `❌ windowCounts.get(outgoing) < neededCounts.get(outgoing)`: `1 < 1 → false`. The condition is false, so skip `formedGroups--`; `formedGroups` stays `3`. Check `✅ while (formedGroups == requiredGroups)`: `3 == 3 → true`. Calculate `candidateLength = right - left + 1`: `10 - 4 + 1 = 7`. `❌ if (candidateLength < bestLength)` is `7 < 6 → false`; skip its assignments, keeping `bestStart=0, bestLength=6`. `char outgoing = source.charAt(left)` reads `source.charAt(4)`, so `outgoing='E'`. `windowCounts.merge(outgoing, -1, Integer::sum)` subtracts one from E's count: `2 → 1`. `left++` moves `4 → 5`. The removal `❌ if` checks `❌ neededCounts.containsKey(outgoing)` with `outgoing='E'` → false. Because of `&&`, skip `windowCounts.get(outgoing) < neededCounts.get(outgoing)` and the `formedGroups--` body; `formedGroups` stays `3`. Check `✅ while (formedGroups == requiredGroups)`: `3 == 3 → true`. Calculate `candidateLength = right - left + 1`: `10 - 5 + 1 = 6`. `❌ if (candidateLength < bestLength)` is `6 < 6 → false`; skip its assignments, keeping `bestStart=0, bestLength=6`. `char outgoing = source.charAt(left)` reads `source.charAt(5)`, so `outgoing='C'`. `windowCounts.merge(outgoing, -1, Integer::sum)` subtracts one from C's count: `1 → 0`. `left++` moves `5 → 6`. The removal `✅ if` checks `✅ neededCounts.containsKey(outgoing)` with `outgoing='C'` → true, then `✅ windowCounts.get(outgoing) < neededCounts.get(outgoing)`: `0 < 1 → true`. The condition is true, so execute `formedGroups--`: `3 → 2`. Recheck `❌ while (formedGroups == requiredGroups)`: `2 == 3 → false`; exit the inner loop. The completed outer iteration has left `6`, formed groups `2`, best `(start,length)` `(0,6)`, and full window map `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0}`. The `for` loop then runs `right++` and checks its condition again.
+- `char incoming = source.charAt(right)` reads index `10` → `'A'`.
+- `windowCounts.merge(incoming, 1, Integer::sum)` changes A's count `0 → 1`.
+- **✅ Incoming `if`:** `neededCounts.containsKey(incoming)` → true; window count equals required count: `1 == 1 → true`.
+- Execute `formedGroups++`: `2 → 3`.
+- **✅ `while (formedGroups == requiredGroups)`:** `3 == 3 → true`; shrink the window.
+- Calculate `candidateLength = right - left + 1`: `10 - 1 + 1 = 10`.
+- **❌ `if (candidateLength < bestLength)`:** `10 < 6 → false`; skip both assignments, keeping `bestStart=0, bestLength=6`.
+- `char outgoing = source.charAt(left)` reads index `1` → `'D'`.
+- `windowCounts.merge(outgoing, -1, Integer::sum)` changes D's count `2 → 1`.
+- `left++`: `1 → 2`.
+- **❌ Removal `if`:** `neededCounts.containsKey(outgoing)` → false; skip `windowCounts.get(outgoing) < neededCounts.get(outgoing)` (`&&` short circuit).
+- Skip `formedGroups--`; `formedGroups` stays `3`.
+- **✅ `while (formedGroups == requiredGroups)`:** `3 == 3 → true`; shrink the window.
+- Calculate `candidateLength = right - left + 1`: `10 - 2 + 1 = 9`.
+- **❌ `if (candidateLength < bestLength)`:** `9 < 6 → false`; skip both assignments, keeping `bestStart=0, bestLength=6`.
+- `char outgoing = source.charAt(left)` reads index `2` → `'O'`.
+- `windowCounts.merge(outgoing, -1, Integer::sum)` changes O's count `2 → 1`.
+- `left++`: `2 → 3`.
+- **❌ Removal `if`:** `neededCounts.containsKey(outgoing)` → false; skip `windowCounts.get(outgoing) < neededCounts.get(outgoing)` (`&&` short circuit).
+- Skip `formedGroups--`; `formedGroups` stays `3`.
+- **✅ `while (formedGroups == requiredGroups)`:** `3 == 3 → true`; shrink the window.
+- Calculate `candidateLength = right - left + 1`: `10 - 3 + 1 = 8`.
+- **❌ `if (candidateLength < bestLength)`:** `8 < 6 → false`; skip both assignments, keeping `bestStart=0, bestLength=6`.
+- `char outgoing = source.charAt(left)` reads index `3` → `'B'`.
+- `windowCounts.merge(outgoing, -1, Integer::sum)` changes B's count `2 → 1`.
+- `left++`: `3 → 4`.
+- **❌ Removal `if`:** `neededCounts.containsKey(outgoing)` → true; `windowCounts.get(outgoing) < neededCounts.get(outgoing)` → `1 < 1 → false`.
+- Skip `formedGroups--`; `formedGroups` stays `3`.
+- **✅ `while (formedGroups == requiredGroups)`:** `3 == 3 → true`; shrink the window.
+- Calculate `candidateLength = right - left + 1`: `10 - 4 + 1 = 7`.
+- **❌ `if (candidateLength < bestLength)`:** `7 < 6 → false`; skip both assignments, keeping `bestStart=0, bestLength=6`.
+- `char outgoing = source.charAt(left)` reads index `4` → `'E'`.
+- `windowCounts.merge(outgoing, -1, Integer::sum)` changes E's count `2 → 1`.
+- `left++`: `4 → 5`.
+- **❌ Removal `if`:** `neededCounts.containsKey(outgoing)` → false; skip `windowCounts.get(outgoing) < neededCounts.get(outgoing)` (`&&` short circuit).
+- Skip `formedGroups--`; `formedGroups` stays `3`.
+- **✅ `while (formedGroups == requiredGroups)`:** `3 == 3 → true`; shrink the window.
+- Calculate `candidateLength = right - left + 1`: `10 - 5 + 1 = 6`.
+- **❌ `if (candidateLength < bestLength)`:** `6 < 6 → false`; skip both assignments, keeping `bestStart=0, bestLength=6`.
+- `char outgoing = source.charAt(left)` reads index `5` → `'C'`.
+- `windowCounts.merge(outgoing, -1, Integer::sum)` changes C's count `1 → 0`.
+- `left++`: `5 → 6`.
+- **✅ Removal `if`:** `neededCounts.containsKey(outgoing)` → true; `windowCounts.get(outgoing) < neededCounts.get(outgoing)` → `0 < 1 → true`.
+- Execute `formedGroups--`: `3 → 2`.
+- **❌ `while (formedGroups == requiredGroups)`:** `2 == 3 → false`; stop shrinking.
+- **State:** `left=6`, `formedGroups=2`, `bestStart=0`, `bestLength=6`.
+- **Window map:** `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0}`.
+- `right++`: `10 → 11`; **✅ `for` condition:** `11 < 13 → true`; continue.
 
 | right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -384,7 +509,14 @@ Read source index `10`, character `A`. `windowCounts.merge` adds one `A` occurre
 
 **Iteration/check 12 — right = `11`.**
 
-Read source index `11`, character `N`. `windowCounts.merge` adds one `N` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `❌ if` condition left to right: `❌ containsKey(N) → false; equality Skipped (short circuit)`. The condition is false, so skip `formedGroups++`; it stays `2`. Next check `❌ while (formedGroups == requiredGroups)`: `2 == 3 → false`; skip the inner loop. The completed outer iteration has left `6`, formed groups `2`, best `(start,length)` `(0,6)`, and full window map `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0, 'N': 1}`. The `for` loop then runs `right++` and checks its condition again.
+- `char incoming = source.charAt(right)` reads index `11` → `'N'`.
+- `windowCounts.merge(incoming, 1, Integer::sum)` changes N's count `0 → 1`.
+- **❌ Incoming `if`:** `neededCounts.containsKey(incoming)` → false; skip the count comparison (`&&` short circuit).
+- Skip `formedGroups++`; `formedGroups` stays `2`.
+- **❌ `while (formedGroups == requiredGroups)`:** `2 == 3 → false`; skip shrinking.
+- **State:** `left=6`, `formedGroups=2`, `bestStart=0`, `bestLength=6`.
+- **Window map:** `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0, 'N': 1}`.
+- `right++`: `11 → 12`; **✅ `for` condition:** `12 < 13 → true`; continue.
 
 | right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -392,7 +524,46 @@ Read source index `11`, character `N`. `windowCounts.merge` adds one `N` occurre
 
 **Iteration/check 13 — right = `12`.**
 
-Read source index `12`, character `C`. `windowCounts.merge` adds one `C` occurrence, changing its count `0 → 1`. Evaluate the incoming-group `✅ if` condition left to right: `✅ containsKey(C) → true; ✅ 1 == 1 → true`. The condition is true, so `formedGroups++` changes `2 → 3`. Check `✅ while (formedGroups == requiredGroups)`: `3 == 3 → true`. Calculate `candidateLength = right - left + 1`: `12 - 6 + 1 = 7`. `❌ if (candidateLength < bestLength)` is `7 < 6 → false`; skip its assignments, keeping `bestStart=0, bestLength=6`. `char outgoing = source.charAt(left)` reads `source.charAt(6)`, so `outgoing='O'`. `windowCounts.merge(outgoing, -1, Integer::sum)` subtracts one from O's count: `1 → 0`. `left++` moves `6 → 7`. The removal `❌ if` checks `❌ neededCounts.containsKey(outgoing)` with `outgoing='O'` → false. Because of `&&`, skip `windowCounts.get(outgoing) < neededCounts.get(outgoing)` and the `formedGroups--` body; `formedGroups` stays `3`. Check `✅ while (formedGroups == requiredGroups)`: `3 == 3 → true`. Calculate `candidateLength = right - left + 1`: `12 - 7 + 1 = 6`. `❌ if (candidateLength < bestLength)` is `6 < 6 → false`; skip its assignments, keeping `bestStart=0, bestLength=6`. `char outgoing = source.charAt(left)` reads `source.charAt(7)`, so `outgoing='D'`. `windowCounts.merge(outgoing, -1, Integer::sum)` subtracts one from D's count: `1 → 0`. `left++` moves `7 → 8`. The removal `❌ if` checks `❌ neededCounts.containsKey(outgoing)` with `outgoing='D'` → false. Because of `&&`, skip `windowCounts.get(outgoing) < neededCounts.get(outgoing)` and the `formedGroups--` body; `formedGroups` stays `3`. Check `✅ while (formedGroups == requiredGroups)`: `3 == 3 → true`. Calculate `candidateLength = right - left + 1`: `12 - 8 + 1 = 5`. `✅ if (candidateLength < bestLength)` is `5 < 6 → true`, so execute `bestStart = left` → `8` and `bestLength = candidateLength` → `5`. `char outgoing = source.charAt(left)` reads `source.charAt(8)`, so `outgoing='E'`. `windowCounts.merge(outgoing, -1, Integer::sum)` subtracts one from E's count: `1 → 0`. `left++` moves `8 → 9`. The removal `❌ if` checks `❌ neededCounts.containsKey(outgoing)` with `outgoing='E'` → false. Because of `&&`, skip `windowCounts.get(outgoing) < neededCounts.get(outgoing)` and the `formedGroups--` body; `formedGroups` stays `3`. Check `✅ while (formedGroups == requiredGroups)`: `3 == 3 → true`. Calculate `candidateLength = right - left + 1`: `12 - 9 + 1 = 4`. `✅ if (candidateLength < bestLength)` is `4 < 5 → true`, so execute `bestStart = left` → `9` and `bestLength = candidateLength` → `4`. `char outgoing = source.charAt(left)` reads `source.charAt(9)`, so `outgoing='B'`. `windowCounts.merge(outgoing, -1, Integer::sum)` subtracts one from B's count: `1 → 0`. `left++` moves `9 → 10`. The removal `✅ if` checks `✅ neededCounts.containsKey(outgoing)` with `outgoing='B'` → true, then `✅ windowCounts.get(outgoing) < neededCounts.get(outgoing)`: `0 < 1 → true`. The condition is true, so execute `formedGroups--`: `3 → 2`. Recheck `❌ while (formedGroups == requiredGroups)`: `2 == 3 → false`; exit the inner loop. The completed outer iteration has left `10`, formed groups `2`, best `(start,length)` `(9,4)`, and full window map `{'A': 1, 'D': 0, 'O': 0, 'B': 0, 'E': 0, 'C': 1, 'N': 1}`. The `for` loop then runs `right++` and checks its condition again.
+- `char incoming = source.charAt(right)` reads index `12` → `'C'`.
+- `windowCounts.merge(incoming, 1, Integer::sum)` changes C's count `0 → 1`.
+- **✅ Incoming `if`:** `neededCounts.containsKey(incoming)` → true; window count equals required count: `1 == 1 → true`.
+- Execute `formedGroups++`: `2 → 3`.
+- **✅ `while (formedGroups == requiredGroups)`:** `3 == 3 → true`; shrink the window.
+- Calculate `candidateLength = right - left + 1`: `12 - 6 + 1 = 7`.
+- **❌ `if (candidateLength < bestLength)`:** `7 < 6 → false`; skip both assignments, keeping `bestStart=0, bestLength=6`.
+- `char outgoing = source.charAt(left)` reads index `6` → `'O'`.
+- `windowCounts.merge(outgoing, -1, Integer::sum)` changes O's count `1 → 0`.
+- `left++`: `6 → 7`.
+- **❌ Removal `if`:** `neededCounts.containsKey(outgoing)` → false; skip `windowCounts.get(outgoing) < neededCounts.get(outgoing)` (`&&` short circuit).
+- Skip `formedGroups--`; `formedGroups` stays `3`.
+- **✅ `while (formedGroups == requiredGroups)`:** `3 == 3 → true`; shrink the window.
+- Calculate `candidateLength = right - left + 1`: `12 - 7 + 1 = 6`.
+- **❌ `if (candidateLength < bestLength)`:** `6 < 6 → false`; skip both assignments, keeping `bestStart=0, bestLength=6`.
+- `char outgoing = source.charAt(left)` reads index `7` → `'D'`.
+- `windowCounts.merge(outgoing, -1, Integer::sum)` changes D's count `1 → 0`.
+- `left++`: `7 → 8`.
+- **❌ Removal `if`:** `neededCounts.containsKey(outgoing)` → false; skip `windowCounts.get(outgoing) < neededCounts.get(outgoing)` (`&&` short circuit).
+- Skip `formedGroups--`; `formedGroups` stays `3`.
+- **✅ `while (formedGroups == requiredGroups)`:** `3 == 3 → true`; shrink the window.
+- Calculate `candidateLength = right - left + 1`: `12 - 8 + 1 = 5`.
+- **✅ `if (candidateLength < bestLength)`:** `5 < 6 → true`; execute `bestStart = left` → `8` and `bestLength = candidateLength` → `5`.
+- `char outgoing = source.charAt(left)` reads index `8` → `'E'`.
+- `windowCounts.merge(outgoing, -1, Integer::sum)` changes E's count `1 → 0`.
+- `left++`: `8 → 9`.
+- **❌ Removal `if`:** `neededCounts.containsKey(outgoing)` → false; skip `windowCounts.get(outgoing) < neededCounts.get(outgoing)` (`&&` short circuit).
+- Skip `formedGroups--`; `formedGroups` stays `3`.
+- **✅ `while (formedGroups == requiredGroups)`:** `3 == 3 → true`; shrink the window.
+- Calculate `candidateLength = right - left + 1`: `12 - 9 + 1 = 4`.
+- **✅ `if (candidateLength < bestLength)`:** `4 < 5 → true`; execute `bestStart = left` → `9` and `bestLength = candidateLength` → `4`.
+- `char outgoing = source.charAt(left)` reads index `9` → `'B'`.
+- `windowCounts.merge(outgoing, -1, Integer::sum)` changes B's count `1 → 0`.
+- `left++`: `9 → 10`.
+- **✅ Removal `if`:** `neededCounts.containsKey(outgoing)` → true; `windowCounts.get(outgoing) < neededCounts.get(outgoing)` → `0 < 1 → true`.
+- Execute `formedGroups--`: `3 → 2`.
+- **❌ `while (formedGroups == requiredGroups)`:** `2 == 3 → false`; stop shrinking.
+- **State:** `left=10`, `formedGroups=2`, `bestStart=9`, `bestLength=4`.
+- **Window map:** `{'A': 1, 'D': 0, 'O': 0, 'B': 0, 'E': 0, 'C': 1, 'N': 1}`.
+- `right++`: `12 → 13`; **❌ `for` condition:** `13 < 13 → false`; exit the outer loop.
 
 | right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |

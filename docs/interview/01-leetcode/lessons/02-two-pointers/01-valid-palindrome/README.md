@@ -260,27 +260,41 @@ right--;
 
 **Iteration/check 1 — left before = `0`.**
 
-Begin with `left`=`0` and `right`=`4`. Evaluate the outer loop: `0 < 4 → true`. The left punctuation loop does `A is alphanumeric → false; skip loop`; the independent right loop does `a is alphanumeric → false; skip loop`. Convert the surviving characters to lowercase, producing `a / a`. Their mismatch condition is `false`. The pointer update is `left=1; right=3`. Next, `continue`. If the outer condition is false, every body operation is skipped.
+- **✅ Outer `while (left < right)`:** `0 < 4 → true`.
+- **❌ Left-skip `while`:** **✅ `left < right`:** `0 < 4 → true`; **❌ `!Character.isLetterOrDigit(text.charAt(left))`:** `!isLetterOrDigit('A') → false`; skip `left++`.
+- **❌ Right-skip `while`:** **✅ `left < right`:** `0 < 4 → true`; **❌ `!Character.isLetterOrDigit(text.charAt(right))`:** `!isLetterOrDigit('a') → false`; skip `right--`.
+- `Character.toLowerCase(text.charAt(left))` assigns `leftCharacter='a'` from `'A'`; the right call assigns `rightCharacter='a'`.
+- **❌ `if (leftCharacter != rightCharacter)`:** `'a' != 'a' → false`; skip `return false`.
+- `left++`: `0 → 1`; `right--`: `4 → 3`. **State:** `left=1`, `right=3`; character locals leave scope. Continue to the outer `while` check.
 
 | left before | right before | outer left < right | left-skip condition and movement | right-skip condition and movement | normalized pair | leftCharacter != rightCharacter | pointer update | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `4` | `0 < 4 → true` | `A is alphanumeric → false; skip loop` | `a is alphanumeric → false; skip loop` | `a / a` | `false` | `left=1; right=3` | `continue` |
+| `0` | `4` | `✅ 0 < 4 → true` | `❌ while: ✅ 0 < 4 → true; ❌ !isLetterOrDigit('A') → false; skip left++` | `❌ while: ✅ 0 < 4 → true; ❌ !isLetterOrDigit('a') → false; skip right--` | `a / a` | `❌ false` | `left=1; right=3` | `continue` |
 
 **Iteration/check 2 — left before = `1`.**
 
-Begin with `left`=`1` and `right`=`3`. Evaluate the outer loop: `1 < 3 → true`. The left punctuation loop does `comma → true; left=2; b → false`; the independent right loop does `space → true; right=2; 2 < 2 → false (character check skipped)`. Convert the surviving characters to lowercase, producing `b / b`. Their mismatch condition is `false`. The pointer update is `left=3; right=1`. Next, `continue`. If the outer condition is false, every body operation is skipped.
+- **✅ Outer `while (left < right)`:** `1 < 3 → true`.
+- **✅ Left-skip `while`:** **✅ `left < right`:** `1 < 3 → true`; **✅ `!Character.isLetterOrDigit(text.charAt(left))`:** `!isLetterOrDigit(',') → true`; execute `left++`: `1 → 2`.
+- **❌ Left-skip `while` recheck:** **✅ `left < right`:** `2 < 3 → true`; **❌ `!Character.isLetterOrDigit(text.charAt(left))`:** `!isLetterOrDigit('b') → false`; stop left skipping.
+- **✅ Right-skip `while`:** **✅ `left < right`:** `2 < 3 → true`; **✅ `!Character.isLetterOrDigit(text.charAt(right))`:** `!isLetterOrDigit(' ') → true`; execute `right--`: `3 → 2`.
+- **❌ Right-skip `while` recheck:** **❌ `left < right`:** `2 < 2 → false`; character test `Skipped` by short circuit.
+- `Character.toLowerCase(text.charAt(left))` and the right call both read index `2`, assigning `leftCharacter='b'`, `rightCharacter='b'`.
+- **❌ `if (leftCharacter != rightCharacter)`:** `'b' != 'b' → false`; skip `return false`.
+- `left++`: `2 → 3`; `right--`: `2 → 1`. **State:** `left=3`, `right=1`; character locals leave scope. Recheck the outer `while`.
 
 | left before | right before | outer left < right | left-skip condition and movement | right-skip condition and movement | normalized pair | leftCharacter != rightCharacter | pointer update | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `3` | `1 < 3 → true` | `comma → true; left=2; b → false` | `space → true; right=2; 2 < 2 → false (character check skipped)` | `b / b` | `false` | `left=3; right=1` | `continue` |
+| `1` | `3` | `✅ 1 < 3 → true` | `✅ while: ✅ 1 < 3 → true; ✅ !isLetterOrDigit(',') → true; left++: 1 → 2; ❌ while: ✅ 2 < 3 → true; ❌ !isLetterOrDigit('b') → false` | `✅ while: ✅ 2 < 3 → true; ✅ !isLetterOrDigit(' ') → true; right--: 3 → 2; ❌ while: ❌ 2 < 2 → false; character check Skipped` | `b / b` | `❌ false` | `left=3; right=1` | `continue` |
 
 **Iteration/check 3 — left before = `3`.**
 
-Begin with `left`=`3` and `right`=`1`. Evaluate the outer loop: `3 < 1 → false`. The left punctuation loop does `Skipped`; the independent right loop does `Skipped`. Convert the surviving characters to lowercase, producing `Skipped`. Their mismatch condition is `Skipped`. The pointer update is `Skipped`. Next, `exit loop; return true`. If the outer condition is false, every body operation is skipped.
+- **❌ Outer `while (left < right)`:** `3 < 1 → false`; exit.
+- Both skip loops, character reads, mismatch `if`, and pointer updates are `Skipped`.
+- **Final state:** `left=3`, `right=1`; execute `return true`.
 
 | left before | right before | outer left < right | left-skip condition and movement | right-skip condition and movement | normalized pair | leftCharacter != rightCharacter | pointer update | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `1` | `3 < 1 → false` | `Skipped` | `Skipped` | `Skipped` | `Skipped` | `Skipped` | `exit loop; return true` |
+| `3` | `1` | `❌ 3 < 1 → false` | `Skipped` | `Skipped` | `Skipped` | `Skipped` | `Skipped` | `exit loop; return true` |
 
 Each skip condition is `left < right && !isLetterOrDigit(...)`. A false first operand skips the character test. For `"0P"`, both skip loops stop immediately, normalized `0 != p` is true, and the method returns false before moving pointers.
 

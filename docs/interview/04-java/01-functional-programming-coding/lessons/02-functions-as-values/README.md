@@ -44,7 +44,10 @@ static int[] transform(int[] numbers, IntUnaryOperator operation) {
     int[] result = new int[numbers.length];
 ```
 
-The caller supplies two arguments: an array and behavior matching the interface. Create `result=[0,0,0]`. The operation has not been called yet. There is no null guard; non-null arguments are part of the practice contract. Hardcoding the calculation here would prevent reuse; receiving `operation` makes that choice explicit. Equivalent: the caller can assign the lambda to `IntUnaryOperator chosenOperation` before passing it.
+- `transform(numbers, operation)` receives `numbers=[-2,0,3]` and the chosen behavior.
+- `int[] result = new int[numbers.length]` reads length `3`; allocate `result=[0,0,0]`. `operation.applyAsInt` has not run yet.
+
+There is no null guard; non-null arguments are part of the practice contract. Hardcoding the calculation here would prevent reuse; receiving `operation` makes that choice explicit. Equivalent: the caller can assign the lambda to `IntUnaryOperator chosenOperation` before passing it.
 
 ### Block 2 — Invoke the supplied operation once for each element
 
@@ -58,47 +61,79 @@ for (int index = 0; index < numbers.length; index++) {
 
 **Call using doubling: `operation = value -> value*2`.** Start a fresh result `[0,0,0]` and a fresh loop index `0`.
 
-**Iteration `index=0`.** Evaluate `0<3 → true`. Read `-2`. `applyAsInt(-2)` runs the supplied expression, calculating `-2*2=-4`. Store `-4` at `result[0]`; input stays `[-2, 0, 3]`. Execute `index++` to `1`.
+**Iteration `index=0`.**
+
+- **✅ `for` condition `index < numbers.length`:** `0 < 3 → true`; enter the body.
+- `operation.applyAsInt(numbers[index])` reads `numbers[0]=-2` and invokes `value -> value * 2`: `-2 * 2 = -4`.
+- `result[index] = ...` writes `result[0]`: `0 → -4`. The full output is below; `numbers=[-2,0,3]` stays unchanged.
+- `index++`: `0 → 1`; continue to the next `for` check.
 
 | index | condition | operation | input | returned value | result after | input after | next |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `0<3 → true` | `value*2` | `-2` | `-4` | `[-4, 0, 0]` | `[-2, 0, 3]` | `index=1` |
+| `0` | `✅ 0<3 → true` | `value*2` | `-2` | `-4` | `[-4, 0, 0]` | `[-2, 0, 3]` | `index=1` |
 
-**Iteration `index=1`.** Evaluate `1<3 → true`. Read `0`. `applyAsInt(0)` runs the supplied expression, calculating `0*2=0`. Store `0` at `result[1]`; input stays `[-2, 0, 3]`. Execute `index++` to `2`.
+**Iteration `index=1`.**
+
+- **✅ `for` condition `index < numbers.length`:** `1 < 3 → true`; enter the body.
+- `operation.applyAsInt(numbers[index])` reads `numbers[1]=0` and invokes `value -> value * 2`: `0 * 2 = 0`.
+- `result[index] = ...` writes `result[1]`: `0 → 0`. The full output is below; `numbers=[-2,0,3]` stays unchanged.
+- `index++`: `1 → 2`; continue to the next `for` check.
 
 | index | condition | operation | input | returned value | result after | input after | next |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1<3 → true` | `value*2` | `0` | `0` | `[-4, 0, 0]` | `[-2, 0, 3]` | `index=2` |
+| `1` | `✅ 1<3 → true` | `value*2` | `0` | `0` | `[-4, 0, 0]` | `[-2, 0, 3]` | `index=2` |
 
-**Iteration `index=2`.** Evaluate `2<3 → true`. Read `3`. `applyAsInt(3)` runs the supplied expression, calculating `3*2=6`. Store `6` at `result[2]`; input stays `[-2, 0, 3]`. Execute `index++` to `3`.
+**Iteration `index=2`.**
+
+- **✅ `for` condition `index < numbers.length`:** `2 < 3 → true`; enter the body.
+- `operation.applyAsInt(numbers[index])` reads `numbers[2]=3` and invokes `value -> value * 2`: `3 * 2 = 6`.
+- `result[index] = ...` writes `result[2]`: `0 → 6`. The full output is below; `numbers=[-2,0,3]` stays unchanged.
+- `index++`: `2 → 3`; continue to the next `for` check.
 
 | index | condition | operation | input | returned value | result after | input after | next |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2<3 → true` | `value*2` | `3` | `6` | `[-4, 0, 6]` | `[-2, 0, 3]` | `index=3` |
+| `2` | `✅ 2<3 → true` | `value*2` | `3` | `6` | `[-4, 0, 6]` | `[-2, 0, 3]` | `index=3` |
 
-At `index=3`, `3<3 → false`; no further operation call runs. The completed result for this call is `[-4, 0, 6]`.
+- **❌ `for` condition `index < numbers.length`:** `3 < 3 → false`; skip `operation.applyAsInt(...)` and the assignment.
+- `return result` returns `[-4, 0, 6]`; this call ends with the input unchanged.
 
 **Call using adding three: `operation = value -> value+3`.** Start a fresh result `[0,0,0]` and a fresh loop index `0`.
 
-**Iteration `index=0`.** Evaluate `0<3 → true`. Read `-2`. `applyAsInt(-2)` runs the supplied expression, calculating `-2+3=1`. Store `1` at `result[0]`; input stays `[-2, 0, 3]`. Execute `index++` to `1`.
+**Iteration `index=0`.**
+
+- **✅ `for` condition `index < numbers.length`:** `0 < 3 → true`; enter the body.
+- `operation.applyAsInt(numbers[index])` reads `numbers[0]=-2` and invokes `value -> value + 3`: `-2 + 3 = 1`.
+- `result[index] = ...` writes `result[0]`: `0 → 1`. The full output is below; `numbers=[-2,0,3]` stays unchanged.
+- `index++`: `0 → 1`; continue to the next `for` check.
 
 | index | condition | operation | input | returned value | result after | input after | next |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `0<3 → true` | `value+3` | `-2` | `1` | `[1, 0, 0]` | `[-2, 0, 3]` | `index=1` |
+| `0` | `✅ 0<3 → true` | `value+3` | `-2` | `1` | `[1, 0, 0]` | `[-2, 0, 3]` | `index=1` |
 
-**Iteration `index=1`.** Evaluate `1<3 → true`. Read `0`. `applyAsInt(0)` runs the supplied expression, calculating `0+3=3`. Store `3` at `result[1]`; input stays `[-2, 0, 3]`. Execute `index++` to `2`.
+**Iteration `index=1`.**
+
+- **✅ `for` condition `index < numbers.length`:** `1 < 3 → true`; enter the body.
+- `operation.applyAsInt(numbers[index])` reads `numbers[1]=0` and invokes `value -> value + 3`: `0 + 3 = 3`.
+- `result[index] = ...` writes `result[1]`: `0 → 3`. The full output is below; `numbers=[-2,0,3]` stays unchanged.
+- `index++`: `1 → 2`; continue to the next `for` check.
 
 | index | condition | operation | input | returned value | result after | input after | next |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1<3 → true` | `value+3` | `0` | `3` | `[1, 3, 0]` | `[-2, 0, 3]` | `index=2` |
+| `1` | `✅ 1<3 → true` | `value+3` | `0` | `3` | `[1, 3, 0]` | `[-2, 0, 3]` | `index=2` |
 
-**Iteration `index=2`.** Evaluate `2<3 → true`. Read `3`. `applyAsInt(3)` runs the supplied expression, calculating `3+3=6`. Store `6` at `result[2]`; input stays `[-2, 0, 3]`. Execute `index++` to `3`.
+**Iteration `index=2`.**
+
+- **✅ `for` condition `index < numbers.length`:** `2 < 3 → true`; enter the body.
+- `operation.applyAsInt(numbers[index])` reads `numbers[2]=3` and invokes `value -> value + 3`: `3 + 3 = 6`.
+- `result[index] = ...` writes `result[2]`: `0 → 6`. The full output is below; `numbers=[-2,0,3]` stays unchanged.
+- `index++`: `2 → 3`; continue to the next `for` check.
 
 | index | condition | operation | input | returned value | result after | input after | next |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2<3 → true` | `value+3` | `3` | `6` | `[1, 3, 6]` | `[-2, 0, 3]` | `index=3` |
+| `2` | `✅ 2<3 → true` | `value+3` | `3` | `6` | `[1, 3, 6]` | `[-2, 0, 3]` | `index=3` |
 
-At `index=3`, `3<3 → false`; no further operation call runs. The completed result for this call is `[1, 3, 6]`.
+- **❌ `for` condition `index < numbers.length`:** `3 < 3 → false`; skip `operation.applyAsInt(...)` and the assignment.
+- `return result` returns `[1, 3, 6]`; this call ends with the input unchanged.
 
 ### Block 3 — Return this call’s new values
 

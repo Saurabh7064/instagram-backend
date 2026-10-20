@@ -403,91 +403,147 @@ For this sample, no partner-duplicate loop advances. For sorted `[-2,0,0,2,2]`, 
 
 **Iteration/check 1 — anchor = `0`.**
 
-Use anchor index `0`. The repeated-anchor decision is `false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `1` and right `5`, with condition `1 < 5 → true`. The sum calculation is `-4+(-1)+2=-3`; the zero comparison is `false`. The negative comparison is `true` and is skipped when the zero branch already ran. The result list is `[]`. Execute the movement, duplicate checks, and next action in this order: `left=2; Skipped (no match)`.
+- **✅ Outer `for` condition `anchor < sorted.length - 2`:** `0 < 6 - 2 = 4 → true`; `sorted[0]=-4`.
+- **❌ Anchor `if`:** **❌ `anchor > 0`:** `0 > 0 → false`; `sorted[anchor] == sorted[anchor - 1]` is `Skipped` (short circuit); skip `continue`.
+- `int left = anchor + 1` assigns `0 + 1 = 1`; `int right = sorted.length - 1` assigns `6 - 1 = 5`.
+- **✅ `while (left < right)`:** `1 < 5 → true`.
+- `int sum = sorted[anchor] + sorted[left] + sorted[right]`: `-4 + (-1) + 2 = -3`.
+- **❌ `if (sum == 0)`:** `-3 == 0 → false`.
+- **✅ `else if (sum < 0)`:** `-3 < 0 → true`; execute `left++`: `1 → 2`. The match body and both duplicate loops are `Skipped`.
+- **State:** `anchor=0`, `left=2`, `right=5`, `sum=-3`, `result=[]`. Recheck the inner `while`.
 
 | anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `1` | `5` | `1 < 5 → true` | `false` | `-4+(-1)+2=-3` | `false` | `true` | `[]` | `left=2; Skipped (no match)` |
+| `0` | `1` | `5` | `✅ 1 < 5 → true` | `❌ false` | `-4+(-1)+2=-3` | `❌ false` | `✅ true` | `[]` | `left=2; Skipped (no match)` |
 
 **Iteration/check 2 — anchor = `0`.**
 
-Use anchor index `0`. The repeated-anchor decision is `false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `2` and right `5`, with condition `2 < 5 → true`. The sum calculation is `-4+(-1)+2=-3`; the zero comparison is `false`. The negative comparison is `true` and is skipped when the zero branch already ran. The result list is `[]`. Execute the movement, duplicate checks, and next action in this order: `left=3; Skipped (no match)`.
+- Continue the inner scan with `anchor=0`; the outer `for` and anchor `if` are not re-evaluated.
+- **✅ `while (left < right)`:** `2 < 5 → true`.
+- `int sum = sorted[anchor] + sorted[left] + sorted[right]`: `-4 + (-1) + 2 = -3`.
+- **❌ `if (sum == 0)`:** `-3 == 0 → false`.
+- **✅ `else if (sum < 0)`:** `-3 < 0 → true`; execute `left++`: `2 → 3`. The match body and both duplicate loops are `Skipped`.
+- **State:** `anchor=0`, `left=3`, `right=5`, `sum=-3`, `result=[]`. Recheck the inner `while`.
 
 | anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `2` | `5` | `2 < 5 → true` | `false` | `-4+(-1)+2=-3` | `false` | `true` | `[]` | `left=3; Skipped (no match)` |
+| `0` | `2` | `5` | `✅ 2 < 5 → true` | `Skipped (anchor guard already false)` | `-4+(-1)+2=-3` | `❌ false` | `✅ true` | `[]` | `left=3; Skipped (no match)` |
 
 **Iteration/check 3 — anchor = `0`.**
 
-Use anchor index `0`. The repeated-anchor decision is `false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `3` and right `5`, with condition `3 < 5 → true`. The sum calculation is `-4+(0)+2=-2`; the zero comparison is `false`. The negative comparison is `true` and is skipped when the zero branch already ran. The result list is `[]`. Execute the movement, duplicate checks, and next action in this order: `left=4; Skipped (no match)`.
+- Continue the inner scan with `anchor=0`; the outer `for` and anchor `if` are not re-evaluated.
+- **✅ `while (left < right)`:** `3 < 5 → true`.
+- `int sum = sorted[anchor] + sorted[left] + sorted[right]`: `-4 + (0) + 2 = -2`.
+- **❌ `if (sum == 0)`:** `-2 == 0 → false`.
+- **✅ `else if (sum < 0)`:** `-2 < 0 → true`; execute `left++`: `3 → 4`. The match body and both duplicate loops are `Skipped`.
+- **State:** `anchor=0`, `left=4`, `right=5`, `sum=-2`, `result=[]`. Recheck the inner `while`.
 
 | anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `3` | `5` | `3 < 5 → true` | `false` | `-4+(0)+2=-2` | `false` | `true` | `[]` | `left=4; Skipped (no match)` |
+| `0` | `3` | `5` | `✅ 3 < 5 → true` | `Skipped (anchor guard already false)` | `-4+(0)+2=-2` | `❌ false` | `✅ true` | `[]` | `left=4; Skipped (no match)` |
 
 **Iteration/check 4 — anchor = `0`.**
 
-Use anchor index `0`. The repeated-anchor decision is `false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `4` and right `5`, with condition `4 < 5 → true`. The sum calculation is `-4+(1)+2=-1`; the zero comparison is `false`. The negative comparison is `true` and is skipped when the zero branch already ran. The result list is `[]`. Execute the movement, duplicate checks, and next action in this order: `left=5; Skipped (no match)`.
+- Continue the inner scan with `anchor=0`; the outer `for` and anchor `if` are not re-evaluated.
+- **✅ `while (left < right)`:** `4 < 5 → true`.
+- `int sum = sorted[anchor] + sorted[left] + sorted[right]`: `-4 + (1) + 2 = -1`.
+- **❌ `if (sum == 0)`:** `-1 == 0 → false`.
+- **✅ `else if (sum < 0)`:** `-1 < 0 → true`; execute `left++`: `4 → 5`. The match body and both duplicate loops are `Skipped`.
+- **State:** `anchor=0`, `left=5`, `right=5`, `sum=-1`, `result=[]`. Recheck the inner `while`.
 
 | anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `4` | `5` | `4 < 5 → true` | `false` | `-4+(1)+2=-1` | `false` | `true` | `[]` | `left=5; Skipped (no match)` |
+| `0` | `4` | `5` | `✅ 4 < 5 → true` | `Skipped (anchor guard already false)` | `-4+(1)+2=-1` | `❌ false` | `✅ true` | `[]` | `left=5; Skipped (no match)` |
 
 **Iteration/check 5 — anchor = `0`.**
 
-Use anchor index `0`. The repeated-anchor decision is `already false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `5` and right `5`, with condition `5 < 5 → false`. The sum calculation is `Skipped`; the zero comparison is `Skipped`. The negative comparison is `Skipped` and is skipped when the zero branch already ran. The result list is `[]`. Execute the movement, duplicate checks, and next action in this order: `exit inner loop; next anchor`.
+- **❌ Inner `while (left < right)`:** `5 < 5 → false`; exit. The sum, branches, duplicate checks, and result updates are `Skipped`.
+- **State:** `anchor=0`, `left=5`, `right=5`, `result=[]`; `sum` has left scope.
+- `anchor++`: `0 → 1`; recheck the outer `for`.
 
 | anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `5` | `5` | `5 < 5 → false` | `already false` | `Skipped` | `Skipped` | `Skipped` | `[]` | `exit inner loop; next anchor` |
+| `0` | `5` | `5` | `❌ 5 < 5 → false` | `already false` | `Skipped` | `Skipped` | `Skipped` | `[]` | `exit inner loop; next anchor` |
 
 **Iteration/check 6 — anchor = `1`.**
 
-Use anchor index `1`. The repeated-anchor decision is `false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `2` and right `5`, with condition `2 < 5 → true`. The sum calculation is `-1+(-1)+2=0`; the zero comparison is `true`. The negative comparison is `Skipped` and is skipped when the zero branch already ran. The result list is `[[-1, -1, 2]]`. Execute the movement, duplicate checks, and next action in this order: `record; left=3; right=4; left duplicate false; right duplicate false`.
+- **✅ Outer `for` condition `anchor < sorted.length - 2`:** `1 < 6 - 2 = 4 → true`; `sorted[1]=-1`.
+- **❌ Anchor `if`:** **✅ `anchor > 0`:** `1 > 0 → true`; **❌ `sorted[anchor] == sorted[anchor - 1]`:** `-1 == -4 → false`; skip `continue`.
+- `int left = anchor + 1` assigns `1 + 1 = 2`; `int right = sorted.length - 1` assigns `6 - 1 = 5`.
+- **✅ `while (left < right)`:** `2 < 5 → true`.
+- `int sum = sorted[anchor] + sorted[left] + sorted[right]`: `-1 + (-1) + 2 = 0`.
+- **✅ `if (sum == 0)`:** `0 == 0 → true`.
+- `result.add(List.of(sorted[anchor], sorted[left], sorted[right]))` appends `[-1, -1, 2]`: `[] → [[-1, -1, 2]]`.
+- `left++`: `2 → 3`; `right--`: `5 → 4`. The `else if (sum < 0)` and its `else` are `Skipped`.
+- **❌ Left-duplicate `while`:** **✅ `left < right`:** `3 < 4 → true`; **❌ `sorted[left] == sorted[left - 1]`:** `0 == -1 → false`; skip `left++`.
+- **❌ Right-duplicate `while`:** **✅ `left < right`:** `3 < 4 → true`; **❌ `sorted[right] == sorted[right + 1]`:** `1 == 2 → false`; skip `right--`.
+- **State:** `anchor=1`, `left=3`, `right=4`, `sum=0`, `result=[[-1, -1, 2]]`. Recheck the inner `while`.
 
 | anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `2` | `5` | `2 < 5 → true` | `false` | `-1+(-1)+2=0` | `true` | `Skipped` | `[[-1, -1, 2]]` | `record; left=3; right=4; left duplicate false; right duplicate false` |
+| `1` | `2` | `5` | `✅ 2 < 5 → true` | `❌ false` | `-1+(-1)+2=0` | `✅ true` | `Skipped` | `[[-1, -1, 2]]` | `record; left=3; right=4; ❌ left duplicate false; ❌ right duplicate false` |
 
 **Iteration/check 7 — anchor = `1`.**
 
-Use anchor index `1`. The repeated-anchor decision is `false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `3` and right `4`, with condition `3 < 4 → true`. The sum calculation is `-1+(0)+1=0`; the zero comparison is `true`. The negative comparison is `Skipped` and is skipped when the zero branch already ran. The result list is `[[-1, -1, 2], [-1, 0, 1]]`. Execute the movement, duplicate checks, and next action in this order: `record; left=4; right=3; left < right false; equality skipped; left < right false; equality skipped`.
+- Continue the inner scan with `anchor=1`; the outer `for` and anchor `if` are not re-evaluated.
+- **✅ `while (left < right)`:** `3 < 4 → true`.
+- `int sum = sorted[anchor] + sorted[left] + sorted[right]`: `-1 + (0) + 1 = 0`.
+- **✅ `if (sum == 0)`:** `0 == 0 → true`.
+- `result.add(List.of(sorted[anchor], sorted[left], sorted[right]))` appends `[-1, 0, 1]`: `[[-1, -1, 2]] → [[-1, -1, 2], [-1, 0, 1]]`.
+- `left++`: `3 → 4`; `right--`: `4 → 3`. The `else if (sum < 0)` and its `else` are `Skipped`.
+- **❌ Left-duplicate `while`:** **❌ `left < right`:** `4 < 3 → false`; `sorted[left] == sorted[left - 1]` and pointer update are `Skipped` by short circuit.
+- **❌ Right-duplicate `while`:** **❌ `left < right`:** `4 < 3 → false`; `sorted[right] == sorted[right + 1]` and pointer update are `Skipped` by short circuit.
+- **State:** `anchor=1`, `left=4`, `right=3`, `sum=0`, `result=[[-1, -1, 2], [-1, 0, 1]]`. Recheck the inner `while`.
 
 | anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `3` | `4` | `3 < 4 → true` | `false` | `-1+(0)+1=0` | `true` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `record; left=4; right=3; left < right false; equality skipped; left < right false; equality skipped` |
+| `1` | `3` | `4` | `✅ 3 < 4 → true` | `Skipped (anchor guard already false)` | `-1+(0)+1=0` | `✅ true` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `record; left=4; right=3; ❌ left < right false; equality skipped; ❌ left < right false; equality skipped` |
 
 **Iteration/check 8 — anchor = `1`.**
 
-Use anchor index `1`. The repeated-anchor decision is `already false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `4` and right `3`, with condition `4 < 3 → false`. The sum calculation is `Skipped`; the zero comparison is `Skipped`. The negative comparison is `Skipped` and is skipped when the zero branch already ran. The result list is `[[-1, -1, 2], [-1, 0, 1]]`. Execute the movement, duplicate checks, and next action in this order: `exit inner loop; next anchor`.
+- **❌ Inner `while (left < right)`:** `4 < 3 → false`; exit. The sum, branches, duplicate checks, and result updates are `Skipped`.
+- **State:** `anchor=1`, `left=4`, `right=3`, `result=[[-1, -1, 2], [-1, 0, 1]]`; `sum` has left scope.
+- `anchor++`: `1 → 2`; recheck the outer `for`.
 
 | anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `4` | `3` | `4 < 3 → false` | `already false` | `Skipped` | `Skipped` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `exit inner loop; next anchor` |
+| `1` | `4` | `3` | `❌ 4 < 3 → false` | `already false` | `Skipped` | `Skipped` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `exit inner loop; next anchor` |
 
 **Iteration/check 9 — anchor = `2`.**
 
-Use anchor index `2`. The repeated-anchor decision is `true; continue`; a true result immediately continues the outer loop. Otherwise the inner search uses left `—` and right `—`, with condition `Skipped`. The sum calculation is `Skipped`; the zero comparison is `Skipped`. The negative comparison is `Skipped` and is skipped when the zero branch already ran. The result list is `[[-1, -1, 2], [-1, 0, 1]]`. Execute the movement, duplicate checks, and next action in this order: `next anchor`.
+- **✅ Outer `for` condition `anchor < sorted.length - 2`:** `2 < 6 - 2 = 4 → true`; `sorted[2]=-1`.
+- **✅ Anchor `if`:** **✅ `anchor > 0`:** `2 > 0 → true`; **✅ `sorted[anchor] == sorted[anchor - 1]`:** `-1 == -1 → true`; execute `continue`.
+- Pointer initialization, inner `while`, sum, and result changes are `Skipped`; `result` stays `[[-1,-1,2],[-1,0,1]]`.
+- `anchor++`: `2 → 3`; continue to the outer `for` check.
 
 | anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `—` | `—` | `Skipped` | `true; continue` | `Skipped` | `Skipped` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `next anchor` |
+| `2` | `—` | `—` | `Skipped` | `✅ true; continue` | `Skipped` | `Skipped` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `next anchor` |
 
 **Iteration/check 10 — anchor = `3`.**
 
-Use anchor index `3`. The repeated-anchor decision is `false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `4` and right `5`, with condition `4 < 5 → true`. The sum calculation is `0+(1)+2=3`; the zero comparison is `false`. The negative comparison is `false` and is skipped when the zero branch already ran. The result list is `[[-1, -1, 2], [-1, 0, 1]]`. Execute the movement, duplicate checks, and next action in this order: `right=4; Skipped (no match)`.
+- **✅ Outer `for` condition `anchor < sorted.length - 2`:** `3 < 6 - 2 = 4 → true`; `sorted[3]=0`.
+- **❌ Anchor `if`:** **✅ `anchor > 0`:** `3 > 0 → true`; **❌ `sorted[anchor] == sorted[anchor - 1]`:** `0 == -1 → false`; skip `continue`.
+- `int left = anchor + 1` assigns `3 + 1 = 4`; `int right = sorted.length - 1` assigns `6 - 1 = 5`.
+- **✅ `while (left < right)`:** `4 < 5 → true`.
+- `int sum = sorted[anchor] + sorted[left] + sorted[right]`: `0 + (1) + 2 = 3`.
+- **❌ `if (sum == 0)`:** `3 == 0 → false`.
+- **❌ `else if (sum < 0)`:** `3 < 0 → false`; execute `right--` in `else`: `5 → 4`. The match body and both duplicate loops are `Skipped`.
+- **State:** `anchor=3`, `left=4`, `right=4`, `sum=3`, `result=[[-1, -1, 2], [-1, 0, 1]]`. Recheck the inner `while`.
 
 | anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `4` | `5` | `4 < 5 → true` | `false` | `0+(1)+2=3` | `false` | `false` | `[[-1, -1, 2], [-1, 0, 1]]` | `right=4; Skipped (no match)` |
+| `3` | `4` | `5` | `✅ 4 < 5 → true` | `❌ false` | `0+(1)+2=3` | `❌ false` | `❌ false` | `[[-1, -1, 2], [-1, 0, 1]]` | `right=4; Skipped (no match)` |
 
 **Iteration/check 11 — anchor = `3`.**
 
-Use anchor index `3`. The repeated-anchor decision is `already false`; a true result immediately continues the outer loop. Otherwise the inner search uses left `4` and right `4`, with condition `4 < 4 → false`. The sum calculation is `Skipped`; the zero comparison is `Skipped`. The negative comparison is `Skipped` and is skipped when the zero branch already ran. The result list is `[[-1, -1, 2], [-1, 0, 1]]`. Execute the movement, duplicate checks, and next action in this order: `exit inner loop; next anchor`.
+- **❌ Inner `while (left < right)`:** `4 < 4 → false`; exit. The sum, branches, duplicate checks, and result updates are `Skipped`.
+- **State:** `anchor=3`, `left=4`, `right=4`, `result=[[-1, -1, 2], [-1, 0, 1]]`; `sum` has left scope.
+- `anchor++`: `3 → 4`; **❌ `for` condition `anchor < sorted.length - 2`:** `4 < 4 → false`; `return result` → `[[-1,-1,2],[-1,0,1]]`.
 
 | anchor | left | right | inner loop condition | duplicate-anchor guard | sum | sum == 0 | sum < 0 | result after | movement / duplicate checks / next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `4` | `4` | `4 < 4 → false` | `already false` | `Skipped` | `Skipped` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `exit inner loop; next anchor` |
+| `3` | `4` | `4` | `❌ 4 < 4 → false` | `already false` | `Skipped` | `Skipped` | `Skipped` | `[[-1, -1, 2], [-1, 0, 1]]` | `exit inner loop; next anchor` |
 
 Outer anchors `0..3` satisfy `anchor < 6-2`. Anchor `0` short-circuits `anchor > 0 && ...` at its false first operand. Anchor `2` is a duplicate and skips pointer initialization entirely. After anchor `3`, `anchor=4` makes `4 < 4` false; return the two recorded triplets.
 

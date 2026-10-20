@@ -53,6 +53,18 @@ return result.get();
 
 `AtomicInteger` supplies a small shared result holder. Later lessons will explain atomic operations in depth; here it avoids introducing an unsafe shared primitive while the focus stays on lifecycle and waiting.
 
+## Narrated execution — `number=7`
+
+Expected return: `49`. This is one valid execution: the caller reaches `join()` before the worker writes. The worker can also finish earlier; every valid execution must finish the worker before `join()` returns.
+
+- `AtomicInteger result = new AtomicInteger()` creates the result holder with value `0`.
+- `new Thread(...)` stores the task and name `"square-worker"`; constructing it does not run the task.
+- `worker.start()` makes the worker eligible to run; the caller continues.
+- `worker.join()` makes the caller wait while this worker is unfinished.
+- The worker calculates `number * number`: `7 * 7 = 49`; `result.set(49)` changes the holder `0 → 49`.
+- The worker finishes; `worker.join()` returns. **State:** `number=7`, `result.get()=49`, worker finished.
+- `return result.get()` reads `49` and returns it to the caller.
+
 ## Prediction and observation
 
 Prediction: after `join` returns, the worker has finished and the square is available.

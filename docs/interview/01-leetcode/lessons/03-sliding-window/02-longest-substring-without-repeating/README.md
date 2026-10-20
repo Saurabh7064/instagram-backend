@@ -80,7 +80,7 @@ int bestLength = 0;
 
 **Why it is needed:** set lookup answers “is this character already active?” in average `O(1)` time.
 
-**Concrete result:** before scanning `"abc"`, the set is `{}`, `left = 0`, and `bestLength = 0`.
+**Concrete result:** before scanning `"abcabcbb"`, the set is `{}`, `left = 0`, and `bestLength = 0`.
 
 **What fails without it:** searching the window character by character for every `right` can degrade to `O(n²)`.
 
@@ -88,7 +88,9 @@ int bestLength = 0;
 
 **Debugger state at this block:**
 
-For `text="abcabcbb"`, initialize `activeCharacters={}`, `left=0`, `bestLength=0`; `right` and `incoming` are not assigned yet.
+- Input: `text="abcabcbb"`; the string stays unchanged.
+- `new HashSet<>()` creates `activeCharacters={}`; `left=0`, `bestLength=0`.
+- `right` and `incoming` are not assigned yet.
 
 ### Block 2 — Expand by one character
 
@@ -99,7 +101,7 @@ for (int right = 0; right < text.length(); right++) {
 
 **What it evaluates:** `right` visits every valid index once and `incoming` names the new character.
 
-**Concrete result:** for `"pww"`, `right = 2` reads the second `w`.
+**Concrete result:** for `"abcabcbb"`, `right=6` reads `'b'`, which is already in the active set.
 
 **What fails without it:** using `right <= text.length()` attempts `charAt(text.length())`, which is outside the string.
 
@@ -129,11 +131,11 @@ while (activeCharacters.contains(incoming)) {
 
 **What it evaluates:** the loop removes the leftmost active character repeatedly while `incoming` is still duplicated.
 
-**Concrete result:** before index `2` in `"pww"`, the set is `{p, w}`. Remove `p` and move `left` to `1`; `w` is still present, so remove it and move `left` to `2`.
+**Concrete result:** at `right=6`, the set is `{a,b,c}`, `left=3`, and `incoming='b'`. Remove `a`, move `left` to `4`; `b` is still present, so remove `b` and move `left` to `5`.
 
 **Why it is needed:** the repeated character may not be at the left boundary.
 
-**What fails without it:** an `if` removes only `p` in that example, leaving the old `w`; adding the new `w` would still produce a duplicate.
+**What fails without it:** an `if` would remove only `a` at `right=6`, leaving the old `b`; adding the incoming `b` would leave a duplicated substring.
 
 **Equivalent clearer form:** store last-seen indexes and jump `left`, but that introduces a different state model reserved for a later optimization.
 
@@ -158,7 +160,7 @@ bestLength = Math.max(bestLength, right - left + 1);
 
 **What it evaluates:** the new character enters a now-unique window, whose inclusive length is compared with the best.
 
-**Concrete result:** `left = 2`, `right = 4` in `"pwwke"` gives `4 - 2 + 1 = 3` for `"wke"`.
+**Concrete result:** `left=0`, `right=2` gives `2 - 0 + 1 = 3` for `"abc"`.
 
 **What fails without it:** omitting `+ 1` reports `2`; recording before the shrink can count an invalid duplicated window.
 
@@ -182,69 +184,139 @@ bestLength = Math.max(bestLength, right - left + 1);
 
 **Iteration/check 1 — right = `0`.**
 
-Read text position `0`, whose incoming character is `a`. Before handling it, the set is `[]`. Test for that same incoming character repeatedly: `false → stop shrinking`. After shrinking, left is `0`. Now add the incoming character, producing `['a']`. Calculate the inclusive length: `0-0+1=1`; preserve `bestLength`=`1`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
+- **✅ `for (right < text.length())`:** `0 < 8 → true`; enter the outer loop.
+- `char incoming = text.charAt(right)` reads index `0` → `'a'`; set before: `{}`.
+- **❌ `while (activeCharacters.contains(incoming))`:** `contains('a') → false`; skip removal and `left++`; `left=0` stays.
+- `activeCharacters.add(incoming)`: `{} → {'a'}`.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `0 - 0 + 1 = 1`; `max(0, 1) = 1`.
+- **State:** `left=0, bestLength=1, incoming='a'`; set `{'a'}`.
+- `right++`: `0 → 1`; **✅ `for (right < text.length())`:** `1 < 8 → true` next.
 
 | right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `a` | `[]` | `false → stop shrinking` | `0` | `['a']` | `0-0+1=1` | `1` | `right++; continue` |
+| `0` | `a` | `[]` | `❌ while (activeCharacters.contains(incoming)): contains('a') → false; stop shrinking` | `0` | `['a']` | `0-0+1=1` | `1` | `right++: 0 → 1; ✅ for (right < text.length()): 1 < 8 → true; continue` |
 
 **Iteration/check 2 — right = `1`.**
 
-Read text position `1`, whose incoming character is `b`. Before handling it, the set is `['a']`. Test for that same incoming character repeatedly: `false → stop shrinking`. After shrinking, left is `0`. Now add the incoming character, producing `['a', 'b']`. Calculate the inclusive length: `1-0+1=2`; preserve `bestLength`=`2`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
+- **✅ `for (right < text.length())`:** `1 < 8 → true`; enter the outer loop.
+- `char incoming = text.charAt(right)` reads index `1` → `'b'`; set before: `{'a'}`.
+- **❌ `while (activeCharacters.contains(incoming))`:** `contains('b') → false`; skip removal and `left++`; `left=0` stays.
+- `activeCharacters.add(incoming)`: `{'a'} → {'a', 'b'}`.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `1 - 0 + 1 = 2`; `max(1, 2) = 2`.
+- **State:** `left=0, bestLength=2, incoming='b'`; set `{'a', 'b'}`.
+- `right++`: `1 → 2`; **✅ `for (right < text.length())`:** `2 < 8 → true` next.
 
 | right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `b` | `['a']` | `false → stop shrinking` | `0` | `['a', 'b']` | `1-0+1=2` | `2` | `right++; continue` |
+| `1` | `b` | `['a']` | `❌ while (activeCharacters.contains(incoming)): contains('b') → false; stop shrinking` | `0` | `['a', 'b']` | `1-0+1=2` | `2` | `right++: 1 → 2; ✅ for (right < text.length()): 2 < 8 → true; continue` |
 
 **Iteration/check 3 — right = `2`.**
 
-Read text position `2`, whose incoming character is `c`. Before handling it, the set is `['a', 'b']`. Test for that same incoming character repeatedly: `false → stop shrinking`. After shrinking, left is `0`. Now add the incoming character, producing `['a', 'b', 'c']`. Calculate the inclusive length: `2-0+1=3`; preserve `bestLength`=`3`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
+- **✅ `for (right < text.length())`:** `2 < 8 → true`; enter the outer loop.
+- `char incoming = text.charAt(right)` reads index `2` → `'c'`; set before: `{'a', 'b'}`.
+- **❌ `while (activeCharacters.contains(incoming))`:** `contains('c') → false`; skip removal and `left++`; `left=0` stays.
+- `activeCharacters.add(incoming)`: `{'a', 'b'} → {'a', 'b', 'c'}`.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `2 - 0 + 1 = 3`; `max(2, 3) = 3`.
+- **State:** `left=0, bestLength=3, incoming='c'`; set `{'a', 'b', 'c'}`.
+- `right++`: `2 → 3`; **✅ `for (right < text.length())`:** `3 < 8 → true` next.
 
 | right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `c` | `['a', 'b']` | `false → stop shrinking` | `0` | `['a', 'b', 'c']` | `2-0+1=3` | `3` | `right++; continue` |
+| `2` | `c` | `['a', 'b']` | `❌ while (activeCharacters.contains(incoming)): contains('c') → false; stop shrinking` | `0` | `['a', 'b', 'c']` | `2-0+1=3` | `3` | `right++: 2 → 3; ✅ for (right < text.length()): 3 < 8 → true; continue` |
 
 **Iteration/check 4 — right = `3`.**
 
-Read text position `3`, whose incoming character is `a`. Before handling it, the set is `['a', 'b', 'c']`. Test for that same incoming character repeatedly: `true → remove a@0, left=1, set=['b', 'c']; false → stop shrinking`. After shrinking, left is `1`. Now add the incoming character, producing `['a', 'b', 'c']`. Calculate the inclusive length: `3-1+1=3`; preserve `bestLength`=`3`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
+- **✅ `for (right < text.length())`:** `3 < 8 → true`; enter the outer loop.
+- `char incoming = text.charAt(right)` reads index `3` → `'a'`; set before: `{'a', 'b', 'c'}`.
+- **✅ `while (activeCharacters.contains(incoming))`:** `contains('a') → true`; enter the removal body.
+- `activeCharacters.remove(text.charAt(left))` reads `text.charAt(0)='a'`: `{'a', 'b', 'c'} → {'b', 'c'}`.
+- `left++`: `0 → 1`.
+- **❌ `while (activeCharacters.contains(incoming))`:** `contains('a') → false`; stop shrinking.
+- `activeCharacters.add(incoming)`: `{'b', 'c'} → {'a', 'b', 'c'}`.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `3 - 1 + 1 = 3`; `max(3, 3) = 3`.
+- **State:** `left=1, bestLength=3, incoming='a'`; set `{'a', 'b', 'c'}`.
+- `right++`: `3 → 4`; **✅ `for (right < text.length())`:** `4 < 8 → true` next.
 
 | right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `a` | `['a', 'b', 'c']` | `true → remove a@0, left=1, set=['b', 'c']; false → stop shrinking` | `1` | `['a', 'b', 'c']` | `3-1+1=3` | `3` | `right++; continue` |
+| `3` | `a` | `['a', 'b', 'c']` | `✅ while (activeCharacters.contains(incoming)): contains('a') → true; activeCharacters.remove(text.charAt(0)) removes 'a': {'a', 'b', 'c'} → {'b', 'c'}; left++: 0 → 1; ❌ while (activeCharacters.contains(incoming)): contains('a') → false; stop shrinking` | `1` | `['a', 'b', 'c']` | `3-1+1=3` | `3` | `right++: 3 → 4; ✅ for (right < text.length()): 4 < 8 → true; continue` |
 
 **Iteration/check 5 — right = `4`.**
 
-Read text position `4`, whose incoming character is `b`. Before handling it, the set is `['a', 'b', 'c']`. Test for that same incoming character repeatedly: `true → remove b@1, left=2, set=['a', 'c']; false → stop shrinking`. After shrinking, left is `2`. Now add the incoming character, producing `['a', 'b', 'c']`. Calculate the inclusive length: `4-2+1=3`; preserve `bestLength`=`3`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
+- **✅ `for (right < text.length())`:** `4 < 8 → true`; enter the outer loop.
+- `char incoming = text.charAt(right)` reads index `4` → `'b'`; set before: `{'a', 'b', 'c'}`.
+- **✅ `while (activeCharacters.contains(incoming))`:** `contains('b') → true`; enter the removal body.
+- `activeCharacters.remove(text.charAt(left))` reads `text.charAt(1)='b'`: `{'a', 'b', 'c'} → {'a', 'c'}`.
+- `left++`: `1 → 2`.
+- **❌ `while (activeCharacters.contains(incoming))`:** `contains('b') → false`; stop shrinking.
+- `activeCharacters.add(incoming)`: `{'a', 'c'} → {'a', 'b', 'c'}`.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `4 - 2 + 1 = 3`; `max(3, 3) = 3`.
+- **State:** `left=2, bestLength=3, incoming='b'`; set `{'a', 'b', 'c'}`.
+- `right++`: `4 → 5`; **✅ `for (right < text.length())`:** `5 < 8 → true` next.
 
 | right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `4` | `b` | `['a', 'b', 'c']` | `true → remove b@1, left=2, set=['a', 'c']; false → stop shrinking` | `2` | `['a', 'b', 'c']` | `4-2+1=3` | `3` | `right++; continue` |
+| `4` | `b` | `['a', 'b', 'c']` | `✅ while (activeCharacters.contains(incoming)): contains('b') → true; activeCharacters.remove(text.charAt(1)) removes 'b': {'a', 'b', 'c'} → {'a', 'c'}; left++: 1 → 2; ❌ while (activeCharacters.contains(incoming)): contains('b') → false; stop shrinking` | `2` | `['a', 'b', 'c']` | `4-2+1=3` | `3` | `right++: 4 → 5; ✅ for (right < text.length()): 5 < 8 → true; continue` |
 
 **Iteration/check 6 — right = `5`.**
 
-Read text position `5`, whose incoming character is `c`. Before handling it, the set is `['a', 'b', 'c']`. Test for that same incoming character repeatedly: `true → remove c@2, left=3, set=['a', 'b']; false → stop shrinking`. After shrinking, left is `3`. Now add the incoming character, producing `['a', 'b', 'c']`. Calculate the inclusive length: `5-3+1=3`; preserve `bestLength`=`3`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
+- **✅ `for (right < text.length())`:** `5 < 8 → true`; enter the outer loop.
+- `char incoming = text.charAt(right)` reads index `5` → `'c'`; set before: `{'a', 'b', 'c'}`.
+- **✅ `while (activeCharacters.contains(incoming))`:** `contains('c') → true`; enter the removal body.
+- `activeCharacters.remove(text.charAt(left))` reads `text.charAt(2)='c'`: `{'a', 'b', 'c'} → {'a', 'b'}`.
+- `left++`: `2 → 3`.
+- **❌ `while (activeCharacters.contains(incoming))`:** `contains('c') → false`; stop shrinking.
+- `activeCharacters.add(incoming)`: `{'a', 'b'} → {'a', 'b', 'c'}`.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `5 - 3 + 1 = 3`; `max(3, 3) = 3`.
+- **State:** `left=3, bestLength=3, incoming='c'`; set `{'a', 'b', 'c'}`.
+- `right++`: `5 → 6`; **✅ `for (right < text.length())`:** `6 < 8 → true` next.
 
 | right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `5` | `c` | `['a', 'b', 'c']` | `true → remove c@2, left=3, set=['a', 'b']; false → stop shrinking` | `3` | `['a', 'b', 'c']` | `5-3+1=3` | `3` | `right++; continue` |
+| `5` | `c` | `['a', 'b', 'c']` | `✅ while (activeCharacters.contains(incoming)): contains('c') → true; activeCharacters.remove(text.charAt(2)) removes 'c': {'a', 'b', 'c'} → {'a', 'b'}; left++: 2 → 3; ❌ while (activeCharacters.contains(incoming)): contains('c') → false; stop shrinking` | `3` | `['a', 'b', 'c']` | `5-3+1=3` | `3` | `right++: 5 → 6; ✅ for (right < text.length()): 6 < 8 → true; continue` |
 
 **Iteration/check 7 — right = `6`.**
 
-Read text position `6`, whose incoming character is `b`. Before handling it, the set is `['a', 'b', 'c']`. Test for that same incoming character repeatedly: `true → remove a@3, left=4, set=['b', 'c']; true → remove b@4, left=5, set=['c']; false → stop shrinking`. After shrinking, left is `5`. Now add the incoming character, producing `['b', 'c']`. Calculate the inclusive length: `6-5+1=2`; preserve `bestLength`=`3`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
+- **✅ `for (right < text.length())`:** `6 < 8 → true`; enter the outer loop.
+- `char incoming = text.charAt(right)` reads index `6` → `'b'`; set before: `{'a', 'b', 'c'}`.
+- **✅ `while (activeCharacters.contains(incoming))`:** `contains('b') → true`; enter the removal body.
+- `activeCharacters.remove(text.charAt(left))` reads `text.charAt(3)='a'`: `{'a', 'b', 'c'} → {'b', 'c'}`.
+- `left++`: `3 → 4`.
+- **✅ `while (activeCharacters.contains(incoming))`:** `contains('b') → true`; enter the removal body.
+- `activeCharacters.remove(text.charAt(left))` reads `text.charAt(4)='b'`: `{'b', 'c'} → {'c'}`.
+- `left++`: `4 → 5`.
+- **❌ `while (activeCharacters.contains(incoming))`:** `contains('b') → false`; stop shrinking.
+- `activeCharacters.add(incoming)`: `{'c'} → {'b', 'c'}`.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `6 - 5 + 1 = 2`; `max(3, 2) = 3`.
+- **State:** `left=5, bestLength=3, incoming='b'`; set `{'b', 'c'}`.
+- `right++`: `6 → 7`; **✅ `for (right < text.length())`:** `7 < 8 → true` next.
 
 | right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `6` | `b` | `['a', 'b', 'c']` | `true → remove a@3, left=4, set=['b', 'c']; true → remove b@4, left=5, set=['c']; false → stop shrinking` | `3 → 4 → 5` | `['b', 'c']` | `6-5+1=2` | `3` | `right++; continue` |
+| `6` | `b` | `['a', 'b', 'c']` | `✅ while (activeCharacters.contains(incoming)): contains('b') → true; activeCharacters.remove(text.charAt(3)) removes 'a': {'a', 'b', 'c'} → {'b', 'c'}; left++: 3 → 4; ✅ while (activeCharacters.contains(incoming)): contains('b') → true; activeCharacters.remove(text.charAt(4)) removes 'b': {'b', 'c'} → {'c'}; left++: 4 → 5; ❌ while (activeCharacters.contains(incoming)): contains('b') → false; stop shrinking` | `3 → 4 → 5` | `['b', 'c']` | `6-5+1=2` | `3` | `right++: 6 → 7; ✅ for (right < text.length()): 7 < 8 → true; continue` |
 
 **Iteration/check 8 — right = `7`.**
 
-Read text position `7`, whose incoming character is `b`. Before handling it, the set is `['b', 'c']`. Test for that same incoming character repeatedly: `true → remove c@5, left=6, set=['b']; true → remove b@6, left=7, set=[]; false → stop shrinking`. After shrinking, left is `7`. Now add the incoming character, producing `['b']`. Calculate the inclusive length: `7-7+1=1`; preserve `bestLength`=`3`. Finally, `right++; continue`. Do not read a new incoming character during the shrink loop.
+- **✅ `for (right < text.length())`:** `7 < 8 → true`; enter the outer loop.
+- `char incoming = text.charAt(right)` reads index `7` → `'b'`; set before: `{'b', 'c'}`.
+- **✅ `while (activeCharacters.contains(incoming))`:** `contains('b') → true`; enter the removal body.
+- `activeCharacters.remove(text.charAt(left))` reads `text.charAt(5)='c'`: `{'b', 'c'} → {'b'}`.
+- `left++`: `5 → 6`.
+- **✅ `while (activeCharacters.contains(incoming))`:** `contains('b') → true`; enter the removal body.
+- `activeCharacters.remove(text.charAt(left))` reads `text.charAt(6)='b'`: `{'b'} → {}`.
+- `left++`: `6 → 7`.
+- **❌ `while (activeCharacters.contains(incoming))`:** `contains('b') → false`; stop shrinking.
+- `activeCharacters.add(incoming)`: `{} → {'b'}`.
+- `bestLength = Math.max(bestLength, right - left + 1)`: length `7 - 7 + 1 = 1`; `max(3, 1) = 3`.
+- **State:** `left=7, bestLength=3, incoming='b'`; set `{'b'}`.
+- `right++`: `7 → 8`; **❌ `for (right < text.length())`:** `8 < 8 → false`; exit the outer loop.
 
 | right | incoming | set before | while contains(incoming): every evaluation | left after | set after add | length | bestLength | next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `7` | `b` | `['b', 'c']` | `true → remove c@5, left=6, set=['b']; true → remove b@6, left=7, set=[]; false → stop shrinking` | `5 → 6 → 7` | `['b']` | `7-7+1=1` | `3` | `right++; continue` |
+| `7` | `b` | `['b', 'c']` | `✅ while (activeCharacters.contains(incoming)): contains('b') → true; activeCharacters.remove(text.charAt(5)) removes 'c': {'b', 'c'} → {'b'}; left++: 5 → 6; ✅ while (activeCharacters.contains(incoming)): contains('b') → true; activeCharacters.remove(text.charAt(6)) removes 'b': {'b'} → {}; left++: 6 → 7; ❌ while (activeCharacters.contains(incoming)): contains('b') → false; stop shrinking` | `5 → 6 → 7` | `['b']` | `7-7+1=1` | `3` | `right++: 7 → 8; ❌ for (right < text.length()): 8 < 8 → false; exit loop` |
 
-Each outer loop condition `right < 8` is true for the eight rows. After the last row, `right=8` makes `8 < 8` false; return `3`. The repeated `true` checks at right `6` and `7` explain why one removal is insufficient.
+- **❌ `for (right < text.length())`:** `8 < 8 → false`; all characters have been processed.
+- `return bestLength` returns `3`; repeated removals at `right=6` and `right=7` explain why `while` is needed.
 
 ### Block 5 — Return the completed maximum
 
@@ -254,13 +326,15 @@ return bestLength;
 
 **What it evaluates:** after every ending index has been considered, the largest valid length is final.
 
-**Concrete result:** an empty string skips the loop and returns `0`.
+**Concrete result:** return `3` from the earlier window `"abc"`, even though the final window `"b"` has length `1`.
 
 **What fails without it:** returning the final window length misses a longer window that appeared earlier.
 
 **Debugger state at this block:**
 
-At `right=6`, incoming is `b`: remove `a` at index `3` first, but `b` is still present; remove `b` at index `4` next. Only then add the incoming `b`. This produces `left=5`, window `cb`, length `6 - 5 + 1 = 2`; best stays `3`. At `right=7`, remove `c` then `b`, producing final window `b`. The loop increment makes `right=8`; `8 < 8` is false and return `3`.
+- **Final state:** `left=7`, `activeCharacters={'b'}`, `bestLength=3`; the final window is `"b"`.
+- **❌ `for (right < text.length())`:** `8 < 8 → false`; exit the loop.
+- `return bestLength` returns the earlier maximum `3`, rather than the final window length `1`.
 
 ## Reference approach
 
@@ -336,4 +410,4 @@ Exactly one copy of every character in the current contiguous range `left..right
 
 ## Stop/go
 
-Proceed only when you can explain why `while` is required, trace `"pwwkew"`, state the invariant and complexity, implement the practice method, and pass all checks.
+Proceed only when you can explain why `while` is required, trace `"abcabcbb"`, state the invariant and complexity, implement the practice method, and pass all checks.

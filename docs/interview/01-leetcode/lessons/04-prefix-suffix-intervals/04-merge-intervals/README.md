@@ -49,7 +49,7 @@ if (intervals.length == 0) {
 }
 ```
 
-The trace has four ranges: evaluate `4==0 → false`; skip the return and continue. The defensive empty case evaluates `0==0 → true` and returns an array with zero rows immediately. This guard prevents a later read of `sorted[0]` when no row exists. Equivalent: place the non-empty algorithm in an `else`, but the early return keeps it less indented.
+- **❌ `if (intervals.length == 0)`:** `4 == 0 → false`; skip `return new int[0][2]` and continue. The defensive empty case evaluates `0==0 → true` and returns an array with zero rows immediately. This guard prevents a later read of `sorted[0]` when no row exists. Equivalent: place the non-empty algorithm in an `else`, but the early return keeps it less indented.
 
 ### Block 2 — Make independent rows before sorting
 
@@ -62,31 +62,51 @@ for (int index = 0; index < intervals.length; index++) {
 
 Allocate four rows, each with two zero-valued cells: `[[0,0],[0,0],[0,0],[0,0]]`. For each input row, `clone()` creates an independent two-integer array and assigns its reference into the corresponding row of `sorted`. It replaces that zero row; it does not modify the original row. Copying only the outer array would leave row references shared. Equivalent: `new int[] {intervals[index][0], intervals[index][1]}` explicitly copies the two endpoints.
 
-**Copy iteration `index=0`.** Check `0<4 → true`. Read input row `[8, 10]`, create a new row with those same two values, and assign it at `sorted[0]`. The complete copy now contains `[[8, 10], [0, 0], [0, 0], [0, 0]]`; `intervals` remains `[[8, 10], [1, 3], [2, 6], [15, 18]]`. Execute `index++`, making `1`.
+**Copy iteration `index=0`.**
+
+- **✅ Copy `for` condition `index < intervals.length`:** `0 < 4 → true`; enter the body.
+- `sorted[index] = intervals[index].clone()` reads `intervals[0]=[8, 10]` and creates an independent row; `sorted[0]`: `[0, 0] → [8, 10]`.
+- The table shows the full `sorted` array; `intervals` stays unchanged.
+- `index++`: `0 → 1`; continue to the next copy-loop check.
 
 | index | condition | copied row | sorted after | original after | next |
 | --- | --- | --- | --- | --- | --- |
-| `0` | `0<4 → true` | `[8, 10]` | `[[8, 10], [0, 0], [0, 0], [0, 0]]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `index=1` |
+| `0` | `✅ 0<4 → true` | `[8, 10]` | `[[8, 10], [0, 0], [0, 0], [0, 0]]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `index=1` |
 
-**Copy iteration `index=1`.** Check `1<4 → true`. Read input row `[1, 3]`, create a new row with those same two values, and assign it at `sorted[1]`. The complete copy now contains `[[8, 10], [1, 3], [0, 0], [0, 0]]`; `intervals` remains `[[8, 10], [1, 3], [2, 6], [15, 18]]`. Execute `index++`, making `2`.
+**Copy iteration `index=1`.**
 
-| index | condition | copied row | sorted after | original after | next |
-| --- | --- | --- | --- | --- | --- |
-| `1` | `1<4 → true` | `[1, 3]` | `[[8, 10], [1, 3], [0, 0], [0, 0]]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `index=2` |
-
-**Copy iteration `index=2`.** Check `2<4 → true`. Read input row `[2, 6]`, create a new row with those same two values, and assign it at `sorted[2]`. The complete copy now contains `[[8, 10], [1, 3], [2, 6], [0, 0]]`; `intervals` remains `[[8, 10], [1, 3], [2, 6], [15, 18]]`. Execute `index++`, making `3`.
-
-| index | condition | copied row | sorted after | original after | next |
-| --- | --- | --- | --- | --- | --- |
-| `2` | `2<4 → true` | `[2, 6]` | `[[8, 10], [1, 3], [2, 6], [0, 0]]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `index=3` |
-
-**Copy iteration `index=3`.** Check `3<4 → true`. Read input row `[15, 18]`, create a new row with those same two values, and assign it at `sorted[3]`. The complete copy now contains `[[8, 10], [1, 3], [2, 6], [15, 18]]`; `intervals` remains `[[8, 10], [1, 3], [2, 6], [15, 18]]`. Execute `index++`, making `4`.
+- **✅ Copy `for` condition `index < intervals.length`:** `1 < 4 → true`; enter the body.
+- `sorted[index] = intervals[index].clone()` reads `intervals[1]=[1, 3]` and creates an independent row; `sorted[1]`: `[0, 0] → [1, 3]`.
+- The table shows the full `sorted` array; `intervals` stays unchanged.
+- `index++`: `1 → 2`; continue to the next copy-loop check.
 
 | index | condition | copied row | sorted after | original after | next |
 | --- | --- | --- | --- | --- | --- |
-| `3` | `3<4 → true` | `[15, 18]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `index=4` |
+| `1` | `✅ 1<4 → true` | `[1, 3]` | `[[8, 10], [1, 3], [0, 0], [0, 0]]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `index=2` |
 
-After the increment to `index=4`, `4<4 → false`; skip the copy body and continue to sorting.
+**Copy iteration `index=2`.**
+
+- **✅ Copy `for` condition `index < intervals.length`:** `2 < 4 → true`; enter the body.
+- `sorted[index] = intervals[index].clone()` reads `intervals[2]=[2, 6]` and creates an independent row; `sorted[2]`: `[0, 0] → [2, 6]`.
+- The table shows the full `sorted` array; `intervals` stays unchanged.
+- `index++`: `2 → 3`; continue to the next copy-loop check.
+
+| index | condition | copied row | sorted after | original after | next |
+| --- | --- | --- | --- | --- | --- |
+| `2` | `✅ 2<4 → true` | `[2, 6]` | `[[8, 10], [1, 3], [2, 6], [0, 0]]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `index=3` |
+
+**Copy iteration `index=3`.**
+
+- **✅ Copy `for` condition `index < intervals.length`:** `3 < 4 → true`; enter the body.
+- `sorted[index] = intervals[index].clone()` reads `intervals[3]=[15, 18]` and creates an independent row; `sorted[3]`: `[0, 0] → [15, 18]`.
+- The table shows the full `sorted` array; `intervals` stays unchanged.
+- `index++`: `3 → 4`; continue to the next copy-loop check.
+
+| index | condition | copied row | sorted after | original after | next |
+| --- | --- | --- | --- | --- | --- |
+| `3` | `✅ 3<4 → true` | `[15, 18]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `[[8, 10], [1, 3], [2, 6], [15, 18]]` | `index=4` |
+
+- **❌ Copy `for` condition `index < intervals.length`:** `4 < 4 → false`; skip the body and continue to `Arrays.sort`.
 
 ### Block 3 — Sort by the start and initialize the unfinished range
 
@@ -99,7 +119,11 @@ int end = sorted[0][1];
 
 `Arrays.sort` rearranges the copied row references. `Comparator.comparingInt(...)` tells it to order rows by one integer key; the lambda `interval -> interval[0]` reads a compared row’s start. The lambda parameter exists only while the sorting library requests a key, and the library’s internal comparison order is not fixed by this lesson. An equivalent key function is a named function returning `interval[0]`.
 
-After the call, `sorted=[[1,3],[2,6],[8,10],[15,18]]`. Create `merged=[]`, then read `start=1`, `end=3` from the first sorted row. That range is unfinished, so it is not in the output list yet. Without sorting, a later smaller start could invalidate a previously finalized range. Without saving start/end, the algorithm would have no unfinished interval to extend.
+- `Arrays.sort(...)` orders the copied rows by start: `[[8,10],[1,3],[2,6],[15,18]] → [[1,3],[2,6],[8,10],[15,18]]`.
+- `new ArrayList<>()` creates `merged=[]`.
+- `int start = sorted[0][0]` reads `1`; `int end = sorted[0][1]` reads `3`. This active range has not been appended yet.
+
+Without sorting, a later smaller start could invalidate a previously finalized range. Without saving start/end, the algorithm would have no unfinished interval to extend.
 
 ### Block 4 — Merge overlaps or finalize at a gap
 
@@ -118,23 +142,43 @@ for (int index = 1; index < sorted.length; index++) {
 
 Start at index `1` because index `0` already initialized the unfinished range. `current` refers to the copied row for this iteration. The `<=` includes touching endpoints. If ranges meet, update only the end using `Math.max`; a contained interval must not shorten it. A gap saves a new two-integer output row before replacing start/end. Equivalent: call the overlap test `boolean touches = current[0] <= end` and branch on that value. Using `<` would wrongly split `[1,4]` and `[4,5]`; assigning `end=current[1]` in the overlap branch would shrink `[1,10]` when `[2,3]` arrives.
 
-**Merge iteration `index=1`.** Evaluate `1<4 → true`; read `current=[2, 6]`. The unfinished range before the test is `[1,3]`. Check `2 <= 3 → true`. Because the ranges meet, extend end=max(3,6)=6; skip else. The list is now `[]`, while the still-unfinished range is `[1,6]`. Execute `index++` to `2`. The sorted copy stays `[[1, 3], [2, 6], [8, 10], [15, 18]]`.
+**Merge iteration `index=1`.**
+
+- **✅ Scan `for` condition `index < sorted.length`:** `1 < 4 → true`; enter the body.
+- `int[] current = sorted[index]` reads `sorted[1]` → `[2,6]`; active `start=1, end=3`.
+- **✅ `if (current[0] <= end)`:** `2 <= 3 → true`.
+- `end = Math.max(end, current[1])`: `max(3,6)=6`, so `end`: `3 → 6`. Skip `else`; `start=1` and `merged=[]` stay unchanged.
+- `index++`: `1 → 2`; continue to the next scan check. `sorted` stays unchanged.
 
 | index | loop test | current | start/end before | current[0] <= end | executed branch | merged after | start/end after | next |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1<4 → true` | `[2, 6]` | `[1, 3]` | `true` | `extend end=max(3,6)=6; skip else` | `[]` | `[1, 6]` | `index=2` |
+| `1` | `✅ 1<4 → true` | `[2, 6]` | `[1, 3]` | `✅ true` | `extend end=max(3,6)=6; skip else` | `[]` | `[1, 6]` | `index=2` |
 
-**Merge iteration `index=2`.** Evaluate `2<4 → true`; read `current=[8, 10]`. The unfinished range before the test is `[1,6]`. Check `8 <= 6 → false`. Because there is a gap, save [1,6]; start=8; end=10. The list is now `[[1, 6]]`, while the still-unfinished range is `[8,10]`. Execute `index++` to `3`. The sorted copy stays `[[1, 3], [2, 6], [8, 10], [15, 18]]`.
+**Merge iteration `index=2`.**
+
+- **✅ Scan `for` condition `index < sorted.length`:** `2 < 4 → true`; enter the body.
+- `int[] current = sorted[index]` reads `sorted[2]` → `[8,10]`; active `start=1, end=6`.
+- **❌ `if (current[0] <= end)`:** `8 <= 6 → false`.
+- Skip the `if` assignment; execute `else`: `merged.add(new int[] {start, end})` appends `[1,6]`, changing `merged`: `[] → [[1, 6]]`.
+- `start = current[0]`: `1 → 8`; `end = current[1]`: `6 → 10`.
+- `index++`: `2 → 3`; continue to the next scan check. `sorted` stays unchanged.
 
 | index | loop test | current | start/end before | current[0] <= end | executed branch | merged after | start/end after | next |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2<4 → true` | `[8, 10]` | `[1, 6]` | `false` | `save [1,6]; start=8; end=10` | `[[1, 6]]` | `[8, 10]` | `index=3` |
+| `2` | `✅ 2<4 → true` | `[8, 10]` | `[1, 6]` | `❌ false` | `save [1,6]; start=8; end=10` | `[[1, 6]]` | `[8, 10]` | `index=3` |
 
-**Merge iteration `index=3`.** Evaluate `3<4 → true`; read `current=[15, 18]`. The unfinished range before the test is `[8,10]`. Check `15 <= 10 → false`. Because there is a gap, save [8,10]; start=15; end=18. The list is now `[[1, 6], [8, 10]]`, while the still-unfinished range is `[15,18]`. Execute `index++` to `4`. The sorted copy stays `[[1, 3], [2, 6], [8, 10], [15, 18]]`.
+**Merge iteration `index=3`.**
+
+- **✅ Scan `for` condition `index < sorted.length`:** `3 < 4 → true`; enter the body.
+- `int[] current = sorted[index]` reads `sorted[3]` → `[15,18]`; active `start=8, end=10`.
+- **❌ `if (current[0] <= end)`:** `15 <= 10 → false`.
+- Skip the `if` assignment; execute `else`: `merged.add(new int[] {start, end})` appends `[8,10]`, changing `merged`: `[[1, 6]] → [[1, 6], [8, 10]]`.
+- `start = current[0]`: `8 → 15`; `end = current[1]`: `10 → 18`.
+- `index++`: `3 → 4`; continue to the next scan check. `sorted` stays unchanged.
 
 | index | loop test | current | start/end before | current[0] <= end | executed branch | merged after | start/end after | next |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `3<4 → true` | `[15, 18]` | `[8, 10]` | `false` | `save [8,10]; start=15; end=18` | `[[1, 6], [8, 10]]` | `[15, 18]` | `index=4` |
+| `3` | `✅ 3<4 → true` | `[15, 18]` | `[8, 10]` | `❌ false` | `save [8,10]; start=15; end=18` | `[[1, 6], [8, 10]]` | `[15, 18]` | `index=4` |
 
 ### Block 5 — Save the final unfinished range and return rows
 
@@ -143,7 +187,8 @@ merged.add(new int[] {start, end});
 return merged.toArray(new int[merged.size()][]);
 ```
 
-After incrementing to `index=4`, `4<4 → false`; skip the loop body. The list contains `[[1,6],[8,10]]` and the unfinished range is `[15,18]`. Create and append that final row: `merged=[[1,6],[8,10],[15,18]]`. Omitting this append would lose the last range, including the only range for singleton input.
+- **❌ Scan `for` condition `index < sorted.length`:** `4 < 4 → false`; skip the body.
+- `merged.add(new int[] {start, end})` reads `start=15, end=18`; append `[15,18]`: `[[1,6],[8,10]] → [[1,6],[8,10],[15,18]]`. Omitting this append would lose the last range, including the only range for singleton input.
 
 `merged.size()` is `3`. `new int[3][]` allocates an outer array with three row slots; `toArray` fills those slots with the list’s already-created independent rows. Return `[[1,6],[8,10],[15,18]]`. Input remains `[[8,10],[1,3],[2,6],[15,18]]`. Equivalent: allocate `int[][] result=new int[merged.size()][]`, then copy each list row into its result slot with a loop. The returned rows belong to the result, not the original input.
 

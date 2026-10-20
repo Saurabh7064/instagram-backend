@@ -54,7 +54,10 @@ static final class NumArray {
 
 Create an object to keep the totals available across queries. `static` lets the runnable outer class construct `new NumArray(...)` without creating an outer instance; `final` prevents extending this teaching class. `private` keeps the array internal; `final` assigns its reference once, while its cells can still be filled during construction.
 
-There are `7` input values and `8` boundaries, so allocate `prefix` with length `7+1=8`. Java fills all cells with zero: `[0,0,0,0,0,0,0,0]`. Cell `0` already has the correct empty total. No index variable exists yet. Without the extra cell, storing the boundary after the last value would go past the array. A clearer equivalent is `int boundaryCount = numbers.length + 1` before allocation. This constructor snapshots totals rather than retaining the caller’s array reference.
+- `prefix = new int[numbers.length + 1]` reads length `7`; allocate `7 + 1 = 8` zero-filled cells: `prefix=[0,0,0,0,0,0,0,0]`.
+- `prefix[0]=0` already represents the empty total; the loop has not declared `index` yet.
+
+Without the extra cell, storing the boundary after the last value would go past the array. A clearer equivalent is `int boundaryCount = numbers.length + 1` before allocation. This constructor snapshots totals rather than retaining the caller’s array reference.
 
 ### Block 2 — Build each next boundary total
 
@@ -66,49 +69,84 @@ for (int index = 0; index < numbers.length; index++) {
 
 Start `index=0`. Each iteration reads one input value and the already-built total immediately before it, then saves their sum at the next boundary. No branch exists inside this loop; the loop condition still decides whether the body runs. The input stays unchanged.
 
-**Construction iteration: `index=0`.** Evaluate `0 < 7 → true`. Read `prefix[0]=0` and `numbers[0]=-2`. Calculate `0 + (-2) = -2`; assign it to `prefix[1]`. Only that cell changes. Execute `index++`, giving `1`.
+**Construction iteration: `index=0`.**
+
+- **✅ `for` condition `index < numbers.length`:** `0 < 7 → true`; enter the body.
+- `prefix[index + 1] = prefix[index] + numbers[index]` reads `prefix[0]=0` and `numbers[0]=-2`; calculate `0 + (-2) = -2`.
+- Assign `prefix[1]`: `0 → -2`. The full saved array is below; `numbers` stays unchanged.
+- `index++`: `0 → 1`; continue to the next `for` check.
 
 | index | loop condition | read total | incoming | written boundary | prefix after | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `0<7 → true` | `0` | `-2` | `1` | `[0, -2, 0, 0, 0, 0, 0, 0]` | `index=1` |
+| `0` | `✅ 0<7 → true` | `0` | `-2` | `1` | `[0, -2, 0, 0, 0, 0, 0, 0]` | `index=1` |
 
-**Construction iteration: `index=1`.** Evaluate `1 < 7 → true`. Read `prefix[1]=-2` and `numbers[1]=0`. Calculate `-2 + (0) = -2`; assign it to `prefix[2]`. Only that cell changes. Execute `index++`, giving `2`.
+**Construction iteration: `index=1`.**
 
-| index | loop condition | read total | incoming | written boundary | prefix after | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1<7 → true` | `-2` | `0` | `2` | `[0, -2, -2, 0, 0, 0, 0, 0]` | `index=2` |
-
-**Construction iteration: `index=2`.** Evaluate `2 < 7 → true`. Read `prefix[2]=-2` and `numbers[2]=3`. Calculate `-2 + (3) = 1`; assign it to `prefix[3]`. Only that cell changes. Execute `index++`, giving `3`.
-
-| index | loop condition | read total | incoming | written boundary | prefix after | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `2` | `2<7 → true` | `-2` | `3` | `3` | `[0, -2, -2, 1, 0, 0, 0, 0]` | `index=3` |
-
-**Construction iteration: `index=3`.** Evaluate `3 < 7 → true`. Read `prefix[3]=1` and `numbers[3]=-5`. Calculate `1 + (-5) = -4`; assign it to `prefix[4]`. Only that cell changes. Execute `index++`, giving `4`.
+- **✅ `for` condition `index < numbers.length`:** `1 < 7 → true`; enter the body.
+- `prefix[index + 1] = prefix[index] + numbers[index]` reads `prefix[1]=-2` and `numbers[1]=0`; calculate `-2 + (0) = -2`.
+- Assign `prefix[2]`: `0 → -2`. The full saved array is below; `numbers` stays unchanged.
+- `index++`: `1 → 2`; continue to the next `for` check.
 
 | index | loop condition | read total | incoming | written boundary | prefix after | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `3<7 → true` | `1` | `-5` | `4` | `[0, -2, -2, 1, -4, 0, 0, 0]` | `index=4` |
+| `1` | `✅ 1<7 → true` | `-2` | `0` | `2` | `[0, -2, -2, 0, 0, 0, 0, 0]` | `index=2` |
 
-**Construction iteration: `index=4`.** Evaluate `4 < 7 → true`. Read `prefix[4]=-4` and `numbers[4]=2`. Calculate `-4 + (2) = -2`; assign it to `prefix[5]`. Only that cell changes. Execute `index++`, giving `5`.
+**Construction iteration: `index=2`.**
 
-| index | loop condition | read total | incoming | written boundary | prefix after | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `4` | `4<7 → true` | `-4` | `2` | `5` | `[0, -2, -2, 1, -4, -2, 0, 0]` | `index=5` |
-
-**Construction iteration: `index=5`.** Evaluate `5 < 7 → true`. Read `prefix[5]=-2` and `numbers[5]=-1`. Calculate `-2 + (-1) = -3`; assign it to `prefix[6]`. Only that cell changes. Execute `index++`, giving `6`.
-
-| index | loop condition | read total | incoming | written boundary | prefix after | next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| `5` | `5<7 → true` | `-2` | `-1` | `6` | `[0, -2, -2, 1, -4, -2, -3, 0]` | `index=6` |
-
-**Construction iteration: `index=6`.** Evaluate `6 < 7 → true`. Read `prefix[6]=-3` and `numbers[6]=4`. Calculate `-3 + (4) = 1`; assign it to `prefix[7]`. Only that cell changes. Execute `index++`, giving `7`.
+- **✅ `for` condition `index < numbers.length`:** `2 < 7 → true`; enter the body.
+- `prefix[index + 1] = prefix[index] + numbers[index]` reads `prefix[2]=-2` and `numbers[2]=3`; calculate `-2 + (3) = 1`.
+- Assign `prefix[3]`: `0 → 1`. The full saved array is below; `numbers` stays unchanged.
+- `index++`: `2 → 3`; continue to the next `for` check.
 
 | index | loop condition | read total | incoming | written boundary | prefix after | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `6` | `6<7 → true` | `-3` | `4` | `7` | `[0, -2, -2, 1, -4, -2, -3, 1]` | `index=7` |
+| `2` | `✅ 2<7 → true` | `-2` | `3` | `3` | `[0, -2, -2, 1, 0, 0, 0, 0]` | `index=3` |
 
-Now `index=7`; `7 < 7 → false`, so skip the body and finish construction. The loop-local index leaves scope. Without saving every boundary, later queries would need to sum values again. Equivalent clearer form: name `nextBoundary=index+1` and `nextTotal=prefix[index]+numbers[index]` before assigning.
+**Construction iteration: `index=3`.**
+
+- **✅ `for` condition `index < numbers.length`:** `3 < 7 → true`; enter the body.
+- `prefix[index + 1] = prefix[index] + numbers[index]` reads `prefix[3]=1` and `numbers[3]=-5`; calculate `1 + (-5) = -4`.
+- Assign `prefix[4]`: `0 → -4`. The full saved array is below; `numbers` stays unchanged.
+- `index++`: `3 → 4`; continue to the next `for` check.
+
+| index | loop condition | read total | incoming | written boundary | prefix after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `3` | `✅ 3<7 → true` | `1` | `-5` | `4` | `[0, -2, -2, 1, -4, 0, 0, 0]` | `index=4` |
+
+**Construction iteration: `index=4`.**
+
+- **✅ `for` condition `index < numbers.length`:** `4 < 7 → true`; enter the body.
+- `prefix[index + 1] = prefix[index] + numbers[index]` reads `prefix[4]=-4` and `numbers[4]=2`; calculate `-4 + (2) = -2`.
+- Assign `prefix[5]`: `0 → -2`. The full saved array is below; `numbers` stays unchanged.
+- `index++`: `4 → 5`; continue to the next `for` check.
+
+| index | loop condition | read total | incoming | written boundary | prefix after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `4` | `✅ 4<7 → true` | `-4` | `2` | `5` | `[0, -2, -2, 1, -4, -2, 0, 0]` | `index=5` |
+
+**Construction iteration: `index=5`.**
+
+- **✅ `for` condition `index < numbers.length`:** `5 < 7 → true`; enter the body.
+- `prefix[index + 1] = prefix[index] + numbers[index]` reads `prefix[5]=-2` and `numbers[5]=-1`; calculate `-2 + (-1) = -3`.
+- Assign `prefix[6]`: `0 → -3`. The full saved array is below; `numbers` stays unchanged.
+- `index++`: `5 → 6`; continue to the next `for` check.
+
+| index | loop condition | read total | incoming | written boundary | prefix after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `5` | `✅ 5<7 → true` | `-2` | `-1` | `6` | `[0, -2, -2, 1, -4, -2, -3, 0]` | `index=6` |
+
+**Construction iteration: `index=6`.**
+
+- **✅ `for` condition `index < numbers.length`:** `6 < 7 → true`; enter the body.
+- `prefix[index + 1] = prefix[index] + numbers[index]` reads `prefix[6]=-3` and `numbers[6]=4`; calculate `-3 + (4) = 1`.
+- Assign `prefix[7]`: `0 → 1`. The full saved array is below; `numbers` stays unchanged.
+- `index++`: `6 → 7`; continue to the next `for` check.
+
+| index | loop condition | read total | incoming | written boundary | prefix after | next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `6` | `✅ 6<7 → true` | `-3` | `4` | `7` | `[0, -2, -2, 1, -4, -2, -3, 1]` | `index=7` |
+
+- **❌ `for` condition `index < numbers.length`:** `7 < 7 → false`; skip the body and finish construction. The loop-local `index` leaves scope. Without saving every boundary, later queries would need to sum values again. Equivalent clearer form: name `nextBoundary=index+1` and `nextTotal=prefix[index]+numbers[index]` before assigning.
 
 ### Block 3 — Subtract the unwanted earlier portion
 
@@ -120,25 +158,41 @@ int sumRange(int left, int right) {
 
 The total through the inclusive right endpoint lives at `right+1`; the unwanted total strictly before left lives at `left`. Evaluate both reads and subtract. No loop, mutation, or guard runs for a valid query. Using `prefix[right]` would omit the rightmost value; using `prefix[left+1]` would remove the leftmost requested value. Equivalent: `int throughRight=prefix[right+1]; int beforeLeft=prefix[left]; return throughRight-beforeLeft;`.
 
-**Query `left=0`, `right=2`.** Select boundary `2+1=3`, whose total is `1`. Select boundary `0`, whose total is `0`. Return `1 - (0) = 1`. The saved array stays `[0, -2, -2, 1, -4, -2, -3, 1]`; this call does not affect the next query.
+**Query `left=0`, `right=2`.**
+
+- `prefix[right + 1]` reads boundary `2 + 1 = 3` → `1`.
+- `prefix[left]` reads boundary `0` → `0`.
+- `return prefix[right + 1] - prefix[left]`: `1 - (0) = 1`; finish this query. The saved `prefix` array stays unchanged.
 
 | left | right | right+1 | throughRight | beforeLeft | return |
 | --- | --- | --- | --- | --- | --- |
 | `0` | `2` | `3` | `1` | `0` | `1` |
 
-**Query `left=2`, `right=5`.** Select boundary `5+1=6`, whose total is `-3`. Select boundary `2`, whose total is `-2`. Return `-3 - (-2) = -1`. The saved array stays `[0, -2, -2, 1, -4, -2, -3, 1]`; this call does not affect the next query.
+**Query `left=2`, `right=5`.**
+
+- `prefix[right + 1]` reads boundary `5 + 1 = 6` → `-3`.
+- `prefix[left]` reads boundary `2` → `-2`.
+- `return prefix[right + 1] - prefix[left]`: `-3 - (-2) = -1`; finish this query. The saved `prefix` array stays unchanged.
 
 | left | right | right+1 | throughRight | beforeLeft | return |
 | --- | --- | --- | --- | --- | --- |
 | `2` | `5` | `6` | `-3` | `-2` | `-1` |
 
-**Query `left=0`, `right=6`.** Select boundary `6+1=7`, whose total is `1`. Select boundary `0`, whose total is `0`. Return `1 - (0) = 1`. The saved array stays `[0, -2, -2, 1, -4, -2, -3, 1]`; this call does not affect the next query.
+**Query `left=0`, `right=6`.**
+
+- `prefix[right + 1]` reads boundary `6 + 1 = 7` → `1`.
+- `prefix[left]` reads boundary `0` → `0`.
+- `return prefix[right + 1] - prefix[left]`: `1 - (0) = 1`; finish this query. The saved `prefix` array stays unchanged.
 
 | left | right | right+1 | throughRight | beforeLeft | return |
 | --- | --- | --- | --- | --- | --- |
 | `0` | `6` | `7` | `1` | `0` | `1` |
 
-**Query `left=3`, `right=3`.** Select boundary `3+1=4`, whose total is `-4`. Select boundary `3`, whose total is `1`. Return `-4 - (1) = -5`. The saved array stays `[0, -2, -2, 1, -4, -2, -3, 1]`; this call does not affect the next query.
+**Query `left=3`, `right=3`.**
+
+- `prefix[right + 1]` reads boundary `3 + 1 = 4` → `-4`.
+- `prefix[left]` reads boundary `3` → `1`.
+- `return prefix[right + 1] - prefix[left]`: `-4 - (1) = -5`; finish this query. The saved `prefix` array stays unchanged.
 
 | left | right | right+1 | throughRight | beforeLeft | return |
 | --- | --- | --- | --- | --- | --- |

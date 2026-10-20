@@ -86,7 +86,8 @@ if (first.length() != second.length()) {
 
 **Debugger state at this block:**
 
-For `first="anagram"`, `second="nagaram"`, evaluate `7 != 7 → false`; continue. For `"ab"` and `"a"`, evaluate `2 != 1 → true`; return `false` immediately. No map exists on that early-return path.
+- **❌ `if (first.length() != second.length())`:** `7 != 7 → false`; skip `return false`.
+- Continue to `new HashMap<>()`, creating `remainingByCharacter={}` to store unmatched character counts.
 
 ### Block 2 — Create the remaining-count map
 
@@ -144,7 +145,10 @@ for (char character : first.toCharArray()) {
 
 **Iteration/check 1 — character = `a`.**
 
-Read first-string character `a`. Retrieve its previous count with `getOrDefault`, obtaining `0`; an absent key supplies zero. Add this occurrence: `0+1=1`. Store that result, making the complete map `{'a': 1}`. Then advance to the next first-string character.
+- **✅ `for (char character : first.toCharArray())`:** read index `0` → `'a'`.
+- `int currentCount = remainingByCharacter.getOrDefault(character, 0)` reads `getOrDefault('a',0) → 0`.
+- `remainingByCharacter.put(character, currentCount + 1)` stores `0 + 1 = 1`; a's count changes `0 → 1`. Full map follows in the table.
+- Continue to the next first-string character.
 
 | character | getOrDefault(character,0) | put count | map after | next action |
 | --- | --- | --- | --- | --- |
@@ -152,7 +156,10 @@ Read first-string character `a`. Retrieve its previous count with `getOrDefault`
 
 **Iteration/check 2 — character = `n`.**
 
-Read first-string character `n`. Retrieve its previous count with `getOrDefault`, obtaining `0`; an absent key supplies zero. Add this occurrence: `0+1=1`. Store that result, making the complete map `{'a': 1, 'n': 1}`. Then advance to the next first-string character.
+- **✅ `for (char character : first.toCharArray())`:** read index `1` → `'n'`.
+- `int currentCount = remainingByCharacter.getOrDefault(character, 0)` reads `getOrDefault('n',0) → 0`.
+- `remainingByCharacter.put(character, currentCount + 1)` stores `0 + 1 = 1`; n's count changes `0 → 1`. Full map follows in the table.
+- Continue to the next first-string character.
 
 | character | getOrDefault(character,0) | put count | map after | next action |
 | --- | --- | --- | --- | --- |
@@ -160,7 +167,10 @@ Read first-string character `n`. Retrieve its previous count with `getOrDefault`
 
 **Iteration/check 3 — character = `a`.**
 
-Read first-string character `a`. Retrieve its previous count with `getOrDefault`, obtaining `1`; an absent key supplies zero. Add this occurrence: `1+1=2`. Store that result, making the complete map `{'a': 2, 'n': 1}`. Then advance to the next first-string character.
+- **✅ `for (char character : first.toCharArray())`:** read index `2` → `'a'`.
+- `int currentCount = remainingByCharacter.getOrDefault(character, 0)` reads `getOrDefault('a',0) → 1`.
+- `remainingByCharacter.put(character, currentCount + 1)` stores `1 + 1 = 2`; a's count changes `1 → 2`. Full map follows in the table.
+- Continue to the next first-string character.
 
 | character | getOrDefault(character,0) | put count | map after | next action |
 | --- | --- | --- | --- | --- |
@@ -168,7 +178,10 @@ Read first-string character `a`. Retrieve its previous count with `getOrDefault`
 
 **Iteration/check 4 — character = `g`.**
 
-Read first-string character `g`. Retrieve its previous count with `getOrDefault`, obtaining `0`; an absent key supplies zero. Add this occurrence: `0+1=1`. Store that result, making the complete map `{'a': 2, 'n': 1, 'g': 1}`. Then advance to the next first-string character.
+- **✅ `for (char character : first.toCharArray())`:** read index `3` → `'g'`.
+- `int currentCount = remainingByCharacter.getOrDefault(character, 0)` reads `getOrDefault('g',0) → 0`.
+- `remainingByCharacter.put(character, currentCount + 1)` stores `0 + 1 = 1`; g's count changes `0 → 1`. Full map follows in the table.
+- Continue to the next first-string character.
 
 | character | getOrDefault(character,0) | put count | map after | next action |
 | --- | --- | --- | --- | --- |
@@ -176,7 +189,10 @@ Read first-string character `g`. Retrieve its previous count with `getOrDefault`
 
 **Iteration/check 5 — character = `r`.**
 
-Read first-string character `r`. Retrieve its previous count with `getOrDefault`, obtaining `0`; an absent key supplies zero. Add this occurrence: `0+1=1`. Store that result, making the complete map `{'a': 2, 'n': 1, 'g': 1, 'r': 1}`. Then advance to the next first-string character.
+- **✅ `for (char character : first.toCharArray())`:** read index `4` → `'r'`.
+- `int currentCount = remainingByCharacter.getOrDefault(character, 0)` reads `getOrDefault('r',0) → 0`.
+- `remainingByCharacter.put(character, currentCount + 1)` stores `0 + 1 = 1`; r's count changes `0 → 1`. Full map follows in the table.
+- Continue to the next first-string character.
 
 | character | getOrDefault(character,0) | put count | map after | next action |
 | --- | --- | --- | --- | --- |
@@ -184,7 +200,10 @@ Read first-string character `r`. Retrieve its previous count with `getOrDefault`
 
 **Iteration/check 6 — character = `a`.**
 
-Read first-string character `a`. Retrieve its previous count with `getOrDefault`, obtaining `2`; an absent key supplies zero. Add this occurrence: `2+1=3`. Store that result, making the complete map `{'a': 3, 'n': 1, 'g': 1, 'r': 1}`. Then advance to the next first-string character.
+- **✅ `for (char character : first.toCharArray())`:** read index `5` → `'a'`.
+- `int currentCount = remainingByCharacter.getOrDefault(character, 0)` reads `getOrDefault('a',0) → 2`.
+- `remainingByCharacter.put(character, currentCount + 1)` stores `2 + 1 = 3`; a's count changes `2 → 3`. Full map follows in the table.
+- Continue to the next first-string character.
 
 | character | getOrDefault(character,0) | put count | map after | next action |
 | --- | --- | --- | --- | --- |
@@ -192,7 +211,10 @@ Read first-string character `a`. Retrieve its previous count with `getOrDefault`
 
 **Iteration/check 7 — character = `m`.**
 
-Read first-string character `m`. Retrieve its previous count with `getOrDefault`, obtaining `0`; an absent key supplies zero. Add this occurrence: `0+1=1`. Store that result, making the complete map `{'a': 3, 'n': 1, 'g': 1, 'r': 1, 'm': 1}`. Then advance to the next first-string character.
+- **✅ `for (char character : first.toCharArray())`:** read index `6` → `'m'`.
+- `int currentCount = remainingByCharacter.getOrDefault(character, 0)` reads `getOrDefault('m',0) → 0`.
+- `remainingByCharacter.put(character, currentCount + 1)` stores `0 + 1 = 1`; m's count changes `0 → 1`. Full map follows in the table.
+- **❌ First enhanced `for`:** no next character; exit with the complete map and begin the second loop.
 
 | character | getOrDefault(character,0) | put count | map after | next action |
 | --- | --- | --- | --- | --- |
@@ -269,59 +291,87 @@ if (currentCount == 1) {
 
 **Iteration/check 1 — character = `n`.**
 
-Read second-string character `n` and look up its remaining count: `1`. The missing-key guard is `false`, so the early false return is skipped. The final-copy condition is `true`; execute `remove key`. The remaining map is `{'a': 3, 'g': 1, 'r': 1, 'm': 1}`. Continue to the next second-string character. Removing a key means its last required copy has just been consumed.
+- **✅ `for (char character : second.toCharArray())`:** read index `0` → `'n'`.
+- `Integer currentCount = remainingByCharacter.get(character)`: `get('n') → 1`.
+- **❌ `if (currentCount == null)`:** `1 == null → false`; skip `return false`.
+- **✅ `if (currentCount == 1)`:** `1 == 1 → true`; execute `remainingByCharacter.remove(character)`; remove `'n'` after consuming count `1 → 0` (key absent).
+- The table shows the full remaining map. Continue to the next second-string character.
 
 | character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `n` | `1` | `false` | `true` | `remove key` | `{'a': 3, 'g': 1, 'r': 1, 'm': 1}` | `next second-string character` |
+| `n` | `1` | `❌ false` | `✅ true` | `remove key` | `{'a': 3, 'g': 1, 'r': 1, 'm': 1}` | `next second-string character` |
 
 **Iteration/check 2 — character = `a`.**
 
-Read second-string character `a` and look up its remaining count: `3`. The missing-key guard is `false`, so the early false return is skipped. The final-copy condition is `false`; execute `put(a,2)`. The remaining map is `{'a': 2, 'g': 1, 'r': 1, 'm': 1}`. Continue to the next second-string character. Removing a key means its last required copy has just been consumed.
+- **✅ `for (char character : second.toCharArray())`:** read index `1` → `'a'`.
+- `Integer currentCount = remainingByCharacter.get(character)`: `get('a') → 3`.
+- **❌ `if (currentCount == null)`:** `3 == null → false`; skip `return false`.
+- **❌ `if (currentCount == 1)`:** `3 == 1 → false`; skip removal; execute `remainingByCharacter.put(character, currentCount - 1)` in `else`: `3 - 1 = 2`; count `3 → 2`.
+- The table shows the full remaining map. Continue to the next second-string character.
 
 | character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `a` | `3` | `false` | `false` | `put(a,2)` | `{'a': 2, 'g': 1, 'r': 1, 'm': 1}` | `next second-string character` |
+| `a` | `3` | `❌ false` | `❌ false` | `put(a,2)` | `{'a': 2, 'g': 1, 'r': 1, 'm': 1}` | `next second-string character` |
 
 **Iteration/check 3 — character = `g`.**
 
-Read second-string character `g` and look up its remaining count: `1`. The missing-key guard is `false`, so the early false return is skipped. The final-copy condition is `true`; execute `remove key`. The remaining map is `{'a': 2, 'r': 1, 'm': 1}`. Continue to the next second-string character. Removing a key means its last required copy has just been consumed.
+- **✅ `for (char character : second.toCharArray())`:** read index `2` → `'g'`.
+- `Integer currentCount = remainingByCharacter.get(character)`: `get('g') → 1`.
+- **❌ `if (currentCount == null)`:** `1 == null → false`; skip `return false`.
+- **✅ `if (currentCount == 1)`:** `1 == 1 → true`; execute `remainingByCharacter.remove(character)`; remove `'g'` after consuming count `1 → 0` (key absent).
+- The table shows the full remaining map. Continue to the next second-string character.
 
 | character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `g` | `1` | `false` | `true` | `remove key` | `{'a': 2, 'r': 1, 'm': 1}` | `next second-string character` |
+| `g` | `1` | `❌ false` | `✅ true` | `remove key` | `{'a': 2, 'r': 1, 'm': 1}` | `next second-string character` |
 
 **Iteration/check 4 — character = `a`.**
 
-Read second-string character `a` and look up its remaining count: `2`. The missing-key guard is `false`, so the early false return is skipped. The final-copy condition is `false`; execute `put(a,1)`. The remaining map is `{'a': 1, 'r': 1, 'm': 1}`. Continue to the next second-string character. Removing a key means its last required copy has just been consumed.
+- **✅ `for (char character : second.toCharArray())`:** read index `3` → `'a'`.
+- `Integer currentCount = remainingByCharacter.get(character)`: `get('a') → 2`.
+- **❌ `if (currentCount == null)`:** `2 == null → false`; skip `return false`.
+- **❌ `if (currentCount == 1)`:** `2 == 1 → false`; skip removal; execute `remainingByCharacter.put(character, currentCount - 1)` in `else`: `2 - 1 = 1`; count `2 → 1`.
+- The table shows the full remaining map. Continue to the next second-string character.
 
 | character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `a` | `2` | `false` | `false` | `put(a,1)` | `{'a': 1, 'r': 1, 'm': 1}` | `next second-string character` |
+| `a` | `2` | `❌ false` | `❌ false` | `put(a,1)` | `{'a': 1, 'r': 1, 'm': 1}` | `next second-string character` |
 
 **Iteration/check 5 — character = `r`.**
 
-Read second-string character `r` and look up its remaining count: `1`. The missing-key guard is `false`, so the early false return is skipped. The final-copy condition is `true`; execute `remove key`. The remaining map is `{'a': 1, 'm': 1}`. Continue to the next second-string character. Removing a key means its last required copy has just been consumed.
+- **✅ `for (char character : second.toCharArray())`:** read index `4` → `'r'`.
+- `Integer currentCount = remainingByCharacter.get(character)`: `get('r') → 1`.
+- **❌ `if (currentCount == null)`:** `1 == null → false`; skip `return false`.
+- **✅ `if (currentCount == 1)`:** `1 == 1 → true`; execute `remainingByCharacter.remove(character)`; remove `'r'` after consuming count `1 → 0` (key absent).
+- The table shows the full remaining map. Continue to the next second-string character.
 
 | character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `r` | `1` | `false` | `true` | `remove key` | `{'a': 1, 'm': 1}` | `next second-string character` |
+| `r` | `1` | `❌ false` | `✅ true` | `remove key` | `{'a': 1, 'm': 1}` | `next second-string character` |
 
 **Iteration/check 6 — character = `a`.**
 
-Read second-string character `a` and look up its remaining count: `1`. The missing-key guard is `false`, so the early false return is skipped. The final-copy condition is `true`; execute `remove key`. The remaining map is `{'m': 1}`. Continue to the next second-string character. Removing a key means its last required copy has just been consumed.
+- **✅ `for (char character : second.toCharArray())`:** read index `5` → `'a'`.
+- `Integer currentCount = remainingByCharacter.get(character)`: `get('a') → 1`.
+- **❌ `if (currentCount == null)`:** `1 == null → false`; skip `return false`.
+- **✅ `if (currentCount == 1)`:** `1 == 1 → true`; execute `remainingByCharacter.remove(character)`; remove `'a'` after consuming count `1 → 0` (key absent).
+- The table shows the full remaining map. Continue to the next second-string character.
 
 | character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `a` | `1` | `false` | `true` | `remove key` | `{'m': 1}` | `next second-string character` |
+| `a` | `1` | `❌ false` | `✅ true` | `remove key` | `{'m': 1}` | `next second-string character` |
 
 **Iteration/check 7 — character = `m`.**
 
-Read second-string character `m` and look up its remaining count: `1`. The missing-key guard is `false`, so the early false return is skipped. The final-copy condition is `true`; execute `remove key`. The remaining map is `{}`. Continue to the next second-string character. Removing a key means its last required copy has just been consumed.
+- **✅ `for (char character : second.toCharArray())`:** read index `6` → `'m'`.
+- `Integer currentCount = remainingByCharacter.get(character)`: `get('m') → 1`.
+- **❌ `if (currentCount == null)`:** `1 == null → false`; skip `return false`.
+- **✅ `if (currentCount == 1)`:** `1 == 1 → true`; execute `remainingByCharacter.remove(character)`; remove `'m'` after consuming count `1 → 0` (key absent).
+- **State:** `remainingByCharacter={}`. **❌ Second enhanced `for`:** no next character; **✅ `remainingByCharacter.isEmpty()`:** `true`; return `true`.
 
 | character | currentCount | currentCount == null | currentCount == 1 | branch executed | map after | next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `m` | `1` | `false` | `true` | `remove key` | `{}` | `next second-string character` |
+| `m` | `1` | `❌ false` | `✅ true` | `remove key` | `{}` | `next second-string character` |
 
 Every lookup is present, so no early false return runs. After exhaustion, `remainingByCharacter.isEmpty()` evaluates to `true`; return `true`.
 
@@ -411,7 +461,7 @@ For the same `first="anagram"`, `second="nagaram"` example, the alternative exec
 | `second.toCharArray()` | Make a separate mutable copy | `secondCharacters=[n,a,g,a,r,a,m]`; first array unchanged |
 | `Arrays.sort(firstCharacters)` | Put the first multiset in canonical order | `firstCharacters=[a,a,a,g,m,n,r]`; second array still `[n,a,g,a,r,a,m]` |
 | `Arrays.sort(secondCharacters)` | Put the second multiset in the same order | Both arrays now contain `[a,a,a,g,m,n,r]` |
-| `Arrays.equals(...)` | Compare every corresponding character | All seven positions match; return `true` |
+| `Arrays.equals(...)` | Compare every corresponding character | All seven positions match; ✅ return `true` |
 
 This preserves the exact same character multiset, but the work is `O(n log n)` because sorting dominates the runtime. It is still valid when a simpler implementation is preferred and the problem does not require the faster linear-time strategy.
 

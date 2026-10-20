@@ -98,10 +98,10 @@ for (int value : values) {
 
 | value | seen before | seen.add(value) | seen after | branch |
 | --- | --- | --- | --- | --- |
-| `1` | `[]` | `true` | `[1]` | `continue` |
-| `2` | `[1]` | `true` | `[1, 2]` | `continue` |
-| `3` | `[1, 2]` | `true` | `[1, 2, 3]` | `continue` |
-| `1` | `[1, 2, 3]` | `false` | `[1, 2, 3]` | `return true` |
+| `1` | `[]` | `✅ true` | `[1]` | `continue` |
+| `2` | `[1]` | `✅ true` | `[1, 2]` | `continue` |
+| `3` | `[1, 2]` | `✅ true` | `[1, 2, 3]` | `continue` |
+| `1` | `[1, 2, 3]` | `❌ false` | `[1, 2, 3]` | `return true` |
 
 ### Block 3 — Let insertion detect the duplicate
 
@@ -134,45 +134,57 @@ This is easier to read initially but performs a lookup followed by a separate in
 
 | value | seen before | seen.add(value) | seen after | branch |
 | --- | --- | --- | --- | --- |
-| `1` | `[]` | `true` | `[1]` | `continue` |
-| `2` | `[1]` | `true` | `[1, 2]` | `continue` |
-| `3` | `[1, 2]` | `true` | `[1, 2, 3]` | `continue` |
-| `1` | `[1, 2, 3]` | `false` | `[1, 2, 3]` | `return true` |
+| `1` | `[]` | `✅ true` | `[1]` | `continue` |
+| `2` | `[1]` | `✅ true` | `[1, 2]` | `continue` |
+| `3` | `[1, 2]` | `✅ true` | `[1, 2, 3]` | `continue` |
+| `1` | `[1, 2, 3]` | `❌ false` | `[1, 2, 3]` | `return true` |
 
 
 **Narrated execution — follow each operation, then check its values:**
 
 **Iteration/check 1 — value = `1`.**
 
-Read the next value, `1`, and try to add it to `seen`. The insertion returns `true`; negating that result evaluates the duplicate guard to `!true → false`. The set now contains `[1]`. Therefore `continue`. A successful insertion means this value was new; a failed insertion means it was already stored.
+- **✅ `for (int value : values)`:** next value exists → true; assign `value=1` (input index `0`).
+- **✅ `seen.add(value)`** with `1` changes `seen`: `[] → [1]`; insertion returns `true`.
+- **❌ `if (!seen.add(value))`:** `!true → false`; skip `return true`.
+- Continue to the next value; `seen` stays `[1]`.
 
 | value | seen.add(value) | if (!seen.add(value)) | seen after | next action |
 | --- | --- | --- | --- | --- |
-| `1` | `true` | `!true → false` | `[1]` | `continue` |
+| `1` | `✅ true` | `❌ !true → false` | `[1]` | `continue` |
 
 **Iteration/check 2 — value = `2`.**
 
-Read the next value, `2`, and try to add it to `seen`. The insertion returns `true`; negating that result evaluates the duplicate guard to `!true → false`. The set now contains `[1, 2]`. Therefore `continue`. A successful insertion means this value was new; a failed insertion means it was already stored.
+- **✅ `for (int value : values)`:** next value exists → true; assign `value=2` (input index `1`).
+- **✅ `seen.add(value)`** with `2` changes `seen`: `[1] → [1, 2]`; insertion returns `true`.
+- **❌ `if (!seen.add(value))`:** `!true → false`; skip `return true`.
+- Continue to the next value; `seen` stays `[1, 2]`.
 
 | value | seen.add(value) | if (!seen.add(value)) | seen after | next action |
 | --- | --- | --- | --- | --- |
-| `2` | `true` | `!true → false` | `[1, 2]` | `continue` |
+| `2` | `✅ true` | `❌ !true → false` | `[1, 2]` | `continue` |
 
 **Iteration/check 3 — value = `3`.**
 
-Read the next value, `3`, and try to add it to `seen`. The insertion returns `true`; negating that result evaluates the duplicate guard to `!true → false`. The set now contains `[1, 2, 3]`. Therefore `continue`. A successful insertion means this value was new; a failed insertion means it was already stored.
+- **✅ `for (int value : values)`:** next value exists → true; assign `value=3` (input index `2`).
+- **✅ `seen.add(value)`** with `3` changes `seen`: `[1, 2] → [1, 2, 3]`; insertion returns `true`.
+- **❌ `if (!seen.add(value))`:** `!true → false`; skip `return true`.
+- Continue to the next value; `seen` stays `[1, 2, 3]`.
 
 | value | seen.add(value) | if (!seen.add(value)) | seen after | next action |
 | --- | --- | --- | --- | --- |
-| `3` | `true` | `!true → false` | `[1, 2, 3]` | `continue` |
+| `3` | `✅ true` | `❌ !true → false` | `[1, 2, 3]` | `continue` |
 
 **Iteration/check 4 — value = `1`.**
 
-Read the next value, `1`, and try to add it to `seen`. The insertion returns `false`; negating that result evaluates the duplicate guard to `!false → true`. The set now contains `[1, 2, 3]`. Therefore `return true; stop`. A successful insertion means this value was new; a failed insertion means it was already stored.
+- **✅ `for (int value : values)`:** next value exists → true; assign `value=1` (input index `3`).
+- **❌ `seen.add(value)`** with `1` keeps `seen`: `[1, 2, 3] → [1, 2, 3]`; insertion returns `false`.
+- **✅ `if (!seen.add(value))`:** `!false → true`; execute `return true`; stop.
+- `for` advancement and the final `return false` are `Skipped` after the return.
 
 | value | seen.add(value) | if (!seen.add(value)) | seen after | next action |
 | --- | --- | --- | --- | --- |
-| `1` | `false` | `!false → true` | `[1, 2, 3]` | `return true; stop` |
+| `1` | `❌ false` | `✅ !false → true` | `[1, 2, 3]` | `return true; stop` |
 
 The duplicate makes the fourth condition true, so the final return outside the loop is skipped. For all-distinct input, exhaustion instead reaches `return false`.
 
