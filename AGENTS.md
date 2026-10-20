@@ -182,6 +182,7 @@ For every lesson under `docs/interview/01-leetcode/`:
 For every LeetCode or other coding explanation, use the detailed character-replacement trace as the baseline:
 
 - State the exact input, index-to-value mapping when useful, and initial values before tracing.
+- Name the actual condition instead of unexplained boolean shorthand: write `if (candidateLength < bestLength): 6 < 2147483647 → true`, rather than `shorter=true`. Use the current values at that exact check in both narration and debugger cells.
 - Keep narration concise while naming the code responsible: for example, “windowCounts.merge adds A, changing its count 0 → 1,” then briefly name the if/while being checked. Use short inline method/statement names in the existing paragraph; do not expand every action into a long numbered control-flow script unless requested.
 - Keep one fixed worked input throughout a lesson’s conceptual explanation, code walkthrough, narrated debugging, value tables, and related checkpoints. Do not switch source, target, array, or budget to introduce a counterexample midway, even if labeled separate. Explain using another state from the same execution or state the general rule without inventing another input. Keep additional edge-case checks in the runnable test programs rather than mixing them into the running explanation.
 - Follow the actual reference code in execution order; show every algorithm variable, condition result, pointer movement, and returned value with exact arithmetic.
