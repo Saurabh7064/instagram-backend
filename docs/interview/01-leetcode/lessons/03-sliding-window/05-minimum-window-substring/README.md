@@ -305,9 +305,9 @@ Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and cont
 - **Window map:** `{'A': 1}`.
 - `right++`: `0 → 1`; **✅ `for` condition:** `1 < 13 → true`; continue.
 
-| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `A` | `✅ if: ✅ containsKey(A) → true; ✅ 1 == 1 → true` | `❌ while (formedGroups == requiredGroups): 1 == 3 → false; exit inner while` | `0` | `1` | `(0,2147483647)` | `{'A': 1}` | `right++; recheck for condition` |
+| right | incoming | incoming group condition | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `0` | `A` | `✅ if: ✅ containsKey(A) → true; ✅ 1 == 1 → true` | `0` | `1` | `(0,2147483647)` | `{'A': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 2 — right = `1`.**
 
@@ -320,9 +320,9 @@ Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and cont
 - **Window map:** `{'A': 1, 'D': 1}`.
 - `right++`: `1 → 2`; **✅ `for` condition:** `2 < 13 → true`; continue.
 
-| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `D` | `❌ if: ❌ containsKey(D) → false; equality Skipped (short circuit)` | `❌ while (formedGroups == requiredGroups): 1 == 3 → false; exit inner while` | `0` | `1` | `(0,2147483647)` | `{'A': 1, 'D': 1}` | `right++; recheck for condition` |
+| right | incoming | incoming group condition | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `1` | `D` | `❌ if: ❌ containsKey(D) → false; equality Skipped (short circuit)` | `0` | `1` | `(0,2147483647)` | `{'A': 1, 'D': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 3 — right = `2`.**
 
@@ -335,9 +335,9 @@ Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and cont
 - **Window map:** `{'A': 1, 'D': 1, 'O': 1}`.
 - `right++`: `2 → 3`; **✅ `for` condition:** `3 < 13 → true`; continue.
 
-| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `O` | `❌ if: ❌ containsKey(O) → false; equality Skipped (short circuit)` | `❌ while (formedGroups == requiredGroups): 1 == 3 → false; exit inner while` | `0` | `1` | `(0,2147483647)` | `{'A': 1, 'D': 1, 'O': 1}` | `right++; recheck for condition` |
+| right | incoming | incoming group condition | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `2` | `O` | `❌ if: ❌ containsKey(O) → false; equality Skipped (short circuit)` | `0` | `1` | `(0,2147483647)` | `{'A': 1, 'D': 1, 'O': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 4 — right = `3`.**
 
@@ -350,9 +350,9 @@ Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and cont
 - **Window map:** `{'A': 1, 'D': 1, 'O': 1, 'B': 1}`.
 - `right++`: `3 → 4`; **✅ `for` condition:** `4 < 13 → true`; continue.
 
-| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `B` | `✅ if: ✅ containsKey(B) → true; ✅ 1 == 1 → true` | `❌ while (formedGroups == requiredGroups): 2 == 3 → false; exit inner while` | `0` | `2` | `(0,2147483647)` | `{'A': 1, 'D': 1, 'O': 1, 'B': 1}` | `right++; recheck for condition` |
+| right | incoming | incoming group condition | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `3` | `B` | `✅ if: ✅ containsKey(B) → true; ✅ 1 == 1 → true` | `0` | `2` | `(0,2147483647)` | `{'A': 1, 'D': 1, 'O': 1, 'B': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 5 — right = `4`.**
 
@@ -365,9 +365,9 @@ Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and cont
 - **Window map:** `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1}`.
 - `right++`: `4 → 5`; **✅ `for` condition:** `5 < 13 → true`; continue.
 
-| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `4` | `E` | `❌ if: ❌ containsKey(E) → false; equality Skipped (short circuit)` | `❌ while (formedGroups == requiredGroups): 2 == 3 → false; exit inner while` | `0` | `2` | `(0,2147483647)` | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1}` | `right++; recheck for condition` |
+| right | incoming | incoming group condition | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `4` | `E` | `❌ if: ❌ containsKey(E) → false; equality Skipped (short circuit)` | `0` | `2` | `(0,2147483647)` | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 6 — right = `5`.**
 
@@ -388,9 +388,9 @@ Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and cont
 - **Window map:** `{'A': 0, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 1}`.
 - `right++`: `5 → 6`; **✅ `for` condition:** `6 < 13 → true`; continue.
 
-| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `5` | `C` | `✅ if: ✅ containsKey(C) → true; ✅ 1 == 1 → true` | `✅ while (formedGroups == requiredGroups): 3 == 3 → true; candidateLength=5-0+1=6; ✅ if (candidateLength < bestLength): 6 < 2147483647 → true; execute bestStart = left → 0; bestLength = candidateLength → 6; char outgoing = source.charAt(left) reads source.charAt(0) → 'A'; windowCounts.merge(outgoing, -1, Integer::sum) decreases A count 1 → 0; left++: 0 → 1; removal ✅ if: ✅ neededCounts.containsKey(outgoing) with outgoing='A' → true; ✅ windowCounts.get(outgoing) < neededCounts.get(outgoing): 0 < 1 → true; execute formedGroups--: 3 → 2; ❌ while (formedGroups == requiredGroups): 2 == 3 → false; exit inner while` | `1` | `2 → 3 → 2` | `(0,6)` | `{'A': 0, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 1}` | `right++; recheck for condition` |
+| right | incoming | incoming group condition | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `5` | `C` | `✅ if: ✅ containsKey(C) → true; ✅ 1 == 1 → true` | `1` | `2 → 3 → 2` | `(0,6)` | `{'A': 0, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 7 — right = `6`.**
 
@@ -403,9 +403,9 @@ Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and cont
 - **Window map:** `{'A': 0, 'D': 1, 'O': 2, 'B': 1, 'E': 1, 'C': 1}`.
 - `right++`: `6 → 7`; **✅ `for` condition:** `7 < 13 → true`; continue.
 
-| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `6` | `O` | `❌ if: ❌ containsKey(O) → false; equality Skipped (short circuit)` | `❌ while (formedGroups == requiredGroups): 2 == 3 → false; exit inner while` | `1` | `2` | `(0,6)` | `{'A': 0, 'D': 1, 'O': 2, 'B': 1, 'E': 1, 'C': 1}` | `right++; recheck for condition` |
+| right | incoming | incoming group condition | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `6` | `O` | `❌ if: ❌ containsKey(O) → false; equality Skipped (short circuit)` | `1` | `2` | `(0,6)` | `{'A': 0, 'D': 1, 'O': 2, 'B': 1, 'E': 1, 'C': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 8 — right = `7`.**
 
@@ -418,9 +418,9 @@ Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and cont
 - **Window map:** `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 1, 'C': 1}`.
 - `right++`: `7 → 8`; **✅ `for` condition:** `8 < 13 → true`; continue.
 
-| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `7` | `D` | `❌ if: ❌ containsKey(D) → false; equality Skipped (short circuit)` | `❌ while (formedGroups == requiredGroups): 2 == 3 → false; exit inner while` | `1` | `2` | `(0,6)` | `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 1, 'C': 1}` | `right++; recheck for condition` |
+| right | incoming | incoming group condition | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `7` | `D` | `❌ if: ❌ containsKey(D) → false; equality Skipped (short circuit)` | `1` | `2` | `(0,6)` | `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 1, 'C': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 9 — right = `8`.**
 
@@ -433,9 +433,9 @@ Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and cont
 - **Window map:** `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 2, 'C': 1}`.
 - `right++`: `8 → 9`; **✅ `for` condition:** `9 < 13 → true`; continue.
 
-| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `8` | `E` | `❌ if: ❌ containsKey(E) → false; equality Skipped (short circuit)` | `❌ while (formedGroups == requiredGroups): 2 == 3 → false; exit inner while` | `1` | `2` | `(0,6)` | `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 2, 'C': 1}` | `right++; recheck for condition` |
+| right | incoming | incoming group condition | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `8` | `E` | `❌ if: ❌ containsKey(E) → false; equality Skipped (short circuit)` | `1` | `2` | `(0,6)` | `{'A': 0, 'D': 2, 'O': 2, 'B': 1, 'E': 2, 'C': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 10 — right = `9`.**
 
@@ -448,9 +448,9 @@ Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and cont
 - **Window map:** `{'A': 0, 'D': 2, 'O': 2, 'B': 2, 'E': 2, 'C': 1}`.
 - `right++`: `9 → 10`; **✅ `for` condition:** `10 < 13 → true`; continue.
 
-| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `9` | `B` | `❌ if: ✅ containsKey(B) → true; ❌ 2 == 1 → false` | `❌ while (formedGroups == requiredGroups): 2 == 3 → false; exit inner while` | `1` | `2` | `(0,6)` | `{'A': 0, 'D': 2, 'O': 2, 'B': 2, 'E': 2, 'C': 1}` | `right++; recheck for condition` |
+| right | incoming | incoming group condition | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `9` | `B` | `❌ if: ✅ containsKey(B) → true; ❌ 2 == 1 → false` | `1` | `2` | `(0,6)` | `{'A': 0, 'D': 2, 'O': 2, 'B': 2, 'E': 2, 'C': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 11 — right = `10`.**
 
@@ -503,9 +503,9 @@ Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and cont
 - **Window map:** `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0}`.
 - `right++`: `10 → 11`; **✅ `for` condition:** `11 < 13 → true`; continue.
 
-| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `10` | `A` | `✅ if: ✅ containsKey(A) → true; ✅ 1 == 1 → true` | `✅ while (formedGroups == requiredGroups): 3 == 3 → true; candidateLength=10-1+1=10; ❌ if (candidateLength < bestLength): 10 < 6 → false; skip bestStart/bestLength assignments; bestStart=0, bestLength=6 unchanged; char outgoing = source.charAt(left) reads source.charAt(1) → 'D'; windowCounts.merge(outgoing, -1, Integer::sum) decreases D count 2 → 1; left++: 1 → 2; removal ❌ if: ❌ neededCounts.containsKey(outgoing) with outgoing='D' → false; skip windowCounts.get(outgoing) < neededCounts.get(outgoing) (&& short circuit); skip formedGroups--; formedGroups stays 3; ✅ while (formedGroups == requiredGroups): 3 == 3 → true; candidateLength=10-2+1=9; ❌ if (candidateLength < bestLength): 9 < 6 → false; skip bestStart/bestLength assignments; bestStart=0, bestLength=6 unchanged; char outgoing = source.charAt(left) reads source.charAt(2) → 'O'; windowCounts.merge(outgoing, -1, Integer::sum) decreases O count 2 → 1; left++: 2 → 3; removal ❌ if: ❌ neededCounts.containsKey(outgoing) with outgoing='O' → false; skip windowCounts.get(outgoing) < neededCounts.get(outgoing) (&& short circuit); skip formedGroups--; formedGroups stays 3; ✅ while (formedGroups == requiredGroups): 3 == 3 → true; candidateLength=10-3+1=8; ❌ if (candidateLength < bestLength): 8 < 6 → false; skip bestStart/bestLength assignments; bestStart=0, bestLength=6 unchanged; char outgoing = source.charAt(left) reads source.charAt(3) → 'B'; windowCounts.merge(outgoing, -1, Integer::sum) decreases B count 2 → 1; left++: 3 → 4; removal ❌ if: ✅ neededCounts.containsKey(outgoing) with outgoing='B' → true; ❌ windowCounts.get(outgoing) < neededCounts.get(outgoing): 1 < 1 → false; skip formedGroups--; formedGroups stays 3; ✅ while (formedGroups == requiredGroups): 3 == 3 → true; candidateLength=10-4+1=7; ❌ if (candidateLength < bestLength): 7 < 6 → false; skip bestStart/bestLength assignments; bestStart=0, bestLength=6 unchanged; char outgoing = source.charAt(left) reads source.charAt(4) → 'E'; windowCounts.merge(outgoing, -1, Integer::sum) decreases E count 2 → 1; left++: 4 → 5; removal ❌ if: ❌ neededCounts.containsKey(outgoing) with outgoing='E' → false; skip windowCounts.get(outgoing) < neededCounts.get(outgoing) (&& short circuit); skip formedGroups--; formedGroups stays 3; ✅ while (formedGroups == requiredGroups): 3 == 3 → true; candidateLength=10-5+1=6; ❌ if (candidateLength < bestLength): 6 < 6 → false; skip bestStart/bestLength assignments; bestStart=0, bestLength=6 unchanged; char outgoing = source.charAt(left) reads source.charAt(5) → 'C'; windowCounts.merge(outgoing, -1, Integer::sum) decreases C count 1 → 0; left++: 5 → 6; removal ✅ if: ✅ neededCounts.containsKey(outgoing) with outgoing='C' → true; ✅ windowCounts.get(outgoing) < neededCounts.get(outgoing): 0 < 1 → true; execute formedGroups--: 3 → 2; ❌ while (formedGroups == requiredGroups): 2 == 3 → false; exit inner while` | `1 → 2 → 3 → 4 → 5 → 6` | `2 → 3 → 2` | `(0,6)` | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0}` | `right++; recheck for condition` |
+| right | incoming | incoming group condition | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `10` | `A` | `✅ if: ✅ containsKey(A) → true; ✅ 1 == 1 → true` | `1 → 2 → 3 → 4 → 5 → 6` | `2 → 3 → 2` | `(0,6)` | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0}` | `right++; recheck for condition` |
 
 **Iteration/check 12 — right = `11`.**
 
@@ -518,9 +518,9 @@ Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and cont
 - **Window map:** `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0, 'N': 1}`.
 - `right++`: `11 → 12`; **✅ `for` condition:** `12 < 13 → true`; continue.
 
-| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `11` | `N` | `❌ if: ❌ containsKey(N) → false; equality Skipped (short circuit)` | `❌ while (formedGroups == requiredGroups): 2 == 3 → false; exit inner while` | `6` | `2` | `(0,6)` | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0, 'N': 1}` | `right++; recheck for condition` |
+| right | incoming | incoming group condition | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `11` | `N` | `❌ if: ❌ containsKey(N) → false; equality Skipped (short circuit)` | `6` | `2` | `(0,6)` | `{'A': 1, 'D': 1, 'O': 1, 'B': 1, 'E': 1, 'C': 0, 'N': 1}` | `right++; recheck for condition` |
 
 **Iteration/check 13 — right = `12`.**
 
@@ -565,9 +565,9 @@ Removing A at right `5` changes A `1 → 0`, so formed groups `3 → 2` and cont
 - **Window map:** `{'A': 1, 'D': 0, 'O': 0, 'B': 0, 'E': 0, 'C': 1, 'N': 1}`.
 - `right++`: `12 → 13`; **❌ `for` condition:** `13 < 13 → false`; exit the outer loop.
 
-| right | incoming | incoming group condition | inner loop: every check / branch / removal | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `12` | `C` | `✅ if: ✅ containsKey(C) → true; ✅ 1 == 1 → true` | `✅ while (formedGroups == requiredGroups): 3 == 3 → true; candidateLength=12-6+1=7; ❌ if (candidateLength < bestLength): 7 < 6 → false; skip bestStart/bestLength assignments; bestStart=0, bestLength=6 unchanged; char outgoing = source.charAt(left) reads source.charAt(6) → 'O'; windowCounts.merge(outgoing, -1, Integer::sum) decreases O count 1 → 0; left++: 6 → 7; removal ❌ if: ❌ neededCounts.containsKey(outgoing) with outgoing='O' → false; skip windowCounts.get(outgoing) < neededCounts.get(outgoing) (&& short circuit); skip formedGroups--; formedGroups stays 3; ✅ while (formedGroups == requiredGroups): 3 == 3 → true; candidateLength=12-7+1=6; ❌ if (candidateLength < bestLength): 6 < 6 → false; skip bestStart/bestLength assignments; bestStart=0, bestLength=6 unchanged; char outgoing = source.charAt(left) reads source.charAt(7) → 'D'; windowCounts.merge(outgoing, -1, Integer::sum) decreases D count 1 → 0; left++: 7 → 8; removal ❌ if: ❌ neededCounts.containsKey(outgoing) with outgoing='D' → false; skip windowCounts.get(outgoing) < neededCounts.get(outgoing) (&& short circuit); skip formedGroups--; formedGroups stays 3; ✅ while (formedGroups == requiredGroups): 3 == 3 → true; candidateLength=12-8+1=5; ✅ if (candidateLength < bestLength): 5 < 6 → true; execute bestStart = left → 8; bestLength = candidateLength → 5; char outgoing = source.charAt(left) reads source.charAt(8) → 'E'; windowCounts.merge(outgoing, -1, Integer::sum) decreases E count 1 → 0; left++: 8 → 9; removal ❌ if: ❌ neededCounts.containsKey(outgoing) with outgoing='E' → false; skip windowCounts.get(outgoing) < neededCounts.get(outgoing) (&& short circuit); skip formedGroups--; formedGroups stays 3; ✅ while (formedGroups == requiredGroups): 3 == 3 → true; candidateLength=12-9+1=4; ✅ if (candidateLength < bestLength): 4 < 5 → true; execute bestStart = left → 9; bestLength = candidateLength → 4; char outgoing = source.charAt(left) reads source.charAt(9) → 'B'; windowCounts.merge(outgoing, -1, Integer::sum) decreases B count 1 → 0; left++: 9 → 10; removal ✅ if: ✅ neededCounts.containsKey(outgoing) with outgoing='B' → true; ✅ windowCounts.get(outgoing) < neededCounts.get(outgoing): 0 < 1 → true; execute formedGroups--: 3 → 2; ❌ while (formedGroups == requiredGroups): 2 == 3 → false; exit inner while` | `6 → 7 → 8 → 9 → 10` | `2 → 3 → 2` | `(0,6) → (8,5) → (9,4)` | `{'A': 1, 'D': 0, 'O': 0, 'B': 0, 'E': 0, 'C': 1, 'N': 1}` | `right++; recheck for condition` |
+| right | incoming | incoming group condition | left after | formedGroups after | bestStart,bestLength after | windowCounts after | next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `12` | `C` | `✅ if: ✅ containsKey(C) → true; ✅ 1 == 1 → true` | `6 → 7 → 8 → 9 → 10` | `2 → 3 → 2` | `(0,6) → (8,5) → (9,4)` | `{'A': 1, 'D': 0, 'O': 0, 'B': 0, 'E': 0, 'C': 1, 'N': 1}` | `right++; recheck for condition` |
 
 Every outer `✅ for` guard `right < 13` is true for these rows. After right `12`, the outer `❌ for` guard is `13 < 13 → false`; bestLength is `4`, so `❌ bestLength == Integer.MAX_VALUE: 4 == 2147483647 → false` and return `source.substring(9,13) = "BANC"`. A required-key test that returns false skips its count comparison; the inner loop stops only when coverage is lost.
 

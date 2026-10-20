@@ -54,6 +54,6 @@ The original normalization Java files remain at their old paths and now belong t
 
 Start with the [learning backlog](./learning-backlog.md); later lessons remain `TODO` until the current lesson's stop/go criteria are met.
 
-Keep the original debugger-table columns and full context. If one value changes several times within an iteration, show the intermediate values in that same cell (for example `2 → 3 → 2`); do not replace the table with a changes-only summary.
+Keep useful debugger-table columns and full state context; remove any execution-script column that repeats the adjacent bullets. If one value changes several times within an iteration, show the intermediate values in that same cell (for example `2 → 3 → 2`); do not replace the table with a changes-only summary.
 
 Write each execution as concise bullets: actual statement/API → concrete values and changes → evaluated condition and executed/skipped branch → final state → next action/return. Place ✅ or ❌ before evaluated conditions, retain true/false, and leave skipped checks unmarked. Keep each original value table immediately after its bullet list, including full collection context and in-cell change paths.
