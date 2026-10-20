@@ -749,3 +749,9 @@ For every new feature or learning concept:
 - Preference: saved in [AGENTS.md](../AGENTS.md#coding-explanation-and-debugger-trace-standard); [Minimum Window lesson](./interview/01-leetcode/lessons/03-sliding-window/05-minimum-window-substring/README.md).
 - Verification: compared every restored table’s headers, rows, and cells with its original version; only nine cells differ by an ordered path. Collapsing each path to its final value reproduces the original table exactly. Checked local links, table structure, code fences, and git diff --check. Regenerated the UI catalog; browser verification confirms the original nine columns, one data row, and the 2→3→2 value. Captured and visually reviewed [original-layout proof](./demo-proofs/2026-10-19/minimum-window-original-table-with-path.png).
 - Scope: documentation and teaching-preference changes only. Java/API/renderer behavior, learner/backlog statuses, and unrelated working-tree edits remain unchanged.
+
+## Explicit Minimum Window comparison checks — 2026-10-19
+
+- Commit: `81aa7ad` — replaced unexplained shorter=true/false shorthand in the [Minimum Window lesson](./interview/01-leetcode/lessons/03-sliding-window/05-minimum-window-substring/README.md) with the actual if (candidateLength < bestLength) condition and substituted values, in both narration and existing debugger cells. Saved the rule in [AGENTS.md](../AGENTS.md#coding-explanation-and-debugger-trace-standard).
+- Concept: compare each candidate against the best length at that exact moment; equality is false, and the final comparison is 4 < 5 after saving length 5.
+- Verification: replayed the fixed ADOBECODEBANC / ABC example, verified all 20 comparison occurrences and final BANC, preserved table layout/code fences, passed git diff --check, and regenerated the 216-document UI catalog. Documentation only; no behavior or learner/backlog status changes. Unrelated working-tree edits excluded.
