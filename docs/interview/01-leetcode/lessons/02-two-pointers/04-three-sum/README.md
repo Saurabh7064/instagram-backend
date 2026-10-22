@@ -30,169 +30,23 @@ Assumptions:
 - Output order does not matter, but each value-combination must appear once.
 - Values are within LeetCode constraints, so adding three values is safe in an `int`.
 
-Examples:
-
-- `[-1, 0, 1, 2, -1, -4]` → `[[-1, -1, 2], [-1, 0, 1]]`
-- `[0, 1, 1]` → `[]`
-- `[0, 0, 0]` → `[[0, 0, 0]]`
-
 Target: `O(n²)` time, excluding output, after `O(n log n)` sorting.
+
+## First understand the idea
+
+The key idea is to hold one value fixed, then find two other values that bring its sum to zero.
+
+Use `numbers=[-1,0,1,2,-1,-4]`. Sort a copy to obtain `sorted=[-4,-1,-1,0,1,2]`; the original input stays unchanged. Let `anchor` mean the fixed position, while `left` and `right` search the remaining positions to its right. `result` stores distinct triplets found so far.
+
+Fix the -1 at anchor index 1. Its partners must total 1 because `-1+1=0`. Positions 2 and 5 supply -1 and 2: `-1+(-1)+2=0`, so record `[-1,-1,2]`. Move both search positions inward; 0 and 1 give `-1+0+1=0`, so record `[-1,0,1]`. The earlier anchor -4 has no pair totaling 4; later anchors add no new triplet. The answer contains those two triplets.
+
+The fixed value is called an **anchor**. In general, sorting lets a too-small sum increase by moving left, and a too-large sum decrease by moving right. After a match, move both and skip repeated values. Skip repeated anchor values too: equal values would reproduce the same value-combinations, even though their indexes differ. Sorting the copy preserves caller-owned input while making those comparisons possible.
 
 :::simulation
 type: three-sum
 language: java
-nums: [-1, 0, 1, 2, -1, -4, 3, -3]
+nums: [-1, 0, 1, 2, -1, -4]
 :::
-
-## How the example results are calculated
-
-First, sort the example before fixing any value:
-
-```text
-input:  [-1, 0, 1, 2, -1, -4]
-sorted: [-4, -1, -1, 0, 1, 2]
-index:    0   1   2  3  4  5
-```
-
-### Step 1 — Choose one value and call it the anchor
-
-We need three values whose sum is zero. Start by choosing one value and keeping it fixed while searching for the other two. This fixed value is called the **anchor**.
-
-Begin with the first sorted value:
-
-```text
-anchor index = 0
-anchor value = -4
-```
-
-The two other values must come from positions after the anchor:
-
-```text
-anchor index < left index < right index
-```
-
-This gives three different indexes. It also gives every sorted triplet one consistent order instead of finding the same values in several arrangements.
-
-After checking all pairs for `-4`, move the anchor to index `1`, whose value is `-1`, and search again. Continue while at least two positions remain after the anchor.
-
-### Step 2 — Calculate what the remaining pair must provide
-
-Fixing the anchor changes the three-value question into a two-value question:
-
-```text
-anchor + left + right = 0
-
-therefore:
-left + right = -anchor
-```
-
-For anchor `-4`, the remaining pair must add to positive `4`:
-
-```text
-required pair sum = -(-4) = 4
-```
-
-### Step 3 — Place two pointers and compare the first candidate
-
-Place `left` immediately after the anchor and `right` at the final index:
-
-```text
-anchor = -4
-left   = -1
-right  = 2
-
-left + right = -1 + 2 = 1
-full sum = -4 + -1 + 2 = -3
-```
-
-The pair provides only `1`, but the anchor needs a pair sum of `4`. The full sum is therefore too small. Because the values are sorted, move `left` rightward to obtain a value that is equal or larger. Moving `right` leftward would select a value equal or smaller than `2`, which cannot increase the sum.
-
-The decision rule is now:
-
-```text
-full sum < 0  → move left rightward to increase the sum
-full sum > 0  → move right leftward to decrease the sum
-full sum = 0  → record the triplet and move both pointers
-```
-
-### Example 1 — Two valid triplets
-
-The result contains values, not their indexes. For each anchor, the required pair sum is `-anchor`.
-
-| Anchor | Required pair sum | Left | Right | Full sum | Decision |
-|---|---:|---|---|---:|---|
-| `-4` at `0` | `4` | `-1` at `1` | `2` at `5` | `-3` | Too small; move `left` right |
-| `-4` at `0` | `4` | `-1` at `2` | `2` at `5` | `-3` | Too small; move `left` right |
-| `-4` at `0` | `4` | `0` at `3` | `2` at `5` | `-2` | Too small; move `left` right |
-| `-4` at `0` | `4` | `1` at `4` | `2` at `5` | `-1` | Too small; pointers meet, so no triplet starts with `-4` |
-| `-1` at `1` | `1` | `-1` at `2` | `2` at `5` | `0` | Add `[-1, -1, 2]`; move both pointers |
-| `-1` at `1` | `1` | `0` at `3` | `1` at `4` | `0` | Add `[-1, 0, 1]`; move both pointers |
-| `-1` at `2` | `1` | — | — | — | Skip: it duplicates the previous anchor `-1` |
-| `0` at `3` | `0` | `1` at `4` | `2` at `5` | `3` | Too large; move `right` left, then pointers meet |
-
-Therefore:
-
-```text
--1 + -1 + 2 = 0  → [-1, -1, 2]
--1 +  0 + 1 = 0  → [-1, 0, 1]
-
-result = [[-1, -1, 2], [-1, 0, 1]]
-```
-
-The second `-1` is not allowed to repeat the anchor search because it would rediscover the same value combinations. The algorithm removes duplicate value triplets, even though the equal values may come from different indexes.
-
-### Example 2 — No valid triplet
-
-```text
-input and sorted: [0, 1, 1]
-
-anchor = 0 at index 0
-left   = 1 at index 1
-right  = 1 at index 2
-sum    = 0 + 1 + 1 = 2
-```
-
-The sum is positive, so `right` moves left. The pointers then meet, no zero-sum triplet was recorded, and the result is `[]`.
-
-### Example 3 — Three zeroes form one unique triplet
-
-```text
-input and sorted: [0, 0, 0]
-
-anchor = 0 at index 0
-left   = 0 at index 1
-right  = 0 at index 2
-sum    = 0 + 0 + 0 = 0
-```
-
-The algorithm records `[0, 0, 0]`, moves both pointers, and stops when they cross. The result is `[[0, 0, 0]]` because the answer contains unique value combinations, not every possible combination of indexes.
-
-## Concept: reduce three values to two
-
-After sorting, choose `sorted[anchor]`. The remaining problem is:
-
-> Find two values to the right whose sum is `-sorted[anchor]`.
-
-That is the sorted two-pointer problem from Two Sum II. For every anchor, `left` starts just after it and `right` starts at the array end.
-
-## Why sorting a copy matters
-
-```java
-int[] sorted = Arrays.copyOf(numbers, numbers.length);
-Arrays.sort(sorted);
-```
-
-Sorting enables pointer decisions and adjacent duplicate checks. Copying first keeps the method from changing the caller's array. Sorting the original is also valid when mutation is explicitly allowed, but that contract should be stated.
-
-## Duplicate control
-
-Three separate rules create unique output:
-
-1. Skip an anchor equal to the previous anchor.
-2. After finding a triplet, advance both pointers.
-3. Continue advancing across values equal to the values just used.
-
-For `[0, 0, 0, 0]`, these rules return `[0, 0, 0]` once rather than four equivalent index combinations.
 
 ## Block-by-block code walkthrough
 

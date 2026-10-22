@@ -6,10 +6,6 @@
 
 Practice source: [Minimum Window Substring on LeetCode](https://leetcode.com/problems/minimum-window-substring/)
 
-Examples:
-
-- `source = "ADOBECODEBANC"`, `target = "ABC"` → `"BANC"`.
-
 Assumptions follow LeetCode: both inputs contain English letters, `1 <= source.length, target.length <= 100,000`, and the answer is unique when it exists. Target `O(n + m)` time and `O(alphabet)` space.
 
 ## What you will learn
@@ -26,17 +22,17 @@ Assumptions follow LeetCode: both inputs contain English letters, `1 <= source.l
 - Primary idea: expand to become valid, then shrink to become minimal
 - New terms: required group, formed group, covering window
 
-## First understand how to find the answer
+## First understand the idea
 
-The main worked example throughout this walkthrough is `source="ADOBECODEBANC"`, `target="ABC"`. A **required group** is one distinct target character with its required count. Here the groups are `A:1`, `B:1`, and `C:1`, so `requiredGroups = 3`.
+The key idea is to grow a substring until it supplies every required character, then shorten it while it still supplies them all.
 
-A group becomes **formed** only when the active window reaches its required count.
+Use `source="ADOBECODEBANC"`, `target="ABC"`. `neededCounts` means “required copies of each target letter”: A:1, B:1, C:1. `windowCounts` means “copies currently inside source[left..right].” `requiredGroups=3` counts the three distinct letter requirements; `formedGroups` counts how many have enough copies right now. A **required group** is one letter's requirement; a **formed group** is one whose count has reached it.
 
-1. Count `target` and calculate its number of distinct required groups.
-2. Expand `right`, updating the incoming count and `formedGroups`.
-3. When `formedGroups == requiredGroups`, the window covers the target.
-4. Record it if it is shorter, then remove the left character.
-5. Continue shrinking while valid; when a required count falls short, resume expansion.
+Reading through right index 5 gives ADOBEC at left=0. The window now supplies A, B, C, so `formedGroups=3` and its length is `5-0+1=6`. Save that candidate before removing A. Removing A changes its count 1→0, so only two groups remain satisfied; expanding must resume.
+
+At the final C, right=12, shrinking eventually reaches left=9: BANC still supplies all three required letters and has length `12-9+1=4`. This improves the saved length 6 to 5 at left=8, then to 4 at left=9. Removing B makes it invalid, so stop shrinking. The best saved range begins at 9 and spans 4 characters; return BANC.
+
+In general, coverage is `formedGroups == requiredGroups`. Record a shorter valid window first, then remove its leftmost character and recheck coverage. A surplus copy can leave without losing a group; losing the required last copy decreases formedGroups. Saving first matters because the removal may invalidate the candidate we just found.
 
 :::simulation
 type: minimum-window-substring
@@ -45,16 +41,6 @@ title: Minimum Window · expand to valid, shrink to minimal
 first: ADOBECODEBANC
 second: ABC
 :::
-
-## Work through the results
-
-For `"ADOBECODEBANC"` and `"ABC"`:
-
-- expansion first satisfies all counts at index `5`, producing `"ADOBEC"` length `6`;
-- shrinking removes the leading `A`, so the window becomes invalid and expansion resumes;
-- later `"CODEBA"` is valid with length `6`, then left moves through irrelevant characters until removing `C` would break validity;
-- at the final `C`, shrinking yields `"BANC"` at indexes `9..12`, length `12 - 9 + 1 = 4`;
-- no length below `4` can contain three required characters here, so return `"BANC"`.
 
 ## Block-by-block code walkthrough
 

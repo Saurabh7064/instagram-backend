@@ -6,12 +6,6 @@
 
 Practice source: [Longest Repeating Character Replacement on LeetCode](https://leetcode.com/problems/longest-repeating-character-replacement/)
 
-Examples:
-
-- `"ABAB"`, `k = 2` → `4`.
-- `"AABABBA"`, `k = 1` → `4`.
-- `"AAAA"`, `k = 0` → `4`.
-
 Assumptions follow LeetCode: uppercase English letters, `1 <= text.length <= 100,000`, and `0 <= k <= text.length`. The local runner also checks an empty defensive case. Target `O(n)` time and `O(1)` extra space.
 
 ## What you will learn
@@ -28,21 +22,15 @@ Assumptions follow LeetCode: uppercase English letters, `1 <= text.length <= 100
 - Primary idea: maintain a window whose replacement cost stays within `k`
 - New terms: replacement budget, dominant character, max frequency
 
-## First understand how to find the answer
+## First understand the idea
 
-For any active window:
+The key idea is to keep the most common letter in a candidate substring and count how many other letters would need replacing.
 
-```text
-replacements needed = window length - count of the dominant character
-```
+Use `text="AABABBA"`, `replacementsAllowed=1`. The substring AABA at indexes 0..3 contains three A characters and one B. Keeping A means replacing just B: length 4 minus count 3 gives `4-3=1`, within the budget. Extending to AABAB gives length 5, with A count 3 and B count 2: `5-3=2`, over the budget.
 
-The **dominant character** is the most frequent character in that window. Keep its copies and replace every other character.
+Let `left` and `right` mark the maintained candidate, `frequency` store its letter counts, `maxFrequency` record the largest letter count seen so far by the scan, and `bestLength` the largest maintained length. The most common letter in a particular candidate is its **dominant character**. The runnable implementation keeps `maxFrequency` as a historical high; it does not always equal the current window's largest count after shrinking.
 
-1. Expand `right` and increment the incoming character's count.
-2. Update `maxFrequency`, the largest count observed for a character in the maintained candidate.
-3. Calculate `right - left + 1 - maxFrequency`.
-4. If that cost exceeds `k`, remove the left character and move `left` once.
-5. Record the maintained candidate length.
+For a particular window, `replacements needed = window length - largest current letter count`: every character outside that count must change. The code uses its historical count to decide when to shift the maintained candidate without rescanning all letters; a stale count can preserve a best length already supported, but cannot justify a larger unsupported answer. The invariant below explains that optimization. On this input the best feasible length is 4; the full trace shows why no length 5 is recorded.
 
 :::simulation
 type: character-replacement
@@ -51,19 +39,6 @@ title: Character replacement · maintain the budget
 text: AABABBA
 k: 1
 :::
-
-## Work through the results
-
-For `"ABAB"`, `k = 2`, the full length is `4`; either `A` or `B` appears twice, so `4 - 2 = 2` replacements are enough. Result: `4`.
-
-For `"AABABBA"`, `k = 1`:
-
-- `"AABA"` has length `4`, dominant `A` count `3`, and cost `4 - 3 = 1`; valid;
-- extending to `"AABAB"` has length `5`, maximum count `3`, and cost `2`; over budget;
-- the window shifts, and no later candidate longer than `4` fits one replacement;
-- result: `4`.
-
-For `"AAAA"`, `k = 0`, every active character already matches: `4 - 4 = 0`. Result: `4`.
 
 ## Block-by-block code walkthrough
 

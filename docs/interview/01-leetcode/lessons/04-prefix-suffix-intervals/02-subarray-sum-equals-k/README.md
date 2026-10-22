@@ -23,17 +23,15 @@ Problem: [Subarray Sum Equals K on LeetCode](https://leetcode.com/problems/subar
 
 `1 <= numbers.length <= 20,000`, values in `[-1000,1000]`, `target` in `[-10,000,000,10,000,000]`. Target average `O(n)` time and `O(n)` extra space. A prefix has magnitude at most `20,000,000`; subtracting target has magnitude at most `30,000,000`. At most `20,000×20,001/2=200,010,000` non-empty ranges exist, so the shown `int` arithmetic is safe under these bounds. The runner additionally checks empty input defensively.
 
-## First find the answer in learner language
+## First understand the idea
 
-We cannot know each starting position in advance. After reading a new value, ask: “Which earlier total could I remove to leave `target`?” A **prefix sum** is the cumulative total from index zero through the current index; an earlier boundary may be before any value. Its **complement** here is `current total - target`, the earlier total we need. A **prefix frequency** records how many earlier boundaries had the same total.
+The key idea is to remember earlier running totals, so each new total tells us how many ranges ending here have the requested sum.
 
-1. Remember that total `0` occurred once before reading any values.
-2. Read the next value and update the running total.
-3. Calculate `needed = prefixSum - target`.
-4. Add the number of earlier occurrences of `needed` to the answer.
-5. Only then record this current total for future positions.
+Use `numbers=[1,-1,1,1,-1,1,2]`, `target=2`. Let `prefixSum` mean the total read so far, `countByPrefix` mean “earlier running total → number of boundaries with that total,” and `answer` mean the number of matching ranges found. Begin with `prefixSum=0`, `countByPrefix={0:1}`, `answer=0`; the total before reading any number is one real possible starting boundary.
 
-The algebra comes from `current total - earlier total = target`, rearranged to `earlier total = current total - target`. For example, if current total is `2` and target is `2`, an earlier total `0` leaves `2-0=2`. If zero was seen twice at different boundaries, those are two different valid starting points.
+After indexes 0..3, the running totals are 1,0,1,2. Just before recording the current 2, earlier total 0 occurred twice: before the array and after index 1. Subtracting either occurrence from 2 leaves `2-0=2`. These give two ranges ending at index 3: `[1,-1,1,1]` sums `1-1+1+1=2`, and `[1,1]` at indexes 2..3 sums `1+1=2`. Add two matches, not just one.
+
+A **prefix sum** is a running total; a **frequency** counts its earlier occurrences. In general, a range sum is `current total - earlier total`. To make it equal target, we need `earlier total = prefixSum-target`; this needed value is the **complement**. Add its earlier frequency to answer, then record the current total for later positions. Looking up before recording prevents an empty range from matching itself. The complete scan on this input finds 6 non-empty ranges.
 
 ## Block-by-block code walkthrough
 

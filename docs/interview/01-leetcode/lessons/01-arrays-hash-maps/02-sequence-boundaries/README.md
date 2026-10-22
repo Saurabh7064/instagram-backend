@@ -34,43 +34,23 @@ Assumptions:
 - Consecutive means each next distinct value is exactly one larger.
 - The array can contain any Java `int`, including `Integer.MIN_VALUE` and `Integer.MAX_VALUE`.
 
-Examples:
-
-- `[100, 4, 200, 1, 3, 2]` → `4` because the run is `1, 2, 3, 4`
-- `[1, 2, 0, 1]` → `3` because duplicates do not extend `0, 1, 2`
-- `[]` → `0`
-- `[Integer.MIN_VALUE, Integer.MAX_VALUE]` → `1`; the two extremes are not consecutive
-
 Target: average `O(n)` time and `O(n)` additional space.
+
+## First understand the idea
+
+The key idea is to count a consecutive run only from its smallest value, so the same run is not measured repeatedly.
+
+Use `values=[100,4,200,1,3,2]`. Consecutive means each next value is exactly one larger. Remember the distinct values in `unique={1,2,3,4,100,200}`; this is a set for membership checks, not a promise about Java's iteration order. Let `current` mean the value reached in one run, `length` its count, and `longest` the largest completed count.
+
+Consider `1`: its earlier neighbor `1-1=0` is absent, so this is a run's start. Begin `current=1`, `length=1`; finding `2`, `3`, then `4` changes the count `1 → 2 → 3 → 4`. The next value `5` is absent, so save `longest=max(0,4)=4`. Starting at `2` would repeat part of that work; `2-1=1` is present, so skip that start. The isolated runs at `100` and `200` each have length 1 and cannot beat 4.
+
+A **sequence boundary** here is a value with no predecessor in the set. In general, scan forward only from those boundaries. The expression “value minus one” asks about numeric neighbors, not neighboring array indexes. At Java's minimum/maximum integer values, the guards shown below prevent that arithmetic from wrapping.
 
 :::simulation
 type: longest-consecutive-set
 language: java
-values: [100, 4, 200, 1, 3, 2, 2]
+values: [100, 4, 200, 1, 3, 2]
 :::
-
-## Why a simple HashSet loop is not enough
-
-Putting values in a set gives fast membership checks, but starting a forward scan from every value repeats work.
-
-For the run `1, 2, 3, 4`:
-
-- starting at `1` checks `2`, `3`, and `4`;
-- starting at `2` checks `3` and `4` again;
-- starting at `3` checks `4` again;
-- starting at `4` checks nothing.
-
-For a run containing `n` values, that repeated work can approach `n + (n - 1) + ... + 1`, or `O(n²)`.
-
-The fix is to scan only from a sequence boundary: a value whose predecessor is absent.
-
-```text
-Run:          1  2  3  4
-Predecessor:  0  1  2  3
-Start?       yes no no no
-```
-
-`1` is the only start because `0` is absent. Values `2`, `3`, and `4` are not starts because their predecessors are present.
 
 ## Block-by-block code walkthrough
 

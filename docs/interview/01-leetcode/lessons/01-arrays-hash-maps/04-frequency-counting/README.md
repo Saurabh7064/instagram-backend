@@ -34,14 +34,17 @@ Assumptions:
 - Empty strings are valid and are anagrams of each other.
 - Character order does not matter, but character counts do.
 
-Examples:
-
-- `"anagram"`, `"nagaram"` → `true`
-- `"rat"`, `"car"` → `false`
-- `"aacc"`, `"ccac"` → `false`; both use the same distinct letters but different counts
-- `""`, `""` → `true`
-
 Target: average `O(n)` time and `O(n)` additional space, where `n` is the combined input length.
+
+## First understand the idea
+
+The key idea is to count how many copies of each letter are available, then use one copy for each letter in the second string.
+
+Use `first="anagram"`, `second="nagaram"`. Let `remainingByCharacter` mean “how many copies from first have not yet been matched.” Counting first gives `{a:3,n:1,g:1,r:1,m:1}`: the three a characters each contribute one, so `1+1+1=3`. Such a per-letter count is called a **frequency**.
+
+Now read second. Its first letter n uses the saved n: `1-1=0`. Its next a changes a `3-1=2`; g changes `1-1=0`; the later a, r, a, m consume the rest. Every character has a copy available, and the final counts are all zero, so return true. Equal lengths mean no unmatched extra copies can remain after all characters are consumed.
+
+In general, a character with no remaining copy proves the strings differ; otherwise decrement its count and continue. Matching distinct letter names alone cannot establish how many copies were supplied. The count map preserves that information independently of character order.
 
 :::simulation
 type: valid-anagram-frequency
@@ -49,16 +52,6 @@ language: java
 first: anagram
 second: nagaram
 :::
-
-## Why the problem exists
-
-Checking only whether both strings contain the same distinct letters is insufficient. `"aacc"` and `"ccac"` both contain `a` and `c`, but their counts differ.
-
-The useful question is:
-
-> How many unmatched copies of each character remain?
-
-A frequency map stores that answer.
 
 ## Block-by-block code walkthrough
 

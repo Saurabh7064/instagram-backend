@@ -28,11 +28,15 @@ Assumptions:
 - The method may declare `InterruptedException`.
 - Tests must not depend on arbitrary sleeps.
 
-Examples:
+## First understand the idea
 
-- `squareOnWorker(7)` → `49`
-- `squareOnWorker(-4)` → `16`
-- `squareOnWorker(0)` → `0`
+The key idea is to wait for the actual worker's completion before reading its result, rather than guessing how long its calculation takes.
+
+Use `number=7`. Let `worker` mean the separately scheduled task and `result` its shared result holder, initially 0. The intended calculation is `7*7=49`, so the caller must return 49. A **thread** is one path of execution inside the program; the caller and worker can progress independently.
+
+Creating the worker object does not run the calculation. `start()` makes the worker eligible to execute. If the caller reads result immediately afterward, it might still see the initial 0 because the worker has not written 49 yet. `join()` waits for the worker to finish; after it returns normally, reading the holder gives 49. The worker might also finish before the caller reaches join, in which case no waiting is needed.
+
+In general, create the worker, start it, join it, then read the result. AtomicInteger is the shared holder used here; detailed atomic operations are a later topic. A fixed sleep cannot establish this completion order, because scheduling time varies. The subsequent bullets show one valid schedule, while the completion guarantee applies to every successful execution.
 
 ## Reference approach
 

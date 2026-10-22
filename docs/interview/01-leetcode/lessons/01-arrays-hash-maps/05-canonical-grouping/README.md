@@ -33,31 +33,21 @@ Assumptions:
 - Empty strings are valid.
 - Every input word must appear exactly once in the output.
 
-Examples:
+## First understand the idea
 
-- `["eat", "tea", "tan", "ate", "nat", "bat"]` → groups equivalent to `[["eat", "tea", "ate"], ["tan", "nat"], ["bat"]]`
-- `[""]` → `[[""]]`
-- `["a"]` → `[["a"]]`
+The key idea is to give words with the same letters the same label, then collect words under that label.
+
+Use `words=["eat","tea","tan","ate","nat","bat"]`. Sorting the letters of eat gives aet. Sorting tea also gives aet, so both belong together. Let `wordsByKey` mean “sorted-letter label → words with those letters.” After these two words it contains `aet:[eat,tea]`; tan creates `ant:[tan]`.
+
+Continue the same calculation: ate sorts to aet and joins `[eat,tea,ate]`; nat sorts to ant and joins `[tan,nat]`; bat sorts to abt and starts `[bat]`. The resulting groups are `[[eat,tea,ate],[tan,nat],[bat]]`; map iteration may present those groups in a different order.
+
+A shared label of this kind is a **canonical key**: one representation for values that should be treated as equivalent. In general, sort each word's letters, look up that key, and append the original word to its group. The key is sorted; the returned word retains its original spelling.
 
 :::simulation
 type: group-anagrams
 language: java
-words: ["eat", "tea", "tan", "ate", "nat", "bat", "tab"]
+words: ["eat", "tea", "tan", "ate", "nat", "bat"]
 :::
-
-## Why the problem exists
-
-The input may contain many words, and directly comparing every word with every other word repeats work. A grouping map needs a key that is identical for anagrams and different for non-anagrams.
-
-A **canonical key** is one consistent representation chosen for all equivalent values. Sorting a word's letters provides that key:
-
-```text
-eat -> aet
-tea -> aet
-ate -> aet
-tan -> ant
-nat -> ant
-```
 
 ## Block-by-block code walkthrough
 

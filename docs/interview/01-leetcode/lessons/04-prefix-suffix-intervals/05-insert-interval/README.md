@@ -23,16 +23,15 @@ Problem: [Insert Interval on LeetCode](https://leetcode.com/problems/insert-inte
 
 `0 <= intervals.length <= 10,000`; every row and `newInterval` have exactly two endpoints, with `0 <= start <= end <= 100,000`. Existing intervals are sorted by start and do not overlap. Target `O(n)` time and `O(n)` output storage; this implementation copies output rows so inputs remain independent. Null or unsorted input is outside the contract.
 
-## First find the answer in learner language
+## First understand the idea
 
-Sorting again would throw away a useful promise: existing ranges are already ordered and separated. Move through them once using three parts. The **before region** contains intervals ending strictly before the new start. The **overlap region** contains intervals meeting the combined new interval. The **after region** contains everything still to its right once no more overlaps can occur.
+The key idea is to preserve the already-sorted ranges, expand the new one across every range it meets, then keep the untouched remainder.
 
-1. Copy intervals whose end is less than the new start. They cannot overlap it.
-2. For each interval whose start is at most the current combined end, expand the new range to include it.
-3. Save that combined range exactly once.
-4. Copy all remaining intervals; sorted order guarantees they come after it.
+Use `intervals=[[1,2],[3,5],[6,7],[8,10],[12,16]]`, `newInterval=[4,8]`. Let `start` and `end` be the new range's evolving endpoints, `index` the next existing range, and `result` the completed output. Copy `[1,2]` first because its end 2 is less than new start 4.
 
-For `[[1,2],[3,5],[6,7],[8,10],[12,16]]`, new `[4,8]`: copy `[1,2]` because `2<4`; combining `[3,5]` changes the new range to `[3,8]`; `[6,7]` keeps `[3,8]`; `[8,10]` touches its end and expands it to `[3,10]`; `[12,16]` starts after `10` so remains separate. Return `[[1,2],[3,10],[12,16]]`.
+Now `[3,5]` meets `[4,8]`. Combining gives `[min(4,3),max(8,5)]=[3,8]`. `[6,7]` lies inside it and changes nothing. `[8,10]` touches its inclusive endpoint, so extend to `[min(3,8),max(8,10)]=[3,10]`. The next start 12 is greater than 10: save `[3,10]` once, then copy `[12,16]`. Return `[[1,2],[3,10],[12,16]]`.
+
+These are the **before region**, **overlap region**, and **after region**. In general, copy a range before when its end is less than start; otherwise merge while its start is at most the evolving end. Test against the expanded end each time. Sorted non-overlapping input guarantees that everything remaining after the first gap belongs after the combined range, with no extra sort.
 
 ## Block-by-block code walkthrough
 

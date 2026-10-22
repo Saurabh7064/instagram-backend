@@ -33,53 +33,25 @@ Assumptions:
 - Return the earlier index first.
 - Every number and the target are between `-1,000,000,000` and `1,000,000,000`. Therefore `target - numbers[index]` stays between `-2,000,000,000` and `2,000,000,000`, inside Java's `int` range.
 
-Examples:
-
-- `numbers = [2, 7, 11, 15]`, `target = 9` → `[0, 1]`
-- `numbers = [3, 2, 4]`, `target = 6` → `[1, 2]`
-- `numbers = [3, 3]`, `target = 6` → `[0, 1]`; two equal values at different indexes may form the pair
-- `numbers = [-3, 4, 3, 90]`, `target = 0` → `[0, 2]`
-
 Target: average `O(n)` time and `O(n)` additional space.
+
+## First understand the idea
+
+The key idea is to remember where earlier values occurred, so finding a partner needs a lookup rather than another scan.
+
+Use `numbers=[3,2,4]`, `target=6`. Let `earlierIndexByValue` mean “an earlier value → its array index.” It starts `{}`. At index 0, value 3 needs another 3; none was seen, so remember `{3:0}`. At index 1, value 2 needs 4; none was seen, so remember `{3:0,2:1}`.
+
+At index 2, value 4 needs `6-4=2`. Looking up 2 returns index 1. The pair is valid because `numbers[1]+numbers[2]=2+4=6`, so return `[1,2]`. Those are zero-based positions, not the values themselves.
+
+The needed partner is called a **complement**. From `earlier value + current value = target`, subtract the current value to obtain `complement = target - current value`. Look up that complement before storing the current position; then a match always comes from a different, earlier index. A map stores both the value we search for and the index we must return.
 
 :::simulation
 type: two-sum-hashmap
 language: java
-nums: [4, 7, 2, 11, 6, 3, 9, 5]
-target: 14
-expectedIndices: [3, 5]
+nums: [3, 2, 4]
+target: 6
+expectedIndices: [1, 2]
 :::
-
-## Why the problem exists
-
-At each index, the question is:
-
-> Have I already seen the value needed to complete the target?
-
-For current value `7` and target `9`, the needed value is `2` because `9 - 7 = 2`. That needed value is the **complement**.
-
-A nested-loop solution searches every later position for a partner. In the worst case it checks roughly every pair, taking `O(n²)` time. A `HashMap` replaces that repeated search with an average `O(1)` lookup.
-
-## The value-to-index map
-
-```java
-Map<Integer, Integer> earlierIndexByValue = new HashMap<>();
-```
-
-The map stores:
-
-```text
-key   = an earlier array value
-value = the index where that value appeared
-```
-
-After processing index `0` of `[2, 7, 11, 15]`, the map contains:
-
-```text
-2 -> 0
-```
-
-When index `1` contains `7`, the algorithm asks for complement `2`, finds index `0`, and returns `[0, 1]`.
 
 ## Block-by-block code walkthrough
 

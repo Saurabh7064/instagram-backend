@@ -19,13 +19,17 @@ Given an integer array numbers of length n, return a new array of length 2n cont
 
 Problem: [LeetCode 1929 — Concatenation of Array](https://leetcode.com/problems/concatenation-of-array/) · Editable Java: [ArrayConcatenationPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/functionalprogramming/arrayconcatenation/ArrayConcatenationPractice.java). Constraints: `1<=n<=1000`, values in `[1,1000]`. The local programs also handle empty input defensively. Target `O(n)` time and `O(n)` output space.
 
-## Why this problem is a natural functional exercise
+## First understand the idea
 
-An array stores values; it does not require an in-place algorithm. The requested output is a new sequence derived from an unchanged input. An **integer stream** is Java’s stream form specialized for `int` values. **Concatenation** means joining complete sequences in order: all of the first, then all of the second. It is not alternating their elements.
+The key idea is to produce a new sequence containing the original values twice, while leaving the input available unchanged.
 
-Choose the idea before the API: read the input values once as the first sequence, read the same values again as a second sequence, then gather both into a new array. `Arrays.stream(numbers)` provides one ordered integer traversal; `IntStream.concat(first,second)` joins two traversals; `toArray()` executes the traversal and produces `int[]` output. No callback with outside changes is needed here. Official APIs: [Arrays.stream](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Arrays.html#stream(int%5B%5D)), [IntStream.concat and toArray](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/IntStream.html).
+Use `numbers=[1,2,1]`. Reading it once gives the first output half `[1,2,1]`; reading it again appends `[1,2,1]`, producing `[1,2,1,1,2,1]`. This joining of whole sequences in order is **concatenation**. It does not alternate values from the two reads.
 
-For input `[1,2,1]`, first positions `0,1,2` receive `1,2,1`; output positions `3,4,5` receive `1,2,1` again. This derives `[1,2,1,1,2,1]`. For `[1,3,2,1]`, the first four positions receive those four values, then the next four receive them again: `[1,3,2,1,1,3,2,1]`.
+For the loop version, let `result` mean the six-cell output, `index` the input position, and `n=3` the input length. At input index 1, the value is 2. It belongs at output index 1 in the first half and `1+n=1+3=4` in the second half. Thus both `result[1]` and `result[4]` receive 2. The same position calculation places each input value in both halves.
+
+In general, write `result[index]=numbers[index]` and `result[index+n]=numbers[index]` for each input position. The stream version expresses the same idea as two fresh traversals joined in order. An **integer stream** is Java's traversal form specialized for int values: `Arrays.stream(numbers)` supplies one traversal, `IntStream.concat` joins two, and `toArray()` executes them and gathers the output. Each traversal must be fresh because a stream cannot be reused after linking/consumption.
+
+Both implementations derive a new array from the unchanged input and take `O(n)` time with `O(n)` output space. The stream's observed output positions are not exposed counter variables. We explain the stream implementation below, then compare the explicit loop. Official APIs: [Arrays.stream](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Arrays.html#stream(int%5B%5D)), [IntStream.concat and toArray](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/IntStream.html).
 
 ## Block-by-block code walkthrough
 

@@ -29,76 +29,24 @@ Assumptions:
 - `1 <= windowSize <= numbers.length`.
 - Values are within LeetCode constraints.
 
-Examples:
-
-- `[1, 12, -5, -6, 50, 3]`, `k = 4` → `12.75`
-- `[5]`, `k = 1` → `5.0`
-- `[-1, -12, -5, -6, -50, -3]`, `k = 2` → `-5.5`
-
 Target: `O(n)` time and `O(1)` additional space.
+
+## First understand the idea
+
+The key idea is to reuse the sum of one fixed-size group, changing only the value that leaves and the value that enters.
+
+Use `numbers=[1,12,-5,-6,50,3]`, `windowSize=4`. Let `windowSum` mean the sum of the current four adjacent values, and `bestSum` the largest such sum found. Build the first sum: `1+12-5-6=2`. Both variables start at 2 after that first group is complete.
+
+Move the group one place right. The outgoing value is 1 and the incoming value is 50, so the new sum is `2-1+50=51`; those values are `[12,-5,-6,50]`. Move again: remove 12 and add 3, giving `51-12+3=42`. The largest sum is 51, so the answer is `51/4.0=12.75`.
+
+The current adjacent group is a **window**. In general, `new sum = old sum - outgoing + incoming`; the overlapping values were already counted. All windows have the same positive size, so the largest sum also gives the largest average. Divide using a floating-point denominator only at the end: integer `51/4` would truncate to 12.
 
 :::simulation
 type: fixed-window-average
 language: java
-nums: [1, 12, -5, -6, 50, 3, 7]
+nums: [1, 12, -5, -6, 50, 3]
 k: 4
 :::
-
-## Why recomputing every window repeats work
-
-For `k = 4`, adjacent windows overlap in three positions:
-
-```text
-window 1: [1, 12, -5, -6]
-window 2:    [12, -5, -6, 50]
-```
-
-Recalculating both sums repeats the work for `12`, `-5`, and `-6`. Instead:
-
-```text
-new sum = old sum - outgoing value + incoming value
-```
-
-Here the outgoing value is `1` and the incoming value is `50`.
-
-## Build the first complete window
-
-```java
-long windowSum = 0;
-for (int index = 0; index < windowSize; index++) {
-    windowSum += numbers[index];
-}
-long bestSum = windowSum;
-```
-
-`bestSum` must start from a real window, not `0`. If every number is negative, initializing to `0` would invent a nonexistent better sum.
-
-This version uses `long` for aggregation so the technique remains safe if future input constraints become larger, even though the stated LeetCode constraints fit in `int`.
-
-## Slide by one position
-
-```java
-for (int right = windowSize; right < numbers.length; right++) {
-    int outgoingIndex = right - windowSize;
-    windowSum += numbers[right];
-    windowSum -= numbers[outgoingIndex];
-    bestSum = Math.max(bestSum, windowSum);
-}
-```
-
-At each iteration:
-
-- `right` identifies the incoming value;
-- `right - windowSize` identifies the outgoing value;
-- adding one and removing one keeps the window length exactly `k`.
-
-## Convert the best sum to an average
-
-```java
-return bestSum / (double) windowSize;
-```
-
-All windows have the same positive denominator `k`. Therefore the window with the largest sum also has the largest average. Casting the denominator to `double` prevents integer division: `51 / 4` would be `12`, while `51 / 4.0` is `12.75`.
 
 ## Block-by-block code walkthrough
 

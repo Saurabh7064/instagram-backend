@@ -26,33 +26,23 @@ Need a syntax and operations review first? Use the supplemental [Java HashSet Ch
 
 ## Inputs, examples, and target
 
-Examples:
-
-- `[1, 2, 3, 1]` → `true`
-- `[1, 2, 3, 4]` → `false`
-- `[]` → `false`
-
 Target: average `O(n)` time.
+
+## First understand the idea
+
+The key idea is to remember each value once, so the next value can be checked against what we have already seen.
+
+Use `values=[1,2,3,1]`. Let `seen` mean “the distinct values from the part already read.” It starts empty: `{}`. Reading `1`, `2`, then `3` grows it to `{1,2,3}`. The final `1` is already there, so two input positions contain the same value and the answer is true.
+
+This memory is a **set**: a collection that stores each distinct value once. Java's `HashSet` also tells us whether adding a value succeeded. At the final `1`, **❌ `seen.add(1)`:** false; **✅ `!seen.add(1)`:** true, so return true. The negation turns “not newly inserted” into “duplicate found.”
+
+In general, check each value against the earlier values, remember new ones, and return as soon as one repeats. If every value is new, the loop finishes and returns false. The input positions are unnecessary because this problem asks whether a duplicate exists.
 
 :::simulation
 type: contains-duplicate-set
 language: java
-values: [4, 7, 2, 11, 6, 3, 7]
+values: [1, 2, 3, 1]
 :::
-
-## One idea
-
-A nested-loop solution compares every pair and takes `O(n²)` time. The repeated question is:
-
-> Have I already seen this value?
-
-A `HashSet` stores membership. Before processing index `i`, the set contains every distinct value from indexes `0` through `i - 1`. That statement is the loop invariant.
-
-For each value:
-
-1. If it is already in the set, a duplicate exists.
-2. Otherwise, add it and continue.
-3. If the loop ends, every value was distinct.
 
 ## Block-by-block code walkthrough
 

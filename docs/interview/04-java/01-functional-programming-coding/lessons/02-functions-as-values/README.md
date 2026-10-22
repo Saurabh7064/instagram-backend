@@ -17,19 +17,17 @@ How can the same Java array traversal double values in one call and add three in
 - New terms: functional interface, lambda, method reference
 - Prerequisite: [Pure Transformations](../01-pure-transformations/README.md): understand a pure scalar calculation and input-preserving array output.
 
-## Start with the duplication problem
+## First understand the idea
 
-The first lesson’s array loop always doubles. If the next task adds three, copying the entire loop would duplicate traversal and input-preservation logic. Keep that loop once and supply the part that changes: the calculation for a single element.
+The key idea is to keep the array traversal once and pass in the calculation that changes from task to task.
 
-A **functional interface** is a Java contract specifying one operation whose implementation you supply. Java calls that operation an abstract method: its declaration names the inputs and output but provides no method body. It describes the shape of behavior a method can receive. `IntUnaryOperator` is an existing example: its operation accepts one `int` and returns one `int`, invoked through `applyAsInt(value)`. “Unary” in its class name simply means one input.
+Use `numbers=[-2,0,3]`. Doubling produces `[-4,0,6]` because `-2*2=-4`, `0*2=0`, `3*2=6`. Adding three produces `[1,3,6]` because `-2+3=1`, `0+3=3`, `3+3=6`. Both tasks read the same positions in order and write a separate output array; only the per-value calculation differs.
 
-A **lambda** is a compact way to supply that behavior. In `value -> value * 2`, the left side names the received input and the right side computes the returned result. Passing the lambda does not double an array yet; the receiving method decides when to invoke it.
+Let `operation` mean that supplied calculation, `index` the next input position, and `result` the new output array. At index 0, the doubling operation receives -2 and returns -4; the adding-three operation instead returns 1. The common traversal stores whichever value its supplied operation returns.
 
-A **method reference** supplies an existing compatible method rather than writing its body inline: `FunctionsAsValuesSolution::doubleValue` names the same one-int-to-one-int calculation. These are two ways to supply behavior; neither guarantees that the supplied code is pure. Use side-effect-free calculations for this exercise. Official API: [IntUnaryOperator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/function/IntUnaryOperator.html).
+A **functional interface** describes the input/output shape of behavior Java can receive. `IntUnaryOperator` accepts one int and returns one int, through its method `applyAsInt`. A **lambda**, such as `value -> value*2`, supplies the calculation: receive value on the left, return the expression on the right. A **method reference**, such as `FunctionsAsValuesSolution::doubleValue`, supplies an existing compatible method instead. Naming/passing either does not execute the traversal yet.
 
-## Programs and expected results
-
-For non-null input `[-2,0,3]`, the same traversal with `value -> value*2` gives `[-4,0,6]`; with `value -> value+3` it gives `[1,3,6]`. Each output is derived element by element below. Accept a non-null operation; values in these examples are small enough that arithmetic stays in int range. Target `O(n)` time when the supplied calculation is `O(1)`, `O(n)` output space, and no input writes.
+In general, `result[index]=operation.applyAsInt(numbers[index])` means read one input, invoke the chosen calculation, save its returned value. Reuse that traversal while changing the supplied behavior. The callback must itself avoid outside changes for the complete transformation to be pure; its type alone does not guarantee purity. The array and operation are non-null. For constant-time callbacks, target `O(n)` time and `O(n)` output space with no input writes. Official API: [IntUnaryOperator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/function/IntUnaryOperator.html).
 
 ## Block-by-block code walkthrough
 

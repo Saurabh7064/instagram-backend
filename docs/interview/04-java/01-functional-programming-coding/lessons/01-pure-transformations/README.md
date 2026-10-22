@@ -17,25 +17,19 @@ What makes a Java function pure, and how can we return doubled values without ch
 - New terms: pure function, side effect
 - Prerequisite: Basic Java methods, `int`, arrays, and a `for` loop. No lambda or Stream API knowledge is needed.
 
-## Start with the problem functional programming addresses
+## First understand the idea
 
-Imagine a calculation that silently edits your input, depends on a setting elsewhere, or updates a shared counter. Calling it twice can become difficult to reason about: the second call may see data changed by the first. We want calculations whose result can be understood from their inputs, with changes to the outside world kept explicit.
+The key idea is to make a calculation predictable from its inputs, while keeping the caller's data unchanged.
 
-**Functional programming** is a programming style that builds computations from functions and combines their results. In Java, you can adopt this style gradually: first make calculations predictable, later pass behavior into other operations, then combine transformations. Streams are one tool for expressing those transformations; they are not the definition of functional programming.
+For the scalar program, use `value=3`. Multiplying by two gives `3*2=6`; calling it again with 3 gives 6 again. The method neither edits outside data nor needs a result left over from an earlier call. Such a calculation is a **pure function**: same input values, same output values, with no observable outside changes. An outside change, such as editing a supplied array or updating a shared counter, is a **side effect**.
 
-A **pure function** returns the same result values for the same input values and causes no observable changes outside the calculation. A **side effect** is such an outside change: editing a supplied array, writing to a file, updating a shared variable, or printing. Reading the current time or changing global settings can also make a result depend on something other than its declared arguments.
+Now use `numbers=[-2,0,3]`. Let `result` mean a separate output array; `index` is the position currently being transformed. Apply the same multiplication independently: `-2*2=-4`, `0*2=0`, `3*2=6`. This produces `result=[-4,0,6]`, while numbers remains `[-2,0,3]`. A new output preserves the original numbers for another caller that still needs them.
 
-For these Java exercises, compare output values, not the identity of newly allocated objects. Two calls may return different array objects containing equal values. The caller must supply the same array contents and must not concurrently change them during a call.
+In general, calculate each output from the supplied values, then return the result without changing anything outside the calculation. Locally filling a newly created result array is compatible with that rule. Equal returned array values matter; two calls need not return the identical array object. The caller must not change the input concurrently during a call.
 
-## Program 1 — One value in, one value out
+**Functional programming** builds computations from functions and combines their results. These predictable calculations are its foundation; Java streams are one later tool for expressing them, not a prerequisite. The walkthrough first implements one scalar calculation, then reuses it across the array.
 
-Choose the calculation before writing syntax: take a supplied integer, multiply it by two, return the result. With input `3`, calculate `3×2=6`; repeating the same call still gives `6`. With `-2`, calculate `-2×2=-4`. There is no dependency on earlier calls or machine settings.
-
-## Program 2 — A new array instead of editing the old one
-
-For input `[-2,0,3]`, preserve that input and return `[-4,0,6]`. The rule is the same scalar calculation applied to each value in order. This is useful when another caller still needs the original numbers.
-
-The examples accept a non-null array, with values between `-1,000,000` and `1,000,000`; doubling stays within `[-2,000,000,2,000,000]`, so no integer overflow occurs. Empty arrays are allowed. Target: `O(1)` time for one scalar; `O(n)` time and `O(n)` output space for an array.
+The programs accept a non-null array with values in `[-1,000,000,1,000,000]`; doubling stays within `[-2,000,000,2,000,000]`, safely inside int range. Empty arrays are allowed. Target: `O(1)` time for a scalar; `O(n)` time and `O(n)` output space for the array.
 
 ## Block-by-block code walkthrough
 

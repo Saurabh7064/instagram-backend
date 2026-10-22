@@ -23,17 +23,15 @@ Problem: [Merge Intervals on LeetCode](https://leetcode.com/problems/merge-inter
 
 `1 <= intervals.length <= 10,000`, each row has two integers, and `0 <= start <= end <= 10,000`. Target `O(n log n)` time for arbitrary input order and `O(n)` extra space in this input-preserving version. The local runner additionally handles empty input. Output is ordered by start in this implementation.
 
-## First find the answer in learner language
+## First understand the idea
 
-We want to describe the same covered positions using fewer ranges, without losing a covered point or filling a gap. An **interval** is an inclusive pair `[start,end]`, meaning every point from start through end. Two intervals **overlap** when they share at least one point. The **active range** is the unfinished combined interval held in the two local variables `start` and `end`.
+The key idea is to process ranges from left to right, extending the current combined range until a real gap appears.
 
-1. Put ranges in increasing order of their starts, using copies so caller-owned input is preserved.
-2. Keep the first range as the unfinished one.
-3. If the next start is at or before the unfinished end, the ranges meet: keep the start and extend the end only as far as necessary.
-4. Otherwise a real gap exists. Save the unfinished range, then start a new one.
-5. After scanning, save the last unfinished range; no later gap will arrive to save it for us.
+Use `intervals=[[8,10],[1,3],[2,6],[15,18]]`. An **interval** `[start,end]` includes every position between its endpoints. Sort copies by start to get `[[1,3],[2,6],[8,10],[15,18]]`; copying preserves the caller's input. Let `start` and `end` hold the unfinished combined range, and `result` hold ranges already completed.
 
-Example: sorting `[[8,10],[1,3],[2,6],[15,18]]` gives `[[1,3],[2,6],[8,10],[15,18]]`. `[1,3]` and `[2,6]` share points `2..3`, so combine them as `[1,max(3,6)]=[1,6]`. Start `8` exceeds end `6`, so there is a gap and `[1,6]` can be finalized. `[15,18]` is separate because `15>10`. The result is `[[1,6],[8,10],[15,18]]`.
+Begin with start=1,end=3. The next range starts at 2, before the current end 3, so the ranges share positions 2..3. This **overlap** lets us combine them: keep start=1, extend end to `max(3,6)=6`. Next start 8 is greater than 6; save `[1,6]` and begin `[8,10]`. Start 15 is greater than 10, so save `[8,10]` and begin `[15,18]`. Save that final range when scanning ends: result is `[[1,6],[8,10],[15,18]]`.
+
+In general, the **active range** is this unfinished start/end pair. After sorting, `nextStart <= end` means merge with `end=max(end,nextEnd)`; a greater start means finalize the current range. Equality counts as overlap because endpoints are inclusive. Saving at a gap is not enough by itself: the final active range needs an explicit save after the loop.
 
 ## Block-by-block code walkthrough
 

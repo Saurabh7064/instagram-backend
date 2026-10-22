@@ -17,17 +17,17 @@ How can we trim words, discard empty results, lowercase the survivors, and retur
 - New terms: stream, map, filter
 - Prerequisite: [Pass Behavior as a Value](../02-functions-as-values/README.md), including lambdas and method references. Java 16+ is required for Stream.toList; the project runtime supports it.
 
-## Start with the concept before the API
+## First understand the idea
 
-We already know how to supply a calculation. Now we want to combine several small calculations without hand-writing a new loop for every sequence. A **stream** describes a traversal of values from a source; it is not another list storing all those values. **map** supplies a function that changes each incoming value. **filter** supplies a boolean test: true keeps the value; false discards it.
+The key idea is to describe a sequence of small transformations, then gather the surviving values without changing the source.
 
-Choose actions in learner language first: remove surrounding spaces → keep only non-empty values → lowercase what remains → gather results in order. Each calculation is independent of earlier words and changes no source data. The stream chain expresses those choices; it does not replace the need to choose them.
+Use `words=[" Alice ","","BOB","   ","Chloë"]`, a non-null list of non-null strings. The goal is to trim surrounding ordinary spaces, discard empty results, lowercase the remaining words, and preserve their order. Take the first word: `" Alice "` becomes `"Alice"`; it is not empty, so keep it and lowercase it to `"alice"`. For the space-only word, trimming gives `""`; discard it before lowercasing. The original list entries stay unchanged.
 
-Source creation and map/filter calls prepare the traversal. Processing starts when the result-gathering operation `toList()` is invoked. In this sequential example a word flows through its applicable operations before the next word; there is no actual trim-all list, filter-all list, or lowercase-all list allocated by these stages. The tables below show the values as if observing one element, not exposed internal list storage. See [Java’s stream model](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html).
+The other empty string is discarded too. BOB becomes bob and Chloë becomes chloë, so the returned values are `["alice","bob","chloë"]`. This derives the output from the chosen operations rather than from the names of library calls.
 
-## Input and a concrete problem
+A **stream** describes a traversal of source values. **map** applies a calculation to each incoming value; **filter** keeps or discards it using a boolean test. Here the recipe is trim → keep non-empty → lowercase → collect. `String::trim` supplies the first calculation, `word -> !word.isEmpty()` supplies the keep test, and `toLowerCase(Locale.ROOT)` supplies language-neutral lowercase rules rather than depending on machine settings. These are the function values taught in the previous lesson.
 
-Input is a non-null list of non-null strings: `[" Alice ", "", "BOB", "   ", "Chloë"]`. Trim leading/trailing characters handled by `String.trim` (including the ordinary spaces in this example), discard empty results, lowercase with `Locale.ROOT`, and preserve order. Expected values are `["alice", "bob", "chloë"]`: trim `" Alice "` to `"Alice"`, then lowercase to `"alice"`; discard `""` and the space-only word after trimming; lowercase `"BOB"` to `"bob"` and `"Chloë"` to `"chloë"`.
+In general, choose the value transformations and keep rule before writing the chain. `toList()` starts execution and gathers an unmodifiable result. In this sequential example, one word flows through its applicable operations before the next; the intermediate values shown below are observations, not separate trim-all/filter-all lists. String.trim handles the ordinary spaces used here, not every Unicode whitespace character. [Java's stream model](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html) describes the traversal contract.
 
 ## Block-by-block code walkthrough
 

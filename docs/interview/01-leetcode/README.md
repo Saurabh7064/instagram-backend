@@ -89,3 +89,5 @@ Each worked execution uses concise bullets before its original debugger table. S
 Keep useful debugger-table columns and full state context; remove any execution-script column that repeats the adjacent bullets. If one value changes several times within an iteration, show the intermediate values in that same cell (for example `2 → 3 → 2`); do not replace the table with a changes-only summary.
 
 The [Minimum Window walkthrough](./lessons/03-sliding-window/05-minimum-window-substring/README.md#block-by-block-code-walkthrough) shows the approved concise bullet narration, including reads, saved answers, removals, final state, and the next loop check.
+
+Before the code walkthrough, explain the idea as purpose → plain meaning of saved values → one worked calculation on the fixed input → general rule → why each term or boundary adjustment is needed. Use connected prose for this conceptual reasoning; keep the detailed execution in concise bullets with adjacent state tables. The [Range Sum explanation](./lessons/04-prefix-suffix-intervals/01-range-sum-query-immutable/README.md#first-understand-the-idea) is the concrete model.

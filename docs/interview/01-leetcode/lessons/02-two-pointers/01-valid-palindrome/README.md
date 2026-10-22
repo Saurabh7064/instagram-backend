@@ -29,42 +29,23 @@ Assumptions:
 - `text` is non-null and contains printable English letters, digits, spaces, and punctuation.
 - A string with zero relevant characters is a palindrome.
 
-Examples:
-
-- `"A man, a plan, a canal: Panama"` → `true`
-- `"race a car"` → `false`
-- `" "` → `true`
-- `"0P"` → `false`
-
 Target: `O(n)` time and `O(1)` additional space.
+
+## First understand the idea
+
+The key idea is to compare the meaningful characters from the two ends, moving inward only after they match.
+
+Use `text="A,b a"`. Its indexes 0 through 4 contain A, comma, b, space, a. Let `left` and `right` mean the positions of the next characters to compare; begin at 0 and 4. Lowercasing A and a gives a and a, so that pair matches. Move inward to `left=1`, `right=3`.
+
+The comma at index 1 and space at index 3 are not letters or digits, so move past them. Both pointers reach index 2, the middle b. No unmatched pair remains, so return true. We examined the useful sequence aba without allocating that cleaned string.
+
+A **palindrome** reads the same in both directions after the requested cleanup. In general, skip non-letter/non-digit characters, compare the remaining ends without case differences, and stop with false on a mismatch. Check `left < right` before inspecting another candidate; Java's `&&` evaluates left to right and skips its second expression when the first is false. The walkthrough shows that guard at each movement.
 
 :::simulation
 type: valid-palindrome
 language: java
-text: A man, a plan, a canal: Panama
+text: A,b a
 :::
-
-## Concept: compare only meaningful boundaries
-
-Start `left` at the first character and `right` at the last. Before comparing:
-
-- move `left` past punctuation and spaces;
-- move `right` past punctuation and spaces;
-- lowercase both relevant characters;
-- fail immediately when they differ;
-- otherwise move both inward.
-
-For `"a,b:a"`, the useful comparisons are `a` with `a`, then `b` with `b`. The comma and colon never need to be copied or removed.
-
-## Why the guard appears first
-
-```java
-while (left < right && !Character.isLetterOrDigit(text.charAt(left))) {
-    left++;
-}
-```
-
-Java evaluates `&&` left to right. When the pointers meet, `left < right` is false, so `charAt(left)` is not evaluated by this loop. Reversing the conditions would inspect a character before confirming that another comparison is still needed.
 
 ## Block-by-block code walkthrough
 

@@ -23,16 +23,15 @@ Problem: [Product of Array Except Self on LeetCode](https://leetcode.com/problem
 
 `2 <= numbers.length <= 100,000`, values in `[-30,30]`. The product of any prefix or suffix and every requested output fits a signed 32-bit integer; this guarantee is required for the shown `int` products. Target `O(n)` time and `O(1)` auxiliary space, excluding the `O(n)` output. The local runner also accepts empty input defensively.
 
-## First find the answer in learner language
+## First understand the idea
 
-At one position, the other values fall into two disjoint groups: those strictly to its left and those strictly to its right. Multiply each group separately, then multiply their results. A **prefix product** is a product of values at the beginning; a **suffix product** is a product of values at the end. The **identity** for multiplication is `1`, the value that leaves another value unchanged when multiplied.
+The key idea is to multiply the values on each side of a position, then combine those two products without ever including the position itself.
 
-1. Walk left to right with a product of the values already passed.
-2. Save that product into the current answer cell **before** multiplying the current input value into it.
-3. Walk right to left with a product of values already passed from that direction.
-4. Multiply each saved answer by that right-side product **before** including the current input in it.
+Use `numbers=[1,2,3,4,5,6,1]`. For answer index 2, the value to exclude is 3. The left side is `[1,2]`, giving `1*2=2`. The right side is `[4,5,6,1]`, giving `4*5*6*1=120`. Therefore `answer[2]=2*120=240`.
 
-For index `2` in `[1,2,3,4,5,6,1]`, left-side product is `1×2=2`; right-side product is `4×5×6×1=120`; answer is `2×120=240`. The value `3` at index `2` never enters its own answer. No total-product division is needed, so zeros are safe.
+Let `prefixProduct` mean the product of values already passed from the left, and `suffixProduct` the product already passed from the right. These are a **prefix product** and **suffix product**. Start each at 1: the empty side must leave the other side's product unchanged. That makes 1 multiplication's **identity**.
+
+In general, save prefixProduct into the current answer before including the current number; then scan backward, multiplying that saved answer by suffixProduct before including the number from that direction. The order excludes the current value in both passes. No division by a total product is needed, so a zero never becomes a divisor. The resulting array is `[720,360,240,180,144,120,720]`, with each cell combining its own two sides as the trace shows.
 
 ## Block-by-block code walkthrough
 

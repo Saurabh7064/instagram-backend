@@ -30,30 +30,24 @@ Assumptions:
 - Values and target are between `-1,000` and `1,000`, so adding two values is safe in an `int`.
 - Return one-based indexes.
 
-Examples:
-
-- `[2, 7, 11, 15]`, target `9` → `[1, 2]`
-- `[2, 3, 4]`, target `6` → `[1, 3]`
-- `[-1, 0]`, target `-1` → `[1, 2]`
-
 Target: `O(n)` time and `O(1)` additional space.
+
+## First understand the idea
+
+The key idea is to use sorted order to rule out one endpoint whenever the current pair misses the target.
+
+Use `numbers=[-5,-2,0,3,9]`, `target=1`. Let `left` and `right` mean the smallest and largest positions still being considered. Start at 0 and 4: `-5+9=4`, which is above 1. Even the smallest available partner makes 9 too large, so discard that right endpoint and move `right` to 3.
+
+Now `-5+3=-2`, below 1. Even the largest remaining partner cannot make -5 large enough, so move `left` to 1. Then `-2+3=1`: the positions are 1 and 3. The question asks for one-based indexes, so return `[1+1,3+1]=[2,4]`.
+
+These two moving positions are **pointers**. In general, calculate the endpoint sum; move right leftward when it is too large, or left rightward when it is too small. Sorted order makes every discarded endpoint safe to forget. Keep zero-based working positions separate from the one-based returned answer.
 
 :::simulation
 type: two-sum-sorted
 language: java
-nums: [1, 2, 3, 4, 6, 8, 11]
-target: 10
+nums: [-5, -2, 0, 3, 9]
+target: 1
 :::
-
-## Concept: sorted order eliminates candidates
-
-Start with the smallest and largest values. Their sum has three meanings:
-
-- equal to target: the answer is found;
-- below target: the left value is too small even with the largest available partner;
-- above target: the right value is too large even with the smallest available partner.
-
-If `[2, 3, 4]` targets `6`, the first sum is `2 + 4 = 6`. If it targeted `7`, a sum of `6` would eliminate `2`, because pairing `2` with any smaller right-side value cannot increase the sum.
 
 ## Block-by-block code walkthrough
 

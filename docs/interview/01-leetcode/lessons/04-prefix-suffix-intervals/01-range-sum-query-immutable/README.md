@@ -23,18 +23,11 @@ Problem: [Range Sum Query — Immutable on LeetCode](https://leetcode.com/proble
 
 `1 <= numbers.length <= 10,000`, each value is between `-100,000` and `100,000`; valid queries satisfy `0 <= left <= right < numbers.length`. At most 10,000 queries. Target: `O(n)` construction, `O(1)` per query, `O(n)` saved space. Under these bounds any stored total has magnitude at most `10,000 × 100,000 = 1,000,000,000`, so Java `int` is sufficient. Invalid queries are outside this lesson’s contract.
 
-## First find the answer in learner language
+## First understand the idea
 
-The problem is repeated work: adding the same positions for many requests. A **query** is one request for a range sum. Save the total seen so far once, then subtract away the part before the requested range. A **prefix total** is the sum of the values before a position. A **boundary** is a position between values: boundary `0` is before the first value, and boundary `n` is after the last.
+The key idea is to store running totals once, so each later range sum is just a subtraction.
 
-Choose these steps before coding:
-
-1. Save zero at boundary `0`: nothing has been added yet.
-2. For each value, add it to the previous total and store that result at the next boundary.
-3. For a query `[left,right]`, take the total at boundary `right+1`, which includes `right`.
-4. Subtract the total at boundary `left`, removing exactly the values before `left`.
-
-Use `numbers=[2,4,1,7]`. The saved totals are `prefix=[0,2,6,7,14]`:
+Use `numbers=[2,4,1,7]`. Define `prefix[k]` as **the sum of the first k numbers**. Start with `prefix[0]=0`: the sum of zero numbers is zero. Adding the values in order gives totals 2, 6, 7, then 14.
 
 ```text
 numbers index: 0  1  2  3
@@ -43,7 +36,19 @@ prefix index : 0  1  2  3   4
 prefix       : 0  2  6  7  14
 ```
 
-The prefix indexes are boundaries: `prefix[2]=6` means `2+4=6`, the total before numbers index `2`. For query `[1,2]`, the total through index `2` is `prefix[3]=7`; the total before index `1` is `prefix[1]=2`. Subtract: `7-2=5`. Direct addition agrees: `numbers[1]+numbers[2]=4+1=5`.
+That is what the constructor builds. For example, `prefix[3]=2+4+1=7`. An index in numbers identifies one input value; an index in prefix identifies how many values were added. This saved running total is a **prefix total**, and its index marks a **boundary** before or after input values.
+
+Now request the sum from numbers index 1 through 3: `[4,1,7]`. Such a request is a **query**. The total through index 3 is `prefix[4]=14`. It includes the earlier value 2, whose saved total is `prefix[1]=2`. Remove that earlier part:
+
+```text
+sumRange(1,3) = prefix[4] - prefix[1]
+              = 14 - 2
+              = 12
+```
+
+Direct addition agrees: `4+1+7=12`. Both calculations refer to the same input and range.
+
+In general, `prefix[right+1]` includes everything through right, while `prefix[left]` includes everything before left. Subtracting removes exactly that earlier portion: `prefix[right+1]-prefix[left]`. The +1 is needed because prefix counts the first k numbers: including numbers index 3 requires the first `3+1=4` numbers. This meaning also handles queries starting at zero, since the portion before them totals zero.
 
 ## Block-by-block code walkthrough
 

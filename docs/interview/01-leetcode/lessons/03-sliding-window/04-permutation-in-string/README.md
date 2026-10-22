@@ -6,12 +6,6 @@
 
 Practice source: [Permutation in String on LeetCode](https://leetcode.com/problems/permutation-in-string/)
 
-Examples:
-
-- `pattern = "ab"`, `text = "eidbaooo"` → `true` because `"ba"` is a permutation.
-- `pattern = "ab"`, `text = "eidboaoo"` → `false`.
-- `pattern = "adc"`, `text = "dcda"` → `true` because `"dca"` has the required counts.
-
 Assumptions follow LeetCode: both strings are non-empty lowercase English letters and have length at most `10,000`. Target `O(n)` time and `O(1)` additional space for the fixed alphabet.
 
 ## What you will learn
@@ -28,14 +22,15 @@ Assumptions follow LeetCode: both strings are non-empty lowercase English letter
 - Primary idea: compare a fixed-size window's frequency signature with the pattern
 - New terms: permutation, frequency signature, fixed-size candidate
 
-## First understand how to find the answer
+## First understand the idea
 
-A **permutation** contains the same characters with the same counts in any order. Therefore `"ab"`, `"ba"`, and only those two length-`2` strings share the count signature `{a:1, b:1}`.
+The key idea is to compare character counts for a fixed-size substring, because changing order does not change how many copies of each letter it contains.
 
-1. Count every character in `pattern` once.
-2. Expand `right`, adding the incoming text character.
-3. Once more than `pattern.length()` characters have entered, remove the character exactly one window-size behind `right`.
-4. Compare the 26 counts. Equality means the current fixed-size window is a permutation.
+Use `pattern="ab"`, `text="eidbaooo"`. Let `neededCounts` store the required copies from the pattern: a:1 and b:1. Let `windowCounts` store copies in the current text window; `right` is the incoming text position. The required window length is 2, the pattern's length.
+
+The first full window ei has e:1 and i:1, so it does not match. Sliding one place replaces e with d, producing id; next replace i with b, producing db. Then replace d with a, producing ba at indexes 3..4. It supplies a:1 and b:1, exactly the required counts, so return true. The full frequency arrays below also show the zero cells.
+
+A **permutation** is an arrangement with the same characters and copy counts. In general, add the incoming character, remove the character that is now too far behind, and compare the full counts. The outgoing text index is `right-pattern.length()`; at right=4 it is `4-2=2`, holding d. This position in the text is different from the frequency-array cell selected by that character.
 
 :::simulation
 type: permutation-in-string
@@ -44,19 +39,6 @@ title: Permutation in String · fixed count signature
 first: ab
 second: eidbaooo
 :::
-
-## Work through the results
-
-For `"ab"` inside `"eidbaooo"`, examine length-`2` windows:
-
-- `"ei"` → `{e:1,i:1}`, not `{a:1,b:1}`;
-- `"id"` → `{i:1,d:1}`, not a match;
-- `"db"` → `{d:1,b:1}`, not a match;
-- `"ba"` → `{b:1,a:1}`, exact count match; return `true`.
-
-For `"ab"` inside `"eidboaoo"`, every length-`2` window has a missing or extra character, so the result is `false`.
-
-For `"adc"` inside `"dcda"`, the first complete window `"dcd"` has `d:2,c:1`; after sliding, `"cda"` has `a:1,c:1,d:1`, matching the pattern, so return `true`.
 
 ## Block-by-block code walkthrough
 
