@@ -114,6 +114,10 @@ for (int index = 0; index < numbers.length; index++) {
 
 The map must contain only earlier boundaries during lookup. In our trace, the lookup at index 3 sees two earlier zero totals and contributes two matches. Record the current total only afterward. In general, matching the current boundary with itself would describe an empty range; looking up first prevents it. A set cannot replace the map because it would collapse those two earlier zeros into one presence.
 
+**Narrated execution — follow each operation, then check its values:**
+
+Input: `numbers=[1,-1,1,1,-1,1,2]`, `target=2`. Before the first loop check: `prefixSum=0`, `answer=0`, `countByPrefix={0:1}`; initialize `index=0`. Follow each iteration’s bullets, then its adjacent before/after table.
+
 **Iteration `index=0`.**
 
 - **✅ `for` condition `index < numbers.length`:** `0 < 7 → true`; enter the body.
