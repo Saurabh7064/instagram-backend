@@ -25,13 +25,56 @@ Problem: [Subarray Sum Equals K on LeetCode](https://leetcode.com/problems/subar
 
 ## First understand the idea
 
-The key idea is to remember earlier running totals, so each new total tells us how many ranges ending here have the requested sum.
+Use `numbers=[1,-1,1,1,-1,1,2]`, `target=2`. We want to count adjacent groups whose values add up to 2. A **subarray** is one such contiguous group: it cannot skip positions. Different start/end positions count separately, even when their values or sums look the same.
 
-Use `numbers=[1,-1,1,1,-1,1,2]`, `target=2`. Let `prefixSum` mean the total read so far, `countByPrefix` mean “earlier running total → number of boundaries with that total,” and `answer` mean the number of matching ranges found. Begin with `prefixSum=0`, `countByPrefix={0:1}`, `answer=0`; the total before reading any number is one real possible starting boundary.
+```text
+index:   0   1  2  3   4  5  6
+numbers: 1  -1  1  1  -1  1  2
+```
 
-After indexes 0..3, the running totals are 1,0,1,2. Just before recording the current 2, earlier total 0 occurred twice: before the array and after index 1. Subtracting either occurrence from 2 leaves `2-0=2`. These give two ranges ending at index 3: `[1,-1,1,1]` sums `1-1+1+1=2`, and `[1,1]` at indexes 2..3 sums `1+1=2`. Add two matches, not just one.
+### First see where the answer 6 comes from
 
-A **prefix sum** is a running total; a **frequency** counts its earlier occurrences. In general, a range sum is `current total - earlier total`. To make it equal target, we need `earlier total = prefixSum-target`; this needed value is the **complement**. Add its earlier frequency to answer, then record the current total for later positions. Looking up before recording prevents an empty range from matching itself. The complete scan on this input finds 6 non-empty ranges.
+These are all the matching ranges. Both endpoints are included:
+
+| Start index | End index | Values in the range | Add them | Sum |
+| --- | --- | --- | --- | --- |
+| `0` | `3` | `[1,-1,1,1]` | `1-1+1+1` | `2` |
+| `2` | `3` | `[1,1]` | `1+1` | `2` |
+| `0` | `5` | `[1,-1,1,1,-1,1]` | `1-1+1+1-1+1` | `2` |
+| `2` | `5` | `[1,1,-1,1]` | `1+1-1+1` | `2` |
+| `4` | `6` | `[-1,1,2]` | `-1+1+2` | `2` |
+| `6` | `6` | `[2]` | `2` | `2` |
+
+There are two matches ending at index 3, two at index 5, and two at index 6: `2+2+2=6`. Return **6**, the number of matching ranges. Return neither 2 (the target sum) nor 4 (the whole array's sum). Trying every start/end pair can discover these ranges, but repeats addition. Now we can see what the faster method needs to count.
+
+### Reuse running totals to find those same ranges
+
+The key idea is to remember earlier running totals, so each new total tells us how many matching ranges end here. As in the previous lesson, removing an earlier total leaves just the values after it.
+
+Define a **prefix sum** as the total from the start through the current index. Adding our input in order gives:
+
+```text
+through index: before  0  1  2  3  4  5  6
+running total:      0  1  0  1  2  1  2  4
+```
+
+At index 3 the current total is `1-1+1+1=2`. To leave target 2, remove an earlier total of `2-2=0`. That earlier zero occurred twice: before the array, and after index 1. Removing the first leaves indexes 0..3; removing the second leaves indexes 2..3. These are exactly the first two matching ranges above. The same earlier total can therefore represent more than one valid starting position.
+
+Now name the state the code will store. `prefixSum` is the current running total. `countByPrefix` records “earlier total → how many times it occurred”; that count is a **frequency**. Before any input, `{0:1}` records the one empty beginning. By the lookup at index 3, `{0:2,1:2}` records two earlier zeros and two earlier ones. Looking up zero adds 2 to `answer`, the number of matching ranges found so far.
+
+At index 5, the current total is again 2, so the same two earlier zeros contribute the next two ranges. At index 6, the current total is 4; the needed earlier total is `4-2=2`. It occurred after indexes 3 and 5, giving ranges 4..6 and 6..6. The total count becomes `2+2+2=6`, matching direct addition above.
+
+### Generalize the calculation
+
+A range's sum is `current total - earlier total`. To make it equal target, rearrange:
+
+```text
+current total - earlier total = target
+earlier total = current total - target
+needed = prefixSum - target
+```
+
+The needed earlier total is the **complement**. At each index, add the number of earlier occurrences of needed to answer, then record the current total for later positions. Store frequencies rather than just presence because two earlier boundaries produce two distinct ranges. Look up before recording so every counted start is earlier than the current boundary; a boundary paired with itself would represent an empty range.
 
 ## Block-by-block code walkthrough
 
@@ -54,7 +97,7 @@ int answer = 0;
 
 An empty array simply executes no iterations and returns zero.
 
-Without the seed, a range starting at index zero would have no matching earlier boundary. For `[2]`, target `2`, the desired lookup is zero; `{0:1}` contributes one answer. Equivalent: handle `prefixSum == target` separately, but the seed avoids that extra branch.
+Without the seed, the matches starting at index zero would be missed. At index 3 of our input, looking up zero must include the boundary before the array as well as the boundary after index 1. Seeding `{0:1}` preserves that first start. Equivalent: handle `prefixSum == target` separately, but the seed avoids that extra branch.
 
 ### Block 2 — Read, find earlier totals, then record this one
 
@@ -69,7 +112,7 @@ for (int index = 0; index < numbers.length; index++) {
 
 `getOrDefault(needed,0)` returns the frequency if the key is present, or zero if absent; it does not add a key. `merge(prefixSum,1,Integer::sum)` stores one on the first occurrence, or adds one to the existing count. `Integer::sum` names the addition operation used when the key already exists. Equivalent clearer form: read the count with `getOrDefault(prefixSum,0)`, then `put(prefixSum,oldCount+1)`.
 
-The map must contain only earlier boundaries during lookup. Recording the current total first would allow matching a boundary with itself: `[1]`, target `0` would incorrectly count an empty range (`1-1=0`). The current code looks up key `1` before inserting it, correctly contributing zero. A set cannot replace the map because it would lose multiple starts with the same total.
+The map must contain only earlier boundaries during lookup. In our trace, the lookup at index 3 sees two earlier zero totals and contributes two matches. Record the current total only afterward. In general, matching the current boundary with itself would describe an empty range; looking up first prevents it. A set cannot replace the map because it would collapse those two earlier zeros into one presence.
 
 **Iteration `index=0`.**
 
@@ -212,13 +255,13 @@ Before each iteration, the map counts every boundary strictly before the new end
 
 There are `n` iterations with average constant-time HashMap operations: average `O(n)` time and at most `n+1` distinct map keys, `O(n)` space. A baseline tries every start and extends a running sum to every end, taking `O(n²)` time and `O(1)` extra space. Use it as a small-input checker. A moving positive-only window is unsuitable here because adding a negative value can decrease the sum rather than increase it.
 
-## Edge cases and their derivations
+## Pitfalls in the same example
 
-- `[1,1,1]`, target `2`: ranges `[0,1]` and `[1,2]` each sum `1+1=2`, so result `2`.
-- `[1,2,3]`, target `3`: `[0,1]` sums `1+2=3`; `[2,2]` sums `3`; result `2`.
-- `[0,0,0]`, target `0`: each endpoint finds respectively `1`, `2`, then `3` earlier zero totals, so answer `1+2+3=6`. Seed zero is a boundary, not an empty counted range.
-- `[-1]`, target `-1`: running total `-1`, needed `-1-(-1)=0`, seed frequency `1`; answer `1`.
-- Empty input executes no body and returns the initial answer `0`.
+- Map entry `0:2` means two earlier boundaries have total zero; 0 is not an array position and 2 is not the target stored as a value.
+- At index 3, a presence-only set would contribute just one match instead of two. The ranges 0..3 and 2..3 must both count.
+- The final running total is `4`, but the answer is `6`; returning the total would answer a different question.
+- Finding the first two ranges is not enough: endpoints 5 and 6 contribute four more. Finish the entire scan.
+- Additional empty, zero-target, and negative-target checks stay in the runnable practice/reference files.
 
 ## Practice after learning the concept
 
@@ -231,14 +274,14 @@ Reveal only after attempting: [SubarraySumEqualsKSolution.java](../../../../../.
 <details>
 <summary>1. Why store frequencies instead of a set?</summary>
 
-Different boundaries can have the same total. With three zeros and target zero, the contributions are 1, 2, 3, not merely one per endpoint; frequencies preserve all six ranges.
+At index 3 of our fixed input, earlier total zero occurred before the array and after index 1. Both produce a range summing to 2: indexes 0..3 and 2..3. A set records zero only once; a frequency map records `0:2`, preserving both matches.
 
 </details>
 
 <details>
 <summary>2. Why look up before recording the current total?</summary>
 
-For target zero, recording first makes the current boundary match itself, creating an empty range. `[1]`, target zero must return 0; inserting total 1 before lookup would falsely contribute 1.
+During lookup, every stored boundary must be earlier than the current one. Our index-3 lookup sees earlier totals `{0:2,1:2}` and only afterward records the current total 2. Reversing that order breaks the earlier-boundary rule; in general, when target is zero it would count the current boundary paired with itself, an empty range. The input contract asks for non-empty ranges.
 
 </details>
 
