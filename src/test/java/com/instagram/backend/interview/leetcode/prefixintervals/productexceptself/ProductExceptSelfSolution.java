@@ -27,8 +27,8 @@ public class ProductExceptSelfSolution {
     }
 
     private static void runChecks() {
-        check(new int[] {720, 360, 240, 180, 144, 120, 720},
-                productExceptSelf(new int[] {1, 2, 3, 4, 5, 6, 1}), "seven-value trace");
+        check(new int[] {720, 360, 240, 180, 144, 120},
+                productExceptSelf(new int[] {1, 2, 3, 4, 5, 6}), "six-value trace");
         check(new int[] {24, 12, 8, 6}, productExceptSelf(new int[] {1, 2, 3, 4}), "ordinary input");
         check(new int[] {0, 0, 9, 0, 0}, productExceptSelf(new int[] {-1, 1, 0, -3, 3}), "one zero");
         check(new int[] {0, 0, 0}, productExceptSelf(new int[] {0, 2, 0}), "two zeros");

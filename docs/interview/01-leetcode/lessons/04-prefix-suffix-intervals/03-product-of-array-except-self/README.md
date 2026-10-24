@@ -25,19 +25,35 @@ Problem: [Product of Array Except Self on LeetCode](https://leetcode.com/problem
 
 ## First understand the idea
 
-The key idea is to multiply the values on each side of a position, then combine those two products without ever including the position itself.
+Use `numbers=[1,2,3,4,5,6]`. For each position, multiply every number except the one at that position. The answer has six cells, in the same order as the input:
 
-Use `numbers=[1,2,3,4,5,6,1]`. For answer index 2, the value to exclude is 3. The left side is `[1,2]`, giving `1*2=2`. The right side is `[4,5,6,1]`, giving `4*5*6*1=120`. Therefore `answer[2]=2*120=240`.
+```text
+index:    0  1  2  3  4  5
+numbers:  1  2  3  4  5  6
+```
 
-Let `prefixProduct` mean the product of values already passed from the left, and `suffixProduct` the product already passed from the right. These are a **prefix product** and **suffix product**. Start each at 1: the empty side must leave the other side's product unchanged. That makes 1 multiplication's **identity**.
+| Answer index | Exclude | Multiply the other values | Result |
+| --- | --- | --- | --- |
+| `0` | `1` | `2 × 3 × 4 × 5 × 6` | `720` |
+| `1` | `2` | `1 × 3 × 4 × 5 × 6` | `360` |
+| `2` | `3` | `1 × 2 × 4 × 5 × 6` | `240` |
+| `3` | `4` | `1 × 2 × 3 × 5 × 6` | `180` |
+| `4` | `5` | `1 × 2 × 3 × 4 × 6` | `144` |
+| `5` | `6` | `1 × 2 × 3 × 4 × 5` | `120` |
 
-In general, save prefixProduct into the current answer before including the current number; then scan backward, multiplying that saved answer by suffixProduct before including the number from that direction. The order excludes the current value in both passes. No division by a total product is needed, so a zero never becomes a divisor. The resulting array is `[720,360,240,180,144,120,720]`, with each cell combining its own two sides as the trace shows.
+Therefore return `[720,360,240,180,144,120]`. We have derived what each output means; now we can find those same values without multiplying the other five values again for every position.
+
+The key idea is to multiply the values strictly left of a position and strictly right of it, then combine those two products. At index 2, exclude the value 3: the left side `[1,2]` gives `1×2=2`; the right side `[4,5,6]` gives `4×5×6=120`. Combining gives `2×120=240`, the same answer as the table.
+
+Let `prefixProduct` mean the product of values already passed from the left, and `suffixProduct` the product already passed from the right. These are a **prefix product** and **suffix product**. Start each at 1: an empty side must leave the other side's product unchanged. That makes 1 multiplication's **identity**. For index 0 the left side is empty, so its answer is `1×(2×3×4×5×6)=720`; for index 5 the right side is empty, so its answer is `(1×2×3×4×5)×1=120`.
+
+In general, `answer[index] = product strictly left × product strictly right`. Save the left product **before** including the current number; scan backward and multiply by the right product **before** including the current number from that direction. This order excludes the current value in both passes. No division or input mutation is needed.
 
 ## Block-by-block code walkthrough
 
 Original snapshots are retained. Where a value changes several times, its cell shows the sequence ending at the final value.
 
-Input stays `numbers=[1,2,3,4,5,6,1]` during both passes.
+Input stays `numbers=[1,2,3,4,5,6]` during both passes.
 
 ### Block 1 — Create the output and the empty left-side product
 
@@ -46,7 +62,7 @@ int[] answer = new int[numbers.length];
 int prefixProduct = 1;
 ```
 
-- `int[] answer = new int[numbers.length]` reads length `7`; allocate `answer=[0,0,0,0,0,0,0]`.
+- `int[] answer = new int[numbers.length]` reads length `6`; allocate `answer=[0,0,0,0,0,0]`.
 - `int prefixProduct = 1` starts with the empty left-side product, before index zero.
 
 Starting at zero would force all later products to zero even on nonzero input. Equivalent: describe the initial state as “multiply no values yet, so use 1.” No input cell is modified.
@@ -62,84 +78,77 @@ for (int index = 0; index < numbers.length; index++) {
 
 The first assignment records only values strictly left of `index`. The following multiplication prepares the value needed at the next index. Reversing these statements would include the excluded value in its own output. Equivalent clearer multiplication: `prefixProduct = prefixProduct * numbers[index]`.
 
+**Narrated execution — left pass: save the product before this position.**
+
+Input: `numbers=[1,2,3,4,5,6]`. Initial state: `answer=[0,0,0,0,0,0]`, `prefixProduct=1`; initialize `index=0`.
+
 **Left-pass iteration `index=0`.**
 
-- **✅ `for` condition `index < numbers.length`:** `0 < 7 → true`; enter the body.
-- `answer[index] = prefixProduct` writes `answer[0]`: `0 → 1`; the array after this write is below.
-- `prefixProduct *= numbers[index]` reads `numbers[0]=1`; `1 × 1 = 1`, so `prefixProduct`: `1 → 1`.
-- `index++`: `0 → 1`; continue to the next `for` check.
+- **✅ `for (index < numbers.length)`:** `0 < 6 → true`; enter the body.
+- `answer[index] = prefixProduct` writes `answer[0]`: `0 → 1`; the full array is below.
+- `prefixProduct *= numbers[index]` reads `numbers[0]=1`; `1 × 1 = 1`, changing `prefixProduct`: `1 → 1`.
+- `index++`: `0 → 1`; recheck the loop. Input stays `[1,2,3,4,5,6]`.
 
 | index | condition | prefixProduct before | answer after assignment | prefixProduct after multiply | next |
 | --- | --- | --- | --- | --- | --- |
-| `0` | `✅ 0<7 → true` | `1` | `[1, 0, 0, 0, 0, 0, 0]` | `1` | `index=1` |
+| `0` | `✅ 0<6 → true` | `1` | `[1, 0, 0, 0, 0, 0]` | `1` | `index=1` |
 
 **Left-pass iteration `index=1`.**
 
-- **✅ `for` condition `index < numbers.length`:** `1 < 7 → true`; enter the body.
-- `answer[index] = prefixProduct` writes `answer[1]`: `0 → 1`; the array after this write is below.
-- `prefixProduct *= numbers[index]` reads `numbers[1]=2`; `1 × 2 = 2`, so `prefixProduct`: `1 → 2`.
-- `index++`: `1 → 2`; continue to the next `for` check.
+- **✅ `for (index < numbers.length)`:** `1 < 6 → true`; enter the body.
+- `answer[index] = prefixProduct` writes `answer[1]`: `0 → 1`; the full array is below.
+- `prefixProduct *= numbers[index]` reads `numbers[1]=2`; `1 × 2 = 2`, changing `prefixProduct`: `1 → 2`.
+- `index++`: `1 → 2`; recheck the loop. Input stays `[1,2,3,4,5,6]`.
 
 | index | condition | prefixProduct before | answer after assignment | prefixProduct after multiply | next |
 | --- | --- | --- | --- | --- | --- |
-| `1` | `✅ 1<7 → true` | `1` | `[1, 1, 0, 0, 0, 0, 0]` | `2` | `index=2` |
+| `1` | `✅ 1<6 → true` | `1` | `[1, 1, 0, 0, 0, 0]` | `2` | `index=2` |
 
 **Left-pass iteration `index=2`.**
 
-- **✅ `for` condition `index < numbers.length`:** `2 < 7 → true`; enter the body.
-- `answer[index] = prefixProduct` writes `answer[2]`: `0 → 2`; the array after this write is below.
-- `prefixProduct *= numbers[index]` reads `numbers[2]=3`; `2 × 3 = 6`, so `prefixProduct`: `2 → 6`.
-- `index++`: `2 → 3`; continue to the next `for` check.
+- **✅ `for (index < numbers.length)`:** `2 < 6 → true`; enter the body.
+- `answer[index] = prefixProduct` writes `answer[2]`: `0 → 2`; the full array is below.
+- `prefixProduct *= numbers[index]` reads `numbers[2]=3`; `2 × 3 = 6`, changing `prefixProduct`: `2 → 6`.
+- `index++`: `2 → 3`; recheck the loop. Input stays `[1,2,3,4,5,6]`.
 
 | index | condition | prefixProduct before | answer after assignment | prefixProduct after multiply | next |
 | --- | --- | --- | --- | --- | --- |
-| `2` | `✅ 2<7 → true` | `2` | `[1, 1, 2, 0, 0, 0, 0]` | `6` | `index=3` |
+| `2` | `✅ 2<6 → true` | `2` | `[1, 1, 2, 0, 0, 0]` | `6` | `index=3` |
 
 **Left-pass iteration `index=3`.**
 
-- **✅ `for` condition `index < numbers.length`:** `3 < 7 → true`; enter the body.
-- `answer[index] = prefixProduct` writes `answer[3]`: `0 → 6`; the array after this write is below.
-- `prefixProduct *= numbers[index]` reads `numbers[3]=4`; `6 × 4 = 24`, so `prefixProduct`: `6 → 24`.
-- `index++`: `3 → 4`; continue to the next `for` check.
+- **✅ `for (index < numbers.length)`:** `3 < 6 → true`; enter the body.
+- `answer[index] = prefixProduct` writes `answer[3]`: `0 → 6`; the full array is below.
+- `prefixProduct *= numbers[index]` reads `numbers[3]=4`; `6 × 4 = 24`, changing `prefixProduct`: `6 → 24`.
+- `index++`: `3 → 4`; recheck the loop. Input stays `[1,2,3,4,5,6]`.
 
 | index | condition | prefixProduct before | answer after assignment | prefixProduct after multiply | next |
 | --- | --- | --- | --- | --- | --- |
-| `3` | `✅ 3<7 → true` | `6` | `[1, 1, 2, 6, 0, 0, 0]` | `24` | `index=4` |
+| `3` | `✅ 3<6 → true` | `6` | `[1, 1, 2, 6, 0, 0]` | `24` | `index=4` |
 
 **Left-pass iteration `index=4`.**
 
-- **✅ `for` condition `index < numbers.length`:** `4 < 7 → true`; enter the body.
-- `answer[index] = prefixProduct` writes `answer[4]`: `0 → 24`; the array after this write is below.
-- `prefixProduct *= numbers[index]` reads `numbers[4]=5`; `24 × 5 = 120`, so `prefixProduct`: `24 → 120`.
-- `index++`: `4 → 5`; continue to the next `for` check.
+- **✅ `for (index < numbers.length)`:** `4 < 6 → true`; enter the body.
+- `answer[index] = prefixProduct` writes `answer[4]`: `0 → 24`; the full array is below.
+- `prefixProduct *= numbers[index]` reads `numbers[4]=5`; `24 × 5 = 120`, changing `prefixProduct`: `24 → 120`.
+- `index++`: `4 → 5`; recheck the loop. Input stays `[1,2,3,4,5,6]`.
 
 | index | condition | prefixProduct before | answer after assignment | prefixProduct after multiply | next |
 | --- | --- | --- | --- | --- | --- |
-| `4` | `✅ 4<7 → true` | `24` | `[1, 1, 2, 6, 24, 0, 0]` | `120` | `index=5` |
+| `4` | `✅ 4<6 → true` | `24` | `[1, 1, 2, 6, 24, 0]` | `120` | `index=5` |
 
 **Left-pass iteration `index=5`.**
 
-- **✅ `for` condition `index < numbers.length`:** `5 < 7 → true`; enter the body.
-- `answer[index] = prefixProduct` writes `answer[5]`: `0 → 120`; the array after this write is below.
-- `prefixProduct *= numbers[index]` reads `numbers[5]=6`; `120 × 6 = 720`, so `prefixProduct`: `120 → 720`.
-- `index++`: `5 → 6`; continue to the next `for` check.
+- **✅ `for (index < numbers.length)`:** `5 < 6 → true`; enter the body.
+- `answer[index] = prefixProduct` writes `answer[5]`: `0 → 120`; the full array is below.
+- `prefixProduct *= numbers[index]` reads `numbers[5]=6`; `120 × 6 = 720`, changing `prefixProduct`: `120 → 720`.
+- `index++`: `5 → 6`; recheck the loop. Input stays `[1,2,3,4,5,6]`.
 
 | index | condition | prefixProduct before | answer after assignment | prefixProduct after multiply | next |
 | --- | --- | --- | --- | --- | --- |
-| `5` | `✅ 5<7 → true` | `120` | `[1, 1, 2, 6, 24, 120, 0]` | `720` | `index=6` |
+| `5` | `✅ 5<6 → true` | `120` | `[1, 1, 2, 6, 24, 120]` | `720` | `index=6` |
 
-**Left-pass iteration `index=6`.**
-
-- **✅ `for` condition `index < numbers.length`:** `6 < 7 → true`; enter the body.
-- `answer[index] = prefixProduct` writes `answer[6]`: `0 → 720`; the array after this write is below.
-- `prefixProduct *= numbers[index]` reads `numbers[6]=1`; `720 × 1 = 720`, so `prefixProduct`: `720 → 720`.
-- `index++`: `6 → 7`; continue to the next `for` check.
-
-| index | condition | prefixProduct before | answer after assignment | prefixProduct after multiply | next |
-| --- | --- | --- | --- | --- | --- |
-| `6` | `✅ 6<7 → true` | `720` | `[1, 1, 2, 6, 24, 120, 720]` | `720` | `index=7` |
-
-- **❌ First `for` condition `index < numbers.length`:** `7 < 7 → false`; skip its body. This local `index` leaves scope; the second loop declares a fresh index.
+- **❌ First `for (index < numbers.length)`:** `6 < 6 → false`; finish the left pass with `answer=[1,1,2,6,24,120]`, `prefixProduct=720`. This loop-local `index` leaves scope; the second loop declares a fresh index.
 
 ### Block 3 — Multiply by the product strictly to the right
 
@@ -151,84 +160,77 @@ for (int index = numbers.length - 1; index >= 0; index--) {
 }
 ```
 
-Initialize `suffixProduct=1` because nothing is right of the last position. Start at `7-1=6`. The first multiplication combines the saved left product with the current right product. Only after writing the answer does the second multiplication include this position for the next iteration to its left. Equivalent: `answer[index] = answer[index] * suffixProduct`; the order excludes the current input from its own answer.
+Initialize `suffixProduct=1` because nothing is right of the last position. Start at `6-1=5`. The first multiplication combines the saved left product with the current right product. Only after writing the answer does the second multiplication include this position for the next iteration to its left. Equivalent: `answer[index] = answer[index] * suffixProduct`; the order excludes the current input from its own answer.
 
-**Right-pass iteration `index=6`.**
+**Narrated execution — right pass: combine the saved left product with the right product.**
 
-- **✅ `for` condition `index >= 0`:** `6 >= 0 → true`; enter the body.
-- `answer[index] *= suffixProduct`: `720 × 1 = 720`, so `answer[6]`: `720 → 720`. The full array before/after is below.
-- `suffixProduct *= numbers[index]` reads `numbers[6]=1`; `1 × 1 = 1`, so `suffixProduct`: `1 → 1`.
-- `index--`: `6 → 5`; continue to the next `for` check.
-
-| index | condition | answer before | suffixProduct before | answer after multiplication | suffixProduct after | next |
-| --- | --- | --- | --- | --- | --- | --- |
-| `6` | `✅ 6>=0 → true` | `[1, 1, 2, 6, 24, 120, 720]` | `1` | `[1, 1, 2, 6, 24, 120, 720]` | `1` | `index=5` |
+Input: `numbers=[1,2,3,4,5,6]`. Initial state: `answer=[1,1,2,6,24,120]`, `prefixProduct=720`, `suffixProduct=1`; initialize `index=6-1=5`.
 
 **Right-pass iteration `index=5`.**
 
-- **✅ `for` condition `index >= 0`:** `5 >= 0 → true`; enter the body.
-- `answer[index] *= suffixProduct`: `120 × 1 = 120`, so `answer[5]`: `120 → 120`. The full array before/after is below.
-- `suffixProduct *= numbers[index]` reads `numbers[5]=6`; `1 × 6 = 6`, so `suffixProduct`: `1 → 6`.
-- `index--`: `5 → 4`; continue to the next `for` check.
+- **✅ `for (index >= 0)`:** `5 >= 0 → true`; enter the body.
+- `answer[index] *= suffixProduct`: `120 × 1 = 120`, changing `answer[5]`: `120 → 120`. Full before/after arrays are below.
+- `suffixProduct *= numbers[index]` reads `numbers[5]=6`; `1 × 6 = 6`, changing `suffixProduct`: `1 → 6`.
+- `index--`: `5 → 4`; recheck the loop. `prefixProduct` stays `720`; input stays unchanged.
 
 | index | condition | answer before | suffixProduct before | answer after multiplication | suffixProduct after | next |
 | --- | --- | --- | --- | --- | --- | --- |
-| `5` | `✅ 5>=0 → true` | `[1, 1, 2, 6, 24, 120, 720]` | `1` | `[1, 1, 2, 6, 24, 120, 720]` | `6` | `index=4` |
+| `5` | `✅ 5>=0 → true` | `[1, 1, 2, 6, 24, 120]` | `1` | `[1, 1, 2, 6, 24, 120]` | `6` | `index=4` |
 
 **Right-pass iteration `index=4`.**
 
-- **✅ `for` condition `index >= 0`:** `4 >= 0 → true`; enter the body.
-- `answer[index] *= suffixProduct`: `24 × 6 = 144`, so `answer[4]`: `24 → 144`. The full array before/after is below.
-- `suffixProduct *= numbers[index]` reads `numbers[4]=5`; `6 × 5 = 30`, so `suffixProduct`: `6 → 30`.
-- `index--`: `4 → 3`; continue to the next `for` check.
+- **✅ `for (index >= 0)`:** `4 >= 0 → true`; enter the body.
+- `answer[index] *= suffixProduct`: `24 × 6 = 144`, changing `answer[4]`: `24 → 144`. Full before/after arrays are below.
+- `suffixProduct *= numbers[index]` reads `numbers[4]=5`; `6 × 5 = 30`, changing `suffixProduct`: `6 → 30`.
+- `index--`: `4 → 3`; recheck the loop. `prefixProduct` stays `720`; input stays unchanged.
 
 | index | condition | answer before | suffixProduct before | answer after multiplication | suffixProduct after | next |
 | --- | --- | --- | --- | --- | --- | --- |
-| `4` | `✅ 4>=0 → true` | `[1, 1, 2, 6, 24, 120, 720]` | `6` | `[1, 1, 2, 6, 144, 120, 720]` | `30` | `index=3` |
+| `4` | `✅ 4>=0 → true` | `[1, 1, 2, 6, 24, 120]` | `6` | `[1, 1, 2, 6, 144, 120]` | `30` | `index=3` |
 
 **Right-pass iteration `index=3`.**
 
-- **✅ `for` condition `index >= 0`:** `3 >= 0 → true`; enter the body.
-- `answer[index] *= suffixProduct`: `6 × 30 = 180`, so `answer[3]`: `6 → 180`. The full array before/after is below.
-- `suffixProduct *= numbers[index]` reads `numbers[3]=4`; `30 × 4 = 120`, so `suffixProduct`: `30 → 120`.
-- `index--`: `3 → 2`; continue to the next `for` check.
+- **✅ `for (index >= 0)`:** `3 >= 0 → true`; enter the body.
+- `answer[index] *= suffixProduct`: `6 × 30 = 180`, changing `answer[3]`: `6 → 180`. Full before/after arrays are below.
+- `suffixProduct *= numbers[index]` reads `numbers[3]=4`; `30 × 4 = 120`, changing `suffixProduct`: `30 → 120`.
+- `index--`: `3 → 2`; recheck the loop. `prefixProduct` stays `720`; input stays unchanged.
 
 | index | condition | answer before | suffixProduct before | answer after multiplication | suffixProduct after | next |
 | --- | --- | --- | --- | --- | --- | --- |
-| `3` | `✅ 3>=0 → true` | `[1, 1, 2, 6, 144, 120, 720]` | `30` | `[1, 1, 2, 180, 144, 120, 720]` | `120` | `index=2` |
+| `3` | `✅ 3>=0 → true` | `[1, 1, 2, 6, 144, 120]` | `30` | `[1, 1, 2, 180, 144, 120]` | `120` | `index=2` |
 
 **Right-pass iteration `index=2`.**
 
-- **✅ `for` condition `index >= 0`:** `2 >= 0 → true`; enter the body.
-- `answer[index] *= suffixProduct`: `2 × 120 = 240`, so `answer[2]`: `2 → 240`. The full array before/after is below.
-- `suffixProduct *= numbers[index]` reads `numbers[2]=3`; `120 × 3 = 360`, so `suffixProduct`: `120 → 360`.
-- `index--`: `2 → 1`; continue to the next `for` check.
+- **✅ `for (index >= 0)`:** `2 >= 0 → true`; enter the body.
+- `answer[index] *= suffixProduct`: `2 × 120 = 240`, changing `answer[2]`: `2 → 240`. Full before/after arrays are below.
+- `suffixProduct *= numbers[index]` reads `numbers[2]=3`; `120 × 3 = 360`, changing `suffixProduct`: `120 → 360`.
+- `index--`: `2 → 1`; recheck the loop. `prefixProduct` stays `720`; input stays unchanged.
 
 | index | condition | answer before | suffixProduct before | answer after multiplication | suffixProduct after | next |
 | --- | --- | --- | --- | --- | --- | --- |
-| `2` | `✅ 2>=0 → true` | `[1, 1, 2, 180, 144, 120, 720]` | `120` | `[1, 1, 240, 180, 144, 120, 720]` | `360` | `index=1` |
+| `2` | `✅ 2>=0 → true` | `[1, 1, 2, 180, 144, 120]` | `120` | `[1, 1, 240, 180, 144, 120]` | `360` | `index=1` |
 
 **Right-pass iteration `index=1`.**
 
-- **✅ `for` condition `index >= 0`:** `1 >= 0 → true`; enter the body.
-- `answer[index] *= suffixProduct`: `1 × 360 = 360`, so `answer[1]`: `1 → 360`. The full array before/after is below.
-- `suffixProduct *= numbers[index]` reads `numbers[1]=2`; `360 × 2 = 720`, so `suffixProduct`: `360 → 720`.
-- `index--`: `1 → 0`; continue to the next `for` check.
+- **✅ `for (index >= 0)`:** `1 >= 0 → true`; enter the body.
+- `answer[index] *= suffixProduct`: `1 × 360 = 360`, changing `answer[1]`: `1 → 360`. Full before/after arrays are below.
+- `suffixProduct *= numbers[index]` reads `numbers[1]=2`; `360 × 2 = 720`, changing `suffixProduct`: `360 → 720`.
+- `index--`: `1 → 0`; recheck the loop. `prefixProduct` stays `720`; input stays unchanged.
 
 | index | condition | answer before | suffixProduct before | answer after multiplication | suffixProduct after | next |
 | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `✅ 1>=0 → true` | `[1, 1, 240, 180, 144, 120, 720]` | `360` | `[1, 360, 240, 180, 144, 120, 720]` | `720` | `index=0` |
+| `1` | `✅ 1>=0 → true` | `[1, 1, 240, 180, 144, 120]` | `360` | `[1, 360, 240, 180, 144, 120]` | `720` | `index=0` |
 
 **Right-pass iteration `index=0`.**
 
-- **✅ `for` condition `index >= 0`:** `0 >= 0 → true`; enter the body.
-- `answer[index] *= suffixProduct`: `1 × 720 = 720`, so `answer[0]`: `1 → 720`. The full array before/after is below.
-- `suffixProduct *= numbers[index]` reads `numbers[0]=1`; `720 × 1 = 720`, so `suffixProduct`: `720 → 720`.
-- `index--`: `0 → -1`; continue to the next `for` check.
+- **✅ `for (index >= 0)`:** `0 >= 0 → true`; enter the body.
+- `answer[index] *= suffixProduct`: `1 × 720 = 720`, changing `answer[0]`: `1 → 720`. Full before/after arrays are below.
+- `suffixProduct *= numbers[index]` reads `numbers[0]=1`; `720 × 1 = 720`, changing `suffixProduct`: `720 → 720`.
+- `index--`: `0 → -1`; recheck the loop. `prefixProduct` stays `720`; input stays unchanged.
 
 | index | condition | answer before | suffixProduct before | answer after multiplication | suffixProduct after | next |
 | --- | --- | --- | --- | --- | --- | --- |
-| `0` | `✅ 0>=0 → true` | `[1, 360, 240, 180, 144, 120, 720]` | `720` | `[720, 360, 240, 180, 144, 120, 720]` | `720` | `index=-1` |
+| `0` | `✅ 0>=0 → true` | `[1, 360, 240, 180, 144, 120]` | `720` | `[720, 360, 240, 180, 144, 120]` | `720` | `index=-1` |
 
 ### Block 4 — Return the constructed array
 
@@ -237,17 +239,17 @@ return answer;
 ```
 
 - **❌ Second `for` condition `index >= 0`:** `-1 >= 0 → false`; skip the body, avoiding `answer[-1]`.
-- `return answer` returns `[720,360,240,180,144,120,720]`; both running products finish at `720`. This is the constructed result, not either running product (both end at `720`). Without returning the array the caller gets no answer; a clearer equivalent variable name is `productsExceptIndex`.
+- `return answer` returns `[720,360,240,180,144,120]`; both running products finish at `720`. This is the constructed result, not either running product (both end at `720`). Without returning the array the caller gets no answer; a clearer equivalent variable name is `productsExceptIndex`.
 
 ## Complete reference solution
 
 Runnable reference: [ProductExceptSelfSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/prefixintervals/productexceptself/ProductExceptSelfSolution.java). The walkthrough immediately above explains the complete algorithm below; the `main` runner and assertions are in the linked Java file.
 
 ```java
-// numbers index: 0 1 2 3 4 5 6
-// numbers      : 1 2 3 4 5 6 1
-// Input: numbers=[1,2,3,4,5,6,1]
-// Expected return: [720,360,240,180,144,120,720]
+// numbers index: 0 1 2 3 4 5
+// numbers      : 1 2 3 4 5 6
+// Input: numbers=[1,2,3,4,5,6]
+// Expected return: [720,360,240,180,144,120]
 
 static int[] productExceptSelf(int[] numbers) {
     int[] answer = new int[numbers.length];
@@ -272,13 +274,13 @@ Before left-pass index `i`, `prefixProduct` contains exactly positions `< i`; th
 
 Each pass visits `n` positions: `O(n)` time. Two scalars and loop indexes use `O(1)` auxiliary space; the returned array uses `O(n)` output space. A simpler alternative stores separate left and right arrays, costing `O(n)` auxiliary space; it teaches the same idea but retains more state. Brute force multiplies all other values per index in `O(n²)` time. Division by the full product violates the problem and also fails on zero.
 
-## Other results and pitfalls
+## Pitfalls in this example
 
-- `[1,2,3,4]`: outputs derive as `2×3×4=24`, `1×3×4=12`, `1×2×4=8`, `1×2×3=6`.
-- `[-1,1,0,-3,3]`: every output except index `2` still includes zero, giving zero. Excluding that zero gives `(-1)×1×(-3)×3=9`; result `[0,0,9,0,0]`.
-- `[0,2,0]`: excluding either zero still leaves the other zero; excluding `2` leaves both zeros. Result `[0,0,0]`.
-- `[-2,3]`: excluding `-2` leaves `3`; excluding `3` leaves `-2`, giving `[3,-2]`.
-- Defensive empty input creates `[]`; the first `0<0` and second `-1>=0` are false, so both bodies are skipped and `[]` is returned.
+- At index 2, saving the left product after multiplying 3 would store `1×2×3=6` instead of `1×2=2`. Combining with the right product 120 would give `6×120=720`, incorrectly including the excluded 3.
+- In the right pass at index 2, multiply the saved 2 by the existing right product 120 **before** multiplying that right product by 3. Updating first would again give the incorrect `2×360=720`.
+- At the last index 5, the right side is empty, so use 1: `120×1=120`. Starting the right product at zero would erase that answer and every later one.
+- Both running products end at 720, but return the six-cell answer array, not one running product.
+- Additional zero, negative, minimum-length, input-preservation and defensive-empty cases remain in the runnable checks; this explanation uses only `[1,2,3,4,5,6]`.
 
 ## Practice after learning the concept
 
