@@ -1,0 +1,198 @@
+[
+  {
+    "n": 1,
+    "slug": "01-pure-transformations",
+    "title": "Functional thinking and pure functions",
+    "q": "What makes a calculation functional, and what is a pure function?",
+    "goal": "Explain a function as input → result, recognize outside changes, and separate calculation from effects."
+  },
+  {
+    "n": 2,
+    "slug": "02-functions-as-values",
+    "title": "Lambda expressions",
+    "q": "What is a lambda, and how do I read the arrow syntax?",
+    "goal": "Read parameter → body, distinguish defining behavior from invoking it, and recognize expression and block bodies."
+  },
+  {
+    "n": 3,
+    "slug": "03-functional-interfaces",
+    "title": "Functional interfaces: Function and Predicate",
+    "q": "How does Java know which inputs and result a lambda must have?",
+    "goal": "Explain the single abstract method contract and choose between a transformation and a boolean test."
+  },
+  {
+    "n": 4,
+    "slug": "04-method-references",
+    "title": "Method references",
+    "q": "What does :: mean, and when can it replace a lambda?",
+    "goal": "Read a reference to an existing method or constructor and check its input/output compatibility."
+  },
+  {
+    "n": 5,
+    "slug": "05-suppliers-consumers-operators",
+    "title": "Supplier, Consumer, and operator shapes",
+    "q": "Which functional interface should I use when there is no input, no result, or the same type on both sides?",
+    "goal": "Distinguish producing, performing an action, and transforming within one type."
+  },
+  {
+    "n": 6,
+    "slug": "06-stream-model",
+    "title": "What a stream is",
+    "q": "What is a Java stream, and how is it different from a collection?",
+    "goal": "Identify source, intermediate operations, and terminal operation without imagining intermediate lists."
+  },
+  {
+    "n": 7,
+    "slug": "07-filter",
+    "title": "filter: keep matching values",
+    "q": "What does filter do, and why does it need a Predicate?",
+    "goal": "Choose values using a boolean test while preserving their values and source ownership."
+  },
+  {
+    "n": 8,
+    "slug": "08-map",
+    "title": "map: transform one value into another",
+    "q": "What does map do, and is it related to a Map collection?",
+    "goal": "Explain the T → R type change and distinguish transforming values from selecting or indexing them."
+  },
+  {
+    "n": 9,
+    "slug": "09-flatmap",
+    "title": "flatMap: flatten nested results",
+    "q": "What is flatMap, and when should I use it instead of map?",
+    "goal": "Distinguish one-to-one conversion from converting to zero or more values and removing one container layer."
+  },
+  {
+    "n": 10,
+    "slug": "10-laziness-and-reuse",
+    "title": "Lazy pipelines and one-use streams",
+    "q": "When does a stream run, and why can I not reuse it?",
+    "goal": "Separate a pipeline recipe from a terminal request and obtain a fresh stream for another use."
+  },
+  {
+    "n": 11,
+    "slug": "11-terminal-operations",
+    "title": "Terminal operations: questions and results",
+    "q": "How do count, matching, finding, and forEach differ?",
+    "goal": "Choose a terminal operation according to whether the result is a count, boolean, possible value, collection, or action."
+  },
+  {
+    "n": 12,
+    "slug": "12-optional",
+    "title": "Optional: a result may be absent",
+    "q": "What is Optional, and how do map, flatMap, orElse, and orElseGet apply to it?",
+    "goal": "Model presence explicitly, transform a present value, and select a suitable absence policy."
+  },
+  {
+    "n": 13,
+    "slug": "13-reduce",
+    "title": "reduce: combine values into one result",
+    "q": "What is reduce, and what makes a valid reduction?",
+    "goal": "Choose a neutral starting value and an associative combination rule."
+  },
+  {
+    "n": 14,
+    "slug": "14-collect-and-modifiability",
+    "title": "collect and result ownership",
+    "q": "How does collect differ from reduce, and which returned lists can I modify?",
+    "goal": "Choose a collection-building recipe with an explicit modifiability contract."
+  },
+  {
+    "n": 15,
+    "slug": "15-grouping-and-partitioning",
+    "title": "Grouping and partitioning",
+    "q": "How do groupingBy and partitioningBy build category-based results?",
+    "goal": "Choose a category key or a boolean split and understand a downstream collector."
+  },
+  {
+    "n": 16,
+    "slug": "16-tomap-and-duplicates",
+    "title": "toMap and duplicate-key policy",
+    "q": "How do I create a Map from a stream without silently losing duplicate keys?",
+    "goal": "Name key/value functions, specify a merge policy, and choose map ordering deliberately."
+  },
+  {
+    "n": 17,
+    "slug": "17-ordering-and-distinct",
+    "title": "Ordering, Comparator, and distinct",
+    "q": "How do I choose result order and remove duplicates?",
+    "goal": "Separate encounter order, chosen sort order, and equality-based deduplication."
+  },
+  {
+    "n": 18,
+    "slug": "18-primitive-streams-and-arrays",
+    "title": "Primitive streams and arrays",
+    "q": "What are IntStream, mapToInt, boxed, and Arrays.stream?",
+    "goal": "Choose primitive numeric processing and recognize the int[] varargs trap."
+  },
+  {
+    "n": 19,
+    "slug": "19-function-composition",
+    "title": "Function composition",
+    "q": "What do andThen and compose mean?",
+    "goal": "Combine reusable transformations in a deliberate order and check compatible types."
+  },
+  {
+    "n": 20,
+    "slug": "20-lambda-capture",
+    "title": "Captured variables and effectively final",
+    "q": "Why can a lambda read a local variable but not reassign it?",
+    "goal": "Explain captured local values and distinguish final references from immutable objects."
+  },
+  {
+    "n": 21,
+    "slug": "21-exception-boundaries",
+    "title": "Exceptions at functional boundaries",
+    "q": "Why do checked exceptions not fit every lambda?",
+    "goal": "Match a lambda to its throws contract and choose a visible failure policy."
+  },
+  {
+    "n": 22,
+    "slug": "22-side-effects-and-peek",
+    "title": "Side effects, non-interference, and peek",
+    "q": "Why is changing shared state inside a stream risky?",
+    "goal": "Keep transformation separate from effects and understand the limits of peek-based debugging."
+  },
+  {
+    "n": 23,
+    "slug": "23-parallel-streams",
+    "title": "Parallel streams: suitability and limits",
+    "q": "Does parallelStream automatically make code faster or safer?",
+    "goal": "Explain splitting/combining work and decide when sequential processing is the better default."
+  },
+  {
+    "n": 24,
+    "slug": "24-resource-streams",
+    "title": "Streams that own resources",
+    "q": "Why must a file-backed stream be closed?",
+    "goal": "Distinguish in-memory sources from open resources and use try-with-resources."
+  },
+  {
+    "n": 25,
+    "slug": "25-bounded-and-multi-output-streams",
+    "title": "Bounded and prefix-based pipelines",
+    "q": "How do limit, skip, takeWhile, and dropWhile control which part of a stream is used?",
+    "goal": "Recognize finite bounds and distinguish prefix rules from filtering."
+  },
+  {
+    "n": 26,
+    "slug": "26-mapmulti",
+    "title": "mapMulti: emit zero or more results",
+    "q": "How does mapMulti differ from map and flatMap?",
+    "goal": "Compare returned single values, returned inner streams, and explicit output emission."
+  },
+  {
+    "n": 27,
+    "slug": "27-gatherers",
+    "title": "Gatherers: custom intermediate transformations",
+    "q": "What are Gatherers, and how are they different from collectors?",
+    "goal": "Distinguish an intermediate transformation recipe from a terminal result-building recipe."
+  },
+  {
+    "n": 28,
+    "slug": "28-custom-collectors",
+    "title": "Custom collector contracts",
+    "q": "What do supplier, accumulator, combiner, and finisher mean in a collector?",
+    "goal": "Recognize a collection recipe and the ownership rules that make partial results safe to combine."
+  }
+]

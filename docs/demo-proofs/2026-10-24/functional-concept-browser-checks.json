@@ -1,0 +1,181 @@
+{
+  "results": [
+    {
+      "lesson": "01-pure-transformations",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 3
+    },
+    {
+      "lesson": "02-functions-as-values",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 2
+    },
+    {
+      "lesson": "03-functional-interfaces",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 4
+    },
+    {
+      "lesson": "04-method-references",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 4
+    },
+    {
+      "lesson": "05-suppliers-consumers-operators",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 6
+    },
+    {
+      "lesson": "06-stream-model",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 2
+    },
+    {
+      "lesson": "07-filter",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 4
+    },
+    {
+      "lesson": "08-map",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 4
+    },
+    {
+      "lesson": "09-flatmap",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 5
+    },
+    {
+      "lesson": "10-laziness-and-reuse",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 5
+    },
+    {
+      "lesson": "11-terminal-operations",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 4
+    },
+    {
+      "lesson": "12-optional",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 4
+    },
+    {
+      "lesson": "13-reduce",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 3
+    },
+    {
+      "lesson": "14-collect-and-modifiability",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 5
+    },
+    {
+      "lesson": "15-grouping-and-partitioning",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 7
+    },
+    {
+      "lesson": "16-tomap-and-duplicates",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 4
+    },
+    {
+      "lesson": "17-ordering-and-distinct",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 5
+    },
+    {
+      "lesson": "18-primitive-streams-and-arrays",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 5
+    },
+    {
+      "lesson": "19-function-composition",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 4
+    },
+    {
+      "lesson": "20-lambda-capture",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 3
+    },
+    {
+      "lesson": "21-exception-boundaries",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 2
+    },
+    {
+      "lesson": "22-side-effects-and-peek",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 4
+    },
+    {
+      "lesson": "23-parallel-streams",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 3
+    },
+    {
+      "lesson": "24-resource-streams",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 10
+    },
+    {
+      "lesson": "25-bounded-and-multi-output-streams",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 4
+    },
+    {
+      "lesson": "26-mapmulti",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 7
+    },
+    {
+      "lesson": "27-gatherers",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 3
+    },
+    {
+      "lesson": "28-custom-collectors",
+      "http": 200,
+      "checkpoints": 3,
+      "numberedExampleLines": 6
+    }
+  ],
+  "navigation": "course -> map -> flatMap",
+  "legacyRoutes": 2,
+  "mobilePageOverflow": false,
+  "pageErrors": [],
+  "screenshots": [
+    "functional-lambda-concept.png",
+    "functional-map-concept.png",
+    "functional-flatmap-concept.png"
+  ]
+}

@@ -81,3 +81,7 @@ Reworked the [introductory functional-programming module](../interview/04-java/0
 ## Kafka track initialization — 2026-10-24
 
 Prepared the [Kafka learning path](../kafka/README.md), with five foundations micro-lessons and a 14-module roadmap/backlog; see [Feature 18](./18-kafka-learning-path-initialization.md). Proposed application exercises link F-010 post events, F-028 notifications, and F-030 processing. Only Module 01 artifacts are READY; every module exercise remains TODO and comprehension remains NOT_ASSESSED. No Kafka application behavior or product-feature completion is claimed; existing feature statuses remain unchanged.
+
+## Java functional concept course — 2026-10-24
+
+Recreated the [functional-programming course](../interview/04-java/01-functional-programming-coding/README.md) as 28 concept lessons with small examples and 84 explained questions; see [Feature 19](./19-functional-programming-concept-course.md). Removed iteration/debugger narration and required LeetCode progression from this course. Saved the Java-concept preference in [AGENTS.md](../../AGENTS.md#functional-programming-lesson-standard). Coverage artifacts are READY; understanding remains TODO and coding is optional. Existing feature status rows remain unchanged.

@@ -844,3 +844,11 @@ For every new feature or learning concept:
 - Concept mapping: SD-008 asynchronous processing, partition ordering, retained history, saved reading progress, and duplicate/recovery boundaries. Proposed implementation exercises map F-010 post events, F-028 notifications, F-030 processing, and SD-009 operations; no implementation or mastery status is upgraded.
 - Verification and scope: [initialization evidence](./kafka/initialization-evidence.md). No runtime/API/UI behavior changed. Unrelated pre-existing work is excluded.
 - Artifact commit: `c3ec6a6` — initialize the Kafka learning path and foundations lessons. Verification includes 115 local links/anchors, 11 official reference URL/fragment combinations, 15 consistent tables, 15 explained checkpoints, fixed-example arithmetic/restart checks, unchanged shared status rows, and staged whitespace checks.
+
+## Java functional concept course — 2026-10-24
+
+- Recreated [Feature 19](./features/19-functional-programming-concept-course.md): [28 concept lessons](./interview/04-java/01-functional-programming-coding/README.md), 84 explained checkpoints, exact runnable examples, optional separate practice, coverage tracking, and independent learner progress. Old URLs remain valid.
+- Saved the learner preference in [AGENTS.md](../AGENTS.md#functional-programming-lesson-standard): Java concept lessons explain meaning, use cases, syntax/results, comparisons, and pitfalls without iteration/debugger narration or forced LeetCode exercises. Algorithm lessons keep their own standards.
+- Concept mapping: Java behavior-as-values, transformation versus flattening, lazy processing, aggregation, result ownership, failure/resource boundaries, and parallelism. The existing PostService map/toList use is the current project example; no production/API/UI implementation behavior changes or mastery upgrades are claimed.
+- Verification: [Java/browser/HTTP evidence](./interview/04-java/01-functional-programming-coding/verification.md), 28 compiled examples, 28 rendered concept pages, 84 expanded-answer checks, exact numbered code, map/flatMap navigation, compatibility routes, mobile layout, and reviewed screenshots. Unrelated existing edits are excluded.
+- Artifact commit: recorded after the focused commit exists.

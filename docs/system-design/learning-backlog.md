@@ -53,3 +53,7 @@ Reworked the [introductory functional-programming module](../interview/04-java/0
 ## Kafka track initialization — 2026-10-24
 
 Prepared the [Kafka learning path](../kafka/README.md) and [Module 01](../kafka/01-event-streaming-foundations/README.md), with proposed exercises for SD-008 asynchronous processing and SD-009 observability. The roadmap covers ordering, reading progress, duplicate protection, outbox recovery, contracts, and operational tradeoffs. Only the first module's lesson artifacts are READY. Kafka exercises remain TODO and [comprehension](../kafka/learner-progress.md) remains NOT_ASSESSED; existing concept statuses, including SD-008 TODO, are unchanged.
+
+## Java functional concept course — 2026-10-24
+
+Prepared the [28-part Java functional concept course](../interview/04-java/01-functional-programming-coding/README.md), replacing its earlier exercise/trace format. The [learner tracker](../interview/04-java/01-functional-programming-coding/learner-progress.md) remains entirely TODO. See [Feature 19](../features/19-functional-programming-concept-course.md) for the saved teaching preference, runnable examples, and browser evidence. This learning-artifact update completes no system-design implementation or mastery milestone; existing concept status rows remain unchanged.

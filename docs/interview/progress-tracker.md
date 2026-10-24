@@ -69,3 +69,7 @@ Copy this section for each week.
 ## Functional-programming artifact review — 2026-10-17
 
 The [functional-programming introduction](./04-java/01-functional-programming-coding/README.md) now has four concept-first lessons: purity, functions as values, stream transformations, and an array LeetCode bridge. Artifacts are READY after recorded Java/browser checks; all four learning statuses remain TODO, the track remains inactive, and no existing mastery counts or active lessons change.
+
+## Functional concept-course recreation — 2026-10-24
+
+Replaced the prior four-exercise format with [28 Java functional concept lessons](./04-java/01-functional-programming-coding/README.md): small examples and explained results, with no iteration/debugger narration and optional practice. Coverage is prepared; all concept understanding remains TODO in [the learner tracker](./04-java/01-functional-programming-coding/learner-progress.md). Existing active LeetCode work, mastery counts, and other track statuses are unchanged.

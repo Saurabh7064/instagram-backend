@@ -1,5 +1,8 @@
 # 17 - Concept-First Functional Programming Introduction
 
+**Historical implementation note:** The four-exercise format below was superseded on 2026-10-24 by the [28-lesson concept course](../interview/04-java/01-functional-programming-coding/README.md). Current teaching omits iteration/debugger traces and makes coding optional; see [Feature 19](./19-functional-programming-concept-course.md). The earlier commit and verification record describe that earlier version.
+
+
 ## 1) What I built
 
 Reworked the [functional-programming introduction](../interview/04-java/01-functional-programming-coding/README.md) into four prerequisite-ordered micro-lessons: purity, functions as values, stream transformations, and an array-based LeetCode exercise. The original first-lesson URL remains valid. Original normalization Java files remain at their existing paths; their lesson now comes after the concepts it relies on.
