@@ -49,3 +49,7 @@ Prepared [five Module 04 LeetCode lessons](../interview/01-leetcode/lessons/04-p
 ## Functional-programming introduction review — 2026-10-17
 
 Reworked the [introductory functional-programming module](../interview/04-java/01-functional-programming-coding/README.md) into concept-first lessons with small Java programs, narrated executions, and a suitable array LeetCode bridge; see [Feature 17](../features/17-functional-programming-concept-first.md). This learning-artifact change does not complete a product implementation or demonstrate learner comprehension. Existing tracker statuses are unchanged; all four FP lessons remain TODO and inactive.
+
+## Kafka track initialization — 2026-10-24
+
+Prepared the [Kafka learning path](../kafka/README.md) and [Module 01](../kafka/01-event-streaming-foundations/README.md), with proposed exercises for SD-008 asynchronous processing and SD-009 observability. The roadmap covers ordering, reading progress, duplicate protection, outbox recovery, contracts, and operational tradeoffs. Only the first module's lesson artifacts are READY. Kafka exercises remain TODO and [comprehension](../kafka/learner-progress.md) remains NOT_ASSESSED; existing concept statuses, including SD-008 TODO, are unchanged.
