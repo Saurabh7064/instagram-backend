@@ -35,7 +35,7 @@ The existing learning tracks use modules and short prerequisite-ordered parts. K
 
 ## 6) Commit pointers
 
-The [commit map](../commit-map.md#kafka-learning-path-initialization--2026-10-24) records the artifact commit hash once available. No UI commit is required for this documentation-only initialization.
+Backend artifact commit: `c3ec6a6` — initialize the Kafka learning path and foundations lessons. See the [commit map](../commit-map.md#kafka-learning-path-initialization--2026-10-24) for concept and verification mapping. No UI commit is required for this documentation-only initialization.
 
 ## 7) Pitfalls and fixes
 

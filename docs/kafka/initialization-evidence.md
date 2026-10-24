@@ -33,4 +33,4 @@ Checked against versioned official Apache Kafka documentation on 2026-10-24: [in
 
 ## Commit pointers
 
-See the [commit map entry](../commit-map.md#kafka-learning-path-initialization--2026-10-24) for the artifact commit hash and verification record.
+Artifact commit: `c3ec6a6` — initialize the Kafka learning path and foundations lessons. See the [commit map entry](../commit-map.md#kafka-learning-path-initialization--2026-10-24) for the concept mapping and verification record.
