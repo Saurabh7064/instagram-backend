@@ -30,7 +30,9 @@ The learner wants to understand Java concepts and API differences without algori
 
 ## 6) Commit pointers and verification
 
-The [verification note](../interview/04-java/01-functional-programming-coding/verification.md) records Java compilation/output, browser checks, HTTP serving, screenshot proof, and scope. The [commit map](../commit-map.md#java-functional-concept-course--2026-10-24) records the artifact hash after commit creation.
+Artifact commit: `f7321b9` — rebuild functional programming as a Java concept course.
+
+The [verification note](../interview/04-java/01-functional-programming-coding/verification.md) records Java compilation/output, browser checks, HTTP serving, screenshot proof, and scope. The [commit map](../commit-map.md#java-functional-concept-course--2026-10-24) records the artifact hash and concept mapping.
 
 ## 7) Pitfalls and fixes
 

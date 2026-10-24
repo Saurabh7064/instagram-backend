@@ -1,5 +1,7 @@
 # Functional Concept Course Verification — 2026-10-24
 
+Artifact commit: `f7321b9` — rebuild functional programming as a Java concept course and persist the learner preference.
+
 ## Scope
 
 Recreated the functional-programming path as 28 concept lessons with 84 explained checkpoint answers. Removed the four earlier lessons' iteration/debugger walkthroughs and required LeetCode progression. The first two URLs teach revised concepts; the other two remain compatibility pages pointing to the stream and primitive-array lessons. Existing Java exercise files are preserved for optional use.
