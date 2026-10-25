@@ -1,121 +1,89 @@
-# Micro-Lesson 01 — Starting and Joining One Worker
+# 01 — Starting and Joining One Worker
 
-## Question
+## Concept question
 
-> How can a Java method calculate a square on a named worker thread and wait for the worker's result without guessing with `Thread.sleep`?
+How do we ask another execution path to calculate a value, then wait until that calculation has finished?
 
 ## What you will learn
 
-- what a thread represents inside one running Java program;
-- why constructing a `Thread` does not start its task;
-- the difference between calling `start()` and calling `run()` directly;
-- how `join()` coordinates completion before the caller reads a result;
-- why sleeping is a timing guess rather than a correctness mechanism.
+Distinguish constructing a thread representation, starting its execution, and waiting for completion before reading its result.
 
-## Lesson status
+**Prerequisite:** [00A–00G foundations](../00-foundations/README.md), especially task versus thread and private execution state versus shared objects. **Time:** 10–15 minutes. **Understanding:** TODO; not activated.
 
-- Learning status: `TODO`; initialized but not active
-- Primary idea: `start` begins work on another thread and `join` waits for that work to finish
-- New terms: thread, `start`, `join`
+## Understand the concept
 
-## Inputs, examples, and target
+A worker is simply an application thread assigned some work. Here the work is to calculate the square of 7: 7 × 7 = 49. The caller needs the result, so it must know when that work is complete. This tiny calculation is a teaching example; creating a thread is not a performance improvement for one multiplication.
 
-Implement `squareOnWorker(int number)` under these conditions:
+A SquareTask object stores the input number and a result field initially 0. It implements Runnable, so its run method describes the work. The caller and worker can refer to this same task object; they do not get independent copies of its fields.
 
-Assumptions:
+Constructing a Thread object with the task and a name does not execute the calculation. Calling start asks for a new execution path to run the task. The caller can then continue independently. Calling run directly would instead be an ordinary method call on the current thread, as taught in 00F.
 
-- `number` is between `-46,340` and `46,340`, so the square fits in a Java `int`.
-- The method may declare `InterruptedException`.
-- Tests must not depend on arbitrary sleeps.
+Calling join waits for that worker to finish. If it already finished, join can return without waiting. After join returns normally, the caller can read the result written by the completed worker. This provides both the required completion ordering and visibility of the completed work's writes. It is more than guessing that enough time passed.
 
-## First understand the idea
+## Small Java example
 
-The key idea is to wait for the actual worker's completion before reading its result, rather than guessing how long its calculation takes.
-
-Use `number=7`. Let `worker` mean the separately scheduled task and `result` its shared result holder, initially 0. The intended calculation is `7*7=49`, so the caller must return 49. A **thread** is one path of execution inside the program; the caller and worker can progress independently.
-
-Creating the worker object does not run the calculation. `start()` makes the worker eligible to execute. If the caller reads result immediately afterward, it might still see the initial 0 because the worker has not written 49 yet. `join()` waits for the worker to finish; after it returns normally, reading the holder gives 49. The worker might also finish before the caller reaches join, in which case no waiting is needed.
-
-In general, create the worker, start it, join it, then read the result. AtomicInteger is the shared holder used here; detailed atomic operations are a later topic. A fixed sleep cannot establish this completion order, because scheduling time varies. The subsequent bullets show one valid schedule, while the completion guarantee applies to every successful execution.
-
-## Reference approach
+Runnable reference: [StartAndJoinSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/multithreading/startandjoin/StartAndJoinSolution.java). Its named SquareTask class implements Runnable and stores its input and result. The coordination portion is:
 
 ```java
-AtomicInteger result = new AtomicInteger();
-Thread worker = new Thread(
-        () -> result.set(number * number),
-        "square-worker");
-
+SquareTask task = new SquareTask(number);
+Thread worker = new Thread(task, "square-worker");
 worker.start();
 worker.join();
-return result.get();
 ```
 
-`new Thread(...)` creates a thread object but does not run the task. `start()` schedules the task to execute on the worker. Calling `run()` directly would execute on the caller and would not create concurrent work.
+For number=7, the task's run method assigns `result = number * number`, calculating 7 × 7 = 49. After the normal join return, `return task.result` returns 49. The reference file also records the actual executing Thread to verify that the calculation used the started worker, not merely a matching thread name.
 
-`join()` blocks the caller until the worker terminates. Without `join`, the caller could read the result before the worker writes it and return the initial `0`.
+## Read the syntax and ownership
 
-`AtomicInteger` supplies a small shared result holder. Later lessons will explain atomic operations in depth; here it avoids introducing an unsafe shared primitive while the focus stays on lifecycle and waiting.
+`new SquareTask(number)` creates the work description and its stored values. `new Thread(task, "square-worker")` associates that work with a new, not-yet-started thread representation. The String is a label, not a scheduling instruction. `worker.start()` requests execution; it is not a promise that the worker runs before the caller's next statement. `worker.join()` waits for this specific worker's termination.
 
-## Narrated execution — `number=7`
+No AtomicInteger or lambda is required for this restricted handoff. The input is established before start; one worker writes the task's result; the caller reads only after successful join. That is different from unsynchronized concurrent reads/writes or repeated shared updates. Ordinary int fields are not generally safe to exchange without such a coordination rule.
 
-Expected return: `49`. This is one valid execution: the caller reaches `join()` before the worker writes. The worker can also finish earlier; every valid execution must finish the worker before `join()` returns.
+The method declares InterruptedException because waiting in join can be interrupted: the waiting caller can be signaled to stop waiting. This method propagates that checked exception and does not proceed to read the result on the exceptional path. It does not claim interruption stops the worker. Cancellation and interruption handling deserve their own later lesson.
 
-- `AtomicInteger result = new AtomicInteger()` creates the result holder with value `0`.
-- `new Thread(...)` stores the task and name `"square-worker"`; constructing it does not run the task.
-- `worker.start()` makes the worker eligible to run; the caller continues.
-- `worker.join()` makes the caller wait while this worker is unfinished.
-- The worker calculates `number * number`: `7 * 7 = 49`; `result.set(49)` changes the holder `0 → 49`.
-- The worker finishes; `worker.join()` returns. **State:** `number=7`, `result.get()=49`, worker finished.
-- `return result.get()` reads `49` and returns it to the caller.
+## Predict and observe
 
-## Prediction and observation
+**Predict:** If the worker has not calculated anything when the caller reads its result, what value is present? Does start alone rule out that observation?
 
-Prediction: after `join` returns, the worker has finished and the square is available.
+**Action:** Run StartAndJoinSolution.main optionally. Its checks verify 7 → 49, -4 → 16, 0 → 0, and both safe boundary inputs ±46,340 → 2,147,395,600. Input assumptions restrict the magnitude so an int square does not overflow. The running conceptual example remains number=7.
 
-Observation: every supplied input produces a deterministic result without `Thread.sleep`.
+**Expected observation:** The reference checks pass after actual worker completion; they never rely on Thread.sleep. Scheduling can differ while the returned square remains correct.
 
-Explanation: completion is coordinated explicitly by `join`; correctness does not depend on the worker happening to run quickly.
+**Controlled failure and recovery:** The separate [verification helper](../../../../../../src/test/java/com/instagram/backend/interview/multithreading/foundations/ThreadFoundationsVerification.java) deliberately holds a test worker before its write, checks the unfinished value 0, then releases it and joins before verifying 49. It uses a gate so the failure is observable without timing guesses. Gate implementation is test machinery, not prerequisite lesson content.
 
-## Useful later: interruption
+**Why:** Reading before completion can observe unfinished state. Without join or another suitable completion mechanism, the result has no required handoff guarantee; a broken version is not guaranteed to return 0 on every run. Recover by establishing completion before the read, not by sleeping longer.
 
-`join` declares `InterruptedException` because code waiting for another thread may be asked to stop waiting. This first exercise propagates the exception. A later lesson will cover cancellation and restoring interrupt status.
+## Pitfalls and boundaries
 
-## Complexity
+A Thread can be started only once. join waits for termination; it does not mean a task succeeded, automatically propagate a worker exception, or impose an overall application timeout. The reference checks use a non-throwing multiplication within a documented range. Later lessons must address failure reporting, time limits, and cancellation explicitly.
 
-- Work: `O(1)` for one multiplication.
-- Additional space: `O(1)`.
-- Coordination cost: one thread creation and one wait; real applications normally reuse executor-managed threads for many tasks.
-
-
-## Practice after learning the concept
-
-- Write here: [StartAndJoinPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/multithreading/startandjoin/StartAndJoinPractice.java)
-- Reveal after attempting: [StartAndJoinSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/multithreading/startandjoin/StartAndJoinSolution.java)
+Formal reference, useful later: [Java's join ordering rule](https://docs.oracle.com/javase/specs/jls/se24/html/jls-17.html#jls-17.4.5). The core idea is already explained above; no memory-model terminology is needed to attempt this checkpoint.
 
 ## Questions and explained answers
 
 <details>
-<summary>1. What is the difference between calling <code>start()</code> and <code>run()</code>?</summary>
+<summary>1. What is the difference between creating a Thread, calling start, and calling run directly?</summary>
 
-`start()` asks the JVM to execute `run` on another thread. Calling `run()` directly is an ordinary method call on the current thread.
-
-</details>
-
-<details>
-<summary>2. Why is <code>join()</code> required before reading the result?</summary>
-
-It guarantees that the worker has completed. Without it, the caller may read the initial value before the worker writes the square.
+Construction creates its representation and associates work; it does not run the task. start requests a separate execution path. Direct run is an ordinary call executed by the caller.
 
 </details>
 
 <details>
-<summary>3. Why should a correctness test avoid <code>Thread.sleep</code>?</summary>
+<summary>2. Why can the caller read an ordinary result field after successful join here?</summary>
 
-Sleep guesses how long work needs. Machine load and scheduling vary, so the guess can make tests slow or flaky. `join` waits for the actual completion event.
+One worker wrote the result, and join establishes its completion and visibility of those writes before the caller reads. This specific handoff does not make arbitrary unsynchronized shared fields safe.
+
+</details>
+
+<details>
+<summary>3. Why not replace join with a long sleep?</summary>
+
+A delay guesses when another thread might finish. Scheduling and work duration vary, and sleep does not establish the same completion/visibility guarantee. Wait for the actual completion mechanism.
 
 </details>
 
 ## Stop/go
 
-Proceed only when the practice checks pass and you can predict the result of removing `join`, explain `start` versus `run`, and state why sleeps are not coordination.
+Explain task versus executing thread, predict the unfinished value without claiming a fixed broken outcome, and explain the successful completion handoff. A [separate practice file](../../../../../../src/test/java/com/instagram/backend/interview/multithreading/startandjoin/StartAndJoinPractice.java) is optional. Passing its code checks alone does not demonstrate understanding. Record checkpoint evidence in [learner progress](../../learner-progress.md).
+
+**Next:** lifecycle states and interruption are [planned coverage](../../learning-backlog.md); they have not been authored or taught here.

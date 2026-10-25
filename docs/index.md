@@ -5,6 +5,7 @@
 - [Senior Backend Interview Preparation Hub](./interview/README.md)
 - [Interview Progress Tracker](./interview/progress-tracker.md)
 - [Java Functional Programming Concepts](./interview/04-java/01-functional-programming-coding/README.md)
+- [Java Multithreading: What a Thread Is](./interview/04-java/02-multithreading-from-scratch/lessons/00-foundations/00b-what-is-a-thread.md)
 - [October 2026–January 2027 Interview Plan](./interview/interview-plan.md)
 - [12-Week Interview Execution Plan](./interview/12-week-execution-plan.md)
 - [Feature Learning Path](./features/README.md)

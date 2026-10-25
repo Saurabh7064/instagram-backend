@@ -73,3 +73,7 @@ The [functional-programming introduction](./04-java/01-functional-programming-co
 ## Functional concept-course recreation — 2026-10-24
 
 Replaced the prior four-exercise format with [28 Java functional concept lessons](./04-java/01-functional-programming-coding/README.md): small examples and explained results, with no iteration/debugger narration and optional practice. Coverage is prepared; all concept understanding remains TODO in [the learner tracker](./04-java/01-functional-programming-coding/learner-progress.md). Existing active LeetCode work, mastery counts, and other track statuses are unchanged.
+
+## Threading foundations correction — 2026-10-24
+
+The learner identified that the [threading course](./04-java/02-multithreading-from-scratch/README.md) used worker APIs before teaching what a thread is. Added seven prerequisite concept parts and revised start/join. The [new learner tracker](./04-java/02-multithreading-from-scratch/learner-progress.md) has eight TODO rows; the feedback is not a checkpoint attempt, and no active lesson or mastery count changes.

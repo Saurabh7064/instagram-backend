@@ -85,3 +85,7 @@ Prepared the [Kafka learning path](../kafka/README.md), with five foundations mi
 ## Java functional concept course — 2026-10-24
 
 Recreated the [functional-programming course](../interview/04-java/01-functional-programming-coding/README.md) as 28 concept lessons with small examples and 84 explained questions; see [Feature 19](./19-functional-programming-concept-course.md). Removed iteration/debugger narration and required LeetCode progression from this course. Saved the Java-concept preference in [AGENTS.md](../../AGENTS.md#functional-programming-lesson-standard). Coverage artifacts are READY; understanding remains TODO and coding is optional. Existing feature status rows remain unchanged.
+
+## Multithreading foundations — 2026-10-24
+
+Added [seven foundation micro-lessons](../interview/04-java/02-multithreading-from-scratch/lessons/00-foundations/README.md) before the revised start/join lesson, with [Feature 20](./20-multithreading-foundations.md) recording evidence. The course starts with program/process and what a thread is, then teaches main, CPU time, tasks, and sharing before APIs. Eight artifacts are READY; comprehension remains TODO and coding is optional. Existing feature status rows are unchanged.

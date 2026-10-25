@@ -1,0 +1,63 @@
+{
+  "results": [
+    {
+      "part": "00A",
+      "title": "A program and a running process",
+      "http": 200,
+      "explainedAnswers": 3,
+      "codeBlocks": 0
+    },
+    {
+      "part": "00B",
+      "title": "What a thread actually is",
+      "http": 200,
+      "explainedAnswers": 3,
+      "codeBlocks": 0
+    },
+    {
+      "part": "00C",
+      "title": "The thread already running main",
+      "http": 200,
+      "explainedAnswers": 3,
+      "codeBlocks": 1
+    },
+    {
+      "part": "00D",
+      "title": "How a thread gets CPU time",
+      "http": 200,
+      "explainedAnswers": 3,
+      "codeBlocks": 0
+    },
+    {
+      "part": "00E",
+      "title": "Concurrency is different from parallelism",
+      "http": 200,
+      "explainedAnswers": 3,
+      "codeBlocks": 0
+    },
+    {
+      "part": "00F",
+      "title": "A task is work; a thread executes it",
+      "http": 200,
+      "explainedAnswers": 3,
+      "codeBlocks": 1
+    },
+    {
+      "part": "00G",
+      "title": "Private execution state and shared objects",
+      "http": 200,
+      "explainedAnswers": 3,
+      "codeBlocks": 1
+    },
+    {
+      "part": "01",
+      "title": "Starting and Joining One Worker",
+      "http": 200,
+      "explainedAnswers": 3,
+      "codeBlocks": 1
+    }
+  ],
+  "navigation": "course -> program/process -> what a thread is",
+  "mobilePageOverflow": false,
+  "pageErrors": []
+}

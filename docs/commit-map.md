@@ -852,3 +852,10 @@ For every new feature or learning concept:
 - Concept mapping: Java behavior-as-values, transformation versus flattening, lazy processing, aggregation, result ownership, failure/resource boundaries, and parallelism. The existing PostService map/toList use is the current project example; no production/API/UI implementation behavior changes or mastery upgrades are claimed.
 - Verification: [Java/browser/HTTP evidence](./interview/04-java/01-functional-programming-coding/verification.md), 28 compiled examples, 28 rendered concept pages, 84 expanded-answer checks, exact numbered code, map/flatMap navigation, compatibility routes, mobile layout, and reviewed screenshots. Unrelated existing edits are excluded.
 - Artifact commit: `f7321b9` — rebuild functional programming as a Java concept course and persist the Java-concept teaching preference.
+
+## Multithreading foundations before worker APIs — 2026-10-24
+
+- Prepared [Feature 20](./features/20-multithreading-foundations.md): [seven foundation parts](./interview/04-java/02-multithreading-from-scratch/lessons/00-foundations/README.md) teach program/process, what a thread carries, main, CPU time, concurrency/parallelism, tasks, and shared objects before the revised start/join lesson. Eight authored parts contain 24 explained checkpoints.
+- Concept mapping: execution ownership, private call histories versus shared objects, work versus execution path, scheduling versus parallelism, and completion/visibility handoff. The reference uses a named task without AtomicInteger/lambda prerequisites. No application concurrency policy, API contract, or learner mastery changes.
+- Verification: [Java/browser/HTTP evidence](./interview/04-java/02-multithreading-from-scratch/verification.md), actual thread identity, ordinary-call/direct-run ownership, shared references, square/boundary checks, controlled unfinished-work/recovery without sleeps, eight rendered concept pages, 24 answer expansions, prerequisite navigation, and reviewed screenshots. Unrelated pre-existing edits are excluded.
+- Artifact commit: recorded after the focused commit exists.

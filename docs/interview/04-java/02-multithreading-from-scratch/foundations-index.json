@@ -1,0 +1,44 @@
+[
+  {
+    "id": "00A",
+    "slug": "00a-program-and-process",
+    "title": "A program and a running process",
+    "question": "What is running when I press Run in IntelliJ?"
+  },
+  {
+    "id": "00B",
+    "slug": "00b-what-is-a-thread",
+    "title": "What a thread actually is",
+    "question": "What is a thread, and why is it different from a whole running program?"
+  },
+  {
+    "id": "00C",
+    "slug": "00c-main-and-method-calls",
+    "title": "The thread already running main",
+    "question": "If I never create a Thread, what executes my main method?"
+  },
+  {
+    "id": "00D",
+    "slug": "00d-cpu-time-and-scheduling",
+    "title": "How a thread gets CPU time",
+    "question": "Does a thread execute continuously as soon as it exists?"
+  },
+  {
+    "id": "00E",
+    "slug": "00e-concurrency-and-parallelism",
+    "title": "Concurrency is different from parallelism",
+    "question": "Can two threads be concurrent without literally running at the same instant?"
+  },
+  {
+    "id": "00F",
+    "slug": "00f-task-and-runnable",
+    "title": "A task is work; a thread executes it",
+    "question": "What is the difference between a task, Runnable, and Thread?"
+  },
+  {
+    "id": "00G",
+    "slug": "00g-private-state-and-shared-objects",
+    "title": "Private execution state and shared objects",
+    "question": "If threads have separate call stacks, how can they still affect the same data?"
+  }
+]

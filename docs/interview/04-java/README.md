@@ -5,7 +5,7 @@ Prioritize explanation and production examples over trivia.
 ## Java learning tracks
 
 - [Functional Programming Concepts](./01-functional-programming-coding/README.md) — 28 lessons on lambdas, interfaces, streams, map/flatMap, collectors, Optional, and execution boundaries
-- [Multithreading from Scratch](./02-multithreading-from-scratch/README.md) — threads, coordination, shared-state safety, executors, futures, and concurrent design
+- [Multithreading from Scratch](./02-multithreading-from-scratch/README.md) — begins with program/process, what a thread is, main, CPU time, tasks, and shared objects before worker APIs
 
 Both tracks are initialized but inactive. Activate one micro-lesson at a time and keep artifact completeness separate from demonstrated understanding.
 

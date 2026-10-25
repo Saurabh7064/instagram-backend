@@ -57,3 +57,7 @@ Prepared the [Kafka learning path](../kafka/README.md) and [Module 01](../kafka/
 ## Java functional concept course — 2026-10-24
 
 Prepared the [28-part Java functional concept course](../interview/04-java/01-functional-programming-coding/README.md), replacing its earlier exercise/trace format. The [learner tracker](../interview/04-java/01-functional-programming-coding/learner-progress.md) remains entirely TODO. See [Feature 19](../features/19-functional-programming-concept-course.md) for the saved teaching preference, runnable examples, and browser evidence. This learning-artifact update completes no system-design implementation or mastery milestone; existing concept status rows remain unchanged.
+
+## Multithreading foundations — 2026-10-24
+
+Prepared the [thread execution foundations](../interview/04-java/02-multithreading-from-scratch/README.md), distinguishing processes, threads, tasks, execution capacity, and shared objects. The named-task reference and deterministic completion checks support the lesson artifacts; no production threading behavior or system-design milestone changes. See [Feature 20](../features/20-multithreading-foundations.md). All new learner states remain TODO and existing concept status rows are unchanged.
