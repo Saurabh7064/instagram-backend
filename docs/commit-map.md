@@ -866,4 +866,4 @@ For every new feature or learning concept:
 - Concept mapping: interview-format selection, prerequisite-based gap repair, trade-off/failure explanations, and evidence-based readiness. Four profiles replace a blanket LeetCode allocation; explicit defer rules limit unrelated course work.
 - Updated the hub, docs index, company template, tracker targets, and precedence notices on historical plans. Existing active lessons, learner mastery, feature status rows, and concept status rows are unchanged.
 - Verification: local Markdown paths/anchors, 24 unique core IDs, 24 coding representatives, all five 10-hour allocations, source attribution, and Git whitespace. Documentation only; no application/API/UI behavior changes or executable lesson additions require integration/browser checks.
-- Artifact commit: pending commit creation; record the resulting hash in the follow-up traceability commit.
+- Artifact commit: `cd1364e` — curate senior Java interview preparation by round format; 214 local links/anchors and scope/allocation checks passed.

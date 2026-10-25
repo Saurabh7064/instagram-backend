@@ -27,6 +27,8 @@ The prior entry pages prescribed a uniform 40% LeetCode allocation and large pro
 
 ## 6) Verification and commit pointers
 
+Artifact commit: `cd1364e` — curate senior Java interview preparation by round format.
+
 Documentation-only change: validate local Markdown paths/anchors, 24 unique core IDs, 24 algorithm representatives, profile budget totals, source attribution, and Git whitespace. Application integration tests, API verification, and browser screenshots are not applicable because no application/UI behavior or executable lesson changed. Verification results and the artifact commit are recorded in the [commit map](../commit-map.md#curated-senior-java-interview-scope--2026-10-25).
 
 Verification on 2026-10-25: PASS for 214 local links/anchors, 24 unique core IDs (8 Java, 7 Spring, 4 database, 5 distributed-service), 24 algorithm representatives, five allocations totaling 10 hours each, and precedence links from all three historical plans. `git diff --check` passed. Reviewed the question/source mappings and confirmed no existing mastery counts or active-lesson requirements were advanced.
