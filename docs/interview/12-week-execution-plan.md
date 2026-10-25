@@ -1,5 +1,7 @@
 # 12-Week Interview Execution Plan
 
+> Scope update — 2026-10-25: this is an optional scheduling reference. Use the [curated guide](./curated-interview-guide.md) to select the interview profile, weekly allocation, questions, and stop criteria. Do not advance through every week or expand into advanced algorithms/platform topics merely because this older calendar lists them. Keep one active micro-lesson at a time.
+
 This plan assumes roughly three hours per day and targets Senior Java/Backend Engineer interviews. Adjust problem counts downward when work is busy, but keep the timed sessions, mocks, and application work.
 
 ## Standard week

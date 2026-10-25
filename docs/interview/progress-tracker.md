@@ -2,6 +2,8 @@
 
 Update this file once per week. Evidence should link to notes, problem logs, mock feedback, or project diagrams—not just say “studied.”
 
+Use the [curated interview guide](./curated-interview-guide.md) to choose scope. The targets below are practice starting points and evidence checks, not course-completion requirements. This scope update changes no demonstrated understanding, current counts, or active lesson.
+
 ## Current target
 
 | Field | Value |
@@ -10,21 +12,22 @@ Update this file once per week. Evidence should link to notes, problem logs, moc
 | Preparation window | October 2026–January 2027 |
 | Weekly hours available |  |
 | Target companies |  |
+| Interview profile | Unknown/mixed; confirm J, A, P, or L with each recruiter using the curated guide |
 | First application date |  |
 
 ## Outcome dashboard
 
 | Area | Target | Current | Status | Next action |
 |---|---:|---:|---|---|
-| Coding patterns mastered | 12 | 0 | LEARNING | Complete [HashMap Value-to-Index Lookup](./01-leetcode/lessons/01-arrays-hash-maps/03-value-to-index/README.md) |
-| Problems mastered | 130 | 0 | LEARNING | Explain the passing average `O(n)` Two Sum solution and answer its checkpoints |
-| System designs completed | 15 | 0 | NOT_STARTED | Attempt [Scalability, Availability, and Reliability](./02-system-design/concepts/09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md), then design the Instagram read path |
+| Coding patterns mastered | 12 starting groups only for DSA rounds | 0 | LEARNING | Complete [HashMap Value-to-Index Lookup](./01-leetcode/lessons/01-arrays-hash-maps/03-value-to-index/README.md); select further scope by interview profile |
+| Problems mastered | 24 starting representatives for DSA; readiness requires unseen variations | 0 | LEARNING | Explain the passing average `O(n)` Two Sum solution and answer its checkpoints |
+| System designs completed | 2 initially; extend to 6 for A/L profiles | 0 | NOT_STARTED | Select booking/orders and notifications from the [curated design prompts](./curated-interview-guide.md#5-design-two-anchors-first-six-prompts-at-most-initially); learn prerequisites one at a time |
 | Behavioral stories rehearsed | 8 | 0 | NOT_STARTED | Draft technical challenge story |
 | Project deep-dives ready | 2 | 0 | NOT_STARTED | Select Nike and U.S. Bank examples |
-| Java/JVM topics ready | 10 | 0 | NOT_STARTED | After the active LeetCode lesson, choose [Functional Programming Coding](./04-java/01-functional-programming-coding/README.md) or [Multithreading from Scratch](./04-java/02-multithreading-from-scratch/README.md) |
-| Spring/Hibernate topics ready | 10 | 0 | NOT_STARTED | Baseline framework/ORM questions |
-| Low-level designs completed | 6 | 0 | NOT_STARTED | Design parking lot or elevator |
-| Full mock interviews | 8 | 0 | NOT_STARTED | Schedule first mock |
+| Java/JVM topics ready | 8 core question families | 0 | NOT_STARTED | Diagnose J1–J8 in the curated guide; select one prerequisite lesson for a demonstrated gap |
+| Spring/Hibernate topics ready | 7 core question families | 0 | NOT_STARTED | Diagnose S1–S7; also assess the four database and five distributed-service questions in the weekly evidence |
+| Low-level designs completed | 2 when a round requires it | 0 | NOT_STARTED | Select cache, notification rules, or meeting scheduler after confirming the format |
+| Full mock interviews | Actual round formats rehearsed and recurring gaps repaired | 0 | NOT_STARTED | Schedule first mock matching the selected profile |
 | Active interview processes | 3+ | 0 | NOT_STARTED | Build target-company list |
 
 Status values: `NOT_STARTED`, `LEARNING`, `PRACTICING`, `INTERVIEW_READY`, `RETAINED`.

@@ -1,17 +1,14 @@
 # Senior Backend Interview Preparation Hub
 
-This directory turns interview preparation into a measurable practice system for Senior Java/Backend Engineer roles. The overall strategy is in the [interview plan](./interview-plan.md), and the concrete sequence is in the [12-week execution plan](./12-week-execution-plan.md). This page is the day-to-day entry point.
+**Start with [What to Learn for Senior Java Backend Interviews](./curated-interview-guide.md).** It selects the essentials for 10+ years of Java/Spring experience: 24 core questions, company-format profiles, conditional coding practice, design prompts, and explicit topics to defer. Use this directory as a reference library for the selected question.
+
+The [original interview plan](./interview-plan.md) and [12-week execution plan](./12-week-execution-plan.md) are broader planning references. The curated guide takes precedence for current scope, time allocation, and readiness targets.
 
 ## What to prioritize
 
-Keep four primary tracks. The remaining folders support those tracks rather than competing with them.
+Choose one profile from the [curated guide](./curated-interview-guide.md#2-choose-by-interview-format-not-company-stereotype): Java/Spring depth, algorithms plus design, practical backend coding, or lead/architect emphasis. Use its allocation per 10 hours; unknown/mixed targets start with 3 hours Java/practical work, 3 coding, 2 design, and 2 projects/stories.
 
-| Track | Weekly time | Readiness outcome |
-|---|---:|---|
-| [LeetCode](./01-leetcode/README.md) | 40% | Solve and explain an unseen medium problem in 30–35 minutes |
-| [System design](./02-system-design/README.md) | 30% | Lead a 45–60 minute senior-level design discussion |
-| [Behavioral](./03-behavioral/README.md) and [project deep-dives](./09-resume-project-deep-dives/README.md) | 20% | Tell concise, evidence-backed stories that show senior scope and impact |
-| [Java](./04-java/README.md), [functional-programming concepts](./04-java/01-functional-programming-coding/README.md), [multithreading](./04-java/02-multithreading-from-scratch/README.md), and [Spring/Hibernate](./05-spring-hibernate/README.md) | 10% | Answer likely language and framework questions and connect answers to executable examples |
+Every profile needs the core questions, practical Java/SQL, project depth, and behavioral evidence. Expand [LeetCode](./01-leetcode/README.md) only for an algorithm round; expand [design](./02-system-design/README.md) according to the role. Pull individual concepts from [Java](./04-java/README.md) and [Spring/Hibernate](./05-spring-hibernate/README.md) when a diagnostic reveals a gap.
 
 Do not split time equally across every folder. Low-level design, fundamentals, cloud/DevOps, mocks, company research, and job-search work should be pulled in when a target role or a weak mock interview justifies them.
 
@@ -34,22 +31,22 @@ Use the [progress tracker](./progress-tracker.md) for weekly evidence and the [q
 
 ## Weekly operating rhythm
 
-- Monday–Thursday: one coding session, one system-design or role-knowledge session, and a short behavioral review.
-- Friday: timed coding assessment plus one story recorded aloud.
-- Saturday: alternate a full system-design mock and a full coding mock; review every miss.
-- Sunday: update the tracker, choose next week’s weaknesses, research target companies, and maintain the application pipeline.
+- Choose at most three weekly outcomes using the selected profile and next interview round.
+- Learn one micro-lesson at a time; practice explanations, code, designs, and stories in the relevant round format.
+- Complete a mock or recorded session, review misses, and repair the largest recurring gap.
+- Update the tracker weekly, confirm target-company formats, and maintain the application pipeline.
 
 ## Readiness gates
 
 Start applying before all gates are green. Use these gates to decide where preparation time goes.
 
-- Coding: 3 unseen medium problems completed consecutively within 35 minutes with correct complexity analysis.
-- System design: 3 complete mocks delivered within 60 minutes without losing the requirements-to-trade-offs structure.
+- Practical coding/SQL: correct implementation, clear ownership/error choices, and meaningful edge-case checks within the interview's allotted time.
+- Algorithm rounds, when required: 3 mixed unseen medium problems completed within about 35 minutes each with correctness/complexity explanations and tests.
+- System design: two initial designs for Java/practical profiles, expanding to six starting prompts for algorithm/lead profiles; demonstrate a complete mock with an unfamiliar constraint within 45–60 minutes.
 - Behavioral: 8 stories can be delivered in both 2-minute and 5-minute versions with specific personal actions and measurable results.
 - Project depth: 2 major systems can be drawn and explained, including scale, failures, trade-offs, and what you would change.
-- Java: at least 80% of the prioritized language/JVM question bank can be answered aloud without notes.
-- Spring/Hibernate: at least 80% of the prioritized framework/ORM question bank can be answered aloud without notes.
-- Interview execution: 4 mocks completed, with recurring issues converted into targeted practice.
+- Core knowledge: the 24 curated Java/Spring/data/distributed-service questions can be explained, applied, and defended with trade-offs and failure predictions without notes.
+- Interview execution: rehearse the actual confirmed rounds and convert recurring misses into targeted practice; counts alone do not establish readiness.
 
 ## Rules that prevent busywork
 

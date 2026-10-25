@@ -1,3 +1,5 @@
+Historical plan. Current scope as of 2026-10-25: see [the curated interview guide](./curated-interview-guide.md). The fixed allocations and problem/design counts below are superseded by interview-format-specific priorities and readiness evidence.
+
 Yes. Given your **~10 years of experience**, current Senior SWE role, and the possibility that you may need an H-1B transfer quickly after a layoff, I would optimize almost entirely for **passing Senior Software Engineer interviews**, not for becoming encyclopedic.
 
 Your preparation should have **4 tracks only**:

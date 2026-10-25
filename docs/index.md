@@ -2,6 +2,7 @@
 
 ## Backend Docs
 
+- [What to Learn for Senior Java Backend Interviews](./interview/curated-interview-guide.md)
 - [Senior Backend Interview Preparation Hub](./interview/README.md)
 - [Interview Progress Tracker](./interview/progress-tracker.md)
 - [Java Functional Programming Concepts](./interview/04-java/01-functional-programming-coding/README.md)

@@ -1,5 +1,7 @@
 # Senior Software Engineer Interview Plan
 
+> Scope update — 2026-10-25: use the [curated interview guide](./curated-interview-guide.md) for current priorities. This older strategy assumes a coding-heavy process. Its fixed 40% LeetCode allocation, 120–150 problem target, and 15–20 designs are historical planning references, not requirements. Select the actual interview profile and readiness checks in the curated guide instead.
+
 Use the [interview preparation hub](./README.md) for folders, trackers, templates, and weekly execution. This document keeps the overall October 2026–January 2027 strategy.
 
 Given your **~10 years of experience**, current Senior SWE role, and the possibility that you may need an H-1B transfer quickly after a layoff, optimize almost entirely for **passing Senior Software Engineer interviews**, not for becoming encyclopedic.

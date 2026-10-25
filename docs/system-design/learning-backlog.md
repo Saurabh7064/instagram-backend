@@ -30,6 +30,10 @@ Use this file to track architecture/system design concepts to learn with this pr
 2. `SD-004` API versioning and compatibility
 3. `SD-006` Rate limiting and abuse protection
 
+## Curated interview scope — 2026-10-25
+
+Prepared the [senior Java interview shortlist](../interview/curated-interview-guide.md) with five distributed-service question families, four database families, two initial design prompts, and conditional expansion by interview format; see [Feature 21](../features/21-curated-interview-scope.md). Artifact status is READY after documentation validation. No implementation, comprehension, or concept-completion status changes are claimed; existing concept status rows remain unchanged.
+
 ## Interview artifact update — 2026-10-17
 
 Added ready interview answers on concurrent likes, idempotency keys, and deadline budgets in the [question index](../interview/02-system-design/questions/short-questions-and-answers/README.md). This documentation update does not complete an implementation milestone or demonstrate learner comprehension; existing statuses remain unchanged.

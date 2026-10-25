@@ -58,6 +58,10 @@ Use this file to track product/engineering features for the app.
 2. `F-017` Comments create/read API/UI
 3. `F-018` Save/unsave posts API/UI
 
+## Curated interview scope — 2026-10-25
+
+Prepared the [senior Java interview shortlist](../interview/curated-interview-guide.md) and updated entry-point priorities; see [Feature 21](./21-curated-interview-scope.md). Artifact status is READY after documentation validation. This selects interview scope rather than delivering product behavior. Existing feature status rows, the active Two Sum lesson, and learner mastery remain unchanged.
+
 ## Interview artifact update — 2026-10-17
 
 Added ready interview answers on concurrent likes, idempotency keys, and deadline budgets in the [question index](../interview/02-system-design/questions/short-questions-and-answers/README.md). This documentation update does not complete an implementation milestone or demonstrate learner comprehension; existing statuses remain unchanged.
