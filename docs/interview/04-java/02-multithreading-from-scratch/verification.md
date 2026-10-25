@@ -1,5 +1,7 @@
 # Thread Foundations Verification — 2026-10-24
 
+Artifact commit: `13e9b65` — teach thread execution foundations before worker APIs.
+
 ## Scope
 
 Added a [seven-part foundation](./lessons/00-foundations/README.md) before the existing start/join lesson and rewrote that lesson around a named task and completion handoff. Definitions precede APIs. The concept path has eight authored parts and 24 explained checkpoints. All learner states remain TODO; no learner checkpoint attempt or implementation completion is inferred.
@@ -40,4 +42,4 @@ HTTP serving was checked with `curl --head http://localhost:5173/learn`: `HTTP/1
 
 ## Documentation and commits
 
-Passed checks for 114 local paths/headings, 24 explained answers, prerequisite/next links, eight TODO learner rows, coverage/readiness separation, unchanged shared tracker status rows, and scoped whitespace. [Feature 20](../../../features/20-multithreading-foundations.md) and the [commit map](../../../commit-map.md#multithreading-foundations-before-worker-apis--2026-10-24) record the focused artifact commit when available. Unrelated existing edits are excluded.
+Passed checks for 114 local paths/headings, 24 explained answers, prerequisite/next links, eight TODO learner rows, coverage/readiness separation, unchanged shared tracker status rows, and scoped whitespace. [Feature 20](../../../features/20-multithreading-foundations.md) and the [commit map](../../../commit-map.md#multithreading-foundations-before-worker-apis--2026-10-24) record the focused artifact commit. Unrelated existing edits are excluded.

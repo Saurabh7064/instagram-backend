@@ -31,7 +31,9 @@ The previous first exercise used worker, shared result holder, AtomicInteger, an
 
 ## 6) Verification and commit pointers
 
-[Verification note](../interview/04-java/02-multithreading-from-scratch/verification.md) records Java checks, HTTP serving, browser content/navigation checks, screenshots, and boundaries. The [commit map](../commit-map.md#multithreading-foundations-before-worker-apis--2026-10-24) records the artifact hash after commit creation.
+Artifact commit: `13e9b65` — teach thread execution foundations before worker APIs.
+
+[Verification note](../interview/04-java/02-multithreading-from-scratch/verification.md) records Java checks, HTTP serving, browser content/navigation checks, screenshots, and boundaries. The [commit map](../commit-map.md#multithreading-foundations-before-worker-apis--2026-10-24) records the artifact hash and concept mapping.
 
 ## 7) Pitfalls and fixes
 
