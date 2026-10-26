@@ -70,6 +70,27 @@ For dense morning revision, use the [380-concept printable tracker](./questions/
 - Recommended start: [Scalability, Availability, and Reliability](./concepts/09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md).
 - Rule: select one lesson, attempt its checkpoints aloud, and record the result before advancing.
 
-## Distributed systems fundamentals module — 2026-10-25
+## Distributed systems fundamentals module — rebuilt 2026-10-25
 
-All 16 [micro-lessons](./concepts/01-distributed-systems-fundamentals/README.md) covering original topics 1–25 are artifact `READY`. Each comprehension status remains `TODO`; no learner attempt or executed distributed lab is recorded. Use the module table as the per-lesson checklist. Advance only after an explanation, correct prediction, failure diagnosis, and alternative comparison without notes. Record the learner’s evidence and review dates here when attempted.
+The [module](./concepts/01-distributed-systems-fundamentals/README.md) has 16 rebuilt lesson artifacts and 50 explained checkpoints. Artifact readiness follows the [teaching review](./concepts/01-distributed-systems-fundamentals/verification.md), not the presence of headings. No learner attempt or executed replica lab is recorded.
+
+| Lesson | Artifact | Comprehension | Explanation / prediction / diagnosed failure | Review date |
+|---|---|---|---|---|
+| [Why distributed systems have uncertain outcomes](./concepts/01-distributed-systems-fundamentals/01-partial-failure.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [CAP: Consistency, Availability, Partition tolerance](./concepts/01-distributed-systems-fundamentals/02-cap.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [PACELC: why coordination costs time even without failure](./concepts/01-distributed-systems-fundamentals/03-pacelc.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [Consistency models: what may a reader observe?](./concepts/01-distributed-systems-fundamentals/04-consistency-models.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [See your own writes and preserve dependencies](./concepts/01-distributed-systems-fundamentals/05-session-and-causal-consistency.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [Linearizability and serializability answer different questions](./concepts/01-distributed-systems-fundamentals/06-linearizability-and-serializability.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [Quorums: why overlapping copies matter](./concepts/01-distributed-systems-fundamentals/07-quorums.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [Consensus: agreeing on one decision after failures](./concepts/01-distributed-systems-fundamentals/08-consensus-and-election.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [Raft: turn agreed commands into one replicated history](./concepts/01-distributed-systems-fundamentals/09-raft.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [Paxos: a newer proposal must preserve an earlier decision](./concepts/01-distributed-systems-fundamentals/10-paxos.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [Distributed locks: why an expired owner can still write](./concepts/01-distributed-systems-fundamentals/11-split-brain-and-locks.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [Two-phase commit: one outcome across transaction participants](./concepts/01-distributed-systems-fundamentals/12-distributed-transactions-and-2pc.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [Sagas: recover business steps that already committed](./concepts/01-distributed-systems-fundamentals/13-sagas.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [Safe retries: count business effects, not just deliveries](./concepts/01-distributed-systems-fundamentals/14-idempotency-and-delivery.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [Logical clocks: order dependencies without trusting wall time](./concepts/01-distributed-systems-fundamentals/15-lamport-clocks.md) | `READY` | `TODO` | Pending learner attempt | — |
+| [Vector clocks: distinguish later history from concurrent edits](./concepts/01-distributed-systems-fundamentals/16-vector-clocks.md) | `READY` | `TODO` | Pending learner attempt | — |
+
+Advance one lesson at a time after an explanation, correct prediction, failure diagnosis, and alternative comparison without notes. Record actual evidence and later recall here; authored examples and documentation verification are not comprehension evidence.

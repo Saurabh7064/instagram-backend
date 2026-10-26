@@ -1,71 +1,90 @@
-# Micro-lesson 03 — PACELC: the healthy-network trade-off
+# Micro-lesson 03 — PACELC: why coordination costs time even without failure
 
-[Module](./README.md)
+[Module](./README.md) · [Previous: CAP](./02-cap.md) · [Next: consistency models](./04-consistency-models.md)
 
 - Artifact: `READY`; comprehension: `TODO`.
-- Time: 10–15 minutes. Primary idea: pacelc: the healthy-network trade-off.
-- Prerequisite: Complete the stop/go check for [CAP: what to do during a partition](./02-cap.md).
-- Original roadmap topics: 3.
+- Core study: 10–15 minutes. Primary idea: include ordinary communication delay when choosing a read/write guarantee.
+- Prerequisite: CAP's three promises; a replica is a maintained copy. This lesson reuses those meanings.
+- New core term: latency.
 
-## Why does this exist? — Must understand
+## The question CAP leaves open — Must understand
 
-PACELC extends the partition discussion: if there is a partition, consider availability versus consistency; else, consider latency versus consistency. Latency is elapsed time to complete an operation. A replica is another maintained copy of the data.
+A and B can communicate normally, but B is far away. Must every update wait for B? No machine has failed, yet the decision affects how quickly the user can publish and what a later reader can see.
 
-## Analogy
+**Latency** is elapsed time from starting an operation to receiving its result. Even a healthy network has nonzero latency. Waiting for an additional remote participant places some of that time on the operation's completion path. Doing work later can shorten the immediate wait, but changes what the service can safely promise meanwhile.
 
-A clerk can answer from a local notebook or phone a remote branch first. Calling adds waiting. Unlike notebooks, replicas can exchange updates continuously and offer several configurable guarantees.
+## Expand the whole name
 
-## Predict before reading
+**PACELC** is read as **if Partition, Availability versus Consistency; Else, Latency versus Consistency**. It is a conditional mnemonic rather than the name of one protocol.
 
-Must a partition occur before latency matters? Explain your prediction before expanding the checkpoints below.
+| Letter | Meaning | Question it asks |
+|---|---|---|
+| P | Partition | Are participants unable to exchange messages? |
+| A | Availability | During that failure, do operations still complete everywhere? |
+| C | Consistency | During that failure, do observations retain the single-current-view promise? |
+| E | Else | If communication is functioning, what is the normal-operation choice? |
+| L | Latency | How much waiting for coordination is on the request path? |
+| C | Consistency | Which observation guarantee is purchased by that coordination? |
 
-## Concrete flow
+The two C positions refer to consistency in different circumstances. The E does not introduce another correctness property. CAP explains a failure constraint; PACELC adds a question about normal operation. Daniel Abadi introduced this framing in his [discussion of CAP's limits](https://dbmsmusings.blogspot.com/2010/04/problems-with-cap-and-yahoos-little.html). It is a design lens, not a universal latency formula.
 
-1. Primary saves caption v2.
-2. local acknowledgment can return before a distant replica receives v2.
-3. a nearby read there may see v1. Waiting for remote confirmation moves communication delay onto the write path. Safe reads still require the chosen protocol.
+## Worked timing example
 
-## Instagram-backend mapping
+Fixed setup: post 42 begins at caption v1 on primary A and replica B. A **primary** is the participant designated to accept this example's writes. A local durable save takes 4 ms. After that save, transmitting the update to B, persisting it there, and obtaining confirmation takes another 80 ms. Ignore all other costs for this deliberately simplified calculation. There is one write, v2, and no failures.
 
-[PostService.create, feed, and transactional methods](../../../../../src/main/java/com/instagram/backend/service/PostService.java) are the real database boundary. Replication, consensus, distributed locks, durable request-key handling, and multi-service workflows in this lesson are **proposed**, not implemented by these annotations.
+**Policy 1: respond after the local save.** A persists v2 at t=4 ms and returns success. B receives the update later. At t=20 ms, a read at B can still return v1. The client's minimum modeled write wait is 4 ms, but a read anywhere is not guaranteed to include its completed write.
 
-## Decision and trade-off
+**Policy 2: respond after B confirms durable receipt.** A finishes locally at t=4 ms, then waits 80 ms more. Success returns at t=84 ms: 4+80=84. At t=20 ms the write is still in progress, so an old read then is not evidence of missing a *completed* write. Once success returns, B has the version under these assumptions.
 
-Use local stale reads for explicitly tolerant displays. Pay coordination latency where freshness is required. PACELC is a decision lens, not proof that a product has one universal setting.
+The second policy still needs a correct read and ordering protocol. Confirmation from one replica does not make every other replica current or solve concurrent writes. This example isolates the cost of one required confirmation; it does not prove a full consistency model.
 
-## Failure drill — prediction, symptom, recovery, prevention
+## Why the cost follows
 
-Predict the effect of adding remote delay without disconnecting anything. In a proposed lab, compare acknowledgment time and stale-read rate. Recover by restoring delay; choose routing and confirmation policy from an explicit freshness requirement.
+If a result depends on information from B, A must either wait for that information, obtain an equivalent guarantee elsewhere, or weaken the result it promises. A faster CPU at A does not remove time spent awaiting B. Moving the wait from writes to reads changes which user operation pays it; it does not make coordination free.
 
-These are design/paper drills, not claims that a replica cluster or fault-injection lab was executed.
+A branch clerk answering from a local notebook is a useful analogy. Calling another branch before answering adds waiting. The analogy stops where replication protocols can confirm versions automatically and reason about ordered concurrent operations; a notebook alone supplies none of that machinery.
+
+## Choices, limits, and common mistakes
+
+For an approximate public count, a local answer may be valuable even if slightly old. For a permission change that must be honored before a later access, establish the required freshness through authoritative routing or coordination. Avoid making a distant replica mandatory for a low-stakes display without a requirement that justifies its cost.
+
+Do not assign one PACELC label to an entire application and stop reasoning. A feed display and an ownership check can use different paths. **PC/EC** is shorthand for favoring consistency during a partition and consistency over latency otherwise; **PA/EL** favors availability during a partition and lower latency otherwise. These labels omit implementation details and do not prove guarantees. Specify the actual read, write, and failure behavior.
+
+## Project mapping
+
+[PostService.feed](../../../../../src/main/java/com/instagram/backend/service/PostService.java) queries a single repository; no distant-replica confirmation policy is implemented there. The timing values are invented for this worked calculation. A future replicated database design would require measuring actual confirmation time and stale-read frequency together. Backend method execution time alone may omit network and client waiting.
+
+## Failure drill — paper exercise
+
+- **Predict:** increase only the confirmation delay from 80 to 200 ms. What happens under each policy?
+- **Symptom:** policy 2 now takes at least 4+200=204 ms in the model. Policy 1 still acknowledges at 4 ms, while B may remain old longer.
+- **Contain:** do not quietly switch to local acknowledgment while retaining the stronger claim. Expose unavailability or explicitly downgrade only operations whose contract permits it.
+- **Recover:** restore the path, confirm catch-up, then compare observed write latency and read versions.
+- **Mitigate:** select a closer coordination group or revise a display's freshness requirement. Those choices change topology or contract; they do not repeal communication costs.
+
+## Recap and stop/go
+
+Expand all six letters, distinguish P from E, and derive 4 ms, 84 ms, and 204 ms from the setup. Explain what the acknowledgment policies do and what they do not prove.
 
 ## Questions and explained answers
 
 <details>
-<summary>1. Must a partition occur before latency matters?</summary>
+<summary>1. Why do we need the “Else” branch when no node has failed?</summary>
 
-No. Healthy remote communication still takes time.
-
-</details>
-
-<details>
-<summary>2. Does one remote acknowledgment make every read current?</summary>
-
-No. Read routing and protocol correctness still matter.
+Healthy communication still consumes time. Waiting for remote information can improve the promised observation while increasing the operation's latency. CAP's partition result alone does not describe this ordinary-operation choice.
 
 </details>
 
 <details>
-<summary>3. What should be measured together?</summary>
+<summary>2. Is B reading v1 at t=20 ms the same under both policies?</summary>
 
-Latency and the actual freshness/correctness guarantee, including how often stale results occur.
+The returned bytes match, but the context differs. Under policy 1, v2 already completed at t=4; under policy 2, it is still pending until t=84. Completed versus overlapping operations matters to the stated guarantee.
 
 </details>
 
-## Teach-back and stop/go
+<details>
+<summary>3. Does waiting 84 ms prove all reads are linearizable?</summary>
 
-Explain the problem, trace the example, defend the choice, and diagnose the failure in 60–90 seconds without notes. Proceed only after a correct prediction, explanation, and failure diagnosis; reading this artifact does not complete comprehension.
+No. It establishes B's receipt for this single write under the example's assumptions. Other replicas, routing, concurrency, and protocol ordering still require analysis.
 
-## Useful later — primary reference
-
-[PACELC author explanation](https://dbmsmusings.blogspot.com/2010/04/problems-with-cap-and-yahoos-little.html). Read for protocol details beyond this introductory model.
+</details>

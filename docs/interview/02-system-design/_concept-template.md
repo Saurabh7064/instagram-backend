@@ -1,83 +1,64 @@
-# Micro-Lesson NN — Concept Name
+# Micro-lesson NN — Concept name
 
-- Status: `TODO`
-- Time: 10–15 minutes
-- Primary idea:
-- New terms: no more than three
-- Prerequisite:
+- Artifact: `TODO`; comprehension: `TODO`.
+- Primary idea: one specific decision or mechanism.
+- Core study time: 10–15 minutes; split prerequisite parts if the scope requires more.
+- Prerequisites: link and restate only the ideas this lesson needs.
+- New core terms: normally no more than three; define supporting words before use.
 
-## Why does this exist?
+## What problem are we solving? — Must understand
 
-Start with the concrete problem. Do not name a pattern before explaining the pain that creates it.
+Set up a concrete problem before naming its solution. Identify the actors, initial data, desired outcome, and why the obvious approach fails.
 
-## Analogy
+## Build the idea before naming the rule
 
-Give one familiar analogy, then state where the analogy stops matching a real distributed system.
+Teach prerequisites in ordinary language. Expand acronyms at first instructional use and explain each component separately: meaning, observable promise, boundary, misconception. State when a proper name has no full form. Definitions alone are not explanations.
 
-## Plain-language model
+## How it works, and why
 
-Define each new term before using it.
+Derive the mechanism or formula. Explain the assumptions that make it valid and what fails without them. Include an accurate analogy and its limit where it helps.
 
-## Predict before reading
+## One worked example
 
-Describe a small scenario and ask what will happen.
+Initialize the whole example before asking a prediction. Trace the actual request/event/failure in causal order, showing state and observable result. Explain why each step follows. Compare alternatives on the same example. Do not substitute a table or arrow chain for the prose reasoning.
 
-<details>
-<summary>Reveal the prediction</summary>
+## Choosing it and understanding its limits
 
-Explain the outcome and its cause.
-
-</details>
-
-## Concrete flow
-
-Use numbered steps to trace one request, event, update, or failure.
+Explain a useful case, an unsuitable case, a competing approach, costs, and common confusions. State guarantee scope, failure assumptions, and any unbounded delay or recovery requirement.
 
 ## Instagram-backend mapping
 
-Link to exact repository code or a clearly labeled proposed component.
-
-## Decision and trade-off
-
-| Choose it when | Avoid or delay it when | Cost introduced |
-|---|---|---|
-|  |  |  |
+Link exact code files/methods and explain the real boundary. Clearly label every proposed component or test. A transaction annotation is not evidence of distributed coordination.
 
 ## Failure drill
 
-1. Prediction:
-2. Failure:
-3. Observable symptom:
-4. Recovery:
-5. Prevention or mitigation:
+Label this a paper exercise unless actually executed.
 
-## Interview questions
+1. Prediction: ask before revealing the outcome.
+2. Failure and symptom: what broke and which evidence reveals it?
+3. Containment: what prevents further harm, and why?
+4. Recovery: restore service and verify the intended result.
+5. Prevention: reduce recurrence and explain remaining risk.
+
+## Useful later / Optional deep dive
+
+Separate advanced details from the core explanation. Cite primary sources near the claims they support; do not make the learner open a paper to understand the core lesson.
+
+## Recap and stop/go
+
+Give a short explanation the learner can reconstruct from the lesson. Require an explanation, correct prediction, failure diagnosis, and alternative comparison without notes. Record understanding only from learner evidence.
+
+## Questions and explained answers
+
+Use 3–5 expandable questions testing meaning, mechanism, example derivation, and failure. Every answer explains why.
 
 <details>
-<summary>1. Question?</summary>
+<summary>1. Explain or predict using the worked scenario.</summary>
 
-Answer with reasoning, not only a definition.
+Answer with the exact result and causal reasoning.
 
 </details>
 
-<details>
-<summary>2. Question?</summary>
+## Author review — remove instructions when authoring
 
-Answer with reasoning, not only a definition.
-
-</details>
-
-<details>
-<summary>3. Question?</summary>
-
-Answer with reasoning, not only a definition.
-
-</details>
-
-## Teach-back
-
-Explain the concept in 60–90 seconds using: problem → choice → flow → trade-off → failure.
-
-## Stop/go
-
-Proceed only when the learner can explain the idea, make one correct prediction, diagnose one failure, and compare one alternative without notes.
+Before READY, review the actual teaching, not the headings: are prerequisites defined, acronym components taught, example results derived, assumptions bounded, misconceptions addressed, failure recovery explained, and code claims checked? Record the review separately from link/format checks. Add explanation or split scope wherever a newcomer would have to guess.

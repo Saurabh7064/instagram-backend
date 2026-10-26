@@ -2,34 +2,36 @@
 
 ## 1) What I built
 
-Completed the [module landing page](../interview/02-system-design/concepts/01-distributed-systems-fundamentals/README.md) with 16 prerequisite-ordered micro-lessons covering all 25 original topics, 48 explained checkpoints, an integrated recovery exercise, and a vocabulary sheet. Artifact READY; comprehension TODO.
+Rebuilt all 16 [lessons](../interview/02-system-design/concepts/01-distributed-systems-fundamentals/README.md) covering 25 original topics. Added definitions and acronym/component explanations, prerequisite models, derived examples, mechanism reasoning, guarantee boundaries, alternatives, and complete failure/recovery drills. There are 50 explained checkpoints; comprehension remains TODO.
 
 ## 2) Concepts learned
 
-The artifacts explain partial failure, CAP/PACELC, consistency contracts, consensus, ownership, quorum limits, atomic and compensating recovery, retry effects, and event ordering. No learner understanding is inferred.
+The artifacts teach partial failure, CAP/PACELC, observation contracts, serializable decisions, quorum intersection, consensus, ownership fencing, 2PC, sagas, idempotent effects, and logical/vector ordering. Names such as Raft, Paxos, and saga are explicitly distinguished from acronyms.
 
 ## 3) Why this design
 
-Short linked lessons keep each decision and failure visible without turning a 25-topic roadmap into one continuous chapter. Existing implementations and proposed protocol exercises are labeled separately.
+The initial version compressed concepts into template slots and was called complete after structural checks. That was insufficient: CAP did not even expand the acronym, and many mechanisms were asserted rather than taught. The rebuild preserves stable lesson links while restoring the explanatory steps. The new [teaching rule](../../AGENTS.md#concept-lesson-teaching-quality-standard) requires a semantic review distinct from syntax/link checks. The [concept template](../interview/02-system-design/_concept-template.md) now asks for component meaning, observable promises, derivations, assumptions, and misconceptions.
 
 ## 4) Implementation notes
 
-Documentation only. No application, API, or UI behavior changed; integration tests, curl, and browser screenshots are not applicable. Design failure drills are paper/proposed exercises, not executed cluster evidence. Verified all lesson sections, local links, 48 answer blocks, coverage, and worked quorum/clock calculations; Git whitespace check passed.
+Documentation only. No backend, API, UI, or Java runtime behavior changed. Integration tests, curl, and browser screenshot gates for changed behavior are not applicable. The distributed failure drills are paper designs, not claimed executed labs. [Verification](../interview/02-system-design/concepts/01-distributed-systems-fundamentals/verification.md) records individual teaching reviews and separate structural/arithmetic checks.
 
 ## 5) Code pointers
 
-- [PostService](../../src/main/java/com/instagram/backend/service/PostService.java): real local transaction boundary and create/feed paths.
-- [MediaStorageService](../../src/main/java/com/instagram/backend/service/MediaStorageService.java): separate file-storage boundary.
-- [Learner progress](../interview/02-system-design/learner-progress.md): artifact/comprehension separation.
+- [PostController.create](../../src/main/java/com/instagram/backend/controller/PostController.java): current request input, without an idempotency key.
+- [PostService](../../src/main/java/com/instagram/backend/service/PostService.java): real local database boundaries; no implemented replica voting or request-key result record.
+- [PostRepository](../../src/main/java/com/instagram/backend/repository/PostRepository.java): single repository interface, without replica routing.
+- [MediaStorageService.store](../../src/main/java/com/instagram/backend/service/MediaStorageService.java): separate file write, without distributed-transaction or fencing enforcement.
+- [PostLike](../../src/main/java/com/instagram/backend/domain/PostLike.java): real user/post uniqueness constraint, narrower than generic operation deduplication.
 
 ## 6) Commit pointers
 
-The implementation commit is recorded by hash in [commit map](../commit-map.md) after creation.
+Initial artifact: `9082ac1`; initial map entry: `ca1db45`. Rebuild hash is recorded in [commit map](../commit-map.md) after creation. Unrelated existing changes are excluded.
 
 ## 7) Pitfalls and fixes
 
-Avoided treating timeouts as rollback, quorum arithmetic as a linearizability proof, a transaction annotation as distributed atomicity, or a logical timestamp as proof of causality. Kept unrelated existing edits outside this change.
+The rebuild derives both serial orders, enumerates quorum sets, separates Raft append/commit/apply, traces Paxos preservation, states fencing's effective boundary, compares both unsafe idempotency commit orders, and calculates every logical/vector value. Teaching evidence is reviewed separately from mechanically counting headings or words.
 
 ## 8) Next improvements
 
-Implement the proposed F-010 idempotent-create exercise and F-030 fenced processing exercise separately. Assess one lesson at a time through prediction, explanation, and failure diagnosis before recording comprehension.
+Implement F-010 retry-safe creation and F-030 fenced processing as separately tested behavior changes. Assess one lesson at a time; record understanding only after the learner explains, predicts, diagnoses, and compares without notes.

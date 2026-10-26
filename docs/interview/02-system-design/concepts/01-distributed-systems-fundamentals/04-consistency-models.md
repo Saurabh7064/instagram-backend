@@ -1,69 +1,93 @@
-# Micro-lesson 04 — Consistency models: strong and eventual
+# Micro-lesson 04 — Consistency models: what may a reader observe?
 
-[Module](./README.md)
+[Module](./README.md) · [Previous: PACELC](./03-pacelc.md) · [Next: session guarantees](./05-session-and-causal-consistency.md)
 
 - Artifact: `READY`; comprehension: `TODO`.
-- Time: 10–15 minutes. Primary idea: consistency models: strong and eventual.
-- Prerequisite: Complete the stop/go check for [PACELC: the healthy-network trade-off](./03-pacelc.md).
-- Original roadmap topics: 4–6.
+- Core study: 10–15 minutes. Primary idea: specify allowed observations before choosing replication settings.
+- Prerequisites: replicas may lag; a completed write has returned success; remote confirmation adds latency.
+- Core terms: consistency model, strong consistency, eventual consistency.
 
-## Why does this exist? — Must understand
+## A successful edit that seems to disappear — Must understand
 
-A consistency model states which observations clients may see. Here, strong consistency means the single-copy, real-time guarantee formalized as linearizability in lesson 6. Eventual consistency promises convergence when updates stop and communication/repair continues; by itself it supplies no fixed staleness deadline.
+The author changes post 42's caption from “Sunset” to “Evening,” sees success, and refreshes. The old caption reappears. Was data lost, or did the read use an older copy? Without an explicit promise, the application cannot distinguish a permitted delay from a correctness bug.
 
-## Analogy
+A **consistency model** is a contract describing which histories of reads and writes are allowed. A history is the sequence of operation starts, responses, and returned values. It is about what users can observe, not only what bytes each server currently stores.
 
-Branch noticeboards can briefly show different announcements before updates arrive. Unlike paper boards, automatic repair needs explicit rules for competing edits.
+## Two different promises
 
-## Predict before reading
+**Strong consistency** is an overloaded phrase. In this module it means the single-copy, real-time behavior called linearizability: a read begun after a write completes must reflect that write or a later one. We state the precise meaning because a product's use of “strong” may have a narrower scope.
 
-Does eventual mean within one second? Explain your prediction before expanding the checkpoints below.
+**Eventual consistency** says replicas converge on the same value if new updates stop and the system's communication and repair mechanisms continue to make progress. Convergence means the copies eventually agree. The promise alone supplies no maximum number of milliseconds before agreement and no guarantee that a particular immediate read includes a completed write.
 
-## Concrete flow
+These are not opposites in every mathematical sense: a stronger model can also satisfy eventual convergence. The practical comparison is between guaranteeing the stronger observations now and permitting temporary stale observations while repair catches up. Werner Vogels's [explanation of eventual consistency](https://www.allthingsdistributed.com/2008/12/eventually_consistent.html) distinguishes these observation promises and session variants.
 
-1. A and B hold v1.
-2. A accepts v2.
-3. B briefly returns v1.
-4. replication and repair deliver v2.
-5. both return v2. If both accept different updates, a conflict rule must decide or merge the outcome; waiting alone cannot define it.
+## One caption, two read policies
 
-## Instagram-backend mapping
+Fixed state: replicas A and B both have post 42, v1=“Sunset.” Only A accepts writes in the basic example. There is no later edit until the example says so.
 
-[PostService.create, feed, and transactional methods](../../../../../src/main/java/com/instagram/backend/service/PostService.java) are the real database boundary. Replication, consensus, distributed locks, durable request-key handling, and multi-service workflows in this lesson are **proposed**, not implemented by these annotations.
+1. A saves v2=“Evening” and responds successfully to the author. B still has v1.
+2. The author reads through B before it catches up. B returns v1.
+3. A's v2 update reaches B and is applied. Now A and B both return v2.
 
-## Decision and trade-off
+Step 2 is forbidden under the stronger contract because the write completed before the read began. It can be permitted by an eventually consistent contract. Step 3 demonstrates convergence for this particular run; it does not prove the implementation always converges.
 
-Tolerate eventual reads for approximate public like counts. Require stronger behavior for a decision that must use a completed revocation. Stronger coordination can increase delay and reduce availability during failures.
+| Phase | A | B | What a direct read of B can observe |
+|---|---|---|---|
+| Initial | v1 | v1 | v1 |
+| A has acknowledged v2 | v2 | v1 | v1 unless routing/protocol prevents it |
+| Delivery and repair finish | v2 | v2 | v2 |
 
-## Failure drill — prediction, symptom, recovery, prevention
+A strong service can keep B internally old while routing the read to A, waiting for B, or rejecting a read it cannot make safe. The guarantee constrains exposed results; it need not demand instantaneous physical copying.
 
-Predict what happens when repair stops permanently. Pause delivery in a proposed lab and observe growing version lag. Resume and verify convergence. Alert on age/version lag; “eventual” is not permission for indefinitely broken replication.
+## Why repair is part of the promise
 
-These are design/paper drills, not claims that a replica cluster or fault-injection lab was executed.
+Now consider a failure branch of the same setup: B's update receiver stays stopped. No new edits occur, but B keeps v1. “Wait longer” does not run the broken receiver. Eventual consistency assumes mechanisms that actually propagate and reconcile updates; an indefinitely broken system has not fulfilled the intended operational contract.
+
+If the design also allows B to accept an independent caption edit while disconnected, delivery can reveal conflicting versions. A rule such as choosing one version or merging content must be defined. Merely transmitting both edits does not say which text should win. Identical final copies can still lose user intent, so convergence and conflict quality are separate concerns.
+
+Branch noticeboards make a useful analogy: some display yesterday's announcement until the update arrives. The analogy stops where automatic retries, version comparison, and competing edits need an explicit protocol.
+
+## Choosing the contract
+
+An approximate public count can tolerate temporary staleness if the product explains or bounds it. A decision granting access after a completed permission revocation cannot casually use that same policy. Ask “which operation, data scope, and reader?” before saying the whole application is consistent.
+
+A bounded freshness requirement such as “no more than two seconds old” is an additional contract, not implied by “eventual.” Measuring the age of a replica's last contact also does not by itself prove its data is current. Stronger observations can require coordination, careful routing, and unavailable operations during partitions; weaker observations move some reasoning into application behavior and repair.
+
+## Project mapping
+
+[PostService.update and feed](../../../../../src/main/java/com/instagram/backend/service/PostService.java) operate through [PostRepository](../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java). There is no replica routing or declared eventual-consistency mechanism in those files. `@Transactional` defines a configured database transaction boundary, not the freshness of a proposed external cache or remote read replica.
+
+## Failure drill — paper exercise
+
+- **Predict:** stop B's receiver after A acknowledges v2. Is repeated old data acceptable forever merely because the design says eventual?
+- **Detect:** compare known versions and update/repair backlog; observe B returning v1 after the expected operational recovery period.
+- **Contain:** remove B from paths requiring freshness; make degraded freshness explicit where stale reads are permitted.
+- **Recover:** resume propagation, reconcile conflicts if any, verify A/B return the accepted v2 history, then re-enable routing.
+- **Prevent:** test catch-up and alert on lag and stuck repair. Document a user-facing freshness target separately from convergence semantics.
+
+## Recap and stop/go
+
+Use the three phases to explain a stale read without calling it data loss. State what eventual convergence assumes, what it does not bound, and what a stronger read path must prevent.
 
 ## Questions and explained answers
 
 <details>
-<summary>1. Does eventual mean within one second?</summary>
+<summary>1. Which exact step violates the strong contract, and why?</summary>
 
-No. A time bound is an extra guarantee.
-
-</details>
-
-<details>
-<summary>2. Does convergence preserve every user intent?</summary>
-
-No. A conflict policy can discard an edit while still making copies agree.
+Step 2 returns v1 after the v2 write already completed. With no later edit, that read cannot be placed in a real-time order consistent with the single current copy.
 
 </details>
 
 <details>
-<summary>3. Is a transaction annotation a replica freshness contract?</summary>
+<summary>2. If both copies eventually show the same caption, has every edit been preserved?</summary>
 
-No. Local transaction boundaries and cross-node observations are different guarantees.
+Not necessarily. A rule may choose one conflicting version and discard another. Agreement proves convergence, not preservation of every intended change.
 
 </details>
 
-## Teach-back and stop/go
+<details>
+<summary>3. What extra information is needed to promise “fresh within two seconds”?</summary>
 
-Explain the problem, trace the example, defend the choice, and diagnose the failure in 60–90 seconds without notes. Proceed only after a correct prediction, explanation, and failure diagnosis; reading this artifact does not complete comprehension.
+A defined freshness measure, mechanisms and routing that enforce the bound, and behavior when the bound cannot be met. Eventual convergence alone supplies none of that deadline enforcement.
+
+</details>

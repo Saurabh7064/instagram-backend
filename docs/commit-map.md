@@ -875,3 +875,9 @@ For every new feature or learning concept:
 - Verification: 16 lesson structures, 48 answer blocks, local links, topic coverage, worked quorum/clock calculations and Git whitespace. Documentation only; no runtime/API/UI changes or executed distributed lab claims. Unrelated pre-existing edits excluded.
 
 - Artifact commit: `9082ac1` — complete all 25 distributed-systems topics with 16 lessons and 48 checkpoints.
+
+## Rebuild distributed-systems teaching from first principles — 2026-10-25
+
+- Rebuilt all 16 [Feature 22 lessons](./features/22-distributed-systems-fundamentals.md) after the original version's shallow template-driven explanations failed the learner's review. All 25 topics now have prerequisite explanations, named components, derived fixed examples, guarantee boundaries, alternatives, and recovery reasoning; 50 explained checkpoints remain unattempted.
+- Added the [concept teaching-quality rule](../AGENTS.md#concept-lesson-teaching-quality-standard) and revised the [concept template](./interview/02-system-design/_concept-template.md). READY requires a recorded semantic review; link/format/topic counts alone are insufficient. Comprehension stays TODO.
+- Evidence: [per-lesson teaching review and structural/arithmetic verification](./interview/02-system-design/concepts/01-distributed-systems-fundamentals/verification.md). Documentation only; no runtime/API/UI changes or executed replica-lab claims. Existing unrelated work excluded.

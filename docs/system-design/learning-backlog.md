@@ -68,3 +68,7 @@ Prepared the [thread execution foundations](../interview/04-java/02-multithreadi
 
 ## Distributed systems fundamentals artifacts — 2026-10-25
 Completed [16 lessons covering 25 topics](../features/22-distributed-systems-fundamentals.md); artifact `READY`, comprehension `TODO`. Proposed implementation tasks map F-010 retry-safe creation, F-030 processing ownership, and SD-008 asynchronous recovery. Existing build/concept statuses remain unchanged; this documentation does not complete implementation or prove understanding.
+
+## Distributed-systems teaching rebuild — 2026-10-25
+
+Rebuilt [Feature 22](../features/22-distributed-systems-fundamentals.md) using the new concept teaching-quality rule: full terminology/components, prerequisite reasoning, derived examples, explicit boundaries, and semantic review. All 16 artifacts are READY; all comprehension remains TODO. F-010 retry-safe creation, F-030 fenced processing, and SD-008 asynchronous recovery remain proposed follow-ups; no build/concept status is upgraded by documentation.

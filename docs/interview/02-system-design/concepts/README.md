@@ -16,3 +16,7 @@ Study one micro-lesson at a time. The files being present means only that the le
 | 8 | [Backpressure and Load Shedding](./02-scalability-and-load-balancing/08-backpressure-and-load-shedding.md) | Bound accepted work to preserve useful service | `READY` |
 
 Use the reusable [Concept Template](../_concept-template.md) for future lessons and record actual understanding in [Learner Progress](../learner-progress.md).
+
+## Distributed systems foundations module
+
+The [16-part distributed systems module](./01-distributed-systems-fundamentals/README.md) is a separate prerequisite sequence covering the original topics 1–25. Its lessons are artifact READY after a teaching-quality review; comprehension remains TODO. Study only the current part before advancing.

@@ -1,68 +1,91 @@
-# Micro-lesson 01 — Distributed systems and partial failure
+# Micro-lesson 01 — Why distributed systems have uncertain outcomes
 
-[Module](./README.md)
+[Module](./README.md) · [Next: CAP](./02-cap.md)
 
 - Artifact: `READY`; comprehension: `TODO`.
-- Time: 10–15 minutes. Primary idea: distributed systems and partial failure.
-- Prerequisite: None; start here.
-- Original roadmap topics: 1.
+- Core study: 10–15 minutes. Primary idea: a missing response does not tell you whether remote work happened.
+- Prerequisite: a client asks a backend to do work; a database stores records. No distributed-systems knowledge is assumed.
+- Core terms: process, distributed system, partial failure.
 
-## Why does this exist? — Must understand
+## Start with the problem — Must understand
 
-A distributed system has independently running programs that coordinate by sending messages. A node is one participating process or machine. Partial failure means one part fails while others continue. Even one Spring Boot service calling a separate database crosses a failure boundary; microservices are not required.
+You press Publish. The app waits, then shows “request timed out.” Should pressing Publish again create the original post or a second post? Before choosing a retry policy, we need to understand why the first request's outcome is uncertain.
 
-## Analogy
+A **process** is a running program with its own execution and memory. The browser, Spring Boot backend, and database can run as separate processes. A function call inside one process can return directly to its caller. A call to another process must cross a communication boundary: the request and the response are separate messages, and either can be delayed or lost.
 
-Two shop clerks communicate by phone. One can keep working when the other loses reception. Unlike clerks, programs cannot reliably distinguish a slow peer from a failed peer using silence alone.
+A **distributed system** consists of independently running participants coordinating through messages. Separate machines are common, but separate communicating processes on one machine already expose some of these failure boundaries. You do not need microservices: one backend using a separately running database must already handle communication failure.
 
-## Predict before reading
+## Why failure can be partial
 
-Did the timed-out create fail? Explain your prediction before expanding the checkpoints below.
+**Partial failure** means some participants or communication paths fail while others continue working. Your browser can lose its connection while the database remains healthy. The backend can stop after saving a post. The database can be unreachable while the backend still answers a health request that does not query it.
 
-## Concrete flow
+Compare a shop clerk placing an order by telephone. The line goes dead after the clerk speaks. The warehouse may have received the order, or may never have heard it. The analogy captures uncertainty, but programs have no extra human judgment that can reliably distinguish a dead peer from a slow one using silence alone.
 
-1. Client sends create-post request.
-2. backend saves post 42.
-3. database commits.
-4. response connection breaks. The client sees a timeout, while post 42 exists. A timeout describes missing knowledge, not a proven rollback.
+A **timeout** is a local decision to stop waiting after a chosen duration. It is not a message from the remote participant saying “nothing happened.” Extending the duration can reduce unnecessary failures, but cannot eliminate this uncertainty.
 
-## Instagram-backend mapping
+## Worked request: post 42
 
-[PostService.create, feed, and transactional methods](../../../../../src/main/java/com/instagram/backend/service/PostService.java) are the real database boundary. Replication, consensus, distributed locks, durable request-key handling, and multi-service workflows in this lesson are **proposed**, not implemented by these annotations.
+Fixed setup: one client, backend A, and a separate database. The client requests one new post with caption “Sunset.” A database **commit** is the point at which the transaction's changes become durable according to its storage contract. The application must not report success before its required commit.
 
-## Decision and trade-off
+1. The client sends the create request to A. No post exists yet.
+2. A asks the database to insert the post. The database assigns ID 42.
+3. The transaction commits. Post 42 now exists even if the client disappears.
+4. A sends a success response containing ID 42. The connection breaks before the client receives it.
+5. The client reaches its waiting limit and reports a timeout. Its screen contains no ID, but the database contains post 42.
 
-Use remote components when independent capacity or ownership justifies them. Keep a local call when it suffices: every network boundary introduces delay, uncertain outcomes, and recovery work.
+Now compare three possible failures on this **same request**:
 
-## Failure drill — prediction, symptom, recovery, prevention
+| Failure point | Database result | What the client may observe |
+|---|---|---|
+| Request never reaches A | No post | Timeout |
+| Database rejects the insert and rolls it back | No post | Timeout if the error response is also lost |
+| Commit succeeds, response is lost | Post 42 exists | Timeout |
 
-Predict whether a timeout proves failure. Drop the reply after commit in a proposed test. Observe one saved row and a client timeout. Inspect durable state before recovery; retry using a stable operation identity rather than a new create request.
+The observations are identical while the durable outcomes differ. Therefore the screen's timeout cannot select a safe recovery by itself. This is an information problem, not simply a slow-server problem.
 
-These are design/paper drills, not claims that a replica cluster or fault-injection lab was executed.
+## What follows from this model
+
+We need a way to connect a retry to the *same intended operation*. Otherwise A can interpret the second request as a new post and create ID 43. [Lesson 14](./14-idempotency-and-delivery.md) teaches the durable request identity that makes this safe; do not assume it already exists.
+
+A request identifier in logs helps find evidence, but logging alone does not prevent duplicates. A retry also needs a deadline and a limit so an outage does not produce endless work. Separate what the client knows from what the system has durably done.
+
+Use a remote component when shared storage, independent capacity, or separate ownership justifies it. Prefer an ordinary local call when those benefits are unnecessary: an extra service creates extra uncertain boundaries. Distribution does not automatically make a system more reliable.
+
+## Project mapping
+
+[PostController.create](../../../../../src/main/java/com/instagram/backend/controller/PostController.java) accepts the request; [PostService.create](../../../../../src/main/java/com/instagram/backend/service/PostService.java) constructs and saves the post inside a transaction. Transaction completion surrounds the service invocation; `save` alone is not the same as telling the client the transaction committed. There is no request-key deduplication in these methods. The response-loss example is a proposed failure test, not an executed test result.
+
+## Failure drill — paper exercise
+
+- **Predict:** the reply is lost after commit. Does retrying an ordinary create safely return 42?
+- **Symptom:** client timeout; database has 42; a naive retry may create 43. Compare request logs with saved rows.
+- **Contain:** avoid automatic unlimited retries of unprotected creates. Preserve the original request identity and outcome as unknown.
+- **Recover:** inspect durable operation evidence. Do not identify an operation solely by matching caption text; two intentional posts can share it.
+- **Prevent:** implement atomic request-key/result storage before promising safe retries. A broken network can still delay the user seeing the result.
+
+## Recap and stop/go
+
+Reconstruct the five steps without notes. Explain how a successful commit and a timeout coexist, and why neither a longer wait nor a log entry alone provides duplicate protection. Proceed after you can predict the three failure points' outcomes.
 
 ## Questions and explained answers
 
 <details>
-<summary>1. Did the timed-out create fail?</summary>
+<summary>1. Why is backend plus database already a distributed concern?</summary>
 
-Unknown to the client: the saved row proves the operation can succeed despite the timeout.
-
-</details>
-
-<details>
-<summary>2. Is one backend plus a separate database distributed?</summary>
-
-Yes. Their processes and communication can fail independently.
+They execute independently and communicate. A healthy backend cannot infer the database's exact outcome from a broken connection, even without multiple backend services.
 
 </details>
 
 <details>
-<summary>3. What evidence should recovery inspect?</summary>
+<summary>2. In the worked request, did Publish fail?</summary>
 
-The durable operation result, correlated with the original request identity; a missing HTTP response alone is insufficient.
+The business operation succeeded: post 42 committed. The client failed to learn its result. Saying only “it failed” hides the distinction needed for recovery.
 
 </details>
 
-## Teach-back and stop/go
+<details>
+<summary>3. Why can a timeout not justify blindly creating another post?</summary>
 
-Explain the problem, trace the example, defend the choice, and diagnose the failure in 60–90 seconds without notes. Proceed only after a correct prediction, explanation, and failure diagnosis; reading this artifact does not complete comprehension.
+The same timeout is compatible with no insert or a committed insert. A new create can produce post 43 after 42 already exists. Recovery needs an identity for the intended operation and durable evidence tied to it.
+
+</details>

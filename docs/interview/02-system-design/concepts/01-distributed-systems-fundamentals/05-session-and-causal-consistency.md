@@ -1,67 +1,86 @@
-# Micro-lesson 05 — Session guarantees: causality and your own writes
+# Micro-lesson 05 — See your own writes and preserve dependencies
 
-[Module](./README.md)
+[Module](./README.md) · [Previous: consistency models](./04-consistency-models.md) · [Next: linearizability and serializability](./06-linearizability-and-serializability.md)
 
 - Artifact: `READY`; comprehension: `TODO`.
-- Time: 10–15 minutes. Primary idea: session guarantees: causality and your own writes.
-- Prerequisite: Complete the stop/go check for [Consistency models: strong and eventual](./04-consistency-models.md).
-- Original roadmap topics: 7–8.
+- Core study: 10–15 minutes. Primary idea: useful consistency promises can follow a particular client or a dependency, without making all readers globally current.
+- Prerequisite: an old replica can return a stale observation after a write succeeds.
+- Core terms: session, read-your-writes consistency, causal consistency.
 
-## Why does this exist? — Must understand
+## A product-level problem — Must understand
 
-Causal consistency preserves dependencies: if a reply was created after reading a post, observers must not see that reply without its prerequisite post. Read-your-writes consistency ensures a client’s later reads include its own completed writes. It does not require all other clients to see them immediately.
+An author publishes a post successfully, opens their profile, and cannot see it. Another user sees a reply saying “Great photo!” before seeing the photo it answers. Both experiences are confusing, but they require different guarantees to prevent them.
 
-## Analogy
+A **session** groups a client's related operations, with whatever identity or metadata the service uses to carry its guarantees. Logging in does not automatically create a storage-consistency promise. The implementation must connect that identity to read routing or version tracking.
 
-A reply letter presupposes the original letter; the author also expects to see their own sent mail. Unlike letters, a service must carry dependencies across routing and failover explicitly.
+**Read-your-writes consistency** promises that a session's later reads include its own completed writes, or a later state incorporating or superseding them. It does not promise that every other client sees those writes immediately. “Include” is about the state history: a legitimate later deletion can mean the post is gone, rather than requiring old content to remain forever.
 
-## Predict before reading
+**Causal consistency** preserves dependencies. If one operation used another operation's result, observers must not see the dependent effect without the prerequisite history. A reply written after reading a post depends on that post. Independent edits need not have one shared global order.
 
-Does read-your-writes guarantee everyone sees post 42? Explain your prediction before expanding the checkpoints below.
+## Fixed example: author, friend, post 42
 
-## Concrete flow
+Initial state: replicas A and B have no post 42 or reply 9. Author Lea writes through A. Friend Noor also reads through A. B receives updates later. No one deletes anything in this example.
 
-1. Author creates post 42.
-2. immediately opens profile.
-3. a lagging replica lacks 42. Routing this session to a caught-up source can preserve read-your-writes. Later a friend reads 42 and replies: causal delivery must expose 42 before that dependent reply.
+1. Lea creates post 42 at A and receives success. A has 42; B does not yet have it.
+2. Lea opens her profile. If the request goes directly to old B, the post is absent. This violates read-your-writes for Lea.
+3. A compliant path must find a source at least as current as Lea's completed write, wait for B to catch up, or report that the promised read is unavailable. Remembering “Lea needs version containing 42” is one proposed mechanism.
+4. Noor reads 42 at A, then creates reply 9 about it. Reply 9 now has a dependency on post 42's creation.
+5. Suppose messages deliver reply 9 to B before 42. Exposing reply 9 immediately would violate the dependency promise. B must wait for 42's history or fetch it before showing the dependent reply.
+6. Once B has both, it can show 42 and reply 9 together. Lea's own-write requirement and Noor's dependency requirement are both satisfied in this run.
 
-## Instagram-backend mapping
+| Promise | Who is protected? | Forbidden observation here |
+|---|---|---|
+| Read-your-writes | Lea's later session reads | Lea sees no 42 after successful creation |
+| Causal consistency | Observers of the dependent reply | Reply 9 appears without the prerequisite 42 |
+| Global real-time current reads | Every covered reader | Any later reader missing a completed write |
 
-[PostService.create, feed, and transactional methods](../../../../../src/main/java/com/instagram/backend/service/PostService.java) are the real database boundary. Replication, consensus, distributed locks, durable request-key handling, and multi-service workflows in this lesson are **proposed**, not implemented by these annotations.
+The third row is stronger in a different dimension. The first two do not independently force every unrelated reader to observe the newest unrelated post.
 
-## Decision and trade-off
+## How to carry the necessary knowledge
 
-Use session version tracking or authoritative reads for immediate author feedback. Dependency tracking costs metadata and may delay reads; simple sticky routing alone fails when the selected node dies or is stale.
+A future service might return a required version with the write result and carry it on later reads. The read path then checks whether its selected copy has reached that version. Dependency-aware delivery similarly needs information about what earlier history a reply relies on. Without carrying such information, a load balancer merely choosing a healthy server cannot know the read is sufficiently current.
 
-## Failure drill — prediction, symptom, recovery, prevention
+Routing a user repeatedly to the same server is **sticky routing**. It can help under specific conditions, but failover can send the session to an older copy. An application server's identity is also different from the database replica it queries. Test rerouting, not only refreshes that happen to hit one node.
 
-Predict the profile after failover to a lagging replica. In a proposed test, record a session’s required version, then reroute. Wait for catch-up or use the authoritative source. Verify the guarantee survives failover rather than just a normal refresh.
+The analogy is outgoing mail and replies: you expect your own sent letter to appear in your history, and a reply presupposes the original. It stops matching because distributed storage must encode dependencies explicitly; it cannot rely on a reader recognizing missing context.
 
-These are design/paper drills, not claims that a replica cluster or fault-injection lab was executed.
+For background, Vogels describes [client-centric and causal observation guarantees](https://www.allthingsdistributed.com/2008/12/eventually_consistent.html). The routing/version mechanism above is a proposed design for this example, not a statement about a particular product.
+
+## Project mapping and trade-offs
+
+[PostService.create and feed](../../../../../src/main/java/com/instagram/backend/service/PostService.java) do not carry replica-version metadata. Replies in this example are proposed; this method set does not implement the future comments feature. Read-your-writes routing could improve author feedback, while dependent-delivery tracking fits later comments or notifications. Both add metadata and can delay reads when required history is unavailable. Prefer an authoritative read if its simplicity and latency fit the application.
+
+## Failure drill — paper exercise
+
+- **Predict:** A becomes unreachable after step 1; Lea's next read goes to old B. Does sticky routing preserve the promise?
+- **Symptom:** a successful publish followed by a profile missing 42; session/version evidence reveals the inconsistency.
+- **Contain:** do not return B's old result as a read satisfying Lea's guarantee.
+- **Recover:** catch B up or use another sufficiently current source, then verify 42. Once reply 9 arrives, verify its prerequisite history is exposed first.
+- **Prevent:** test failover with carried requirements and delayed dependent messages. Independent events may still appear in different orders, which these promises allow.
+
+## Recap and stop/go
+
+Explain which client owns the read-your-writes promise and why reply 9 requires post 42. Compare these with a global latest-read requirement; predict the failover behavior without notes.
 
 ## Questions and explained answers
 
 <details>
-<summary>1. Does read-your-writes guarantee everyone sees post 42?</summary>
+<summary>1. Must an unrelated reader see 42 immediately because Lea has read-your-writes?</summary>
 
-No. It is a guarantee for the writing client/session.
-
-</details>
-
-<details>
-<summary>2. Can causal consistency show a dependent reply first?</summary>
-
-No. The observed dependency must be respected.
+No. That promise covers Lea's session. Guaranteeing all later readers the newest completed write requires a broader observation contract.
 
 </details>
 
 <details>
-<summary>3. Is sticky routing enough?</summary>
+<summary>2. Why is reply 9 arriving before 42 different from two independent posts arriving in different orders?</summary>
 
-Only with additional assumptions about durability and freshness; rerouting exposes the weakness.
+Noor created reply 9 using post 42's content, so the reply carries a dependency. Independent posts have no such relationship. Causal consistency preserves dependency order rather than inventing one order for everything.
 
 </details>
 
-## Teach-back and stop/go
+<details>
+<summary>3. What must a failover read path know to preserve Lea's promise?</summary>
 
-Explain the problem, trace the example, defend the choice, and diagnose the failure in 60–90 seconds without notes. Proceed only after a correct prediction, explanation, and failure diagnosis; reading this artifact does not complete comprehension.
+It needs evidence of Lea's completed write and whether the selected source includes that history. A server being alive or selected by session affinity is insufficient evidence of freshness.
+
+</details>
