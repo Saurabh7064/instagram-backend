@@ -1,0 +1,39 @@
+Date: 2026-10-25 America/Los_Angeles
+UI commit: c0a6e6e
+Production build: PASS (existing large lesson bundle warning)
+ESLint: PASS
+HTTP GET http://localhost:5173/learn: 200
+Backend GET http://localhost:8080/actuator/health: connection refused; backend offline. No backend API changed or needed for local lessons.
+Screenshot learning-studio-tutorial.png inspected: green topic bar, pale grouped sidebar, active lesson, spacious content visible.
+
+
+> instagram-ui@0.0.0 pretest:e2e:learning
+> npm run lessons:generate
+
+
+> instagram-ui@0.0.0 lessons:generate
+> node scripts/generate-lessons.mjs
+
+Generated 290 learning documents at src/generated/lessons.json
+
+> instagram-ui@0.0.0 test:e2e:learning
+> playwright test tests/learning-platform.spec.ts
+
+[WebServer] (node:55808) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:55828) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 7 tests using 1 worker
+
+(node:55830) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/learning-platform.spec.ts:7:1 › renders Markdown and the inline Two Sum directive (2.0s)
+  ✓  2 tests/learning-platform.spec.ts:16:1 › navigates deterministically forward, backward and restart (3.6s)
+  ✓  3 tests/learning-platform.spec.ts:35:1 › supports keyboard navigation and lesson navigation (2.7s)
+  ✓  4 tests/learning-platform.spec.ts:49:1 › keeps the lesson catalog usable on a narrow screen (2.5s)
+  ✓  5 tests/learning-platform.spec.ts:62:1 › renders and completes a newly initialized sliding-window simulation (3.3s)
+  ✓  6 tests/learning-platform.spec.ts:73:1 › renders stable line numbers beside a complete reference solution (1.3s)
+  ✓  7 tests/learning-platform.spec.ts:87:1 › browses main topics, collapses subtopics, searches, and follows lesson history (3.5s)
+
+  7 passed (24.5s)

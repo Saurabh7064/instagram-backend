@@ -891,3 +891,10 @@ For every new feature or learning concept:
 - Evidence: [semantic and lab verification](./interview/02-system-design/concepts/04-databases-and-data-modeling/partitioning-and-keys/verification.md). Isolated PostgreSQL success/failure/recovery/cleanup checked; Cassandra CQL is source-reviewed, not executed. No application/API/UI behavior changed; unrelated edits excluded.
 
 - Artifact commit: `a5d8b25` — create the 11-part partitioning/key-design module; isolated SQL lab and document/model checks passed, Cassandra execution remains pending.
+
+
+## Tutorial-style Learning Studio — 2026-10-25
+
+- UI commit `c0a6e6e`: green main-topic bar, directory-grouped collapsible sidebar, responsive reading layout, and generator folder repair.
+- [Feature 24](./features/24-tutorial-style-learning-studio.md); concept mapping: accessible disclosure controls, derived curriculum navigation, and browser-history state. No learner mastery status changes.
+- Evidence: [browser checks and HTTP verification](./demo-proofs/2026-10-25/learning-studio-verification.txt), [verified screenshot](./demo-proofs/2026-10-25/learning-studio-tutorial.png).

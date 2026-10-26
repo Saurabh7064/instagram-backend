@@ -105,3 +105,8 @@ Rebuilt [Feature 22](./22-distributed-systems-fundamentals.md) using the new con
 ## Partitioning and Cassandra key artifacts — 2026-10-25
 
 Created [Feature 23](./23-partitioning-and-cassandra-key-lessons.md): 11 lessons with 33 explained checkpoints covering distribution, hotspots, key choice, table creation, and routing. Artifact READY; comprehension TODO. The PostgreSQL exercise is isolated and executed; Cassandra runtime verification remains pending. F-016/SD-007 query planning and F-021 query-specific read models are proposed follow-ups, not completed implementation. Existing status rows are unchanged.
+
+
+## Learning Studio tutorial navigation — 2026-10-25
+
+DONE: [Feature 24](./24-tutorial-style-learning-studio.md), with main-topic navigation, collapsible subtopic groups, responsive reading layout, repaired generator path, and seven passing browser integration checks. No backend build-track or learner comprehension status changed.
