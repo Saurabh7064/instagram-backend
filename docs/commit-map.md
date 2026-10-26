@@ -867,3 +867,9 @@ For every new feature or learning concept:
 - Updated the hub, docs index, company template, tracker targets, and precedence notices on historical plans. Existing active lessons, learner mastery, feature status rows, and concept status rows are unchanged.
 - Verification: local Markdown paths/anchors, 24 unique core IDs, 24 coding representatives, all five 10-hour allocations, source attribution, and Git whitespace. Documentation only; no application/API/UI behavior changes or executable lesson additions require integration/browser checks.
 - Artifact commit: `cd1364e` — curate senior Java interview preparation by round format; 214 local links/anchors and scope/allocation checks passed.
+
+## Distributed systems fundamentals module — 2026-10-25
+
+- Completed [Feature 22](./features/22-distributed-systems-fundamentals.md): 16 focused lessons covering all 25 planned topics, 48 explained checkpoints, project mappings, failure drills, an integrated exercise, and vocabulary recap.
+- Concept mapping: partial failure, CAP/PACELC, consistency, consensus, quorums, fenced ownership, 2PC/sagas, idempotency/delivery, and logical/vector clocks. Proposed F-010/F-030 implementation remains separate; artifact READY and comprehension TODO.
+- Verification: 16 lesson structures, 48 answer blocks, local links, topic coverage, worked quorum/clock calculations and Git whitespace. Documentation only; no runtime/API/UI changes or executed distributed lab claims. Unrelated pre-existing edits excluded.

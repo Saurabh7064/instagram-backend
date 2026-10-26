@@ -69,3 +69,7 @@ For dense morning revision, use the [380-concept printable tracker](./questions/
 - Active lesson: none selected yet.
 - Recommended start: [Scalability, Availability, and Reliability](./concepts/09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md).
 - Rule: select one lesson, attempt its checkpoints aloud, and record the result before advancing.
+
+## Distributed systems fundamentals module — 2026-10-25
+
+All 16 [micro-lessons](./concepts/01-distributed-systems-fundamentals/README.md) covering original topics 1–25 are artifact `READY`. Each comprehension status remains `TODO`; no learner attempt or executed distributed lab is recorded. Use the module table as the per-lesson checklist. Advance only after an explanation, correct prediction, failure diagnosis, and alternative comparison without notes. Record the learner’s evidence and review dates here when attempted.

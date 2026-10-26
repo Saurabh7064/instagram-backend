@@ -65,3 +65,6 @@ Prepared the [28-part Java functional concept course](../interview/04-java/01-fu
 ## Multithreading foundations — 2026-10-24
 
 Prepared the [thread execution foundations](../interview/04-java/02-multithreading-from-scratch/README.md), distinguishing processes, threads, tasks, execution capacity, and shared objects. The named-task reference and deterministic completion checks support the lesson artifacts; no production threading behavior or system-design milestone changes. See [Feature 20](../features/20-multithreading-foundations.md). All new learner states remain TODO and existing concept status rows are unchanged.
+
+## Distributed systems fundamentals artifacts — 2026-10-25
+Completed [16 lessons covering 25 topics](../features/22-distributed-systems-fundamentals.md); artifact `READY`, comprehension `TODO`. Proposed implementation tasks map F-010 retry-safe creation, F-030 processing ownership, and SD-008 asynchronous recovery. Existing build/concept statuses remain unchanged; this documentation does not complete implementation or prove understanding.

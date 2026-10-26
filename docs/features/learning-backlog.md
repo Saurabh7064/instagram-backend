@@ -93,3 +93,7 @@ Recreated the [functional-programming course](../interview/04-java/01-functional
 ## Multithreading foundations — 2026-10-24
 
 Added [seven foundation micro-lessons](../interview/04-java/02-multithreading-from-scratch/lessons/00-foundations/README.md) before the revised start/join lesson, with [Feature 20](./20-multithreading-foundations.md) recording evidence. The course starts with program/process and what a thread is, then teaches main, CPU time, tasks, and sharing before APIs. Eight artifacts are READY; comprehension remains TODO and coding is optional. Existing feature status rows are unchanged.
+
+## Distributed systems fundamentals artifacts — 2026-10-25
+
+Completed [16 lessons covering 25 topics](./22-distributed-systems-fundamentals.md); artifact `READY`, comprehension `TODO`. Proposed implementation tasks map F-010 retry-safe creation, F-030 processing ownership, and SD-008 asynchronous recovery. Existing build/concept statuses remain unchanged; this documentation does not complete implementation or prove understanding.
