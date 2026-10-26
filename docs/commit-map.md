@@ -889,3 +889,5 @@ For every new feature or learning concept:
 - Created [Feature 23](./features/23-partitioning-and-cassandra-key-lessons.md): 11 prerequisite-ordered lessons, 33 explained checkpoints, a fixed five-event dataset, complete SQL/CQL examples, and separate learner tracking under the database category.
 - Concept mapping: roadmap 84 sharding, 85 partitioning, replica context 86–90, and proposed F-016/SD-007 query-planning and F-021 read-model follow-ups. Corrected the consistent-hashing/hot-key premise and type-only Cassandra event-key overwrite. Comprehension remains TODO.
 - Evidence: [semantic and lab verification](./interview/02-system-design/concepts/04-databases-and-data-modeling/partitioning-and-keys/verification.md). Isolated PostgreSQL success/failure/recovery/cleanup checked; Cassandra CQL is source-reviewed, not executed. No application/API/UI behavior changed; unrelated edits excluded.
+
+- Artifact commit: `a5d8b25` — create the 11-part partitioning/key-design module; isolated SQL lab and document/model checks passed, Cassandra execution remains pending.

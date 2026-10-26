@@ -26,7 +26,7 @@ No application behavior changed. [Verification](../interview/02-system-design/co
 
 ## 6) Commit pointers
 
-The artifact commit is recorded in [commit map](../commit-map.md) after creation. Unrelated existing edits are excluded.
+Artifact commit: `a5d8b25`, also recorded in [commit map](../commit-map.md). Unrelated existing edits are excluded.
 
 ## 7) Pitfalls and fixes
 
