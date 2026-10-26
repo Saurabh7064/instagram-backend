@@ -7,7 +7,7 @@ The 16 categories below preserve the topic order and numbering of the original i
 | [1. Distributed Systems Fundamentals](./01-distributed-systems-fundamentals/README.md) | 1–25 | 16 |
 | [2. Scalability & Load Balancing](./02-scalability-and-load-balancing/README.md) | 26–50 | 2 |
 | [3. Caching & Content Delivery](./03-caching-and-content-delivery/README.md) | 51–70 | 1 |
-| [4. Databases & Data Modeling](./04-databases-and-data-modeling/README.md) | 71–100 | 1 |
+| [4. Databases & Data Modeling](./04-databases-and-data-modeling/README.md) | 71–100 | 11 |
 | [5. Messaging, Queues & Event-Driven Architecture](./05-messaging-queues-and-event-driven-architecture/README.md) | 101–120 | 0 |
 | [6. Networking, DNS & HTTP](./06-networking-dns-and-http/README.md) | 121–145 | 0 |
 | [7. Microservices & API Design](./07-microservices-and-api-design/README.md) | 146–170 | 1 |

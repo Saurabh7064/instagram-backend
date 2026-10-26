@@ -1,0 +1,40 @@
+PostgreSQL 16 isolated lesson execution; SET LOCAL TIME ZONE UTC.
+
+BEGIN
+CREATE SCHEMA
+SET
+SET
+CREATE TABLE
+CREATE TABLE
+INSERT 0 4
+NOTICE:  EXPECTED: no matching October 26 partition
+DO
+CREATE TABLE
+INSERT 0 1
+CREATE INDEX
+      physical_child      | rows
+--------------------------+------
+ user_activity_2026_10_25 |    4
+ user_activity_2026_10_26 |    1
+(2 rows)
+
+ activity_id | activity_type |      occurred_at
+-------------+---------------+------------------------
+        1002 | VIEW_POST     | 2026-10-25 09:05:00+00
+        1003 | VIEW_POST     | 2026-10-25 09:05:00+00
+        1001 | LOGIN         | 2026-10-25 09:00:00+00
+(3 rows)
+
+                             QUERY PLAN
+---------------------------------------------------------------------
+ Seq Scan on user_activity_2026_10_25 user_activity
+   Filter: ((activity_date = '2026-10-25'::date) AND (user_id = 42))
+(2 rows)
+
+NOTICE:  PASS: row counts, exact boundary placement, and tie ordering
+DO
+ROLLBACK
+NOTICE:  PASS: schema and data removed by rollback
+DO
+
+PASS: temporary private-socket PostgreSQL server stopped; generated directory removed.

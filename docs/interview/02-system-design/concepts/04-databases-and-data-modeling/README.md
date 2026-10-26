@@ -2,9 +2,13 @@
 
 [All concept categories](../index.md)
 
-## Existing lessons
+## Partitioning and key design module
 
-- [Partitioning Replication Hot Keys](./03-partitioning-replication-hot-keys.md) — artifact `READY`; comprehension tracked separately.
+The [11-part module](./partitioning-and-keys/README.md) expands sharding (84), partitioning (85), and replica context (86–90). It teaches range/hash partitioning, hot keys, consistent hashing, PostgreSQL partition keys, Cassandra primary/clustering keys, partition creation, request routing, and Instagram access-pattern choices. Artifacts are READY; comprehension remains TODO. The PostgreSQL exercise was run in isolation; Cassandra execution is not claimed.
+
+## Existing overview
+
+- [Partitioning, replication, and hot keys](./03-partitioning-replication-hot-keys.md) remains a stable entry URL and now directs detailed study to the module.
 
 ## Related interview practice
 

@@ -94,3 +94,23 @@ The [module](./concepts/01-distributed-systems-fundamentals/README.md) has 16 re
 | [Vector clocks: distinguish later history from concurrent edits](./concepts/01-distributed-systems-fundamentals/16-vector-clocks.md) | `READY` | `TODO` | Pending learner attempt | — |
 
 Advance one lesson at a time after an explanation, correct prediction, failure diagnosis, and alternative comparison without notes. Record actual evidence and later recall here; authored examples and documentation verification are not comprehension evidence.
+
+## Partitioning and Cassandra keys module — 2026-10-25
+
+The [11-part module](./concepts/04-databases-and-data-modeling/partitioning-and-keys/README.md) extends the database category. Artifact READY follows its documented teaching review; PostgreSQL verification is separate from Cassandra runtime verification. No learner attempt has occurred.
+
+| Part | Artifact | Comprehension | Required learner evidence | Review date |
+|---|---|---|---|---|
+| [A partition is a data boundary; a shard is a distribution boundary](./concepts/04-databases-and-data-modeling/partitioning-and-keys/01-partitions-shards-and-replicas.md) | `READY` | `TODO` | Explanation, prediction, failure diagnosis, alternative comparison | — |
+| [Range partitioning: give each interval an owner](./concepts/04-databases-and-data-modeling/partitioning-and-keys/02-range-partitioning.md) | `READY` | `TODO` | Explanation, prediction, failure diagnosis, alternative comparison | — |
+| [Hash partitioning: spread different keys, preserve equal keys](./concepts/04-databases-and-data-modeling/partitioning-and-keys/03-hash-partitioning.md) | `READY` | `TODO` | Explanation, prediction, failure diagnosis, alternative comparison | — |
+| [A hot key is a workload problem, not just uneven storage](./concepts/04-databases-and-data-modeling/partitioning-and-keys/04-hotspots-and-hot-keys.md) | `READY` | `TODO` | Explanation, prediction, failure diagnosis, alternative comparison | — |
+| [Consistent hashing reduces remapping when membership changes](./concepts/04-databases-and-data-modeling/partitioning-and-keys/05-consistent-hashing.md) | `READY` | `TODO` | Explanation, prediction, failure diagnosis, alternative comparison | — |
+| [Choose a SQL partition key from operations, not just identity](./concepts/04-databases-and-data-modeling/partitioning-and-keys/06-sql-partition-key-and-table-creation.md) | `READY` | `TODO` | Explanation, prediction, failure diagnosis, alternative comparison | — |
+| [Cassandra PRIMARY KEY: parentheses define grouping and row identity](./concepts/04-databases-and-data-modeling/partitioning-and-keys/07-cassandra-primary-key-syntax.md) | `READY` | `TODO` | Explanation, prediction, failure diagnosis, alternative comparison | — |
+| [Clustering columns order rows inside one Cassandra partition](./concepts/04-databases-and-data-modeling/partitioning-and-keys/08-cassandra-clustering-columns.md) | `READY` | `TODO` | Explanation, prediction, failure diagnosis, alternative comparison | — |
+| [Cassandra CREATE TABLE defines the grouping rule, not one table per user](./concepts/04-databases-and-data-modeling/partitioning-and-keys/09-cassandra-partition-creation.md) | `READY` | `TODO` | Explanation, prediction, failure diagnosis, alternative comparison | — |
+| [Cassandra query routing: complete key to token to replica set](./concepts/04-databases-and-data-modeling/partitioning-and-keys/10-cassandra-query-routing.md) | `READY` | `TODO` | Explanation, prediction, failure diagnosis, alternative comparison | — |
+| [Instagram has query-specific partition keys, not one universal key](./concepts/04-databases-and-data-modeling/partitioning-and-keys/11-instagram-key-design.md) | `READY` | `TODO` | Explanation, prediction, failure diagnosis, alternative comparison | — |
+
+Teach one part at a time and wait for the learner’s attempt before advancing. Executed SQL, written lessons, and source review do not demonstrate comprehension.
