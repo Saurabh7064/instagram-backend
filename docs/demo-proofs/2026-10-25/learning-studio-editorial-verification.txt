@@ -1,0 +1,38 @@
+2026-10-25 America/Los_Angeles
+UI commit e1567e2
+HTTP GET http://localhost:5173/learn: 200
+CSS-only theme and browser integration test change; no backend API change.
+Screenshot inspected: centered column, serif prose, neutral top bar and sidebar, heading alignment.
+
+
+> instagram-ui@0.0.0 pretest:e2e:learning
+> npm run lessons:generate
+
+
+> instagram-ui@0.0.0 lessons:generate
+> node scripts/generate-lessons.mjs
+
+Generated 291 learning documents at src/generated/lessons.json
+
+> instagram-ui@0.0.0 test:e2e:learning
+> playwright test tests/learning-platform.spec.ts
+
+[WebServer] (node:57714) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:57734) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 8 tests using 1 worker
+
+(node:57737) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/learning-platform.spec.ts:7:1 › renders Markdown and the inline Two Sum directive (2.0s)
+  ✓  2 tests/learning-platform.spec.ts:16:1 › navigates deterministically forward, backward and restart (2.2s)
+  ✓  3 tests/learning-platform.spec.ts:35:1 › supports keyboard navigation and lesson navigation (2.0s)
+  ✓  4 tests/learning-platform.spec.ts:49:1 › keeps the lesson catalog usable on a narrow screen (2.0s)
+  ✓  5 tests/learning-platform.spec.ts:62:1 › renders and completes a newly initialized sliding-window simulation (3.1s)
+  ✓  6 tests/learning-platform.spec.ts:73:1 › renders stable line numbers beside a complete reference solution (1.5s)
+  ✓  7 tests/learning-platform.spec.ts:87:1 › browses main topics, collapses subtopics, searches, and follows lesson history (2.3s)
+  ✓  8 tests/learning-platform.spec.ts:108:1 › centers a readable editorial column within the available reading area (1.3s)
+
+  8 passed (21.6s)

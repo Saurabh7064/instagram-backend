@@ -898,3 +898,9 @@ For every new feature or learning concept:
 - UI commit `c0a6e6e`: green main-topic bar, directory-grouped collapsible sidebar, responsive reading layout, and generator folder repair.
 - [Feature 24](./features/24-tutorial-style-learning-studio.md); concept mapping: accessible disclosure controls, derived curriculum navigation, and browser-history state. No learner mastery status changes.
 - Evidence: [browser checks and HTTP verification](./demo-proofs/2026-10-25/learning-studio-verification.txt), [verified screenshot](./demo-proofs/2026-10-25/learning-studio-tutorial.png).
+
+
+## Centered editorial Learning Studio — 2026-10-25
+
+- UI commit `e1567e2`: centered 720px reading measure, Georgia body text, clean sans-serif headings, neutral navigation, and responsive margins.
+- [Feature 24 follow-up](./features/24-tutorial-style-learning-studio.md#centered-editorial-reading-follow-up); concept mapping: readable line length and responsive alignment. Eight browser integration tests pass; [verified screenshot](./demo-proofs/2026-10-25/learning-studio-editorial.png).

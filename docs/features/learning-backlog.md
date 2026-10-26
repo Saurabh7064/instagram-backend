@@ -110,3 +110,8 @@ Created [Feature 23](./23-partitioning-and-cassandra-key-lessons.md): 11 lessons
 ## Learning Studio tutorial navigation — 2026-10-25
 
 DONE: [Feature 24](./24-tutorial-style-learning-studio.md), with main-topic navigation, collapsible subtopic groups, responsive reading layout, repaired generator path, and seven passing browser integration checks. No backend build-track or learner comprehension status changed.
+
+
+### Learning Studio readability follow-up — 2026-10-25
+
+DONE: centered 720px editorial reading column with serif text, neutral theme, and mobile margins; eight browser integration tests pass. [Feature 24](./24-tutorial-style-learning-studio.md#centered-editorial-reading-follow-up). Learner comprehension and backend implementation statuses remain unchanged.

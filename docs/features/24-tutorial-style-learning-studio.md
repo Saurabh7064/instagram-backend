@@ -37,3 +37,10 @@ Normal startup failed because the generator referenced the old folder. Regenerat
 
 - Remember expanded groups across page reloads if useful.
 - Split generated content by topic to reduce the existing large lesson bundle warning.
+
+
+## Centered editorial reading follow-up
+
+The first layout was too wide and difficult to read. The updated [stylesheet](../../../instagram-ui/src/learning/learning.css) centers the breadcrumb, heading, article, and pager on the same 720px measure within the reading pane. Georgia body text uses 21px size with 1.65 line height (19px on phones); headings and navigation remain sans serif. Neutral surfaces and understated green links replace the bright tutorial chrome. Simulations stack their inspector beneath the visual to fit the reading measure.
+
+[Browser integration test](../../../instagram-ui/tests/learning-platform.spec.ts) verifies exact desktop centering, article width, heading alignment, serif typography, and phone margins. All eight tests pass. [Screenshot proof](../demo-proofs/2026-10-25/learning-studio-editorial.png) was captured and visually inspected. [Verification output](../demo-proofs/2026-10-25/learning-studio-editorial-verification.txt). `curl` GET `/learn` returned 200; no backend API flow changed. UI commit: `e1567e2`; no UI remote is configured, so UI push remains unavailable.
