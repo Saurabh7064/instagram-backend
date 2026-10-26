@@ -26,7 +26,7 @@ Documentation only. No backend, API, UI, or Java runtime behavior changed. Integ
 
 ## 6) Commit pointers
 
-Initial artifact: `9082ac1`; initial map entry: `ca1db45`. Rebuild hash is recorded in [commit map](../commit-map.md) after creation. Unrelated existing changes are excluded.
+Initial artifact: `9082ac1`; initial map entry: `ca1db45`. Rebuild: `128ed36`; also recorded in [commit map](../commit-map.md). Unrelated existing changes are excluded.
 
 ## 7) Pitfalls and fixes
 
