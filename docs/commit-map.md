@@ -873,3 +873,5 @@ For every new feature or learning concept:
 - Completed [Feature 22](./features/22-distributed-systems-fundamentals.md): 16 focused lessons covering all 25 planned topics, 48 explained checkpoints, project mappings, failure drills, an integrated exercise, and vocabulary recap.
 - Concept mapping: partial failure, CAP/PACELC, consistency, consensus, quorums, fenced ownership, 2PC/sagas, idempotency/delivery, and logical/vector clocks. Proposed F-010/F-030 implementation remains separate; artifact READY and comprehension TODO.
 - Verification: 16 lesson structures, 48 answer blocks, local links, topic coverage, worked quorum/clock calculations and Git whitespace. Documentation only; no runtime/API/UI changes or executed distributed lab claims. Unrelated pre-existing edits excluded.
+
+- Artifact commit: `9082ac1` — complete all 25 distributed-systems topics with 16 lessons and 48 checkpoints.
