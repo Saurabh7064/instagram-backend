@@ -115,3 +115,8 @@ DONE: [Feature 24](./24-tutorial-style-learning-studio.md), with main-topic navi
 ### Learning Studio readability follow-up — 2026-10-25
 
 DONE: centered 720px editorial reading column with serif text, neutral theme, and mobile margins; eight browser integration tests pass. [Feature 24](./24-tutorial-style-learning-studio.md#centered-editorial-reading-follow-up). Learner comprehension and backend implementation statuses remain unchanged.
+
+
+## Project explorer — 2026-10-31
+
+DONE: [Feature 25](./25-learning-project-explorer.md), IDE-style nested learning-document explorer; nine browser integration tests passed. UI commit `f9a8eec`; origin is not configured.

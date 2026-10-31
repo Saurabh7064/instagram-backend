@@ -904,3 +904,8 @@ For every new feature or learning concept:
 
 - UI commit `e1567e2`: centered 720px reading measure, Georgia body text, clean sans-serif headings, neutral navigation, and responsive margins.
 - [Feature 24 follow-up](./features/24-tutorial-style-learning-studio.md#centered-editorial-reading-follow-up); concept mapping: readable line length and responsive alignment. Eight browser integration tests pass; [verified screenshot](./demo-proofs/2026-10-25/learning-studio-editorial.png).
+
+
+## Learning Studio project explorer — 2026-10-31
+
+- UI `f9a8eec`: [Feature 25](./features/25-learning-project-explorer.md). Concepts: recursive path trees, accessible disclosure controls, selected-document state. Build and nine browser tests passed; screenshot verified. UI push blocked by missing origin.
