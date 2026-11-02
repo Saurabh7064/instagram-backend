@@ -4,17 +4,15 @@
 
 > [One-page revision card](../../revision-cards/microservices/07-service-boundaries-and-data-ownership.md)
 
-- Status: `READY`; comprehension not yet demonstrated
-- Time: 20–25 minutes
-- Primary idea: split around business responsibilities and invariants, then give one service authority to change each piece of data
+## What should a service be allowed to change?
 
-## Why does this matter?
+Suppose you split this backend into a Post Service, a Like Service, and a Profile Service. Each runs independently, so the deployment diagram looks promising. Then someone changes how a deleted post is stored. All three services read the same tables, and all three now need a coordinated release. The split gave you more applications to operate without making the business change easier.
 
-Turning every controller or database table into a service creates more deployments, but it does not create useful independence. A request still crosses many services, a small feature still requires coordinated releases, and several services may update the same records. This is a **distributed monolith**: monolith-level coupling plus network failures.
+That is the problem a useful boundary must solve. A service should own a recognizable decision and the data needed to make it. Other services should ask it for an outcome rather than reproducing its private rules. If they still reach directly into its tables, its database schema has become an undocumented public interface.
 
-A useful boundary keeps behavior and the data it protects together. It should let a team make a normal business change without editing several services or joining directly across their databases.
+When independently deployed applications remain tightly dependent on each other's internals, we call the result a **distributed monolith**. The name describes the cost: the coupling remains, and calls can now fail across a network as well.
 
-## Analogy: departments in a store
+## A department owns a decision, not just a filing cabinet
 
 A store may have a returns desk, warehouse, and accounting department. Each owns a clear decision:
 
@@ -26,40 +24,25 @@ Other departments request an outcome rather than reaching into a department's fi
 
 The analogy has limits. Software can copy data into read models, messages may arrive late or twice, and a business operation may legitimately span several owners. The analogy explains authority, not distributed consistency.
 
-## Plain-language model
+## Keep the rule with the data that protects it
 
-### Business capability
+Think about a like. The user is asking, “Make my like on this post exist.” The backend must check that the post is usable, ensure this user cannot add two likes, and report the resulting state. Those responsibilities make sense together even though the database stores posts and likes in different tables.
 
-A **business capability** is an outcome the business recognizes, such as publishing a post, storing media, authenticating a user, or processing a payment. Start with these behaviors, not technical layers such as “controller service” and “database service.”
+A **business capability** is a recognizable outcome such as publishing a post or storing media. It gives us a starting point for grouping behavior. A table is only one way to store the facts that behavior needs; it does not automatically deserve its own service.
 
-### Invariant
+Within the capability, identify the rules that must remain true. We call these rules **invariants**. Here, one invariant is “a user has at most one like on a given post.” Keeping the membership record, uniqueness constraint, and operation together lets one local transaction enforce that rule. Splitting them means we must somehow preserve the same rule while services communicate and fail independently.
 
-An **invariant** is a rule that must always remain true. Examples:
+Then name the **data owner**: the service allowed to make authoritative changes. A feed may store a copy of the author's display name, but a profile edit goes to the Profile Service. Otherwise a user could have two competing display names with no clear answer about which one is correct. Ownership allows read copies; it tells us which copy wins when they disagree.
 
-- only the post owner can edit a post;
-- one user can like one post at most once;
-- inventory cannot be promised below the allowed threshold.
+## How would we decide where to split this project?
 
-Data needed to enforce one invariant usually belongs with the behavior enforcing it. Splitting the like record and the uniqueness rule across unrelated services would make correctness harder.
+Start with a change the team actually wants to make. If changing post publication rules always changes post, like, and feed code together, inspect why. Some code may belong in one capability; other code may only need a stable published fact such as “post 42 is no longer visible.” Reading change history and tracing one request reveal more than counting classes.
 
-### Data owner
+Next, check whether keeping the rule inside the proposed service is practical. Can one team explain, test, deploy, and operate that behavior? Can a normal operation complete without a long chain of synchronous calls? If every feed item requires a separate profile request, the boundary adds latency in proportion to the page size and makes profile availability part of every feed read.
 
-The **data owner** is the only service allowed to make authoritative changes to that data. Other services use its API, react to its events, or keep explicitly non-authoritative copies for reads.
+Finally, ask what independence would buy. Media processing might need substantially more CPU and storage than profile reads. Separate deployment may help there. If everything scales adequately in one application and one team releases it safely, explicit internal modules may deliver most of the benefit without network operations.
 
-Ownership does **not** mean nobody else may store a post ID or username. It means those copies cannot silently become a second source of truth.
-
-## How I find a boundary
-
-For each candidate capability, ask:
-
-1. **What business decision does it make?** “Post service owns publishing and editing,” is clearer than “post service owns the `posts` table.”
-2. **Which rules must change together?** Code and data that protect one invariant should usually remain together.
-3. **Which features change together in real work?** If every post change also modifies the proposed profile service, the boundary may be wrong.
-4. **Can it fail or scale independently?** Media processing may need much more CPU and storage than profile reads.
-5. **Can one team own it end to end?** A boundary with no clear operational owner will become shared infrastructure by accident.
-6. **How chatty would the request path become?** A boundary that turns one local method into twenty synchronous calls is too fine-grained.
-
-These are signals, not a formula. Begin with larger boundaries and split only when evidence justifies the added operational cost.
+These questions do not produce one mathematically correct diagram. They help us choose a boundary whose useful independence is worth the new communication and recovery work. Begin with larger responsibilities; split further when evidence shows a reason.
 
 ## Predict before reading
 
@@ -72,7 +55,7 @@ The services are independently deployed but not independently changeable. A sche
 
 </details>
 
-## Concrete flow: loading an Instagram feed
+## Follow one post from upload to feed
 
 Suppose this application eventually has three proven boundaries:
 
@@ -105,7 +88,7 @@ The current repository should remain a modular monolith until independent scalin
 
 The first useful step is enforcing these module boundaries in-process. A network boundary should come later.
 
-## Decision and trade-off
+## Which kind of independence do we need?
 
 | Choice | Prefer it when | Cost or warning |
 |---|---|---|
@@ -119,7 +102,7 @@ The first useful step is enforcing these module boundaries in-process. A network
 
 **Scenario:** a new feed service reads the post database directly because creating an API seems slow.
 
-1. **Prediction:** feed development appears faster at first.
+1. **Prediction:** the direct query works until the post owner changes a private storage rule; feed can then show content the authoritative API would hide.
 2. **Failure:** the post team changes how deleted posts are represented. Feed continues showing deleted content because it bypasses the post service's rule.
 3. **Observable symptom:** API responses from the post service and feed service disagree for the same post ID.
 4. **Immediate recovery:** stop the unsafe feed query, invalidate affected feed entries, and rebuild them from authoritative post data.
@@ -134,6 +117,8 @@ For each boundary, I name one service as the authoritative writer for its data. 
 In this Instagram project, posts and like membership belong together initially because one transaction enforces rules such as one like per user and the displayed like count. Media is a stronger extraction candidate because file storage, scanning, transformation, and scaling differ from post metadata. I would first enforce these boundaries inside the modular monolith, add contract tests and observability, and measure actual coupling. Then I would extract one capability behind a stable interface, move its data to one owner, canary traffic, reconcile results, and retain a routing rollback.
 
 A failure I specifically prevent is a feed service reading post tables directly. If the post team later changes deletion representation, the feed can show deleted content with no API error. I would contain that by revoking cross-database access and rebuilding the feed from authoritative events. The trade-off is that clean ownership introduces event delivery, stale reads, reconciliation, and operational overhead. I split only when independent change or scaling is worth those new failure modes.”
+
+Before marking this answer practiced, explain the proposed boundary without notes, predict the deletion failure, and answer the questions below before opening them. The documentation being complete does not demonstrate understanding.
 
 ## Questions and explained answers
 
@@ -154,7 +139,7 @@ Yes. A feed service can store an author's display name for fast reads. It must t
 <details>
 <summary>3. How do you enforce a rule that spans two genuine service owners?</summary>
 
-First ask whether the rule proves the boundary is wrong. If the boundary is still justified, choose one workflow owner, reserve or confirm resources through explicit APIs, and use a Saga with compensating actions where immediate atomicity is impossible. State the temporary states and user-visible consistency rather than pretending a cross-service ACID transaction exists.
+First ask whether the rule shows that the boundary is wrong. If the boundary is still justified, choose one workflow owner and give it explicit steps and intermediate states. A Saga is such a workflow of local transactions; later business actions, called compensations, repair earlier successful steps after failure. It does not make several databases one atomic transaction. The [distributed-transactions lesson](./04-distributed-transactions-and-data-consistency.md) develops that choice and its limits.
 
 </details>
 

@@ -10,55 +10,49 @@ Your manager asks:
 
 > [One-page revision card](../../revision-cards/production-scenarios/01-peak-hour-latency-spike.md)
 
-## Why this problem exists
+## The request may be waiting, not working harder
 
-Latency often rises nonlinearly near a capacity limit. At low traffic, a request immediately gets a thread, database connection, CPU time, and downstream capacity. At peak traffic, one constrained resource develops a queue. Each request then spends more time waiting, remains in the system longer, and consumes concurrency for longer. That can create an accelerating slowdown even before error rates rise.
+At 10 a.m., a feed request takes 200 ms. In the evening, the same route takes 3.5 seconds and still returns `200`. It is tempting to ask which calculation became slower. First ask a simpler question: did the request spend those extra seconds doing work, or waiting for its turn?
 
-The first task is therefore not “add servers.” It is to determine **where time is spent and which resource first becomes saturated**.
+A request needs finite resources—a worker, a database connection, CPU time, perhaps another service. When one resource cannot keep up, requests queue behind it. The work may take the same time once it starts, but the user's total wait grows. Requests also stay active longer, so more are present at once and the queue can grow faster.
 
-## Analogy: supermarket checkouts
+That is why peak-only slowdown suggests a capacity boundary without telling us which boundary. Adding application servers helps only if their capacity was the constraint and their dependencies can accept the extra work.
+
+## More shoppers do not make the cashier slower
 
 With ten shoppers and five cashiers, almost nobody waits. With fifty shoppers, service time at each cashier may still be two minutes, but total shopper time becomes much longer because of the queue. Opening another checkout helps only if cashiers are the constraint; it does not help if the payment network is slow.
 
 The analogy stops at one store. A service request can use several shared pools and remote dependencies, retry work, or fail after its caller has already left.
 
-## Terms to establish
+## Separate the time users wait from the work we finish
 
-- **Latency** is the time one request takes from the caller’s perspective.
-- **Throughput** is completed work per unit of time, such as requests per second.
-- **Saturation** means a finite resource is at or near its useful capacity and work is waiting.
-- **p95 latency** is the value at or below which 95% of requests finish; it exposes slow users that an average can hide.
+**Latency** is the elapsed time for a request from the caller's perspective. **Throughput** is completed work per unit time, such as requests per second. The service can accept more requests without increasing throughput if the additional work merely joins a queue.
 
-## What I would check first
+**Saturation** means demand is at or beyond a resource's useful capacity and work is waiting. A busy resource is not automatically saturated: a full pool completing work promptly differs from a full pool with growing acquisition waits.
 
-### 1. Confirm and bound user impact
+Compare the typical request with the slow population. **p95 latency** is the duration at or below which 95% of observed requests finish; p99 does the same for 99%. Those percentiles help us notice that a minority is waiting seconds even when the average looks acceptable.
 
-Compare request rate, p50/p95/p99 latency, error rate, and timeout rate between normal and peak windows. Break them down by route, instance, availability zone, application version, and response status. This answers whether every request is slower or one route or instance is responsible. Verify from server and client or gateway measurements so a network queue is not mistaken for application execution time.
+## Find where the extra three seconds appeared
 
-### 2. Find the first saturated resource
+First confirm the affected journey and time window. Is only the feed slow, or are login and post creation slow too? Compare the same route off-peak and at peak, then separate versions and instances. Check errors and completions alongside latency: many requests returning success slowly can leave an error-only dashboard green.
 
-Align the latency rise on one timeline with CPU, memory pressure and garbage-collection pauses, request threads, executor queues, database-pool active and waiting counts, database CPU/I/O/locks, and downstream latency. Low application CPU does not mean spare capacity: requests may be waiting for connections or remote responses.
+Next align the slowdown with a resource wait. If database acquisition time rises before HTTP latency, investigate the pool and database. If the handler starts late while SQL stays normal, inspect request-worker or executor queues. If a remote span expands, inspect that dependency. CPU, runtime memory-management pauses, locks, and disk or network waits help explain the clue; a long list of graphs without a shared timeline does not.
 
-### 3. Follow representative slow requests
+Compare several slow traces with fast traces from the same route. One slow request can suggest a mechanism; population metrics tell us whether it explains the incident. Also compare gateway/client and server timing so an upstream queue is not mistaken for Java execution.
 
-Inspect several traces from the slow percentile and compare them with fast traces for the same route. Separate queue time, application work, database time, and downstream time. Use the correlation ID to find focused logs, but do not infer a population-wide cause from one log line.
+If users are affected, make a reversible containment change while investigating. Bound optional feed concurrency, stop an expensive optional path, or add capacity to the measured constrained tier. Record the result. Then reproduce the load and change one factor at a time to test the explanation.
 
-### 4. Mitigate, then prove the cause
+## Test a feed-specific explanation against the evidence
 
-If users are actively affected, apply a reversible control: shed low-priority work, cap concurrency, disable an expensive optional feature, or scale the actually saturated tier when it has downstream headroom. Then reproduce the load and change one variable at a time.
+Consider this hypothetical load: `GET /api/feed` usually takes 200 ms, then reaches 3.5 seconds at 1,000 requests per second. The following sequence is a hypothesis, not an executed load-test result:
 
-## Concrete request walkthrough
+1. A feed request reaches the application and spends 600 ms waiting to borrow a database connection.
+2. Once it gets one, authentication loads the viewer and the feed query loads all posts.
+3. Response mapping checks like membership for each returned post, so query count grows with the feed result.
+4. Longer database work keeps connections occupied. New arrivals join the acquisition queue instead of starting immediately.
+5. The request eventually returns `200` after 3.5 seconds. Its business operation succeeded, but the user waited far longer.
 
-Suppose `GET /api/feed` is 200 ms off-peak and 3.5 seconds at 1,000 requests per second.
-
-1. The gateway accepts a request, but an application request thread waits 600 ms for a database connection.
-2. Authentication loads the viewer from PostgreSQL.
-3. The feed query returns all posts.
-4. Response mapping checks whether that viewer liked each returned post, producing more repository calls as the result grows.
-5. Each request keeps database work active longer; the connection wait queue grows.
-6. The response returns successfully after 3.5 seconds, so an error-only dashboard remains green.
-
-The observable signature would be rising HTTP tail latency followed by database acquisition wait, high pool utilization, and increasing query volume per feed request. This is a hypothesis to verify with query and pool measurements, not a conclusion from latency alone.
+To accept this explanation, we would need acquisition waits, connection hold time, and query counts to rise in the matching window. The code gives us a plausible place to measure; it does not establish the bottleneck on its own.
 
 ## Instagram-backend mapping
 
@@ -68,15 +62,23 @@ The real feed operation is wrapped by an observation in [PostService.java](../..
 
 **Proposed, not implemented:** a dashboard joining HTTP percentiles with JVM, HikariCP, PostgreSQL, and instance metrics; slow-query capture; a bounded feed page; and load-shedding rules.
 
-## Choices and trade-offs
+## Which change would relieve this constraint?
 
 - **Scale application instances** when CPU or request concurrency is the constraint and dependencies have headroom. Do not use it for a saturated database; more instances can create more database connections and worsen overload.
 - **Cache a read** when staleness is acceptable and reads repeat. Do not cache user-specific authorization or like state carelessly. Cache invalidation and stampedes become new failure modes.
 - **Optimize and paginate the query** when database work grows with result size. This gives durable capacity but may require API cursor changes and additional indexes.
 
-## Failure drill
+## Rehearse the overload without sacrificing post creation
 
-**Prediction:** peak feed traffic exhausts database connections and p95 crosses two seconds. **Symptom and detection:** successful requests become slow; HTTP histograms, pool waiting count, and database query rate rise together. **Containment:** cap feed concurrency and return a smaller page while preserving post creation. **Recovery:** drain queued work, verify latency returns to baseline, then remove the temporary cap gradually. **Prevention:** paginate, eliminate repeated lookups, capacity-test above forecast peak, and alert before the pool is fully occupied.
+**Prediction:** in a controlled load test, increasing feed demand fills the database pool and makes feed p95 exceed two seconds before the HTTP error rate rises.
+
+**Detect:** compare successful-request latency with pending database borrowers and query rate. If only CPU changes while acquisition remains fast, this specific hypothesis is weakened.
+
+**Contain:** cap optional feed concurrency or use an already-supported smaller page. Do not improvise a breaking response contract during the incident. Preserve capacity for post creation rather than letting every feed reader wait indefinitely.
+
+**Recover:** stop the excess load, let queued work drain, and verify both feed latency and post-creation success return to baseline. Remove temporary limits gradually.
+
+**Prevent:** implement bounded pagination and fewer repeated lookups where measurements justify them, capacity-test above the expected peak, and alert on sustained waiting before every connection is occupied.
 
 ## Two-to-three-minute interview answer
 
@@ -84,7 +86,7 @@ I would first confirm the scope using request rate, errors, and p50/p95/p99 late
 
 If customers are affected, I would mitigate before completing the diagnosis: shed optional work, bound concurrency, disable an expensive feature, or scale the constrained tier only when its dependency has headroom. For this project I would examine the feed path because it returns all posts and performs a per-post like check, but I would prove that with query counts and connection metrics. Finally, I would reproduce peak load, make one change, verify latency and throughput together, and add a capacity test and early saturation alert.
 
-## Practice status
+## Before you practise
 
 The artifact is ready; comprehension is not implied. Mark this scenario practiced only after explaining the investigation without notes, predicting the first observable signal of saturation, and answering the questions below before opening them.
 

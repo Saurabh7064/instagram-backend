@@ -4,20 +4,15 @@
 
 > [One-page revision card](../../revision-cards/microservices/03-inter-service-communication-resilience.md)
 
-## Why does this problem exist?
+## The profile call succeeds, but the feed still fails
 
-An in-process Java method call either returns or throws within the same process. A network call has more states:
+Suppose the feed needs a profile name before it can respond. Profile usually answers in 50 ms, then starts taking four seconds. It still returns valid responses, so an error-only dashboard looks reassuring. Meanwhile feed requests keep arriving and holding workers while they wait. Soon a new feed request cannot get a worker at all.
 
-- the request may never reach the server;
-- the server may finish, but the response may be lost;
-- the response may arrive after the caller has stopped waiting;
-- the server may be healthy but overloaded;
-- DNS, a load balancer, a proxy, or the network path may fail;
-- one slow dependency can make caller threads and connections wait until the callers also fail.
+Only one dependency became slow, but waiting spread the problem into its callers. This is a **partial failure**: one part of the system or its communication path behaves badly while other parts still work. The caller needs a policy for that state before it happens.
 
-This creates **partial failure**: some components work while another component or communication path does not. A design that assumes “the network usually works” eventually turns one local problem into a system-wide outage.
+There is another complication. If a write times out, the server may have saved it and lost the response. The caller knows only that it stopped waiting. Communication policy must therefore protect both finite capacity and the correctness of repeated operations.
 
-## Analogy: a restaurant kitchen with dependent stations
+## Think of a kitchen waiting on one slow station
 
 An order may pass through grill, salad, and plating stations. If the grill is slow and every server keeps placing duplicate urgent orders, the grill queue grows, the plating station waits, tables remain occupied, and eventually the whole restaurant stops serving—even though only one station was initially slow.
 
@@ -32,148 +27,69 @@ Useful responses map to software:
 
 A network timeout is ambiguous: the remote service may already have committed the operation. Software also retries automatically at several invisible layers, processes work concurrently across many instances, and can queue messages durably for later processing. The kitchen analogy helps with capacity and isolation but does not capture duplicate delivery or exact data-consistency semantics.
 
-## Focus 1 — Decide whether communication must be synchronous
+## Does the user need this result before we answer?
 
-Three useful terms:
+Start by removing waiting that the product does not need. Creating a post must authenticate the user and store the post before reporting success. Sending followers a notification can often happen afterwards. Making notification delivery part of the same waiting chain makes its outage a post-creation outage too.
 
-- A **synchronous call** makes the caller wait for a result before it can continue.
-- An **asynchronous message** records work for another component without requiring it to finish during the caller's request.
-- A **partial failure** occurs when one part of the distributed workflow fails while other parts continue working.
+A **synchronous call** means the caller waits for the result before continuing. Use it when the immediate answer needs that decision and no acceptable local read copy exists. The price is that the caller's response time and availability now include the dependency.
 
-### Use synchronous calls when
-
-- the caller needs the answer to produce a correct immediate response;
-- the operation is a query that cannot use a local read model;
-- the user must know whether a rule passed before continuing;
-- latency and availability requirements can tolerate the dependency.
-
-### Use asynchronous messaging when
-
-- work can happen after the user receives the response;
-- temporary delay is acceptable;
-- buffering absorbs traffic bursts;
-- independent retries are safer than holding an HTTP request open.
-
-For example, creating a post needs authentication and durable post storage before returning success. Sending follower notifications does not need to block post creation:
+An **asynchronous message** hands work to another component for later completion. For the post example, save the post and an event record in one local transaction, return `201 Created`, then publish the event and let a notification worker act on it. An outbox is the table holding that event record alongside the business change; the [transaction lesson](./04-distributed-transactions-and-data-consistency.md) explains why the pair must commit together.
 
 ```text
-Client -> Post service -> save post + outbox record -> 201 Created
-                                      |
-                                      v
-                                PostCreated event
-                                      |
-                                      v
-                             Notification service
+Client -> Post service -> commit post + outbox -> 201 Created
+                                         |
+                                         v
+                               notification processing later
 ```
 
-If the notification service is down, the event remains available for later processing. The post still exists. This removes notification availability and latency from the critical request path.
+If notification processing stops, the post remains available and the durable work can wait. That is useful independence, but it is not free. Messages can repeat, arrive late, and build a backlog. State how much notification delay is acceptable and how the system detects work that never finishes.
 
-### Do not replace every call with a queue
+Do not use a queue simply to avoid making a decision about freshness. If authorization must be checked now, a delayed “eventually authorized” answer is not a safe substitute.
 
-Asynchronous communication introduces delayed visibility, duplicate delivery, ordering questions, backlog management, and harder end-to-end debugging. State what delay the user can tolerate and what they see while processing is pending.
+## How long is this answer still useful?
 
-## Focus 2 — Bound waiting with deadlines and timeouts
+Suppose the feed must reach the user within 1,000 ms. That entire allowance is its **deadline**. If the gateway spends 50 ms and we reserve 100 ms to build and return the response, the feed operation has `1,000 - 50 - 100 = 850 ms` left.
 
-Three useful terms:
+We cannot give each sequential dependency a fresh 1,000 ms allowance. The first could use the whole user budget before the second begins. A possible split of the remaining 850 ms is:
 
-- A **deadline** is the absolute time by which the entire operation must finish.
-- A **connect timeout** limits how long a client waits to establish a connection.
-- A **request timeout** limits how long it waits for the remote operation or response.
+| Work | Maximum allowance |
+|---|---:|
+| Post query | 250 ms |
+| Profile lookup | 250 ms |
+| Ranking and other local work | 200 ms |
+| Safety margin | 150 ms |
 
-A timeout is not a guarantee that the remote operation failed. It only says the caller stopped waiting.
+The allowances sum to `250 + 250 + 200 + 150 = 850 ms`. They are teaching values, not configuration advice: measured healthy and tail latency determine whether they are realistic.
 
-### Budget from the outside inward
+A **timeout** limits one wait. A connect timeout covers establishing the connection; a request timeout covers waiting for the operation or response, according to the client library. The overall deadline must still include connection setup, all attempts, and local work. Pass the remaining time to each hop instead of restarting the original budget.
 
-Suppose the product requirement gives `GET /feed` a 1,000 ms end-to-end deadline:
+For example, with a deadline of `12:00:01.000`, a gateway starting at `12:00:00.080` has 920 ms left. Feed starting at `12:00:00.180` has 820 ms. Its next call must leave a response margin inside those 820 ms.
 
-```text
-Total user budget                              1,000 ms
-- gateway parsing/routing allowance               50 ms
-- response serialization/network reserve         100 ms
---------------------------------------------------------
-feed-service processing budget                   850 ms
-```
+When the result is no longer useful, cancel outstanding work where the libraries support it. Otherwise the remote operation can keep occupying capacity after its caller has left. Cancellation is still not rollback: it cannot erase a database commit that already occurred.
 
-If the feed service makes two sequential dependency calls, giving each a 1,000 ms timeout is wrong: the first can consume the user's entire deadline before the second starts. The service might instead reserve local work and allocate bounded dependency budgets:
+## Another attempt helps only under specific conditions
 
-```text
-post query budget         250 ms
-profile query budget      250 ms
-ranking/local work        200 ms
-remaining safety margin   150 ms
-```
+A brief connection reset may clear before the deadline. Trying that call once more can help. Repeating an authorization rejection will not change the user's permissions. Repeating a call into an overloaded service can make its queue worse.
 
-These are illustrative values, not universal defaults. Measure normal and tail latency, then choose budgets that satisfy the user-facing objective without cutting off healthy work unnecessarily.
+Before retrying, require three things: the fault may be temporary, repeating the logical operation is safe, and enough of the original deadline remains. Choose one layer to own a small total attempt budget. Increase the pause between attempts—**exponential backoff** might use 50, 100, then 200 ms—and randomize it with **jitter** so many callers do not return together.
 
-### Propagate the remaining deadline
+### Count attempts across the whole call chain
 
-```text
-Client deadline: 12:00:01.000
-        |
-Gateway at 12:00:00.080 -> 920 ms remains
-        |
-Feed at 12:00:00.180    -> 820 ms remains
-        |
-Profile call receives a timeout smaller than 820 ms
-```
+If the gateway makes three total attempts, Service A makes three for each gateway attempt, and Service B makes three for each A attempt, the bottom dependency receives `3 × 3 × 3 = 27` attempts for one user request. The local retry settings looked small; their combined effect is large. Upstream layers should respect the final result instead of starting another full retry sequence.
 
-An absolute deadline prevents every hop from starting a fresh full timeout. Each service also needs a small response margin so it can cancel work and return a controlled response before its own caller gives up.
+### A retry must repeat the intention, not create another one
 
-### Cancel abandoned work when possible
+An **idempotent operation** has the same intended business effect when the same logical request repeats. `PUT /posts/42/likes/me` can mean “ensure my like exists.” Sending it again after a lost response does not mean “add another like.” A later unlike and new like are legitimate new intentions and must still work.
 
-When the caller deadline expires, propagate cancellation to downstream calls and database work where the client and library support it. Otherwise, “zombie” work continues consuming resources even though nobody can use its response.
+If a command-style `POST` needs a key, generate one for the logical attempt, such as `like-attempt-8f3c`. Reuse it across that attempt's retries, then use a new key for a later deliberate action. A durable stored outcome and a uniqueness constraint make this safe across concurrent instances.
 
-Cancellation is not rollback. If a database commit already happened, cancelling the HTTP wait cannot undo it.
+The current [PostService.like(...)](../../../../../src/main/java/com/instagram/backend/service/PostService.java) first checks whether the like exists. [PostLike.java](../../../../../src/main/java/com/instagram/backend/domain/PostLike.java) also declares uniqueness on `(post_id, user_id)`. The database constraint matters because two callers can both observe “missing” before either inserts. A future extraction must preserve it and turn the losing insert into the same logical “already liked” result.
 
-## Focus 3 — Retry narrowly and safely
+## Keep a slow dependency from occupying the whole caller
 
-Three useful terms:
+A timeout releases a trapped call eventually. We also need to limit how many calls can be trapped at once. A **bulkhead** reserves a bounded share of capacity for one dependency or workload, so profile cannot take every feed worker.
 
-- **Exponential backoff** increases the wait between attempts, for example 50 ms, 100 ms, then 200 ms.
-- **Jitter** adds randomness to that wait so thousands of clients do not retry at exactly the same moment.
-- An **idempotent operation** can be repeated with the same logical request without applying the effect more than once.
-
-### Retry only when all of these are true
-
-1. The failure is plausibly transient, such as a brief connection reset, a capacity response that supplies a retry hint, or a service-unavailable response.
-2. The operation is naturally idempotent or protected by an idempotency key.
-3. Enough deadline remains for another useful attempt.
-4. The retry occurs at one controlled layer with a small maximum attempt count.
-
-Do not normally retry validation failures, authorization failures, not-found responses, or deterministic application errors. Retrying a slow overloaded dependency immediately increases its load precisely when it has the least spare capacity.
-
-### Why retries can create a cascade
-
-Assume three calling layers each make one initial attempt plus two retries. If the bottom dependency is down, attempts can multiply:
-
-```text
-gateway:       3 attempts
-service A:     3 attempts for each gateway attempt
-service B:     3 attempts for each service-A attempt
-
-bottom dependency receives 3 x 3 x 3 = 27 attempts
-for one original user request
-```
-
-This is why retry ownership and a total retry budget must be explicit. Often the layer closest to the dependency retries a small number of times while upstream layers respect the final failure.
-
-### Mutating-request example
-
-```text
-PUT /posts/42/likes/me
-```
-
-This desired-state API means “ensure my like exists,” so retrying it after a lost response is naturally idempotent. A later `DELETE /posts/42/likes/me` removes the like, and a later `PUT` can add it again without being confused with the older request. If an API must retain a command-style `POST`, use an attempt-specific key such as `like-attempt-8f3c`, reuse it only across retries of that logical attempt, and issue a new key for a legitimate later like.
-
-The current [PostService.like(...)](../../../../../src/main/java/com/instagram/backend/service/PostService.java) checks whether a like exists before creating one, and [PostLike.java](../../../../../src/main/java/com/instagram/backend/domain/PostLike.java) already adds the race-safe database uniqueness rule on `(post_id, user_id)`. Two concurrent requests can both observe “not present,” but the constraint prevents both inserts from succeeding. A future extraction must preserve that protection and translate the losing insert into the same logical “already liked” result.
-
-## Focus 4 — Stop failure propagation
-
-Three useful terms:
-
-- A **circuit breaker** temporarily stops calls to a dependency that is repeatedly failing or timing out.
-- A **bulkhead** gives one dependency or workload a separate, limited resource pool so it cannot consume everything.
-- A **fallback** is a deliberately reduced response used when the preferred result is unavailable.
+After repeated evidence of failure, a **circuit breaker** stops normal calls temporarily rather than spending that share on attempts unlikely to work. While calls are stopped, a **fallback** may provide a deliberately reduced response if there is an honest product-approved alternative. These solve different parts of the same failure; none repairs profile data or creates spare capacity.
 
 ### Circuit breaker behavior
 
@@ -224,26 +140,15 @@ Unsafe fallback:
 
 A fallback is a product decision, not merely a library configuration. State its maximum staleness and how the UI communicates degraded data.
 
-## Focus 5 — Apply backpressure before saturation becomes collapse
+## What should happen when there is no room left?
 
-Three useful terms:
+A queue can hide overload briefly. If new work keeps arriving faster than we finish it, the queue grows and the eventual answer arrives too late to help. Making the queue unbounded postpones rejection until memory or caller patience runs out.
 
-- **Backpressure** tells upstream producers to slow down because the consumer cannot keep up.
-- **Load shedding** rejects low-priority work early to preserve capacity for essential work.
-- A **bounded queue** has a fixed maximum size rather than growing until memory or latency is exhausted.
+Use a **bounded queue**, with a maximum length and a maximum useful wait. When it fills, tell producers to slow down where the protocol allows it; that is **backpressure**. If the system must reject some work to preserve the rest, that is **load shedding**. For HTTP, return a clear capacity response with safe retry guidance. For a broker, pause intake. For optional ranking, omit the work if the product permits it.
 
-An unbounded queue can make a system look available while work waits for minutes and memory grows. By the time it crashes, every queued request is already too old to be useful.
+Adding application instances helps only when the constrained tier can actually accept more work. More callers against one already-overloaded database create additional queries and connections. Find the resource limit before deciding which tier should scale.
 
-Use bounded concurrency and queues, then define what happens at the limit:
-
-- HTTP can return a capacity response with a safe retry hint;
-- a broker consumer can pause intake while it recovers;
-- optional recommendation or analytics work can be dropped;
-- critical operations can receive reserved capacity.
-
-Scaling can help when demand is legitimate and dependencies can also support the increased load. Scaling callers alone can make an overloaded database worse by creating more concurrent queries.
-
-## End-to-end resilient feed example
+## Put the policies together around the same feed request
 
 ### Fragile version
 
@@ -304,7 +209,7 @@ Today these calls are in-process, so this is a design exercise rather than a cla
 
 That last assertion proves isolation. Merely observing that the circuit opened does not prove the service remained useful.
 
-## What to monitor
+## How would we know the protection worked?
 
 For each remote dependency, record:
 
@@ -319,7 +224,7 @@ For each remote dependency, record:
 
 Always relate technical signals to the user outcome. A circuit opening is not automatically bad if it protects the feed and the approved fallback works. A closed circuit is not automatically good if every call takes just under the timeout and users abandon the request.
 
-## Trade-offs
+## What each protection costs
 
 | Technique | Benefit | Cost or danger |
 |---|---|---|
@@ -372,6 +277,8 @@ To prevent cascades, I use a circuit breaker to fail fast when a dependency is r
 For example, if profile latency jumps to four seconds, feed can enforce its 250 ms budget, cap concurrent profile calls, open the circuit, and serve stale display names. The feed remains responsive and create-post capacity stays isolated. This trades freshness for availability; I would not make that trade for authorization or payment correctness.
 
 I monitor each dependency's tail latency, timeouts, active calls, queue wait, retries, circuit state, rejections, and fallback usage, tied to the user-facing SLO. I test slow dependencies, lost responses after commits, duplicate delivery, circuit recovery, and isolation of unrelated routes. This design turns an unbounded wait and traffic-amplification problem into a bounded, observable degradation.”
+
+Before marking this answer practiced, explain the four-second profile slowdown and calculate a deadline budget without notes. Predict which capacity remains available, then answer the questions below before opening them. No remote resilience lab is claimed here.
 
 ## Questions and explained answers
 

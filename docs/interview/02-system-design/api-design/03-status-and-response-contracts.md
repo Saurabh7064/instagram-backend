@@ -4,21 +4,29 @@
 
 What should a client receive after success or failure?
 
-[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Select success/error statuses by failure boundary, design authoritative DTOs, distinguish 400/406/409/412/415/422, and identify numeric-ID compatibility risk.
+Choose a response that tells the client what happened and what state to trust. Then use the status table to distinguish failures that require different client actions.
 
-Prerequisites: Lesson 2 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
+Read [HTTP methods](02-http-methods.md) first, especially completed creation versus accepted work.
 
-## Must understand: problem and model
+## The client needs to know what actually happened
 
-A client cannot reliably infer success from a sentence in JSON. The status code gives the broad result, headers add metadata, and the body carries the representation. A DTO is a deliberately selected data transfer object rather than a database entity. Like a receipt, the response states what happened; unlike a receipt, automated clients depend on exact machine-readable fields.
+Mira taps Publish. The server creates post 42, but the response says only `{"message":"Done"}`. What should the app do next? It has no post ID to keep, and a sentence is a fragile way to decide whether creation succeeded.
 
-## Spring Boot example
+A useful response answers two questions: **what happened, and what values should the client now trust?** The status code answers the first at a broad level. A body can answer the second by returning the created post. Headers carry supporting information, such as the address of that post.
 
-Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
+For completed creation, `201 Created` tells the client that a resource was created. Returning `id:42` gives it the server-assigned identity. If the server trims the submitted caption, the body should show the stored caption, not simply repeat what the client sent. This selected response object is a **data transfer object (DTO)**: fields deliberately chosen for the public contract rather than every field of the database entity.
+
+Think of the response as a receipt. A receipt identifies what was accepted and the result you can rely on. The comparison stops at machine handling: the app needs stable field names, types, and status meanings, rather than a human interpreting varied wording.
+
+Keep the [method distinction](02-http-methods.md) in mind: creation finished now is different from long work merely accepted for later completion.
+
+## Build a response that identifies the created post
+
+The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle). The excerpt below is a design proposal unless identified as current code; omitted imports and collaborators still need implementation.
 
 ```java
 @PostMapping("/posts")
@@ -32,17 +40,19 @@ public ResponseEntity<FeedPostResponse> create(
 }
 ```
 
-### Walkthrough
+### Read the boundary in the code
 
-`ResponseEntity.created` sets 201 and Location; `.body` supplies the created DTO. URI construction uses the generated ID, never an unchecked caller-supplied URL. This is a proposed variant: current create returns 201 through an annotation, and a GET item route would need implementing before promising a dereferenceable Location.
+`postService.create` returns the server's created-post DTO. `ResponseEntity.created` chooses 201 and sets `Location`; `.body(created)` puts that same post in the response. Constructing the address from the generated ID keeps it tied to the created resource rather than an unchecked caller-supplied URL.
 
-## Request trace: predict, act, observe, explain
+This is a proposed variant of the existing controller. Today's create uses a 201 annotation and returns a DTO, but it does not establish the proposed item's GET route. Add that read behavior before advertising the address as a link clients can follow.
 
-Before following the trace, predict the status and final stored state. Then trace these transitions in order:
+## Read the proposed receipt for post 42
 
-Valid create -> save generates ID 42 -> 201 with Location /api/posts/42 and body id 42. Invalid JSON -> 400 before creation. Missing credentials -> 401; authenticated non-owner edit -> current service 403; absent post -> 404. A temporary dependency outage is a server-side failure, not a client validation error.
+Assume the valid create commits and the server assigns ID 42. The proposed response is 201, with body `id:42` and `Location: /api/posts/42`. Those pieces tell one consistent story: a post now exists, this is its identity, and this is its address. The item read route must exist before the API promises clients can follow that address.
 
-The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
+If parsing fails before creation, return the appropriate 400 response and leave no new post. If credentials are missing, the current authentication path rejects the request; it has not created a post that the client must somehow discover. If the database is unavailable, that is a server-side failure rather than an instruction to shorten the caption.
+
+The response's role is to help the caller choose its next action. That is why “all responses are 200, inspect the message” undermines both client behavior and status-based monitoring.
 
 ## Choose statuses from the failure boundary
 
@@ -80,31 +90,31 @@ Use a consistent timestamp format, ID representation, and nullability contract. 
 
 **Worked negotiation case:** a route accepts JSON and returns JSON. Request Content-Type=text/plain fails with 415 before its text is parsed as JSON. Valid JSON with Accept=application/xml can instead fail with 406. Those are distinct remediation steps; see [content negotiation](16-content-negotiation.md).
 
-## Project mapping and practice
+## Apply this to the backend
 
-Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/dto/FeedPostResponse.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
+[FeedPostResponse](../../../../src/main/java/com/instagram/backend/dto/FeedPostResponse.java) is the current public read shape. [PostService.create](../../../../src/main/java/com/instagram/backend/service/PostService.java) supplies trimmed content, a server-assigned ID, server-selected author fields, and the initial count. The current [controller](../../../../src/main/java/com/instagram/backend/controller/PostController.java) declares 201.
 
-**Practice task:** For F-017, specify create status, Location behavior, response fields, and deletion response before implementation.
-
-Keep this a design exercise until a feature change is explicitly undertaken. An implementation must follow the repository integration-test, API verification, documentation, and commit workflow.
+For F-017, write the create-comment response before its controller: completion status, returned fields, and whether an item address can be followed. Also choose the deletion response so the UI knows whether there is a body to parse.
 
 ## Useful later: choices and costs
 
 Return 200 when a mutation returns a representation, 204 when there is no body, and 202 only when work is accepted but unfinished. Explicit DTOs protect clients from persistence changes but require mapping. Do not wrap every failure in 200: monitoring and retry logic would misclassify it.
 
-## Controlled failure drill
+## A successful status can tell the wrong story
 
-Predict a 200 response containing an error string. A client marks the operation successful. Detect disagreement between error-body counts and status metrics, contain by treating the documented error field defensively, recover with correct statuses, prevent with response contract tests.
+On paper, let post 42's create fail validation but return 200 with an error sentence in the body. Predict what a client that trusts HTTP success will do: it may show a published state even though no post was created. Status-based monitoring also counts a success.
 
-Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
+Detect the disagreement with a request that checks both the failure category and absence of a new row. Contain a faulty release by restoring the response mapping and, where necessary, reconciling the client's optimistic state. Re-run valid and invalid creates to verify their different outcomes. Prevent recurrence with client-visible status/body checks rather than tests that merely search for a friendly message.
 
 ## Interview-ready answer
 
 I choose the status from the actual outcome and the boundary that failed. Completed creation is 201; accepted unfinished work is 202; a deliberate empty success is 204. I distinguish input syntax, media negotiation, credentials, authorization, missing resources, conflicts, and preconditions so callers can act correctly. Response DTOs contain authoritative server state and stable types rather than arbitrary entity fields. In this backend I preserve current validation conventions and avoid inventing a 422 contract without a deliberate change. I test not only status and fields but final stored state, and never use 200 to hide failures. I also review ID precision, timestamp units, nullability, and no-body responses before clients depend on them.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Proceed only after explaining the request trace without notes, predicting the failure, and answering all three checks below before opening their answers. Record the attempt in [learner progress](learner-progress.md). Artifact readiness does not establish comprehension or implementation readiness.
+Describe the status, body, and Location for the proposed create of post 42. Continue when you can distinguish completed creation, unfinished work, invalid input, and an unavailable dependency and name the caller's next action.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

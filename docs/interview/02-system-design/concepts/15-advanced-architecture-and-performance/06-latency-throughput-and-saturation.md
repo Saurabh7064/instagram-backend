@@ -1,53 +1,38 @@
 # Micro-Lesson 06 — Latency, Throughput, and Saturation
 
-- Status: `READY`; comprehension not yet demonstrated
-- Time: 15 minutes
-- Primary idea: response time rises sharply when incoming work approaches the capacity of the slowest constrained resource
-- New terms: latency, throughput, saturation
-- Prerequisite: [Scalability, Availability, and Reliability](../09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md)
+Core study: 15 minutes. Prerequisite: [Scalability, Availability, and Reliability](../09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md).
 
-## Why does this exist?
+## A four-second feed request may spend most of its time waiting — Must understand
 
-A service can take 200 milliseconds normally and four seconds at peak without doing four seconds of useful work. Most time may be spent waiting for a thread, database connection, CPU, lock, or dependency.
+The feed normally returns in 200 milliseconds. At peak traffic it takes four seconds. CPU use is only 35%, so the team adds backend instances. The database still completes no more work, and the extra requests wait even longer. Where did the added time go?
 
-Separate demand, completed work, and waiting. Extra instances help only if the constrained resource accepts more work; a database at its limit may get worse.
+A request needs more than CPU. It may wait for an application worker, a database connection, a lock, or a remote response. A mostly idle processor cannot replace a database connection that is already occupied. Separate arriving demand, completed work, and waiting before choosing more hardware.
 
-## Analogy: supermarket checkouts
+## Three measurements describe different parts of the same incident
 
-Three cashiers can finish 90 carts per hour. When arrivals approach or exceed 90, carts accumulate. Checkout time may stay constant while waiting time grows.
+**Latency** is one request's elapsed time, including processing and waiting. The user sees four seconds whether the query executes for four seconds or waits 3.8 seconds before a short query.
 
-The analogy stops where distributed requests call several dependencies, retry after timeouts, compete for multiple pools, and may perform different amounts of work.
+**Throughput** is the amount of completed work per unit of time. More incoming requests are increased demand, not increased throughput. If completions per second flatten while arrivals rise, the extra work is waiting, being rejected, or failing somewhere.
 
-## Plain-language model
+**Saturation** means a resource is near its safe working limit. Additional demand then waits or is rejected. A fully occupied connection pool tells us requests cannot get another connection immediately; we still need evidence of why connections stay occupied, such as query time, locks, or other work inside the transaction.
 
-- **Latency** is the elapsed time for one request, including both useful processing and waiting.
-- **Throughput** is the number of requests completed per unit of time, such as 500 requests per second.
-- **Saturation** means a resource is near its safe working limit, so additional work waits or is rejected.
+Imagine checkout lanes that can finish 90 carts per hour. An extra line of shoppers does not make cashiers complete more carts. Waiting grows even if each checkout takes the same amount of work. Software is more complicated because one request may compete for several resources, and timeouts can trigger retries that add shoppers to the line again.
 
-Average latency hides harm. Compare typical and slow requests, split time by component, and correlate it with rate, errors, queues, resource use, and version.
+## Follow the feed into the connection wait
 
-## Predict before reading
+At normal load, `GET /api/feed` reaches a worker, validates the token, obtains a database connection, reads posts, and maps the result. At peak load, earlier requests still hold the configured connection pool while later requests arrive. The newcomers wait before their queries begin.
 
-Traffic doubles. Completed requests per second stop increasing, database connections remain fully occupied, and latency grows from 200 milliseconds to four seconds. CPU is only 35%. Should you add application instances first?
+If completed requests per second stop increasing, that wait can grow while useful throughput stays flat. Eventually clients time out. Retrying each timeout adds more work to the same path unless the retry policy is bounded and the operation is safe to repeat.
 
-<details>
-<summary>Reveal the prediction</summary>
+Before continuing, predict the first investigation when traffic doubles, connections are occupied, and latency rises from 200 milliseconds to four seconds while CPU stays at 35%. Adding application instances assumes the constrained dependency has spare capacity, which this evidence does not establish.
 
-No. Throughput is flat while database connections are saturated, so requests are waiting. Low CPU does not prove spare capacity. More instances may intensify database contention. Protect and investigate that path, reduce expensive work, or limit concurrency.
+## Find the waiting stage before choosing the fix
 
-</details>
+Start with the affected route's latency and errors, then align the change with traffic, deployments, and request mix. Compare completions with incoming demand and queue or resource measurements. Split elapsed time into connection acquisition, query execution, and response work where instrumentation permits it.
 
-## Concrete peak-traffic flow
+A growing connection wait directs attention to the database path, but is not by itself proof that the SQL text became slower. Inspect the work holding connections and test a reversible mitigation. Reducing unnecessary feed queries can help; adding instances helps only when application capacity is the limiting resource and dependencies have headroom.
 
-1. A client sends `GET /api/feed`; normal traffic reaches an application thread immediately.
-2. The service validates the token, gets a database connection, reads posts, and builds the response.
-3. At peak traffic, more requests arrive concurrently than the database path can complete.
-4. The connection pool reaches its configured limit; later requests wait even before their queries begin.
-5. Completed requests per second flatten, but queued work continues growing.
-6. Timeouts trigger retries, adding demand to the same constrained path.
-7. Users see multi-second responses and then errors.
-
-Investigate in this order: confirm the latency and errors; correlate them with traffic and deployment time; find the first resource whose use or queue rises with latency; inspect its slow operation; test a reversible mitigation.
+Compare typical and slow requests in the same population. An average can hide the people waiting longest; the next lesson develops percentiles so we can inspect that group directly.
 
 ## Instagram-backend mapping
 
@@ -57,7 +42,7 @@ Investigate in this order: confirm the latency and errors; correlate them with t
 
 **Proposed:** paginate the feed, fetch like state in bounded work, and expose query time, connection use, and waits beside HTTP metrics. These changes are not implemented; measurements should verify the bottleneck first.
 
-## Decision and trade-off
+## Let the bottleneck choose the response
 
 | Response | Choose it when evidence shows | Avoid it when | Cost or new failure mode |
 |---|---|---|---|
@@ -66,21 +51,21 @@ Investigate in this order: confirm the latency and errors; correlate them with t
 | Reject excess work early | Demand exceeds safe capacity and waiting would cause timeouts | Every request must be accepted without a durable queue | Some requests fail quickly, requiring clear client behavior |
 | Roll back a release | Latency aligns with one version and rollback is safe | Evidence points to an unrelated traffic or dependency event | Reverts useful changes and does not explain the root cause |
 
-## Failure drill
+## Automatic scaling adds callers to the full database — paper exercise
 
-Scenario: latency-based automatic scaling adds application instances while PostgreSQL connections are already exhausted.
+Suppose a latency rule keeps adding application instances while PostgreSQL is already saturated. Predict what happens to useful completions and waiting if each new instance sends more database work.
 
-1. **Prediction:** new instances add callers and connections, increasing database contention.
-2. **Failure:** the database remains saturated while retries multiply work.
-3. **Observable symptom:** instance count rises, throughput stays flat, and connection waits and timeouts rise.
-4. **Containment and recovery:** stop runaway scaling, reject excess requests, suppress unsafe retries, and reduce expensive feed work.
-5. **Prevention:** cap database concurrency, load-test realistic data, and alert when latency rises while throughput flattens.
+Instance count can rise while throughput stays flat and connection waits, contention, and timeouts increase. Stop runaway scaling, reject excess work, suppress unsafe retries, and reduce expensive feed work so the constrained path can recover.
 
-## Teach-back
+Check that waiting drains and useful request outcomes return to their target before reopening demand. Cap database concurrency and load-test realistic data, including the current feed's repeated work. Alert on the combination of rising latency and flat throughput rather than treating latency alone as proof that the application needs more replicas.
+
+## Explain the four seconds using evidence
 
 In 60–90 seconds, use the checkout analogy, then explain the 200-millisecond-to-four-second feed incident: what you graph together, what evidence identifies saturation, and why adding instances may fail.
 
-## Stop/go
+## Before moving on
+
+Artifact: `READY`; comprehension not yet demonstrated.
 
 Proceed only when you can distinguish latency from throughput, recognize a saturated queue from the prediction, locate the likely repeated work in the feed path, and choose between optimization, capacity, early rejection, and rollback using evidence.
 

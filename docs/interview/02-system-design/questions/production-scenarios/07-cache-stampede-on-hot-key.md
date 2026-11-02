@@ -10,54 +10,49 @@ Your manager asks:
 
 > [One-page revision card](../../revision-cards/production-scenarios/07-cache-stampede-on-hot-key.md)
 
-## Why this problem exists
+## One expired value can create thousands of database reads
 
-A cache protects the database only while requests find usable entries. If a popular entry expires, thousands of callers can miss together and independently regenerate the same value. The database receives many copies of work that the cache previously absorbed. Slower reads then hold connections longer, creating more waiting and timeouts.
+At noon, a popular feed cache entry expires. Two thousand requests arrive in the next second. Each sees the value is missing and decides to rebuild it from the database. The cache previously answered those requests cheaply; now the database receives two thousand copies of nearly the same work.
 
-The design must protect the source of truth, coordinate regeneration per key, and state exactly how stale a fallback may be. “Add a cache” is not a complete reliability policy.
+That duplicated regeneration is a **cache stampede**. Slower source reads then keep connections occupied, so even requests for unrelated data may begin waiting. A cache that improves ordinary latency can therefore expose the source to a sudden overload when a popular value disappears.
 
-## Analogy: a popular book at a library
+We need a policy for the missing value: who may rebuild it, what everyone else receives while waiting, and what happens if the rebuilder crashes. We also need an explicit freshness rule before promising a stale answer.
+
+## One librarian can fetch the missing reference book
 
 If one reference book is removed, every visitor may ask a librarian to fetch another copy at the same time. One librarian fetching it while others briefly wait avoids duplicated work.
 
 The analogy stops because distributed callers can crash while holding coordination, cache nodes can disagree, and stale data may be safe for a public profile but unsafe for authorization.
 
-## Terms to establish
+## Let one caller refresh while the others receive an honest answer
 
-- A **cache stampede** is duplicated source work caused by many concurrent misses for the same data.
-- **TTL jitter** adds randomness to expiration times so many entries do not expire together.
-- **Request coalescing** allows one caller to refresh a key while other callers wait briefly or use stale data.
-- **Stale-while-revalidate** serves an older bounded value while a refresh runs in the background.
+**Request coalescing** groups concurrent work for the same key so one refresh normally serves the waiting callers. Coordination must be per key; a global lock could make one hot key delay unrelated data.
 
-## Investigation and stabilization sequence
+**Stale-while-revalidate** keeps an older value usable for a bounded period while a background refresh runs. In this example, the product permits the feed entry to remain usable for up to 30 seconds after its normal expiry. The cache must retain that stale copy; deleting it at hard expiry leaves nothing to serve.
 
-### 1. Confirm why hit rate collapsed
+**Time to live (TTL)** is how long a cache value remains fresh. **TTL jitter** varies expiry times so many different keys do not expire together. Jitter helps a population of keys; it does not prevent simultaneous misses on one extremely popular key. That key still needs controlled refresh behavior.
 
-Break hits, misses, evictions, errors, and load time down by cache node, route, and bounded key class. Check whether the cache is unreachable, memory eviction increased, a deployment changed keys, or many TTLs aligned. Confirm that database traffic is amplified reads rather than an unrelated slow query.
+## Protect the source before trying to refill everything
 
-### 2. Protect the database first
+First ask why the miss rate changed. The cache may be unavailable, evicting entries for memory, receiving new-format keys after a release, or expiring many values together. Compare cache errors, evictions, misses, and load duration with source-read traffic. A low hit rate and high database CPU can coincide without proving the same cause.
 
-Limit concurrent cache-miss loads and shed optional reads before the database loses all capacity. Serve bounded stale values only where product correctness allows it. Keep authorization, ownership, and other security decisions fail-safe rather than stale.
+While investigating, bound concurrent source loads and shed optional reads. If the product permits the retained stale feed, use it within its stated window. Authorization, ownership, and strict reservation decisions need their own correctness policy; the feed's availability trade-off cannot be copied onto them.
 
-### 3. Coalesce refresh per hot key
+For a hot key, let one caller obtain a short expiring refresh lease, a temporary right to refresh it. Others wait only within their deadline or receive an eligible stale value. A lease needs an expiry because the holder can crash. It also needs ownership-safe release and a version check or fencing mechanism so an old, delayed holder cannot overwrite a newer refresh after its lease expires.
 
-On a miss, one requester obtains a short expiring lease and regenerates the value. Other callers wait a small bounded time or receive a valid stale entry. The refresher stores the result atomically and releases ownership; lease expiry allows recovery if it crashes.
+Once stable, spread ordinary expirations with jitter and refresh a small known hot set early. Loading every cache entry at once may reproduce the same source overload we are trying to remove.
 
-### 4. Spread and anticipate expiration
+## Follow the noon expiry for feed:user:9
 
-Add jitter to TTLs, refresh known hot keys before hard expiry, and warm only predictable critical data. Monitor regeneration count per key class. Preloading the entire database can itself create the outage.
+Keep the fixed input: `feed:user:9`, 2,000 incoming requests in one second, a retained stale feed usable for 30 seconds after normal expiry, and a five-second refresh lease.
 
-## Concrete request walkthrough
+1. At noon the value is no longer fresh, but its stale copy remains inside the 30-second allowance.
+2. Without coordination, each of the 2,000 requests could initiate a source read.
+3. With coalescing, one caller wins the five-second lease and starts the refresh; the others receive the permitted stale copy instead of independently reading the database.
+4. The winner completes before its lease expires, conditionally stores the fresh version, and releases only the lease it still owns.
+5. The new value receives a jittered TTL. Subsequent requests use it, and source reads for this refresh were reduced from roughly 2,000 to one under these assumptions.
 
-1. The celebrity feed key `feed:user:9` expires at noon.
-2. Two thousand requests arrive in the next second and all miss.
-3. Without coordination, two thousand database reads start; pool wait and database CPU rise.
-4. With coalescing, one caller receives a five-second refresh lease.
-5. Other callers receive a feed version still within its 30-second stale allowance.
-6. The winner stores the refreshed feed with a jittered TTL and releases the lease.
-7. Hit rate, database load, and p99 return to baseline.
-
-If the value were an authorization decision, the stale path would be rejected; the same availability choice does not apply to every key.
+This is not an unconditional exactly-one guarantee. Lease expiry, a paused process, or failed coordination can briefly allow overlapping refreshes. Source-load concurrency limits still protect the database, and version checks prevent an older result replacing a newer one.
 
 ## Instagram-backend mapping
 
@@ -65,15 +60,23 @@ No application cache exists in this repository. [PostService.feed(...)](../../..
 
 A safe first candidate would be a bounded public or global feed page whose freshness requirement is explicit, not an unbounded personalized response containing security decisions. Existing [HTTP and feed observations](../../../../../src/main/resources/application.properties) could be extended with bounded `hit`, `miss`, `stale`, and `load_failure` outcomes. Review the detailed [Caching and Consistency](../../concepts/03-caching-and-content-delivery/02-caching-consistency.md) lesson before choosing invalidation behavior.
 
-## Choices and trade-offs
+## How much staleness and coordination are justified?
 
 - **Stale-while-revalidate** when slightly old data is acceptable and availability matters. Avoid it for authorization or strict inventory; the cost is visible staleness.
 - **Request coalescing** for expensive popular keys. Avoid global locks; per-key coordination adds lease and failure complexity.
 - **Longer TTL or warming** for predictable read-heavy data. Avoid warming everything; longer lifetimes increase staleness and invalidation risk.
 
-## Failure drill
+## The refresh winner dies. Who gets to try next?
 
-**Prediction:** the refresh winner crashes while holding the hot-key lease. **Symptom and detection:** the key stays stale, no successful load completes, and callers wait or use fallback. **Containment:** continue bounded stale serving and prevent uncontrolled source loads. **Recovery:** let the short lease expire so another caller can refresh. **Prevention:** use expiring ownership, atomic conditional release, load deadlines, and a metric for lease age and refresh outcome.
+**Prediction:** the winner crashes while holding its five-second lease. No fresh value arrives, but other callers must not start two thousand independent loads.
+
+**Detect:** refresh completion is absent while stale serving and lease age rise. Check whether the retained value remains within its 30-second allowance.
+
+**Contain:** keep source loads bounded. Serve stale only inside that allowance; once it expires, return an explicit unavailable result or another approved fallback rather than silently extending it.
+
+**Recover:** after the lease expires, a new holder refreshes. If the original holder later resumes, its expired ownership must not let it delete the new lease or overwrite a newer value.
+
+**Prevent:** use expiring ownership, conditional release, refresh deadlines, version/fencing checks, and tests for crash, pause, and lease expiry. Track source-load attempts and refresh outcome as well as hit rate.
 
 ## Two-to-three-minute interview answer
 
@@ -81,9 +84,9 @@ The hit-rate collapse plus database spike suggests requests that were previously
 
 I protect the database first with a miss-load concurrency limit and by shedding optional reads. Where the product permits it, I serve a bounded stale value. Per hot key, request coalescing elects one refresher; other callers wait briefly or use stale data. The winner writes atomically with a randomized TTL, and an expiring lease prevents a crash from blocking the key permanently. I may refresh known hot keys early, but I do not warm every key. Recovery means hit rate and user latency recover while database CPU and loads per miss fall. Finally, I load-test synchronized expiry and complete cache loss.
 
-## Practice status
+## Before you practise
 
-The artifact is `READY`; comprehension remains `TODO`. Mark it practiced only after explaining why simultaneous misses amplify work, deciding where stale data is allowed, and answering the questions below before revealing them.
+The written scenario is ready for practice; comprehension remains separate. Explain the noon expiry and the crashed refresher, decide where stale data is allowed, and try the questions below before revealing their answers.
 
 ## Questions and explained answers
 

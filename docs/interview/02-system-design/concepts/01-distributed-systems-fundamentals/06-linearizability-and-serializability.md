@@ -2,26 +2,17 @@
 
 [Module](./README.md) · [Previous: session guarantees](./05-session-and-causal-consistency.md) · [Next: quorums](./07-quorums.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: distinguish real-time operation order from a valid order of multi-step transactions.
-- Prerequisite: reads, writes, completed versus overlapping operations; consistency describes allowed observations.
-- Core terms: linearizability, serializability, strict serializability.
+Core study: 10–15 minutes. Prerequisite: reads, writes, completed versus overlapping operations; consistency describes allowed observations.
 
-## Why “the database is consistent” is too vague — Must understand
+## Both editors checked. How did both posts disappear? — Must understand
 
-Suppose a profile must keep at least one featured post. Two concurrent editors each remove a different featured post after checking that another remains. Separately, after one removal succeeds, a reader still sees the removed flag. The first problem concerns interacting decisions across records; the second concerns when a completed change becomes observable.
+A profile has two featured posts, 42 and 43. The rule is simple: at least one must remain featured. One editor wants to remove 42; another wants to remove 43. Each first checks that the other post is still featured. Can both checks pass and still leave the profile with none?
 
-A **transaction** groups reads and writes into one unit with a commit or rollback outcome. Its **isolation** controls how concurrent transactions interact. These are prerequisite ideas, not a claim that every transaction automatically prevents every race.
+Yes, if the checks and changes interact in the wrong way. This is a different question from “after a successful edit, can someone still read the old value?” The first asks whether several decisions fit together; the second asks when a completed change becomes visible. We will use the same two-post setup to separate them.
 
-## Define the three promises
+A **transaction** groups reads and writes into a unit that commits or rolls back. Its **isolation** controls how it interacts with concurrent transactions. Putting each check and change inside a transaction is a starting point, but the chosen isolation promise determines which combined outcomes are allowed.
 
-**Linearizability** requires each covered operation to appear to take effect at one instant between its start and response. If operation A finishes before B starts, B must come after A in that logical order. Overlapping operations can be ordered either way when their results fit. “One instant” is an observational model, not a demand that the implementation execute in zero time. See the [original Herlihy–Wing paper](https://www.cs.columbia.edu/~wing/publications/HerlihyWing90.pdf).
-
-**Serializability** requires the combined results of committed transactions to match some execution of those transactions one at a time. “Serial” means one finishes before the next begins in that explanatory order. Implementations may run work concurrently, then reject an attempt that cannot fit a valid order. The abstract guarantee alone does not require that order to match real-time completion.
-
-**Strict serializability** combines serializability with real-time order of transactions. It answers both questions together at the specified transaction scope. Naming the scope matters: a guarantee on one key does not automatically cover an operation spread across several records or systems.
-
-## Work through one fixed dataset
+## Try both one-at-a-time orders to test the result
 
 Initial state: post 42 has `featured=true`; post 43 has `featured=true`. The business rule requires at least one to remain featured. Two proposed transactions are:
 
@@ -35,18 +26,26 @@ Each transaction's check and change belong to one transaction. Trace a concurren
 3. T42 writes 42=false; T43 writes 43=false.
 4. If both commit, the final state is `[42=false, 43=false]`. Each individually checked a true flag, but the combined business rule is broken.
 
-Why is that outcome not serializable? Enumerate both possible serial orders:
+Could these results be explained by running one whole transaction before the other? There are only two possible orders:
 
 | Order | First transaction's result | Second transaction's check | Final flags [42,43] |
 |---|---|---|---|
 | T42 then T43 | 42 becomes false | T43 reads 42=false and skips clearing 43 | [false,true] |
 | T43 then T42 | 43 becomes false | T42 reads 43=false and skips clearing 42 | [true,false] |
 
-Neither order yields `[false,false]`. Therefore a serializable execution must prevent both commits with those observations. It can block conflicting work or abort an attempt so the application retries with fresh reads.
+Neither order yields `[false,false]`. A contract requiring a valid one-at-a-time explanation must therefore prevent both commits with those observations. It can block conflicting work or abort an attempt so the application retries with fresh reads.
 
-Now consider the real-time observation question on this same dataset: T42 completes successfully, making 42=false. With no later restoration, a subsequent read of 42 returns true. A linearizable read/write contract forbids that stale result. The serializability definition by itself does not add real-time order between transactions; strict serializability does. Do not infer arbitrary stale behavior from PostgreSQL specifically; this is a comparison of abstract guarantees.
+Now consider the real-time observation question on this same dataset: T42 completes successfully, making 42=false. With no later restoration, a subsequent read of 42 returns true. That result breaks a promise that a later read includes a completed change. Now we can name that promise and distinguish it from the rule that prevents both removals. These are abstract contracts, rather than a claim that PostgreSQL permits every behavior described here.
 
-## Why retry is part of correct usage
+## Two questions need two different guarantees
+
+**Linearizability** requires each covered operation to appear to take effect at one instant between its start and response. If operation A finishes before B starts, B must come after A in that logical order. Overlapping operations can be ordered either way when their results fit. “One instant” is an observational model, not a demand that the implementation execute in zero time. See the [original Herlihy–Wing paper](https://www.cs.columbia.edu/~wing/publications/HerlihyWing90.pdf).
+
+**Serializability** requires the combined results of committed transactions to match some execution of those transactions one at a time. “Serial” means one finishes before the next begins in that explanatory order. Implementations may run work concurrently, then reject an attempt that cannot fit a valid order. The abstract guarantee alone does not require that order to match real-time completion.
+
+**Strict serializability** combines serializability with real-time order of transactions. It answers both questions together at the specified transaction scope. Naming the scope matters: a guarantee on one key does not automatically cover an operation spread across several records or systems.
+
+## An aborted decision must be made again
 
 If T43 is aborted, rerunning only its final “set false” statement would reuse a decision based on an obsolete read. Retry the whole transaction: reread 42=false, re-evaluate the condition, and skip removal. Bound retries and report exhaustion rather than looping forever.
 
@@ -60,15 +59,17 @@ Use serializable transactions, explicit row locking, or an appropriate atomic da
 
 [PostService.like and unlike](../../../../../src/main/java/com/instagram/backend/service/PostService.java) contain read/check/write sequences in transactions, but do not explicitly request serializable isolation. A transaction annotation alone is not a proof against races. The featured-post dataset is proposed to isolate the reasoning; no featured flags are implemented by this lesson.
 
-## Failure drill — paper exercise
+## Let both editors read true — paper exercise
 
-- **Predict:** both checks read true. Can both removals commit under a correct serializable contract?
-- **Detect:** inspect the invariant and transaction outcomes, not only successful individual statements.
-- **Contain:** prevent a second removal based on stale decisions; avoid external side effects before an attempt can safely complete.
-- **Recover:** retry the aborted transaction from its initial read; verify one flag remains true.
-- **Prevent:** test concurrency and retry exhaustion. Choose a contract covering the entire invariant, including all relevant rows.
+Pause each transaction after it reads the other post's true flag. Predict whether a serializable contract can allow both removals to commit with those observations.
 
-## Recap and stop/go
+Check the final business rule and transaction outcomes together. Two successful statements are insufficient evidence when their combination leaves no featured post. Prevent the second removal from proceeding on an obsolete decision, and keep external effects out of an attempt that may still abort.
+
+If one transaction aborts, restart it from its initial read. After T42 commits, T43 must reread 42=false and skip its removal; retrying only the final write would repeat the bad decision. Test contention and retry exhaustion as well as the normal case. The protection must cover all rows involved in the rule, with bounded retries and an explicit failure result if they cannot finish.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Derive both serial orders, then explain the separate stale-read failure. Say why whole-transaction retry is necessary and when strict serializability adds a guarantee.
 

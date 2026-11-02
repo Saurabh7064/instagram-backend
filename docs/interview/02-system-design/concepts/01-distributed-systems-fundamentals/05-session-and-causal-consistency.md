@@ -2,24 +2,23 @@
 
 [Module](./README.md) · [Previous: consistency models](./04-consistency-models.md) · [Next: linearizability and serializability](./06-linearizability-and-serializability.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: useful consistency promises can follow a particular client or a dependency, without making all readers globally current.
-- Prerequisite: an old replica can return a stale observation after a write succeeds.
-- Core terms: session, read-your-writes consistency, causal consistency.
+Core study: 10–15 minutes. Prerequisite: an old replica can return a stale observation after a write succeeds.
 
-## A product-level problem — Must understand
+## Lea wants to see her post; Noor wants the reply to make sense — Must understand
 
-An author publishes a post successfully, opens their profile, and cannot see it. Another user sees a reply saying “Great photo!” before seeing the photo it answers. Both experiences are confusing, but they require different guarantees to prevent them.
+Lea publishes post 42, gets a success message, then opens her profile. The post is missing. Later, someone sees Noor's reply, “Great photo!”, without seeing the photo it answers. These experiences look related, but fixing one does not automatically fix the other.
 
-A **session** groups a client's related operations, with whatever identity or metadata the service uses to carry its guarantees. Logging in does not automatically create a storage-consistency promise. The implementation must connect that identity to read routing or version tracking.
+Keep one setup in mind: A and B initially have neither post 42 nor reply 9. Lea writes through A. Noor reads through A. B receives updates later. Nobody deletes anything in this example.
 
-**Read-your-writes consistency** promises that a session's later reads include its own completed writes, or a later state incorporating or superseding them. It does not promise that every other client sees those writes immediately. “Include” is about the state history: a legitimate later deletion can mean the post is gone, rather than requiring old content to remain forever.
+First consider Lea. She does not necessarily need every stranger's newest post immediately. She needs her next profile read to include the post the service already told *her* it saved. **Read-your-writes consistency** names this promise for a client's related operations, grouped into a **session**. The service must connect that session to sufficiently current data; logging in alone does not do it.
 
-**Causal consistency** preserves dependencies. If one operation used another operation's result, observers must not see the dependent effect without the prerequisite history. A reply written after reading a post depends on that post. Independent edits need not have one shared global order.
+Now consider Noor. Noor can write a meaningful reply only after reading the photo. A viewer should not receive that dependent reply before the history it relies on. **Causal consistency** preserves such dependencies. Independent edits need not have one global order.
 
-## Fixed example: author, friend, post 42
+These promises describe included history, not content that must remain forever. A legitimate later deletion can supersede Lea's post. We exclude deletions from this example so we can focus on delayed delivery.
 
-Initial state: replicas A and B have no post 42 or reply 9. Author Lea writes through A. Friend Noor also reads through A. B receives updates later. No one deletes anything in this example.
+## Follow the author first, then the dependent reply
+
+Watch where the two promises make different demands on B:
 
 1. Lea creates post 42 at A and receives success. A has 42; B does not yet have it.
 2. Lea opens her profile. If the request goes directly to old B, the post is absent. This violates read-your-writes for Lea.
@@ -36,7 +35,7 @@ Initial state: replicas A and B have no post 42 or reply 9. Author Lea writes th
 
 The third row is stronger in a different dimension. The first two do not independently force every unrelated reader to observe the newest unrelated post.
 
-## How to carry the necessary knowledge
+## How would B know what a reader needs?
 
 A future service might return a required version with the write result and carry it on later reads. The read path then checks whether its selected copy has reached that version. Dependency-aware delivery similarly needs information about what earlier history a reply relies on. Without carrying such information, a load balancer merely choosing a healthy server cannot know the read is sufficiently current.
 
@@ -50,15 +49,17 @@ For background, Vogels describes [client-centric and causal observation guarante
 
 [PostService.create and feed](../../../../../src/main/java/com/instagram/backend/service/PostService.java) do not carry replica-version metadata. Replies in this example are proposed; this method set does not implement the future comments feature. Read-your-writes routing could improve author feedback, while dependent-delivery tracking fits later comments or notifications. Both add metadata and can delay reads when required history is unavailable. Prefer an authoritative read if its simplicity and latency fit the application.
 
-## Failure drill — paper exercise
+## Send Lea to B after A becomes unreachable — paper exercise
 
-- **Predict:** A becomes unreachable after step 1; Lea's next read goes to old B. Does sticky routing preserve the promise?
-- **Symptom:** a successful publish followed by a profile missing 42; session/version evidence reveals the inconsistency.
-- **Contain:** do not return B's old result as a read satisfying Lea's guarantee.
-- **Recover:** catch B up or use another sufficiently current source, then verify 42. Once reply 9 arrives, verify its prerequisite history is exposed first.
-- **Prevent:** test failover with carried requirements and delayed dependent messages. Independent events may still appear in different orders, which these promises allow.
+A disappears after Lea's successful publish. Predict what happens if her next profile request fails over to B before B has post 42. Has keeping her on A earlier made this next read safe?
 
-## Recap and stop/go
+A successful publish followed by a missing profile post reveals the problem. Compare the session's required history with B's version. Do not label B's old result as satisfying Lea's own-write promise merely because B is healthy.
+
+Catch B up or choose another sufficiently current source, then verify that Lea sees 42. When reply 9 arrives, verify its prerequisite history is available before exposing it too. Test both rerouting and reordered dependency messages. These promises still permit unrelated events to appear in different orders; the recovery check should test the promised relationships rather than demand a global newest-everything view.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Explain which client owns the read-your-writes promise and why reply 9 requires post 42. Compare these with a global latest-read requirement; predict the failover behavior without notes.
 

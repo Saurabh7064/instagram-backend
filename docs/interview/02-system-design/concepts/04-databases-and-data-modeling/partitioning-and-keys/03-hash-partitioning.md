@@ -2,28 +2,29 @@
 
 [Module](./README.md) · [Previous: ranges](./02-range-partitioning.md) · [Next: hotspots](./04-hotspots-and-hot-keys.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: deterministic hashing spreads many distinct keys but cannot divide repeated work on one unchanged key.
-- Prerequisite: range partitioning groups neighboring values and can concentrate current writes.
 - New core terms: hash function, bucket, modulo.
 
-## Replace neighboring ranges with a computed group — Must understand
+Core study: 10–15 minutes. Prerequisite: range partitioning groups neighboring values and can concentrate current writes.
 
-Suppose recent activity from many users overwhelms one date interval. Instead of grouping all users by date alone, compute a group from each user's key so different users can be spread. Both reads and writes must compute the same answer; choosing a random destination for each request would lose deterministic routing.
+## Put the same user's events in the same calculated destination — Must understand
 
-A **hash function** transforms a key's encoded value into a repeatable number. Equal encoded inputs produce the same output. Different inputs can produce equal outputs; that is a collision, not proof that the underlying keys are the same. The database still retains the actual partition keys.
+A date split can put everyone's newest events in one busy day. Suppose we instead choose a destination from the user ID. Different users could spread across destinations, while a reader who knows the user ID could calculate where to look.
 
-A **bucket** is a numbered destination group. **Modulo** gives the remainder after division, written `%` in many languages. For a nonnegative hash h and B buckets, `h % B` yields a bucket from 0 through B−1. Real implementations must define how signed results are normalized; do not copy a language's negative-remainder behavior without checking.
+The calculation must repeat. Sending each request to a randomly selected server would leave a later read guessing where the earlier write went. A **hash function** turns an encoded key into a repeatable number: equal inputs produce equal outputs. We then turn that number into one of a fixed number of numbered destination groups, called **buckets**.
 
-## Calculate using deliberately small teaching hashes
+With three buckets numbered 0, 1, and 2, take the remainder after dividing the hash by 3. The remainder can only be 0, 1, or 2, so it selects a valid bucket. This operation is **modulo**, written `%` in many languages. For a nonnegative hash h and B buckets, the rule is `h % B`.
 
-Fixed dataset: user 42 owns events 1001,1002,1003,1004; user 84 owns 2001. For arithmetic only, suppose H(42)=35 and H(84)=80. These are invented hash outputs, not PostgreSQL or Cassandra tokens. There are three destination buckets, numbered 0,1,2.
+We will use tiny invented hashes so the arithmetic is visible: user 42 hashes to 35 and user 84 to 80. Their actual events and identities stay the same as in the module dataset. These teaching numbers are neither PostgreSQL hash results nor Cassandra tokens.
+
+## Calculate the bucket, then change the bucket count
+
+User 42 owns events 1001,1002,1003,1004; user 84 owns 2001. Apply the three-bucket calculation to each user:
 
 - For user 42: 35=3×11+2, so 35%3=2. All four events go to bucket 2 under a user-only key.
 - For user 84: 80=3×26+2, so 80%3=2. Its one event also goes to bucket 2.
 - Buckets 0 and 1 receive none of these five rows. A good distribution function is a statistical tool across many keys, not a guarantee that every tiny dataset uses every bucket evenly.
 
-The collision does not merge user 42 and 84 into one logical key. Their actual keys remain distinguishable even though they share a destination group.
+Different inputs can select the same destination. That is a **collision**, not a declaration that the users are equal. The database retains the real keys, so user 42 and user 84 remain distinguishable inside bucket 2. A production rule must also define how it normalizes signed hashes; some languages produce negative remainders, which are not valid bucket numbers under our 0-to-B−1 convention.
 
 Now add a fourth bucket and naively recompute `%4` on the same hashes:
 
@@ -34,7 +35,7 @@ Now add a fourth bucket and naively recompute `%4` on the same hashes:
 
 All five sample rows need a new bucket mapping. This is a deterministic calculation, not a general claim that every key always moves. It demonstrates why using the physical node count directly as the divisor can cause widespread remapping when membership changes.
 
-## What changed, and what did not?
+## All of one user still follows one unchanged key
 
 A hash of `user_id` distributes **distinct users**. It does not divide one user's events across groups. If user 42 accounts for nearly all traffic, every request still computes the same bucket. Adding the event ID to the key could spread individual events, but then “read all of user 42's activity” no longer names one destination. Changing the key changes the query cost.
 
@@ -42,21 +43,23 @@ Using fixed logical buckets plus a separate bucket-to-node map is another design
 
 PostgreSQL also supports `PARTITION BY HASH`, but it uses its own hashing implementation and child modulus/remainder definitions. Never claim `user_id % n` predicts its actual child assignment unless that is explicitly your implemented rule. Cassandra's actual placement uses a partitioner and token ring, not the toy modulo model. The [PostgreSQL CREATE TABLE syntax](https://www.postgresql.org/docs/current/sql-createtable.html) documents actual hash-partition declarations.
 
-## Analogy, choice, and project mapping
+## Which queries become easier, and which become harder?
 
 A repeatable sorter puts the same mailing address into the same tray. The analogy stops where hash collisions, ownership changes, and historical data migration require explicit handling. Use hashing for many independent keys when ordered range locality matters less. Avoid it if your dominant query must scan adjacent original values and would now need many destinations.
 
 [PostRepository](../../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) has no hash router. A proposed distributed activity store would need a documented key encoding and ownership scheme. The arithmetic above is a learning model, not current backend behavior.
 
-## Failure drill — paper exercise
+## Change the writer's divisor before the reader's — paper exercise
 
-- **Predict:** a writer adopts `%4` while a reader still uses `%3`. Can user 42's existing rows be found reliably?
-- **Symptom:** writes and reads reach different groups; apparently missing data can actually be misrouted data.
-- **Contain:** stop the inconsistent rollout; do not delete “missing” rows based on the new map.
-- **Recover:** restore a shared routing version, migrate or dual-route deliberately, and verify all five event identities.
-- **Prevent:** version routing changes and test reads during movement. A repeatable hash alone does not migrate data.
+Let the writer adopt `%4` while the reader still computes `%3`. Predict whether user 42's events can be found reliably.
 
-## Recap and stop/go
+The writer selects bucket 3 while the reader selects bucket 2. A missing result may therefore be a routing disagreement rather than deleted data. Stop the inconsistent rollout and preserve the rows; deleting supposedly missing data would make recovery harder.
+
+Restore a shared routing version, then migrate or dual-route deliberately and verify all five event identities. Version routing transitions and test reads while ownership changes. A repeatable calculation chooses an address; it does not copy old data into that new address.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Derive each remainder and explain why the two different keys remain distinct. Compare distribution of many keys with splitting one hot key and with moving keys during a node change.
 

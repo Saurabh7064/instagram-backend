@@ -2,20 +2,21 @@
 
 [Module](./README.md) · [Previous: clustering](./08-cassandra-clustering-columns.md) · [Next: routing to nodes](./10-cassandra-query-routing.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: a new exact partition-key value creates a new logical group as data is written.
-- Prerequisites: nested primary-key grammar and clustering order; CQL means Cassandra Query Language.
 - New core terms: keyspace, schema, logical partition.
 
-## What exactly does CREATE TABLE create? — Must understand
+Core study: 10–15 minutes. Prerequisites: nested primary-key grammar and clustering order; CQL means Cassandra Query Language.
 
-You write a table declaration with `(user_id,activity_date)` as partition key. Did it create one partition, a partition per node, or a partition for every future user/day? None of those interpretations is correct. Separate the rule from the data groups formed by applying it.
+## The table is empty. Have we already created every user/day? — Must understand
 
-A **keyspace** is a namespace containing Cassandra tables and replication settings. A **schema** declares tables, columns, types, and keys. A **logical partition** is the group of rows in one table with the same complete partition-key value. Table identity matters: the same key tuple in two different tables does not make their rows one shared partition.
+Our rule is “group activity by user and UTC day.” The five events will form three groups: user 42 on October 25, user 84 on October 25, and user 42 on October 26. But declaring the table does not pre-create a group for every possible user and future day.
 
-Cassandra does not require a PostgreSQL-style `CREATE TABLE ... PARTITION OF` for every user/day. Declaring the table establishes a grouping/placement rule. Writing rows with a new complete key gives that table a new logical data group.
+The declaration establishes a rule. When we write the first event for `(42,2026-10-25)`, that key names a nonempty data group. Later writes with the same complete key add rows inside it; changing either user or date selects another group. This differs from PostgreSQL, where we explicitly created date child tables before those dates could receive rows.
 
-## Read the setup with its assumptions
+A **logical partition** is the group of rows in one Cassandra table sharing a complete partition-key value. The table is part of that identity: the same tuple in another table does not combine their rows. The **schema** declares columns, types, and keys; it is the rule rather than all the possible data groups.
+
+A **keyspace** supplies a namespace for tables and their replication settings. We need one before declaring the table. The setup below is for a disposable single-node lab, while the later routing lesson separately reasons about three nodes. Keep those scenarios separate so a copy-count setting is not mistaken for creation of extra servers.
+
+## Create the namespace and grouping rule
 
 The [complete CQL example](./examples/cassandra-activity.cql) targets a disposable **single-node** lab whose datacenter name is `datacenter1`:
 
@@ -45,7 +46,7 @@ The qualified name chooses the keyspace/table. `bigint` is a signed 64-bit integ
 
 Cassandra's [data-definition reference](https://cassandra.apache.org/doc/latest/cassandra/developing/cql/ddl.html) explains keyspace/table declarations. Compare it with PostgreSQL's explicit child declarations from lesson 6: the similar phrase “create a partition” names different mechanisms.
 
-## Build the groups from the fixed five writes
+## Watch the five writes form exactly three groups
 
 Apply the dataset in insertion order:
 
@@ -65,7 +66,7 @@ Three distinct tuple values produce three logical groups containing 3+1+1=5 rows
 
 There is no required “one disk file per partition.” Cassandra persists many groups using its storage engine's shared structures. A table, logical partition, token range, node, and file are different layers. Deleting the last row can leave physical deletion metadata until maintenance; logical group counts are not a reliable count of current files or allocated bytes.
 
-## Analogy, choice, and project mapping
+## A logical group is not a physical file
 
 A filing rule says “folder per user/day”; folders acquire contents when documents arrive. Declaring the rule does not preprint every possible folder. The analogy stops at database storage/replication and deletion metadata.
 
@@ -73,15 +74,17 @@ This grouping suits bounded user/day reads. Avoid user-only history if worst-cas
 
 [Post.java](../../../../../../src/main/java/com/instagram/backend/domain/Post.java) is a relational schema declaration. It has no Cassandra keyspace or activity grouping. These CQL objects are learning artifacts; no application storage migration is performed. A running Cassandra server is required to execute the file, and the [verification record](./verification.md) states that it has not been executed in this environment.
 
-## Failure drill — paper exercise
+## Send midnight's event with yesterday's date — paper exercise
 
-- **Predict:** the application mistakenly sends activity 1004 with date October 25 while its timestamp is October 26. Which group is selected?
-- **Symptom:** it routes to `(42,Oct25)`; a correct October 26 query misses it. Cassandra uses the supplied key, not an inferred day.
-- **Contain:** reject inconsistent day/time values at ingestion rather than accepting wrong grouping.
-- **Recover:** find the event by durable identity, insert the correct key safely, then remove the wrong-key row with a recorded repair. Changing a key is not an ordinary non-key update.
-- **Prevent:** derive UTC day consistently and test midnight boundaries. Do not assume the table declaration derives `activity_date` automatically.
+Event 1004 has an October 26 timestamp, but the application sends October 25 as activity_date. Predict which group receives it.
 
-## Recap and stop/go
+Cassandra uses the supplied key, so the row goes to `(42,Oct25)` and a correct October 26 query misses it. Reject inconsistent day/time values at ingestion; the table declaration does not infer the date from the timestamp.
+
+Find the event by durable identity, safely insert it under the correct key, then remove the wrong-key row through a recorded repair. Changing a key is a move between identities rather than an ordinary non-key update. Derive UTC day consistently and test midnight boundaries so the same defect does not keep creating wrongly grouped events.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Explain what keyspace creation, table creation, and each write do separately. Derive three groups from five rows and compare that with PostgreSQL's two date child tables.
 

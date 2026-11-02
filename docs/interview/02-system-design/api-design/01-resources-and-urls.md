@@ -4,21 +4,29 @@
 
 How do you choose resource URLs for posts and likes?
 
-[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Separate resource identity, collection selection, and writable state; compare nesting, relationship resources, and commands; reject mismatched parent/child IDs.
+Explain why a post keeps its identity when storage changes, choose paths for items and relationships, and show which checks a nested URL still requires.
 
-Prerequisites: A client sends an HTTP request containing a method and URL; a server returns a status, headers, and optional body. JSON is a text format for objects and lists.. All later lessons remain TODO until their own checkpoints are attempted.
+Prerequisite: the request model is explained below; no REST vocabulary is assumed.
 
-## Must understand: problem and model
+## Give the client an address it can keep
 
-A client needs stable addresses even when database tables change. An API is a contract between caller and server. A resource is something the caller can identify; its representation is the JSON description returned today. Name resources with nouns and identify individual items with stable IDs. A URL is like a library shelf address; the analogy stops because one resource can have several representations and access rules.
+Start with the basic exchange. The client app sends an HTTP (Hypertext Transfer Protocol) request to the server. Its URL (Uniform Resource Locator) is the address; its method is the instruction, such as GET for reading. The server replies with a status and supporting headers, and usually a body. These examples use JSON (JavaScript Object Notation), a text format for named fields and lists, for that body.
 
-## Spring Boot example
+Suppose Mira opens post 42 and copies its link. Tomorrow you rename the database table or move image storage to another service. Her saved link should still identify the same post. The client needs an address for the thing it cares about, rather than a description of how you happen to store it.
 
-Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
+That identifiable thing is a **resource**. Here, post 42 is the resource; the JSON you return is its **representation**, a description of the post at the time of the request. Keeping those ideas separate matters: you can add a field to the JSON without giving the post a new identity.
+
+Start with `GET /api/posts/42`: “show me this post.” Compare it with `GET /api/posts?author=mira.frames`: “show me posts selected by this author.” The first path identifies one item. The second identifies a collection and uses a query parameter, a named choice after `?`, to select members. Neither address needs to expose a table name.
+
+A library catalogue provides a useful comparison: a book's catalogue number remains useful when its shelf changes. The limit of that comparison is permission. Knowing a post's address does not mean the caller may read it; the server still has to decide visibility.
+
+## A proposed route for one identifiable post
+
+The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle). The excerpt below is a design proposal unless identified as current code; omitted imports and collaborators still need implementation.
 
 ```java
 @RestController
@@ -31,17 +39,19 @@ class PostRoutes {
 }
 ```
 
-### Walkthrough
+### Read the boundary in the code
 
-`@RestController` makes method results response bodies. The class mapping supplies the collection prefix; the method mapping appends an item ID. `@PathVariable` converts the path text to a Long. `postQueries` is a proposed visibility-checking service, not a repository exposed directly to callers.
+Read the two mappings together. `@RequestMapping("/api/posts")` supplies the collection prefix and `@GetMapping("/{postId}")` adds one item's identity. `@PathVariable` turns the path text into the `Long` argument; `@RestController` makes the returned object a response body.
 
-## Request trace: predict, act, observe, explain
+`postQueries.findVisible` is a proposed query service, not a repository handed directly to the caller. A real implementation must supply the authenticated viewer and enforce visibility there. The route annotation matches an address; it cannot establish that permission.
 
-Before following the trace, predict the status and final stored state. Then trace these transitions in order:
+## Follow the address all the way to the post
 
-GET /api/posts/42 -> Spring matches the item route -> converts 42 -> checks visibility in the proposed query service -> returns post 42 or 404. GET /api/posts/search must have an explicit route rather than accidentally becoming a numeric ID.
+For `GET /api/posts/42`, Spring first matches the item route and converts the path text `42` into the numeric argument. The proposed query service then asks whether this caller may see post 42. If the post is available under that policy, it returns its representation; otherwise it follows the documented 404 policy. Reading the address does not itself change the post.
 
-The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
+Now consider `/api/posts/42/comments/9`. The address claims comment 9 belongs to post 42. If the stored comment belongs to another post, returning it anyway would ignore part of the request. The service must verify membership as well as visibility. That extra check follows from what the path says, rather than from the fact that both IDs are valid numbers.
+
+A literal path such as `/api/posts/search` needs an explicit route. It is a different request from an item whose ID happens to be numeric.
 
 ## Design decisions: resources, relationships, and commands
 
@@ -76,33 +86,33 @@ CommentView comment(@PathVariable Long postId,
 
 Proposed excerpt: `CommentView` and `comments` are not implemented. The service must resolve the viewer, check parent visibility, and load a comment constrained by both IDs. A repository predicate such as `findByIdAndPostId` supports membership; it does not alone prove visibility. Missing/mismatched membership should use the documented missing-resource policy.
 
-Choose nouns for stable domain concepts, but do not invent fake resources merely to avoid every verb. A command that has side effects beyond replacing a representation is often clearer as POST with an explicit operation contract. “REST” also includes resource representations, stateless requests, cache semantics, and discoverable controls; plural nouns alone do not make a design RESTful.
+Choose nouns for stable domain concepts, but do not invent fake resources merely to avoid every verb. A command that has side effects beyond replacing a representation is often clearer as POST with an explicit operation contract. Representational State Transfer (REST), the architectural style often referenced for these APIs, also includes resource representations, stateless requests, cache semantics, and discoverable controls; plural nouns alone do not make a design RESTful.
 
-## Project mapping and practice
+## Apply this to the backend
 
-Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/controller/PostController.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
+[PostController](../../../../src/main/java/com/instagram/backend/controller/PostController.java) currently offers create, edit, delete, like, and feed operations. It does not expose the proposed GET-by-ID or comments routes. Use that distinction when discussing what a saved post URL would promise.
 
-**Practice task:** Propose resource paths for F-017 comments; explain whether deleting a parent should delete or retain comments.
-
-Keep this a design exercise until a feature change is explicitly undertaken. An implementation must follow the repository integration-test, API verification, documentation, and commit workflow.
+For F-017 comments, sketch the list and item addresses. Explain how the service proves that a requested comment belongs to its parent, and decide what happens to comments when the parent is deleted. This remains a design exercise; implementing it would require the repository's feature verification workflow.
 
 ## Useful later: choices and costs
 
 Use nested collections for ownership or relationships, such as /posts/42/comments. Avoid deeply nested paths when a comment has its own stable identity. Flat /comments/9 is easier to relocate but must still check access. Action endpoints remain reasonable for commands such as publish when a resource model adds no clarity.
 
-## Controlled failure drill
+## Try a URL that lies about membership
 
-Predict what happens when a mobile client stores a database row position as its ID. Delete an earlier row: the position can identify a different object. Detect wrong-item reports, contain by disabling positional URLs, recover with stable identifiers, prevent with contract tests that reorder data.
+This is a paper exercise, not an executed lab. Suppose comment 9 is stored under post 77, but the caller requests `/posts/42/comments/9`. Predict the result if the service loads only comment ID 9: it can return a comment that is not a member of the requested collection, potentially bypassing a parent-specific access check.
 
-Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
+A future integration test should detect the mismatch by asserting the documented unavailable result and no leaked comment body. Contain a faulty nested route until it checks both IDs. Restore correct reads by constraining membership and applying visibility, then test the legitimate parent too. The correction is not a different URL spelling; it is enforcing the relationship that the URL promised.
 
 ## Interview-ready answer
 
 I begin with user-visible identity and actions rather than table names. I use item paths for identity, query parameters for selection, and explicit writable representations for mutations. Nesting can express collection membership, but the service must verify that membership and caller visibility. For relationships with known identity I can use desired-state operations; for a workflow I may use POST with a clear operation result. In this project I would add comments under a post for listing, give comments stable item identities, and test mismatched parent IDs as well as missing objects. Resource naming is one part of the contract; methods, permissions, errors, and bounded collection behavior complete it.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Proceed only after explaining the request trace without notes, predicting the failure, and answering all three checks below before opening their answers. Record the attempt in [learner progress](learner-progress.md). Artifact readiness does not establish comprehension or implementation readiness.
+Explain why post 42 keeps its address after a storage change, then walk the mismatched-parent request. Continue when you can locate identity, selection, and writable state and justify where permission is checked.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

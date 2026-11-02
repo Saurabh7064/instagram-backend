@@ -120,3 +120,8 @@ DONE: centered 720px editorial reading column with serif text, neutral theme, an
 ## Project explorer — 2026-10-31
 
 DONE: [Feature 25](./25-learning-project-explorer.md), IDE-style nested learning-document explorer; nine browser integration tests passed. UI commit `f9a8eec`; origin is not configured.
+
+
+## Readable system-design lessons — 2026-11-01
+
+Completed the editorial artifact revision in [Feature 26](./26-readable-system-design-lessons.md): 96 lesson/entry documents now explain concrete situations through connected technical reasoning. The author template and writing preference are updated; semantic and browser evidence are linked from the note. This completes an editorial artifact, not a product implementation or learner mastery milestone. Existing feature/concept status rows and comprehension records remain unchanged.

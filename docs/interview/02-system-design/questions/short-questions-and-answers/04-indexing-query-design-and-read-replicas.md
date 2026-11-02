@@ -6,44 +6,47 @@ Feed and profile reads become slow as data grows, but application CPU remains he
 
 **“How would you reduce database read latency with query design, indexes, and replicas?”**
 
-## Why this problem exists
 
-Database latency often comes from broad scans, repeated queries, I/O or locks, or an index that does not match filtering and ordering. Replicas copy inefficient queries and may return stale data, so I would reduce work first.
+## Count the work behind one feed response
 
-## Analogy: a library catalog
+Suppose a request returns 100 posts. One query loads that list, then response mapping asks the database whether the viewer liked each post. That makes `1 + 100 = 101` queries before considering any additional author lookups. This is an **N+1 query pattern**: one initial query followed by another for each returned item.
 
-A catalog locates books without scanning every shelf; a branch adds read capacity. The analogy stops because indexes cost work on every write and replicas can temporarily disagree with the leader.
+Adding a database copy would distribute these queries, but each response would still require the same repeated work. First return a bounded page and load its related like state in a batch. A 20-post page needs only the likes relevant to those 20 post IDs; it does not need 20 separate round trips merely because the response has 20 entries.
 
-## Terms to establish
+## Help the database find the page
 
-- An **execution plan** shows how the database intends to scan, join, sort, and return a query.
-- A **composite index** orders multiple columns for a specific filter and sort pattern.
-- An **N+1 query** is one initial query followed by an additional query for each returned item.
-- **Replication lag** is the delay before a replica applies a leader’s committed change.
+An **execution plan** describes how the database finds rows, combines them and orders the result. Read the actual plan for the measured slow query. A broad scan or large sort suggests different work from a lock wait or a wait for a connection.
 
-## What I would do
+If the query continues a feed ordered by `(created_at, id)`, consider a **composite index**, which orders several columns together. Its usefulness depends on the actual filter and sort. Verify the plan and timing after adding it; an index costs storage and maintenance on writes.
 
-1. Measure slow queries, scanned rows, locks, I/O, connection wait, and actual plans.
-2. Paginate results, select needed columns, and replace N+1 access with bounded joins or batches.
-3. Add indexes matching important filters and order; route only stale-tolerant reads to replicas.
+The library-catalog analogy helps here: the catalog avoids inspecting every shelf. Its limit is that a database index must also be updated as records change, so more indexes are not free.
 
-## Concrete walkthrough
+## When would a read replica help?
 
-A 100-post feed can trigger one list query plus 100 viewer-like checks and possible lazy-author queries. Fetch 20 posts after a `(created_at, id)` cursor, support it with a matching index, and batch related data. If optimized traffic still exceeds leader capacity, send stale-tolerant older pages to a replica. Keep the user’s immediate post-creation read on the leader so lag does not make the post appear lost.
+After reducing the work per request, remaining read traffic may exceed the main database's capacity. A read replica is a maintained copy that can answer some reads. With asynchronous copying, it can temporarily lack a change already accepted by the primary; that delay is **replication lag**.
 
-## Instagram-backend mapping
+For this feed, use the primary when the creator immediately checks their new post, unless the product explicitly permits a delay. Older, freshness-tolerant pages may use a replica within an agreed lag policy. Like another library branch, it adds places to read; unlike a perfectly synchronized catalog, its newest information may differ.
+
+This gives us an order of decisions: measure the slow work, reduce repeated and unbounded work, verify the query plan, then decide whether another read-serving copy is justified.
+
+## Where this appears in our backend
 
 [PostRepository.java](../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) returns the full ordered feed. [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) then calls `existsByPostAndUser(...)` per post, a concrete N+1 candidate. Pagination, batched like lookup, a matching index, plan verification, and replica routing are proposed, not implemented.
 
-## Choices and trade-offs
+## Choosing the approach and paying its costs
 
 - Index frequent, selective queries; avoid indexing every column because writes and storage become costlier.
 - Cursor pagination handles changing deep feeds better; offset pagination is simpler but can slow and shift.
 - Replicas add stale-tolerant capacity, not guaranteed read-your-writes.
 
-## Failure drill
 
-**Prediction:** a user creates a post, then an immediate feed read hits a lagging replica and omits it. **Symptom and detection:** the write succeeds on the leader, replica-lag metrics rise, and leader versus replica queries disagree. **Containment:** route that journey and other freshness-critical reads to the leader. **Recovery:** restore replication health and wait for the replica to catch up before returning it to rotation. **Prevention:** define freshness thresholds, monitor lag, and implement a read-your-writes routing policy.
+## Paper drill: “my new post disappeared”
+
+Predict what happens when creation commits on the primary and the immediate feed read reaches a replica that has not copied it. The write succeeds, but the new post is absent from that read.
+
+Compare the same post on primary and replica and inspect replication progress. Keep immediate read-after-write journeys on the primary while restoring copying health. Resume replica traffic only after verifying that the copy meets the freshness policy.
+
+Prevent the user-visible failure with an explicit routing rule for recent writes, lag monitoring, and a test that pauses replication during the create-then-read journey. A fast replica query is not sufficient evidence that the response is fresh enough.
 
 ## Two-to-three-minute interview answer
 
@@ -53,9 +56,10 @@ For this feed, returning every post and checking like state per post is the firs
 
 If optimized reads still exceed leader capacity, replicas can serve stale-tolerant journeys. Writes, authorization, and immediate read-after-write stay on the leader or follow an explicit session-freshness rule. I would monitor lag, stop routing when it exceeds the agreed threshold, and verify failover does not silently weaken consistency.
 
-## Practice status
 
-The artifact is ready; comprehension is not implied. Practice by counting the current feed queries and explaining when one read must remain on the leader.
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`. Explain this scenario in your own words, predict the paper drill, and attempt the questions before opening their answers. Record learning only from your own explanation and predictions.
 
 ## Questions and explained answers
 

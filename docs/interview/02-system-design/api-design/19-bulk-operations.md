@@ -8,15 +8,21 @@ How do you design a bulk API with explicit atomicity, per-item results, and safe
 
 ## What you will learn
 
-Distinguish transport-level batch success from item outcomes; compare all-or-nothing with partial success; bound size, authorize every item, and define replay.
+Derive the final state of a mixed-permission deletion batch, distinguish atomic and partial outcomes, and recover when the response disappears after some work commits.
 
-Prerequisites: the foundational contract, method, authorization, and compatibility lessons. These are proposed teaching examples; routes, collaborators, DTOs, and policies shown here are not installed by this documentation change. Imports and application wiring are omitted. Use the existing authentication rules when implementing any extension.
+Builds on [ownership](06-identity-and-ownership.md) and [attempt identities](10-idempotency-keys.md). This backend has no bulk route today; the examples are proposed contracts.
 
-## Must understand: fewer round trips can hide many writes
+## One request can contain several different outcomes
 
-A client wants to delete several saved posts or create comments in a batch. A bulk request combines multiple items into one call. Atomicity means either all intended database changes commit or none do. Partial success means some items can commit while others fail according to an explicit contract.
+User 7 submits one request to delete posts `[42,43,99]`. They own 42; user 9 owns 43; 99 does not exist. Sending these IDs together saves round trips, but it creates a question that individual requests do not: should the failure on 43 stop deletion of 42?
 
-Think of submitting one basket of forms. The analogy stops because some forms can already be committed when the connection drops, and rolling back one local database cannot recall remote side effects.
+A **bulk request** groups multiple items into one call. Under **atomic** behavior, the intended database changes commit together or none commit. In our example, the request cannot delete every item as asked, so it rejects the batch and preserves post 42. Under **partial success**, independent items can complete separately: delete 42, retain 43, and report that 99 was absent.
+
+Neither policy is automatically the correct one. Choose atomicity when the items need one combined guarantee in a realistic transaction scope. Choose partial outcomes when they are independent and the client can inspect and retry individual failures. The caller needs to know the policy before submitting, rather than discover it after a timeout.
+
+A basket of forms is a useful analogy: the office might reject the whole basket or process each form. The limit is uncertain delivery and external effects. Some writes can already have committed when the response is lost, and a database rollback cannot recall a notification that was already sent.
+
+The three implementation choices below all need explicit size bounds and item-by-item permissions. Grouping requests changes the transport; it does not grant broader authority.
 
 | Policy | Choose when | Main cost |
 |---|---|---|
@@ -64,9 +70,11 @@ Now drop the response after item 42 commits. Repeating DELETE-like desired-state
 
 Independent partial transactions should be explicit. One Spring @Transactional wrapper with a caught database error can mark the entire transaction rollback-only; swallowing exceptions does not create partial commits. An atomic local batch must also avoid sending irreversible notifications before commit.
 
-## Controlled failure drill
+## Lose the answer after deleting post 42
 
-Prediction: item 2 violates a constraint after item 1. Under atomic policy, item 1 must be absent from committed effects; under partial policy, item 1 remains successful with a clear item-2 failure. Detect by reading actual stored state after the response and after a forced timeout. Contain new batch submissions on ambiguity, recover by reconciling item IDs/outcomes, prevent with bounded batches, explicit transaction boundaries, and response-loss tests.
+Use `[42,43,99]` with the ownership stated above. On paper, drop the response after deleting 42 in partial mode. Predict the caller's knowledge: it cannot infer from the timeout which items completed. Retrying under desired-state deletion can still leave 42 absent, but its reported outcome may now be “already absent.”
+
+Detect recovery defects by reading actual final rows and matching every result to its input. Contain new submissions if outcomes cannot be reconciled, then recover using stable item identities and the documented transaction policy. In atomic mode, a rejected batch must preserve 42 instead. Prevent recurrence with response-loss tests for both the batch and item replay rules; swallowing an exception inside one failed transaction does not establish independent partial commits.
 
 ## Project mapping and practice
 
@@ -76,9 +84,11 @@ Current [PostController](../../../../src/main/java/com/instagram/backend/control
 
 I make the atomicity policy part of the contract. An atomic batch is appropriate only when the operations need one invariant and the transaction scope is realistic. Independent items can use partial outcomes, but the response must correlate every input with a result and the transactions must actually commit independently. I bound amplification, authorize each item, and specify response-loss recovery. A successful batch status cannot imply every item succeeded unless that is the documented all-or-nothing guarantee. Large work becomes a durable job rather than a huge synchronous transaction.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Explain the worked request without notes, justify a competing option, predict the failure, and describe a test that checks the final state or response. Record an attempt in [learner progress](learner-progress.md). A completed artifact does not establish understanding or an implemented feature.
+Derive the final state of `[42,43,99]` under both policies. Continue when you can match outcomes to inputs and recover the lost-response case without assuming a whole-request status means every item succeeded.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

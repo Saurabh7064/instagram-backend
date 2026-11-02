@@ -4,21 +4,29 @@
 
 When can an API response be cached safely?
 
-[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Separate storage, freshness, revalidation, and viewer isolation; derive 200/304 behavior and review cache keys for negotiated representations.
+Decide who may reuse a response, then decide when it becomes stale and how to check it. Use two viewers to spot a cache policy that returns personal state to the wrong person.
 
-Prerequisites: Lesson 11 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
+Builds on [representation validators](11-conditional-updates.md).
 
-## Must understand: problem and model
+## The same URL can mean different data for two people
 
-Repeated reads waste bandwidth, but caching the wrong viewer’s response can expose private state. Cache-Control sets storage/reuse policy. A validator lets a server check whether a cached representation is still current. Think of a dated photocopy; the analogy stops because shared caches serve multiple people and need explicit isolation.
+User A reads post 42 and the JSON includes `likedByViewer:true`. User B reads the same URL but has never liked it, so their correct value is false. A cache that stores A's entire response by URL and hands it to B will return personal state belonging to the wrong viewer.
 
-## Spring Boot example
+A **cache** retains a response so a later request can reuse it. That can save network traffic and server work, but only when the saved response is appropriate for the later caller. Before asking how long a response should live, ask who may reuse it. A personalized feed and a genuinely public post view need different policies.
 
-Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
+**Cache-Control** is the HTTP header that states storage and reuse rules. `no-store` tells compliant caches not to retain this response. `private` permits storage by a private cache, such as the browser, but prohibits shared-cache storage. Neither phrase means “make the data inaccessible after the user has received it.”
+
+A photocopy is a useful starting analogy: keeping it avoids asking for the original again. The limit is that an HTTP cache may serve many users automatically, and a copy can become out of date. We need separate decisions about who may store it, how long it may be reused, and when to check the original.
+
+The [ETag lesson](11-conditional-updates.md) introduced a representation identifier. Here we use validators to check a saved read rather than protect an edit.
+
+## State a sensitive response's storage policy
+
+The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle). The excerpt below is a design proposal unless identified as current code; omitted imports and collaborators still need implementation.
 
 ```java
 @GetMapping("/me")
@@ -30,17 +38,19 @@ ResponseEntity<MeResponse> me(
 }
 ```
 
-### Walkthrough
+### Read the boundary in the code
 
-This proposed variant demonstrates a sensitive-response policy. no-store instructs caches not to store this response. private permits private-cache storage but prohibits shared-cache storage; it does not itself require freshness validation. profileQueries is illustrative; inspect the existing profile controller/service before implementation.
+This proposed variant returns sensitive identity data with `Cache-Control: no-store`. It tells compliant caches not to retain the response. `profileQueries` is illustrative; the existing profile service remains the place to inspect current behavior.
 
-## Request trace: predict, act, observe, explain
+Changing this to `private` would permit private-cache storage. It would not also define how long that copy stays fresh or how account switching is isolated. Those are separate decisions, so choose a policy from the data's reuse requirements rather than the apparent convenience of one header.
 
-Before following the trace, predict the status and final stored state. Then trace these transitions in order:
+## First decide whose copy this is
 
-User A loads a feed item with likedByViewer=true. A shared cache keyed only by URL gives it to B -> B sees incorrect personal state. With no-store, that response is not retained by compliant caches. A separately designed public representation could be cached without viewer-specific fields.
+A requests post 42 and receives `likedByViewer:true`. B's correct representation has `likedByViewer:false`. If a shared cache ignores that distinction and looks up only `/api/posts/42`, it can serve A's saved body to B. Even when the post itself is public, that full representation is personalized.
 
-The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
+A `no-store` policy prevents compliant caches from retaining the new response. A private cache policy can support a different design, but still needs correct viewer separation and rules for logout or account switching. A public view that omits viewer-specific fields is another deliberate contract, not something a cache may infer by deleting a field.
+
+Once reuse is safe for the intended caller, ask how long an old copy may be used. That is a separate freshness decision; the timed example below shows why an ETag does not itself require checking on every read.
 
 ## Freshness and validation are separate decisions
 
@@ -82,31 +92,31 @@ Proposed public-only route and types. `readPublic` checks the object is actually
 
 If representation selection depends on Accept, set Vary: Accept where required so caches do not mix JSON and another format. Vary is a cache-selection instruction, not an access-control boundary. For media, content-addressed immutable URLs avoid overwriting bytes behind a supposedly immutable URL; private media needs an access and expiry strategy as well.
 
-## Project mapping and practice
+## Apply this to the backend
 
-Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/dto/FeedPostResponse.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
+[FeedPostResponse](../../../../src/main/java/com/instagram/backend/dto/FeedPostResponse.java) contains `likedByViewer`, and [PostService.toResponse](../../../../src/main/java/com/instagram/backend/service/PostService.java) derives it using the current viewer. That is the concrete reason the same feed body cannot be assumed public for every caller.
 
-**Practice task:** For F-016 classify every feed field as public or viewer-specific before proposing caching; likedByViewer prevents a shared full-response cache.
-
-Keep this a design exercise until a feature change is explicitly undertaken. An implementation must follow the repository integration-test, API verification, documentation, and commit workflow.
+For F-016, classify each response field before proposing caching. Decide whether to isolate the personalized response or define a separate public view, then specify a two-user check and a changed-permission check. The example policies above are proposals, not measured cache behavior.
 
 ## Useful later: choices and costs
 
 Use no-store for sensitive identity/token responses; private caching may help personalized reads with a deliberate freshness policy. Public immutable media can use long lifetimes if access policy allows it and content changes get new URLs. A 304 has no representation body and requires correct validator evaluation for the selected user-specific representation.
 
-## Controlled failure drill
+## Send A's saved body to B
 
-Predict sharing a cached /api/me across tokens. Detect two-user cache tests, contain with no-store and purge, recover exposed cache entries, prevent by separating public and personalized representations and reviewing cache keys.
+In a future two-user cache test, first request post 42 as A, who has liked it, then as B, who has not. Predict B's body: `likedByViewer:false`. A true value shows that the shared response crossed viewer boundaries, even if the post's other fields are public.
 
-Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
+Contain reuse of the affected representation and purge entries where that is supported. A new no-store header does not itself erase old cached copies or revoke material already downloaded. Recovery means verifying the corrected path with both viewers and the intended storage policy. Prevent recurrence by separating genuinely public views from personalized ones and testing the cache's actual selection behavior, not only the presence of a header in a direct-origin response.
 
 ## Interview-ready answer
 
 I classify data before caching it. Tokens and sensitive identity responses normally need no-store; personalized representations require private policy and deliberate validators. no-cache allows storage but requires validation, while max-age permits a freshness interval. I trace fresh reuse and stale revalidation separately, and check access before a protected 304. A shared feed cache is unsafe if it includes likedByViewer without correct isolation. For public media I can use immutable content identities when the access policy permits it. I test two viewers, changing access, ETags, metadata on 304, and representation selection through caches rather than assuming one header makes the whole design safe.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Proceed only after explaining the request trace without notes, predicting the failure, and answering all three checks below before opening their answers. Record the attempt in [learner progress](learner-progress.md). Artifact readiness does not establish comprehension or implementation readiness.
+Explain what B must receive after A's read, then distinguish freshness from validation. Continue when you can predict the 30-second reuse and later 304 without treating cache headers as access control.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

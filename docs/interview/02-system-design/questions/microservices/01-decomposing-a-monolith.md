@@ -6,21 +6,15 @@
 
 > [One-page revision card](../../revision-cards/microservices/01-decomposing-a-monolith.md)
 
-## Why does this problem exist?
+## What could break if we move the upload code tomorrow?
 
-A mature monolith usually contains more knowledge than its diagrams show:
+Imagine moving this backend's media code into a separate application. The upload endpoint still accepts the same file, so the extraction looks straightforward. Then you notice that media storage also validates access tokens, old posts contain URLs pointing to the original file location, and profile code still calls post code directly. Moving one class did not move all the assumptions around it.
 
-- one screen may call several modules that share the same database tables;
-- a database trigger or scheduled job may perform behavior no Java service obviously owns;
-- callers may depend on undocumented response fields or error codes;
-- one in-process Java call may become a slower and less reliable network call after extraction;
-- a single database transaction may currently update several business areas atomically.
+A mature application has many such agreements: a scheduled job updates a table, a mobile client depends on an error code, or two operations rely on the same database transaction. They may be absent from the architecture diagram and still be part of the behavior users depend on.
 
-The goal is therefore not simply “turn classes into services.” The goal is to change **ownership and deployment boundaries without losing behavior**.
+Our first job is to discover those agreements. Then we can move one business responsibility while keeping its callers, data, and failure behavior working. If we merely deploy the classes separately while they continue sharing tables and release schedules, we have created a **distributed monolith**: the old coupling now has network failures added to it.
 
-If classes are moved into separate applications but still share tables, deployment order, and internal models, the result is a distributed monolith: it has the operational cost of microservices but retains the original coupling.
-
-## Analogy: renovate an occupied hospital one wing at a time
+## Think of renovating a hospital that must stay open
 
 A hospital cannot close for a year while every room is rebuilt. The team first maps power, water, patient routes, and emergency exits. It renovates one wing, temporarily redirects people, verifies that the new wing works, and preserves a route back until it is safe.
 
@@ -35,148 +29,106 @@ This maps well to software:
 
 Software can duplicate read traffic, replay events, and run old and new implementations simultaneously. A building cannot cheaply make an exact copy of every visitor and send the copy through another wing. Software also has ambiguous network failures: a timed-out request may actually have completed, which the building analogy does not represent.
 
-## Focus 1 — Discover what the monolith really does
+## Find the behavior before choosing a service
 
-Three useful terms:
+Start with an ordinary user journey: upload a photo, create a post, then open the feed. Follow it from the controller through the Java calls, repository operations, files, and any scheduled jobs. Write down the response as well as the side effects. “The upload returns a URL” is incomplete if that URL stops working when traffic reaches another application instance.
 
-- A **characterization test** records the system's current observable behavior, including behavior that is strange but relied upon. It answers, “What does the application do today?”
-- A **dependency map** shows which modules, tables, jobs, and external systems call or update one another.
-- A **baseline** is the current measured value for latency, errors, throughput, and business outcomes. Without it, “the new service is better” is only a guess.
+Next, put tests around the behavior that callers can observe. A **characterization test** records what the existing system does today, including surprising behavior someone may rely on. This gives us a way to notice when an apparently internal refactor changes the contract. We can decide deliberately which odd behavior to preserve and which needs a separate migration.
 
-### Step-by-step discovery
+Draw a **dependency map** of the modules, tables, jobs, and outside services the journey touches. Record transaction boundaries too: replacing a local call with HTTP may separate changes that previously succeeded or rolled back together. Finally, measure the current latency, errors, throughput, and business outcome. This is the **baseline** we will compare the new path against; without it, a healthy-looking new deployment tells us very little.
 
-1. List important user journeys: register, log in, upload media, create a post, load the feed, like a post, and view a profile.
-2. Trace each journey through controllers, services, repositories, database tables, background jobs, and external calls.
-3. Add characterization and integration tests around those journeys before changing their internals.
-4. Record response shapes, status codes, side effects, and transaction boundaries.
-5. Measure existing latency, error rate, traffic, database load, and business results.
-6. Identify owners and release dependencies: which teams and modules must change together?
+### What that investigation reveals in this backend
 
-### Instagram-backend example
-
-The repository is currently small, but it already shows why code layers are not automatically service boundaries:
+The repository is small enough to read directly, and it already shows why Java layers do not automatically make good service boundaries:
 
 - [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) handles posts and likes, reads users, validates tokens, and builds feed responses.
 - [ProfileService.java](../../../../../src/main/java/com/instagram/backend/service/ProfileService.java) reads users and calls `PostService.countPostsFor(...)`.
 - [MediaStorageService.java](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java) stores media but also validates an access token through `TokenService`.
 - [AuthService.java](../../../../../src/main/java/com/instagram/backend/service/AuthService.java) owns registration and login but uses the same user repository that post and profile behavior use.
 
-For example, extracting `ProfileService` as-is would turn its direct `PostService` call into a network dependency and leave unclear ownership of user data. The first task is to document that coupling, not hide it behind HTTP.
+If we extract Profile Service as-is, its post-count call becomes a network dependency and user-data ownership is still unresolved. The map tells us which decisions to make before that new failure point exists.
 
-## Focus 2 — Choose boundaries by business capability
+## Which responsibility deserves its own deployment?
 
-Three useful terms:
+A good starting point is an outcome someone recognizes: store media, publish a post, or send a notification. We call that a **business capability**. It includes the behavior and data that change together for that purpose. Splitting into “controller service” and “database service” usually leaves one ordinary feature crossing every deployment.
 
-- A **business capability** is an outcome the business recognizes, such as identity, media storage, posting, or notifications.
-- A **data owner** is the one component allowed to make authoritative changes to a particular business entity.
-- A **modular monolith** is one deployable application with explicit internal module boundaries. It is often the safest intermediate state.
+For each candidate, name the **data owner**, the component allowed to make authoritative changes. If several future services will still write the same private tables, independent deployment will remain unsafe. Ask also which rules need one transaction and which work can tolerate a delayed result.
 
-Do not split by technical layer into “controller service,” “database service,” and “utility service.” A change to “like a post” would still cross every service and require coordinated deployment.
+Then look for a reason to pay the cost of a new service. Media may need different storage or processing capacity. Notifications may need independent workers and can be delayed without losing the post. Authentication touches nearly every request and is security-sensitive, so extracting it first can expose a much larger part of the product to a mistake.
 
-Instead, ask:
+We can establish the boundaries inside one application first. That is a **modular monolith**: one deployable program with explicit internal interfaces and ownership. It lets us learn whether the boundary works before every call also needs network deadlines, authentication, and recovery.
 
-1. Which behavior and data change for the same business reason?
-2. Which capability needs independent scaling or release speed?
-3. Can it fail without taking the core user journey down?
-4. Can one team own it from API through data and operations?
-5. How many synchronous calls and shared transactions would extraction introduce?
-
-### Candidate order for this project
+### A possible extraction order for this project
 
 | Capability | First extraction? | Reason |
 |---|---:|---|
 | Media storage and processing | Good candidate | Clear API, different storage/scaling needs, and failure can often be isolated from feed reads |
-| Notifications | Good future candidate | Naturally asynchronous and does not need to block the originating action |
-| Read-only feed projection | Possible after measurement | Can be built from events and compared with the existing feed before cutover |
+| Notifications | Good future candidate | Naturally asynchronous and need not block the originating action |
+| Read-only feed projection | Possible after measurement | Can be compared with the existing feed before cutover, if an event pipeline is justified |
 | Authentication | Later | Security-sensitive and used by nearly every request |
-| Posts and likes | Later | They currently share user access and transactional behavior |
+| Posts and likes | Later | Their rules currently benefit from shared local transactions |
 
-This order is not universal. If production evidence says media is stable but checkout blocks every release, priorities should follow the measured business pain.
+This is a reasoned starting point, not a universal order. Choose the capability that solves a measured problem and has a transition we can actually control.
 
-## Focus 3 — Replace one path incrementally
+## Keep the public upload route while changing what handles it
 
-Three useful terms:
+Suppose media is the first extraction. The client should keep using `/api/media` while we replace the implementation behind it. Replacing one route at a time while the rest of the old application stays running is called a **strangler migration**.
 
-- A **strangler migration** replaces one route or capability at a time while the old system continues serving everything else.
-- An **anti-corruption layer** translates between the legacy model and the new model, preventing old assumptions from spreading into the new service.
-- A **canary release** sends a small percentage of real traffic to the new path before a full cutover.
-
-### Routing model
+A gateway can route the upload to either implementation. If their internal models differ, a small adapter translates between them. This is an **anti-corruption layer**: it keeps the new service from adopting every legacy assumption simply to keep old callers working. Keep the translation narrow; otherwise the gateway becomes another place containing business rules.
 
 ```text
-                              ┌─────────────────────────┐
-Client ──> stable gateway ────┤ /api/posts  -> monolith │
-                  │           ├─────────────────────────┤
-                  └───────────┤ /api/media  -> media svc│
-                              └─────────────────────────┘
-                                         │
-                                  object storage
+Client -> stable gateway -> /api/posts -> monolith
+                         -> /api/media -> old implementation or new media service
 ```
 
-The client continues using `/api/media`. Only routing changes. That stable contract is what makes a quick rollback possible.
+The stable URL gives us a way to shift traffic gradually. A **canary release** sends a small controlled group to the new path first, so a defect affects fewer users while we compare it with the baseline.
 
-### Concrete media-extraction flow
+### Follow one upload through the migration
 
-1. Define the existing contract from [MediaController.java](../../../../../src/main/java/com/instagram/backend/controller/MediaController.java): multipart field name, authorization behavior, response fields, URL format, status codes, and size/type limits.
-2. Put a `MediaClient` interface inside the monolith. Initially its implementation calls the existing `MediaStorageService`, so behavior does not change.
-3. Build the new media service against contract and integration tests.
-4. Keep token validation explicit. Either the gateway verifies tokens and forwards a signed identity, or the media service verifies them itself. Do not silently trust a plain `X-User-Id` header from the public internet.
-5. For safe read requests, send a copy to the new service and compare metadata without returning its result to the user.
-6. Route internal users or 1% of uploads to the new service. Compare success rate, upload latency, file integrity, and authorization failures with the baseline.
-7. Increase traffic gradually: for example, 1% → 10% → 50% → 100%, with explicit stop conditions at each stage.
-8. Keep the old route usable during a defined rollback window.
-9. After all references and stored URLs have been reconciled, remove the legacy implementation.
+1. Capture the existing contract from [MediaController.java](../../../../../src/main/java/com/instagram/backend/controller/MediaController.java): multipart field, authorization, response fields, URL format, status codes, and size/type limits.
+2. Introduce a `MediaClient` interface in the monolith. Its first implementation calls the existing storage code; this creates a replacement point without changing behavior.
+3. Build the remote implementation against the same contract and integration tests. Decide how it verifies identity: verify a signed token locally or trust only a protected gateway identity contract. A public plain `X-User-Id` header is not proof of identity.
+4. Compare safe read results before returning the new path to users. Shadowing means sending a copy for comparison; do not shadow a mutating upload blindly, because the copy can create a second object.
+5. Send internal users or 1% of uploads to the new service. Compare successful uploads, latency, stored file integrity, and authorization failures with the old path.
+6. Increase traffic in stages, for example 1%, 10%, 50%, then 100%, with a hold and stop decision at each stage.
+7. Keep the old path usable during a stated rollback window. After stored URLs, object availability, and remaining consumers are reconciled, retire it.
 
-### Why not extract the Java class directly?
+Routing is reversible only while the receiving path can access the right data. Once the new service accepts writes the old path cannot see, switching a flag back may return missing files. That data condition belongs in the rollback plan.
 
-Today `MediaStorageService.store(...)` calls `TokenService` in the same process. After extraction, that dependency must become a deliberate security contract. Directly copying the class would conceal that design decision and likely create a synchronous media-to-auth call for every upload. That call adds latency and makes an auth outage an upload outage.
+### Why copying the class would miss the difficult part
 
-## Focus 4 — Move data without unsafe dual writes
+`MediaStorageService.store(...)` currently calls `TokenService` locally. In another application, identity validation becomes a security decision. Calling a remote auth service for every upload adds latency and makes an auth communication failure an upload failure. The extraction must choose that contract explicitly; moving source files does not choose it for us.
 
-Three useful terms:
+## Change one authoritative writer at a time
 
-- An **outbox** stores a business change and an event record in the same local database transaction; a separate publisher later sends the event.
-- An **idempotency key** identifies one logical operation so processing the same request or event twice has the effect of processing it once.
-- **Reconciliation** compares old and new records or aggregates to detect and repair divergence.
-
-### The unsafe version
+Now consider moving metadata. Writing the old database and then calling the new service feels like a convenient way to keep both copies current:
 
 ```text
-Monolith writes old database  ── success
-Monolith calls new service    ── timeout
+old database write -> succeeds
+new service write  -> caller times out
 ```
 
-The caller does not know whether the new service failed before or after committing. Blind retry may create a duplicate; skipping retry may lose the new copy.
+What should the caller do next? The new service may have committed before its response was lost. Retrying could create a duplicate; skipping the retry could leave the new copy missing. Those two writes do not share one all-or-nothing transaction.
 
-### Safer transition
+An **outbox** closes the gap at the source: write the authoritative business change and an event describing it in the same local database transaction. Either both commit or neither does. A separate publisher can keep retrying the committed event.
 
 ```text
-one local transaction
-    ├─ update authoritative business row
-    └─ insert outbox event
-              │
-              v
-       publisher retries event
-              │
-              v
- new owner consumes idempotently
-              │
-              v
- reconciliation checks counts/checksums
+one local transaction: business change + outbox event
+                                  |
+                                  v
+                         publisher may retry
+                                  |
+                                  v
+                       new copy applies event safely
 ```
 
-Rules for the transition:
+The publisher may send twice, so the receiver must recognize the same logical operation. An **idempotency key** gives it that identity; durable uniqueness and a transaction around the deduplication record and local update make the protection survive concurrent requests and crashes.
 
-1. Declare one authoritative writer for each entity at every stage.
-2. Replicate to the new read model asynchronously when immediate consistency is unnecessary.
-3. Make consumers safe against duplicates; message systems commonly deliver more than once.
-4. Backfill historical data in bounded batches and record progress.
-5. Compare counts, missing IDs, important field checksums, and business totals.
-6. Freeze old writes or change routing before transferring authority to the new owner.
+Keep the old system as the only authoritative writer while copying history in bounded batches and applying new events. Record backfill progress. Then perform **reconciliation**: compare missing IDs, important values, and business totals between the copies. Matching row counts alone can hide a missing row paired with an extra row.
 
-Temporary shared-table reading can be a migration step, but it needs an owner, a removal date, and monitoring. Permanent shared writes prevent either service from changing its schema safely.
+Only after the new owner is caught up should we freeze or redirect old writes and transfer authority. A temporary shared-table read may help during migration, but name its owner and removal date. Permanent shared writes make future schema changes a coordination problem again.
 
-## Maintaining backward compatibility
+## Old callers still need to work during the move
 
 ### API changes
 
@@ -195,7 +147,7 @@ For example, if the old response contains `imageUrl`, do not suddenly replace it
 - Never reuse an existing field name with a different meaning.
 - Retain the ability to replay safely through idempotent consumers.
 
-## Risk controls by migration phase
+## What evidence lets us advance to the next stage?
 
 | Phase | Main risk | Evidence required before advancing | Rollback |
 |---|---|---|---|
@@ -208,7 +160,7 @@ For example, if the old response contains `imageUrl`, do not suddenly replace it
 
 “Rollback” must be rehearsed. A feature flag that nobody has tested under load is a hope, not a rollback plan.
 
-## Important trade-offs
+## When extraction is worth the extra work
 
 | Decision | Benefit | Cost or danger |
 |---|---|---|
@@ -259,6 +211,8 @@ I would use the strangler approach: keep a stable gateway contract, implement th
 For data, I would declare one authoritative writer per entity. I would avoid fragile dual writes; instead I would publish durable changes using an outbox, consume them idempotently, backfill in batches, and reconcile counts and key business totals. API and event changes would remain backward-compatible during a measured deprecation window.
 
 Finally, I would increase traffic gradually, rehearse rollback and failure cases, transfer ownership, observe a stability window, and remove the old path only after traffic and data evidence show it is safe. I would repeat this one capability at a time, and I would keep the modular monolith if independent services do not provide enough value to justify their operational cost.”
+
+Before marking this answer practiced, explain one extraction and its data-aware rollback without notes, then predict the lost-response failure. Answer the questions below before opening them; this written migration is a design exercise, not execution or demonstrated mastery.
 
 ## Questions and explained answers
 

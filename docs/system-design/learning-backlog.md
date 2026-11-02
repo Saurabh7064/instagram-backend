@@ -76,3 +76,8 @@ Rebuilt [Feature 22](../features/22-distributed-systems-fundamentals.md) using t
 ## Partitioning and Cassandra key artifacts — 2026-10-25
 
 Created [Feature 23](../features/23-partitioning-and-cassandra-key-lessons.md): 11 lessons with 33 explained checkpoints covering distribution, hotspots, key choice, table creation, and routing. Artifact READY; comprehension TODO. The PostgreSQL exercise is isolated and executed; Cassandra runtime verification remains pending. F-016/SD-007 query planning and F-021 query-specific read models are proposed follow-ups, not completed implementation. Existing status rows are unchanged.
+
+
+## Readable system-design lessons — 2026-11-01
+
+Completed the editorial artifact revision in [Feature 26](../features/26-readable-system-design-lessons.md): 96 lesson/entry documents now explain concrete situations through connected technical reasoning. The author template and writing preference are updated; semantic and browser evidence are linked from the note. This completes an editorial artifact, not a product implementation or learner mastery milestone. Existing feature/concept status rows and comprehension records remain unchanged.

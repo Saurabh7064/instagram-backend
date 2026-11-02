@@ -1,64 +1,42 @@
-# Micro-lesson NN — Concept name
+# Micro-lesson NN — A title naming the problem or decision
 
-- Artifact: `TODO`; comprehension: `TODO`.
-- Primary idea: one specific decision or mechanism.
-- Core study time: 10–15 minutes; split prerequisite parts if the scope requires more.
-- Prerequisites: link and restate only the ideas this lesson needs.
-- New core terms: normally no more than three; define supporting words before use.
+[Module](./README.md) · Artifact: `TODO`; comprehension: `TODO` · Core study: 10–15 minutes
 
-## What problem are we solving? — Must understand
+Prerequisite: link the earlier idea and briefly restate what this explanation needs. Split the lesson if more foundations are required. Keep one primary idea and normally no more than three new core terms.
 
-Set up a concrete problem before naming its solution. Identify the actors, initial data, desired outcome, and why the obvious approach fails.
+## [A concrete question the reader can recognize] — Must understand
 
-## Build the idea before naming the rule
+Begin with an initialized situation: who acts, what data exists, what they want, and what unexpectedly happens. Explain the first action in ordinary language. Let the need for a new term emerge, then name and define it. For an interview-question lesson, put the exact question near the top.
 
-Teach prerequisites in ordinary language. Expand acronyms at first instructional use and explain each component separately: meaning, observable promise, boundary, misconception. State when a proper name has no full form. Definitions alone are not explanations.
+## [The next question raised by that situation]
 
-## How it works, and why
+Carry the same example forward. Explain why each step changes the state or the observed result. Derive calculations with named quantities and units. Use a small diagram, table, or trusted request-flow simulation only when it makes this reasoning clearer.
 
-Derive the mechanism or formula. Explain the assumptions that make it valid and what fails without them. Include an accurate analogy and its limit where it helps.
+Work definitions and a useful analogy into the prose; state the analogy's limit beside the behavior it cannot explain. Teach the minimum model before adding the formal guarantee. Keep its assumptions and failure boundaries explicit.
 
-## One worked example
+## [What changes if the obvious approach fails?]
 
-Initialize the whole example before asking a prediction. Trace the actual request/event/failure in causal order, showing state and observable result. Explain why each step follows. Compare alternatives on the same example. Do not substitute a table or arrow chain for the prose reasoning.
+Compare a realistic alternative on the same scenario. Explain when each choice is useful, when it is unsuitable, and the cost or new failure it introduces. Put advanced material under **Useful later** or **Optional deep dive** so the core path stands alone.
 
-## Choosing it and understanding its limits
+Connect the design to exact project files and methods with clickable links. State what exists and what remains proposed. Place this connection beside the mechanism when that is clearer than a separate mapping section. Cite primary sources near technical claims that need them.
 
-Explain a useful case, an unsuitable case, a competing approach, costs, and common confusions. State guarantee scope, failure assumptions, and any unbounded delay or recovery requirement.
+## [A specific failure to predict] — paper exercise unless executed
 
-## Instagram-backend mapping
+Ask a prediction before explaining the failure. Show the symptom, the evidence that distinguishes it from another cause, how to contain damage, how recovery works, and what observation proves recovery. Explain prevention and the remaining risk in connected prose. Record actual lab execution separately; a described drill is not execution evidence.
 
-Link exact code files/methods and explain the real boundary. Clearly label every proposed component or test. A transaction annotation is not evidence of distributed coordination.
+## Before moving on
 
-## Failure drill
-
-Label this a paper exercise unless actually executed.
-
-1. Prediction: ask before revealing the outcome.
-2. Failure and symptom: what broke and which evidence reveals it?
-3. Containment: what prevents further harm, and why?
-4. Recovery: restore service and verify the intended result.
-5. Prevention: reduce recurrence and explain remaining risk.
-
-## Useful later / Optional deep dive
-
-Separate advanced details from the core explanation. Cite primary sources near the claims they support; do not make the learner open a paper to understand the core lesson.
-
-## Recap and stop/go
-
-Give a short explanation the learner can reconstruct from the lesson. Require an explanation, correct prediction, failure diagnosis, and alternative comparison without notes. Record understanding only from learner evidence.
+Give a short recap the learner can reconstruct, plus an observable check: explain the mechanism, derive the example result, predict or diagnose a failure, and compare an alternative. Keep readiness and comprehension separate. For interview-question pages, include the required concise spoken answer before the final questions.
 
 ## Questions and explained answers
 
-Use 3–5 expandable questions testing meaning, mechanism, example derivation, and failure. Every answer explains why.
+Include 3–5 reasoning questions, with each explained answer inside its own block. Leave no lesson content after this section.
 
 <details>
-<summary>1. Explain or predict using the worked scenario.</summary>
+<summary>1. A question about the fixed scenario, mechanism, choice, or failure.</summary>
 
-Answer with the exact result and causal reasoning.
+Explain the result and why it follows from what the lesson taught.
 
 </details>
 
-## Author review — remove instructions when authoring
-
-Before READY, review the actual teaching, not the headings: are prerequisites defined, acronym components taught, example results derived, assumptions bounded, misconceptions addressed, failure recovery explained, and code claims checked? Record the review separately from link/format checks. Add explanation or split scope wherever a newcomer would have to guess.
+<!-- Author checklist, not another published section: read the complete explanation as a newcomer. Can every result be derived, every term understood, every guarantee bounded, and every project claim checked? Review the teaching separately from links and formatting. Adapt or replace these suggested headings; do not fill uniform slots with compressed sentences. -->

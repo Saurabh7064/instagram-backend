@@ -4,21 +4,29 @@
 
 How do you keep slow or excessive API work from exhausting the server?
 
-[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Budget end-to-end deadlines, compare admission policies, define durable job states and cancellation, and limit retries and queue amplification.
+Explain what a timeout does and does not stop, follow a media job after 202, and work out how waiting and admission limits keep that promise realistic.
 
-Prerequisites: Lesson 13 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
+Builds on [response contracts](03-status-and-response-contracts.md), especially the difference between 201 and 202.
 
-## Must understand: problem and model
+## A timeout ends waiting, not necessarily the work
 
-Unlimited requests and long dependency waits consume finite capacity. A timeout bounds waiting; a rate limit bounds accepted work over time; an asynchronous job moves completion beyond the initial response. A service desk hands out a tracking receipt for long work; unlike the analogy, a server crash can lose an in-memory queue.
+Suppose processing an uploaded image takes 30 seconds. The phone waits 10 seconds, gives up, and offers Retry. The backend may still be processing the first attempt. Repeating it can start more work just when the system is already busy.
 
-## Spring Boot example
+A **timeout** limits how long a component waits. It does not prove that work somewhere else stopped or rolled back. For long processing, the server can instead save a record of the work and return its ID promptly. The client asks for the result later. That tracked work is an **asynchronous job**: completion happens after the initial response.
 
-Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
+For job 12, the initial response can be `202 Accepted` with state `QUEUED`. It means the server has accepted responsibility under the documented contract. It does not mean the image has finished, or that it will certainly succeed. A later status request must distinguish finished, failed, and still-running work.
+
+A service desk's tracking receipt captures the idea: you leave the work and return with the receipt to check it. The comparison stops when the server restarts. An in-memory task can vanish, so the promise needs a durable record and a way to recover unfinished work.
+
+We will keep that media job as the main example. Limits on incoming requests and a time budget for short synchronous stages support the same goal: accepting only work the system can realistically handle.
+
+## Return a receipt after durable acceptance
+
+The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle). The excerpt below is a design proposal unless identified as current code; omitted imports and collaborators still need implementation.
 
 ```java
 @PostMapping("/media-jobs")
@@ -31,17 +39,19 @@ ResponseEntity<JobView> submit(
 }
 ```
 
-### Walkthrough
+### Read the boundary in the code
 
-This proposed route returns 202 only after durable acceptance. JobView exposes an ID and state; a proposed GET status route must enforce ownership. acceptDurably needs persistent state and recoverable dispatch. A background thread alone is not durable. Give failed jobs an explicit terminal state and safe retry policy.
+`acceptDurably` is the important promise in this proposed handler: the job and a recoverable execution path must exist before the 202 response. `Location` points to a proposed status route that must check the caller owns the job. `JobView` reports the identity and current state rather than pretending the final image is ready.
 
-## Request trace: predict, act, observe, explain
+A background thread alone cannot fulfill this contract. If the process stops, there must still be enough stored information to find the accepted work and reach a documented success or failure state.
 
-Before following the trace, predict the status and final stored state. Then trace these transitions in order:
+## Follow job 12 beyond the initial response
 
-Upload processing takes 30 seconds. Submit -> persist job 12 -> 202 pending -> worker processes -> GET job 12 returns succeeded with media URL. If worker crashes, job remains visible and can resume under a lease/recovery policy. Excess traffic may receive 429 with a documented retry delay.
+A processing request arrives for authorized media that takes about 30 seconds to transform. The proposed acceptance service saves job 12 as queued and commits recoverable dispatch information. Only then does the controller return 202 with its status address. The client has a durable thing to ask about even if the connection ends.
 
-The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
+A worker claims the job, records running state, produces the output, and durably records success with its media reference. Polling job 12 can now report `SUCCEEDED`. Polling before completion must report queued or running; a GET must not launch a second attempt.
+
+If the worker crashes, a recovery policy has to find the abandoned job and decide whether to resume or retry it. Merely starting a background thread before returning 202 provides no such recovery. We will use a time-limited worker claim below to make that responsibility explicit.
 
 ## Separate admission, waiting, and completion
 
@@ -73,31 +83,31 @@ A lease is time-limited ownership used to recover abandoned jobs. Cancellation r
 
 GET a status resource must be read-only: polling should not itself launch another attempt. For F-030, keep binary upload separate from a processing request referencing authorized media. Use a durable outgoing dispatch record so a crash between job acceptance and broker publish cannot strand work silently.
 
-## Project mapping and practice
+## Apply this to the backend
 
-Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/controller/MediaController.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
+[MediaController](../../../../src/main/java/com/instagram/backend/controller/MediaController.java) currently accepts a multipart upload and returns a media response. It has no `/media-jobs` acceptance or polling route. The proposed processing lifecycle is additional work beyond storing the uploaded bytes.
 
-**Practice task:** For F-030 design durable job states, a queue limit, ownership-checked polling, timeout budget, and recovery after a worker restart.
-
-Keep this a design exercise until a feature change is explicitly undertaken. An implementation must follow the repository integration-test, API verification, documentation, and commit workflow.
+For F-030, draft job states, owner-checked polling, a queue cap, a waiting budget, and restart recovery. State what happens if acceptance succeeds but dispatch or processing fails; “the thread will run later” is not a recovery plan.
 
 ## Useful later: choices and costs
 
 Keep short predictable work synchronous. Use jobs for long processing when clients can handle polling and delayed results. A full queue needs admission control; 202 is not permission to accept unbounded work. Timeouts do not prove remote work stopped, so retries of writes need deduplication. Return 503 for unavailable service capacity rather than blaming one caller indiscriminately.
 
-## Controlled failure drill
+## Restart just after accepting job 12
 
-Predict a worker crash after returning 202 with only an in-memory task. Job vanishes. Detect stuck-job age and recovery tests, contain new submissions, recover from durable records, prevent with persistent dispatch, bounded queues, and monitored terminal states.
+Before a future failure test, predict what remains after 202 if job 12 exists only as a task in memory. Restarting the process removes the task; the caller holds a receipt for work the backend can no longer find or finish.
 
-Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
+Detect this with a restart test, missing/stuck job counts, and age since acceptance. Contain new acceptance while the execution path is unreliable. Recovery must use durable job/dispatch information to resume or explicitly fail accepted work; if no such record exists, recovery may require reconciliation with the caller rather than an invented success. Prevent recurrence by saving acceptance and recoverable dispatch before 202, bounding queues, and verifying every accepted job can reach a documented outcome after a worker crash.
 
 ## Interview-ready answer
 
 I separate request admission, waiting time, and asynchronous completion. I allocate dependency and retry time from one end-to-end budget, because independent timeouts can exceed the user’s deadline. Rate limits bound admitted work; queue caps and load shedding handle overload. For long processing I accept only durably recorded work, expose an authorized job status, and define terminal failure, retry, cancellation, and retention. A timeout does not prove a remote write stopped, and 202 does not guarantee success. In the media pipeline I would test worker crashes, duplicate dispatch, stuck jobs, full queues, and failed cleanup while measuring resource recovery, not just initial acceptance.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Proceed only after explaining the request trace without notes, predicting the failure, and answering all three checks below before opening their answers. Record the attempt in [learner progress](learner-progress.md). Artifact readiness does not establish comprehension or implementation readiness.
+Explain what has to survive a restart after 202 for job 12. Continue when you can distinguish stopped waiting from stopped work and account for acceptance, bounded execution, failure, and recovery.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

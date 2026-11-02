@@ -6,47 +6,47 @@ Your team adds a second Spring Boot pod. An image uploaded through one pod inter
 
 **“How would you scale a stateless Spring Boot API horizontally and route traffic safely?”**
 
-## Why this problem exists
 
-Horizontal scaling works safely only when any healthy instance can handle the next request. Required state kept in one process or on one pod’s disk makes load balancing expose inconsistent behavior instead of resilience.
+## Follow the photo through two application copies
 
-## Analogy: interchangeable service counters
+With one Spring Boot application, an upload can save `/uploads/abc.jpg` on its own disk and read it back later. Now run two copies, A and B, to share traffic. A receives the upload. The next image request reaches B. B looks on its own disk, finds no file, and returns `404`.
 
-A customer can use any bank counter because every teller shares the account system. More counters increase capacity. The analogy stops because application replicas can overload shared dependencies and require automated health checks and traffic draining.
+The routing worked: B was running and received the request. The problem is that the file belongs to A alone. Adding application copies is **horizontal scaling**. It helps only if those copies can handle the requests we send them.
 
-## Terms to establish
+A **load balancer** chooses an application copy for each incoming request. It has no reason to know that this particular photo exists only on A. We need to arrange the data so either healthy copy can finish the request.
 
-- **Horizontal scaling** adds instances rather than making one instance larger.
-- A **load balancer** selects a healthy instance for each request.
-- A **stateless service** keeps no required request-to-request state only inside one instance.
-- **Readiness** indicates whether an instance should receive traffic now.
+## What must be shared, and what can stay local?
 
-## What I would do
+Keep durable post records in shared PostgreSQL and put photos in durable storage accessible to both copies, such as object storage. The database can store the object's key. A and B can then return or authorize access to the same object, regardless of which one received the upload.
 
-1. Put replicas behind an L7 load balancer and route only to ready instances.
-2. Keep business data in shared PostgreSQL, media in object storage, and identity in verifiable tokens or a shared session store.
-3. Drain before shutdown and scale from concurrency or latency only when dependencies have headroom.
+This is the relevant meaning of a **stateless service**: a later request does not depend on information held only by the particular application copy that handled an earlier one. The application still uses state; that state has an owner outside one disposable copy. Temporary local caches are possible if losing them does not lose required data or correctness.
 
-## Concrete walkthrough
+Think of bank counters whose tellers consult the same account records. Any teller can serve the next customer. The analogy has a limit: software copies also need automated traffic controls and can collectively overload the shared database.
 
-1. An upload reaches pod A, which writes `/uploads/abc.jpg` locally.
-2. A later image request reaches pod B, which lacks the file and returns `404`.
-3. Move media to object storage and persist its object key. Either pod can now serve a stable URL.
-4. Terminate pod A; readiness removes it, requests drain, and pod B continues serving traffic.
+## A running copy may still need to stop receiving requests
 
-## Instagram-backend mapping
+Before shutting A down, first stop routing new requests to it, let existing work finish within a limit, and only then terminate it. This is graceful draining. **Readiness** answers “should this copy receive traffic now?” Liveness answers whether its process needs restarting. They serve different purposes; a temporarily unavailable dependency should not automatically cause a restart loop.
+
+Finally, check PostgreSQL before adding more copies. Every copy can add connections and queries. More callers cannot create capacity inside an already overloaded database.
+
+## Where this appears in our backend
 
 [TokenService.java](../../../../../src/main/java/com/instagram/backend/service/TokenService.java) lets replicas authenticate independently when they share a signing key. JPA data is in PostgreSQL. [MediaStorageService.java](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java) writes instance-local files, the concrete blocker. [application.properties](../../../../../src/main/resources/application.properties) enables liveness and readiness probes. Replicas, load balancing, shared object storage, graceful draining, and autoscaling are proposed, not implemented.
 
-## Choices and trade-offs
+## Choosing the approach and paying its costs
 
 - Add replicas for application concurrency or availability, not when PostgreSQL is already saturated.
 - Shared storage permits failover but adds network dependency and cost.
 - Sticky sessions can contain an incident, but create imbalance and weak failover.
 
-## Failure drill
 
-**Prediction:** local media makes failures correlate with the selected pod. **Symptom and detection:** the same URL alternates between `200` and `404`, grouped logs show failures only on instances without the file. **Containment:** drain affected replicas or temporarily pin traffic while preserving availability. **Recovery:** copy media to shared durable storage, update references safely, and re-enable balanced routing. **Prevention:** prohibit required instance-local state and test pod rescheduling, rolling deployment, and scale-out behavior.
+## Paper drill: the same URL alternates between success and failure
+
+Predict which log field would distinguish a missing photo from a broken URL. Then compare requests for `/uploads/abc.jpg` by application instance. If A returns `200` and B returns `404`, inspect which disk contains the file.
+
+Temporarily route affected requests to the copy that has the media, where that preserves availability, and protect its capacity. This contains the incident but leaves a dependence on that copy. Recover by copying the files to shared durable storage, verifying the copies, and changing references safely before restoring balanced traffic.
+
+The follow-up test is concrete: upload a photo, remove the receiving copy from service, and fetch the same photo through another copy. Also check startup, draining and rolling replacement. A successful request before scale-out would not have exposed this failure.
 
 ## Two-to-three-minute interview answer
 
@@ -56,9 +56,10 @@ I would keep replica configuration compatible, gracefully drain terminating pods
 
 I would verify failure behavior directly: upload media, kill the receiving pod, reschedule traffic, and confirm another replica can authenticate the request and retrieve the same file. I would also run rolling deployments and ensure readiness prevents startup or draining instances from receiving traffic.
 
-## Practice status
 
-The artifact is ready; comprehension is not implied. Practice by tracing one upload across two pods and explaining why sticky sessions only hide the underlying problem.
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`. Explain this scenario in your own words, predict the paper drill, and attempt the questions before opening their answers. Record learning only from your own explanation and predictions.
 
 ## Questions and explained answers
 

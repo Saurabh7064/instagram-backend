@@ -2,30 +2,27 @@
 
 [Module](./README.md) · [Previous: fenced ownership](./11-split-brain-and-locks.md) · [Next: sagas](./13-sagas.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: an atomic final outcome can require waiting for a durable decision after failure.
-- Prerequisite: a local transaction groups changes into a commit/rollback unit; a missing reply does not prove rollback.
-- Core terms: distributed transaction, coordinator, prepared state.
+Core study: 10–15 minutes. Prerequisite: a local transaction groups changes into a commit/rollback unit; a missing reply does not prove rollback.
 
-## Why two independent commits leave a gap — Must understand
+## One post needs two database changes — Must understand
 
-A proposed workflow writes post metadata in database A and reserves a media record in database B. The business requirement says either both changes commit or neither does. Committing A and then B is unsafe: if B rejects its change after A commits, the final state contains only half the required outcome.
+A proposed publish operation stores post 42's metadata in database A and reserves its media record in database B. The requirement is that both changes commit or neither does. If we commit A first and B then rejects the reservation, we have metadata without the required reservation. Reversing the order only moves the dangerous gap.
 
-A **distributed transaction** coordinates one atomic outcome across multiple participants. **Atomic** means the required changes belong to one all-commit or all-abort decision, not that all machines update at the exact same physical instant.
+A **distributed transaction** coordinates one outcome across participants. The desired **atomicity** is an all-commit or all-abort decision. It does not mean different machines physically update at exactly the same instant.
 
-A **coordinator** records and distributes the decision. Each participant must support the protocol and retain enough state to recover. An arbitrary file-write method or remote web request cannot be enlisted simply because an outer Java method has a transaction annotation.
+To close the gap, each database must be able to promise it is ready before anyone announces the final decision. A **coordinator** collects those promises and records the decision. The databases must support this protocol and preserve enough state to recover. An arbitrary HTTP call or file write does not acquire those capabilities from an outer Java transaction annotation.
 
-## Expand and explain 2PC
+## First make a promise, then follow the decision
 
-**2PC means Two-Phase Commit.** The phases separate “can everyone commit?” from “what is the final decision?”
+**Two-Phase Commit**, abbreviated **2PC**, separates two questions: “Can everyone commit?” and “What must everyone do?”
 
-**Phase 1 — prepare.** The coordinator asks every required participant to get ready. A participant performs its local checks and durably records enough work to finish later. Voting “yes” places it in **prepared state**: it has promised not to independently change its mind while awaiting the final decision. If it cannot prepare, it votes “no.” Locks or other resources may remain held.
+In **phase 1, prepare**, the coordinator asks every required participant to get ready. Each performs its local checks and durably retains enough work to finish later. A yes vote puts it in **prepared state**. It has promised to follow the eventual decision rather than changing its mind independently; locks or other resources may remain held. A participant unable to prepare votes no.
 
-**Phase 2 — decide and notify.** If all required participants voted yes, the coordinator durably records commit and sends that decision. Otherwise it records abort and tells prepared participants to roll back. Durable recording precedes reporting the final decision; a crashed coordinator must not recover a different answer.
+In **phase 2, decide and notify**, all yes votes permit the coordinator to durably record commit. Otherwise it records abort. It then tells participants to finish accordingly. Recording before announcing matters: a restart must recover the same decision rather than invent a different answer.
 
-This protocol supplies an atomic outcome across participating resources; it does not independently supply serializable isolation or make external readers on separate paths observe every participant simultaneously.
+The remaining difficulty is getting that recorded answer to everyone after a failure. A participant that has promised cannot safely replace a missing decision with its own guess. Follow what happens when the coordinator fails halfway through notification.
 
-## Fixed failure: the coordinator stops halfway through notification
+## A committed; B is still waiting. What happens next?
 
 Initial state: databases A/B contain no metadata/reservation for post 42. Coordinator C has no transaction decision. Both databases support prepare and recover their state durably.
 
@@ -42,11 +39,11 @@ Initial state: databases A/B contain no metadata/reservation for post 42. Coordi
 | During notification failure | Committed | Prepared | COMMIT |
 | After recovery | Committed | Committed | COMMIT |
 
-The temporary `committed/prepared` state is precisely why recovery matters. It is not permission to choose a mixed final outcome. Reads and locks still need the databases' isolation machinery; 2PC alone is not a universal visibility contract.
+2PC coordinates the final outcome; it does not independently provide serializable isolation or simultaneous visibility to readers on separate paths. The temporary `committed/prepared` state is precisely why recovery matters. It is not permission to choose a mixed final outcome. Reads and locks still need the databases' isolation machinery; 2PC alone is not a universal visibility contract.
 
 Why can B not time out and roll back at step 4? Its silence is compatible with a committed decision already delivered to A. Guessing abort would make the final outcome mixed. In classic 2PC, uncertainty can block B until a decision can be recovered. Availability is a cost of preserving the atomic outcome.
 
-## Analogy, limits, and choosing an alternative
+## When is holding a promise worth the cost?
 
 Two branches pack reserved goods and promise to follow one supervisor's final instruction. A branch that already promised cannot independently sell the reserved goods while the supervisor is unreachable. The analogy stops at crash-safe logs and database locks, which are essential parts of real recovery.
 
@@ -58,15 +55,17 @@ PostgreSQL documents [PREPARE TRANSACTION](https://www.postgresql.org/docs/curre
 
 [PostService.create](../../../../../src/main/java/com/instagram/backend/service/PostService.java) saves metadata in its configured database transaction. [MediaStorageService.store](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java) writes a file separately. A/B are a proposed two-database exercise. The current file method is not a 2PC participant, and no durable coordinator is implemented here.
 
-## Failure drill — paper exercise
+## B is blocked. Is guessing abort a safe escape? — paper exercise
 
-- **Predict:** at step 4, should B release its prepared work by guessing abort?
-- **Detect:** an old prepared transaction, blocked conflicting work, and a missing coordinator notification reveal the problem.
-- **Contain:** preserve the unresolved state and stop unsafe manual decisions. Escalate the blockage rather than inventing an outcome.
-- **Recover:** obtain the durable decision through the coordinator's recovery procedure, deliver commit, and verify both participants finish T42.
-- **Prevent:** monitor prepared age, retain coordinator records, and rehearse crashes before/after the decision record. A generic timeout is not an authoritative abort record.
+C has recorded commit and told A, then disappears before notifying B. Predict whether B may release its prepared work by timing out and rolling back.
 
-## Recap and stop/go
+An aged prepared transaction, blocked conflicting work, and the missing notification identify the blockage. Preserve B's unresolved state and escalate it rather than inventing a local outcome. Guessing abort could contradict A's completed commit.
+
+Use the coordinator's recovery procedure to obtain the durable decision, deliver commit to B, and verify both participants finish T42. Monitor prepared-transaction age and retain the coordinator records needed to resolve it. Rehearse crashes before and after decision recording; a generic timeout is not evidence of an authoritative abort decision.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Expand 2PC, explain why prepare is a durable promise, and walk through C's crash. Compare a local transaction, 2PC, and a saga in terms of outcome and recovery cost.
 

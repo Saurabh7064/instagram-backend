@@ -2,24 +2,25 @@
 
 [Module](./README.md) · [Next: range partitioning](./02-range-partitioning.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: distinguish splitting data from placing it on machines and making copies.
-- Prerequisites: a table contains rows; a database server stores them. No Cassandra knowledge assumed.
 - New core terms: partition, shard, replica.
 
-## Why one large table becomes a problem — Must understand
+Core study: 10–15 minutes. Prerequisites: a table contains rows; a database server stores them. No Cassandra knowledge assumed.
 
-Suppose we store user activity. A query asks for one user's recent events, but the database contains years of everyone's events. We want to skip irrelevant data, manage retention, and eventually spread work when one server cannot keep up. Those are related goals, but they are not the same operation.
+## Split the activity history, move it, or copy it? — Must understand
 
-A **partition** is a subdivision of a dataset according to a rule. The exact unit depends on the database: PostgreSQL can divide one logical table into child tables covering date ranges; Cassandra groups rows sharing an exact partition-key value. Do not assume the word names an identical storage object in both systems.
+We have five activity events. User 42 has 1001, 1002, and 1003 on October 25, then 1004 on October 26. User 84 has 2001 on October 25. Someone asks for user 42's recent activity. Later, we need to retire an old day. Eventually one database server may run out of capacity.
 
-A **shard** is a separately placed subset of data in a distributed design, commonly managed by a database server or server group. **Sharding** distributes subsets across those independent storage/processing boundaries. Products vary in terminology; always ask “what is divided, and where is it placed?”
+Those are three different problems. Grouping rows by day can help skip or remove old data. Putting different groups on different servers can spread work. Keeping another copy can help when a server fails. It is easy to say “partition the data” and accidentally assume we gained all three benefits.
 
-A **replica** is another maintained copy of data. Replication copies a subset; partitioning divides it. A replicated shard can have several copies of the same rows on different servers.
+A **partition** is a subdivision formed by a rule. For this first picture, put the four October 25 events in P25 and the one October 26 event in P26. If both live on server A, we have divided the table but still depend on the same server.
 
-## Start with the same five activity events
+Moving subsets across independent storage and processing boundaries is **sharding**; a placed subset is a **shard**. Keeping another maintained copy is **replication**, and the copy is a **replica**. Copying P25 creates another representation of its four events, not four new activities.
 
-All lessons use the [fixed activity dataset](./README.md#fixed-activity-dataset). User 42 has activity IDs 1001,1002,1003 on October 25 and 1004 on October 26. User 84 has activity 2001 on October 25. Dates and displayed times use Coordinated Universal Time (UTC).
+The terms describe roles rather than identical objects in every product. PostgreSQL can create child tables for date ranges. Cassandra can group rows with one exact partition-key value. We will learn those mechanisms separately; first keep subdivision, placement, and copying distinct.
+
+## Watch what each design actually changes
+
+Follow those same five events through four designs. The [module dataset](./README.md#fixed-activity-dataset) fixes their values for later lessons; all displayed dates and times use Coordinated Universal Time (UTC).
 
 1. Put October 25 in partition P25: it has four rows, IDs 1001,1002,1003,2001. Put October 26 in P26: it has one row, 1004.
 2. Store both child partitions on database server A. We have split the table, but every request still shares A's CPU, storage, and failure boundary. CPU means the processor executing work.
@@ -35,27 +36,29 @@ All lessons use the [fixed activity dataset](./README.md#fixed-activity-dataset)
 
 More partitions on the same server do not automatically add server capacity. More replicas consume storage and can help recovery/read availability depending on the replication protocol, but do not automatically split one hot writer's work.
 
-## What a key contributes
+## Which row values choose the group?
 
 A **partition key** is the column or tuple of columns whose values determine a row's subdivision under the chosen rule. For a date-range PostgreSQL layout it might be `activity_date`. In a Cassandra table it might be the exact tuple `(user_id, activity_date)`. Both use keys, but one groups many values into a declared interval while the other groups exact tuple equality.
 
 Library shelves make a useful analogy: divide books into sections, place sections in separate branches, and duplicate popular titles. The analogy stops at automated routing and consistency; librarians are not a database's recovery protocol.
 
-## Choose the smallest needed boundary
+## Solve the actual limit before distributing the database
 
 Use local table partitioning for pruning or retention when one server still fits. Use sharding when distributing capacity or ownership justifies routing, cross-shard queries, rebalancing, and harder transactions. Prefer a suitable index before adding either if the real problem is locating a small set of rows. An **index** is an auxiliary structure used to find rows efficiently; it does not by itself distribute the table to new servers.
 
 [Post.java](../../../../../../src/main/java/com/instagram/backend/domain/Post.java) defines a relational `posts` table and [PostRepository](../../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) reads it. Neither file declares a shard map or activity partitions. All activity placement in this module is a learning design, not the current production layout. PostgreSQL's [partitioning overview](https://www.postgresql.org/docs/current/ddl-partitioning.html) describes its local table-subdivision model.
 
-## Failure drill — paper exercise
+## Lose server A while both date partitions live there — paper exercise
 
-- **Predict:** both P25/P26 are on A and A fails. Does having two partitions keep either available?
-- **Symptom:** both become unreachable through that server despite separate child names.
-- **Contain:** avoid treating logical subdivision as redundancy; fail operations honestly.
-- **Recover:** restore A or use a correctly maintained replica under its recovery protocol, then verify all five event identities.
-- **Prevent:** document placement and replication separately. Test server loss rather than inferring availability from partition count.
+P25 and P26 have different names but both reside on A. Predict which remains readable if A fails.
 
-## Recap and stop/go
+Both become unreachable through that server. The two logical subdivisions never supplied redundant hardware, so fail affected operations honestly rather than treating a partition count as an availability guarantee.
+
+Restore A or recover through a correctly maintained replica using its supported protocol, then verify all five event identities. Record placement separately from replication and test actual server loss. That evidence answers the availability question more directly than the number of child tables.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Draw the five events, split them 4/1, distribute the subsets, then add a copy. Explain what each step changes and why row identity counts do not increase with replication.
 

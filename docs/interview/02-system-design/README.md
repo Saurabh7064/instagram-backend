@@ -13,7 +13,9 @@ Use the project’s [system-design mastery roadmap](../../system-design/mastery-
 7. Use the [November–December 2024 Question Bank](./question-bank-nov-dec-2024.md) for historical prompts and answer frameworks.
 8. Record explanations, predictions, failure diagnoses, and spaced reviews in [Learner Progress](./learner-progress.md).
 
-The lesson format is: **why → analogy → plain-language model → concrete flow → project mapping → decision/trade-off → failure drill → questions → teach-back**. A lesson file being complete does not mean the learner understands it.
+Each lesson starts with something that can happen in a real system: a photo disappears after scaling, a retry creates a second post, or a fast feed returns old data. Follow that situation until the design decision makes sense. Technical names and precise limits belong beside the behavior they explain; the headings can follow the question the reader is asking.
+
+The detailed pages teach the reasoning. The interview answers help you express it, and the checkpoints let you test it. Keep learning evidence in the progress file; a revised or complete page does not demonstrate understanding.
 
 The revision format is deliberately shorter: **problem → requirements → scale → components → flow → data → three trade-offs → three failures → spoken answer → three unrevealed questions**. Every card is at most 400 words and links back to its detailed source.
 

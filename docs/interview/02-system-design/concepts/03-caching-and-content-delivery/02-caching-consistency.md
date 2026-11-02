@@ -1,43 +1,18 @@
 # Micro-Lesson 02 — Caching and Consistency
 
-- Status: `READY`; comprehension not yet demonstrated
-- Time: 15 minutes
-- Primary idea: caching speeds reads by creating another copy, which creates a freshness decision
-- New terms: cache hit, cache miss, stale data
-- Prerequisite: [Scalability, Availability, and Reliability](../09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md)
+Core study: 15 minutes. Prerequisite: [Scalability, Availability, and Reliability](../09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md).
 
-## Why does this exist?
+## The bio was saved. Why does the profile still show the old one? — Must understand
 
-Popular data may be read thousands of times but updated rarely. Repeating the same database work wastes capacity and increases latency. A cache keeps a faster copy closer to the application or user.
+User 42 changes their bio. PostgreSQL saves the new text and the app reports success. The next profile read shows the old text. The database may be entirely correct: the read can have come from another copy kept to avoid repeating database work.
 
-The difficulty is not putting data into a cache. The difficulty is deciding when that copy is no longer correct enough to serve.
+That faster reusable copy is a **cache**. It is useful when many readers request the same profile and changes are relatively rare. The design question is how long serving its old text remains acceptable after an update.
 
-## Analogy: a restaurant menu board
+Think of the profile as a restaurant's entrance menu board. It avoids a trip to the kitchen for every price, but someone must change the board when the authoritative list changes. The analogy stops at concurrent reads and writes: software needs explicit ordering and failure handling rather than trusting someone to notice the board is wrong.
 
-The kitchen owns the current price list. A menu board near the entrance is a fast copy customers can read without asking the kitchen.
+## Follow one profile read to the faster copy
 
-When the kitchen changes a price, the board can temporarily show the old price. You must choose whether to update the board immediately, tolerate a short delay, or force every customer to ask the kitchen.
-
-The analogy stops at concurrent writers, distributed eviction, network partitions, and caches that disappear on restart.
-
-## Plain-language model
-
-- **Cache hit:** the requested value exists in the cache and can be served.
-- **Cache miss:** it is absent, so the system asks the source of truth and may store the result.
-- **Stale data:** the cache contains an older value than the source of truth.
-
-## Predict before reading
-
-A profile is cached for five minutes. The user changes their bio, the database update succeeds, but the cache is not changed. What will the next profile read return?
-
-<details>
-<summary>Reveal the prediction</summary>
-
-It can return the old bio until the entry expires or is invalidated. The database is correct, but the faster copy is stale.
-
-</details>
-
-## Cache-aside read flow
+Use the key `profile:user:42`. If its stored value is present and valid under the cache policy, this is a **cache hit** and the application can return it. If it is absent, this is a **cache miss**: read PostgreSQL, save the result with an expiry, then return it. This application-managed lookup is called **cache-aside**.
 
 ```text
 Client → Profile service → Cache
@@ -45,36 +20,33 @@ Client → Profile service → Cache
                          └─ miss → Database → store in cache → return
 ```
 
-1. Build a cache key such as `profile:user:42`.
-2. Read from the cache.
-3. On a hit, return the cached value.
-4. On a miss, read PostgreSQL.
-5. Store the result with an expiration time.
-6. Return the result.
+PostgreSQL remains the **source of truth**, the authoritative place for the saved profile. Losing the cache should remove the faster copy rather than the only copy. It can still overload the database if all those previously cheap reads suddenly become misses, so correctness of storage and safety of fallback are separate concerns.
 
-The database remains the source of truth. Cache loss should make the system slower, not destroy the only copy of the data.
+## Follow the bio update back to the old copy
 
-## Update choices
+The cache contains **stale data** when it still holds a bio older than the authoritative saved bio. If we update only PostgreSQL and leave the cache alone, another hit can return that old text. What should happen to the copy?
 
-### Invalidate after the database write
+A straightforward policy is to commit the database write, then delete the cached entry. The next miss reloads the bio. That deletion is **invalidation**.
 
 ```text
 Update DB → delete cache entry → next read reloads it
 ```
 
-Simple and common. A small race can still serve stale data if a concurrent read repopulates an old value at the wrong moment.
+There is a race worth understanding. A reader may fetch the old bio from PostgreSQL before the update commits. The writer commits and deletes the cache entry. The earlier reader then stores its already fetched old bio, repopulating the entry after the deletion. “Write, then invalidate” is useful, but those steps alone do not prove that every concurrent read sees the new bio.
 
-### Write through
+Another policy routes writes through a cache abstraction that updates both places. This is **write-through**. Keeping entries warm can help reads, but the abstraction must define what happens if one write succeeds and the other fails; giving the operation a name does not make two remote writes atomic.
 
 ```text
 Update cache abstraction → cache abstraction updates DB and cache
 ```
 
-Keeps the cache populated but adds write-path latency and couples correctness to the cache layer's behavior.
+## Decide what the five-minute expiry actually promises
 
-### Accept bounded staleness
+A **time-to-live**, or **TTL**, limits how long an entry remains usable after it is populated under the expiry policy. A five-minute entry can therefore keep returning the old bio after a successful update unless another mechanism changes or invalidates it.
 
-Use a time-to-live (TTL) and tolerate old data briefly. Appropriate for product descriptions or public profile metadata; dangerous for payment state, authorization, or available inventory during checkout.
+That is not automatically a bound of five minutes *since the database update*. A delayed refill can populate an old value later, as in the race above. State the freshness requirement first, then choose expiry, invalidation, and version handling that can enforce it.
+
+A short stale public bio may be acceptable; stale authorization can expose data after access was revoked. Keep the policy attached to the operation rather than deciding that every value is safe to cache. Stronger freshness costs coordination, additional checks, or an unavailable read when that freshness cannot be established.
 
 ## Project mapping
 
@@ -82,7 +54,7 @@ Use a time-to-live (TTL) and tolerate old data briefly. Appropriate for product 
 
 Do not cache merely because these methods exist. First measure query load and define freshness. A viewer-specific feed response includes like state, so a shared cache key must include the viewer or separate shared post data from viewer-specific state.
 
-## Decision table
+## Which data can tolerate the same freshness policy?
 
 | Data | Cache? | Freshness choice |
 |---|---|---|
@@ -93,16 +65,30 @@ Do not cache merely because these methods exist. First measure query load and de
 | Authorization/consent | Only with strict invalidation | Short lifetime and fail-safe behavior |
 | Available inventory | Carefully | Reservation service remains authoritative |
 
-## Failure drill: cache stampede
+## Ten thousand readers miss the same profile — paper exercise
 
-A popular key expires. Ten thousand requests miss at nearly the same time and all query the database.
+The popular profile entry expires and ten thousand requests miss together. Predict how many database reads an unprotected cache-aside implementation could issue.
 
-1. **Prediction:** database traffic spikes instead of being protected by the cache.
-2. **Observable symptom:** miss rate, query latency, database CPU, and connection use rise together.
-3. **Recovery:** shed excess load, serve a stale value if safe, and allow only limited refresh work.
-4. **Mitigation:** request coalescing/single-flight, randomized TTLs, refresh-ahead, and bounded concurrency.
+Each reader can independently fetch the same value, creating a **cache stampede**. A simultaneous rise in misses, database query time, CPU, and connection use reveals it. Bound refresh concurrency, shed excess work, or serve a prior value only where the freshness contract permits it.
 
-## Interview questions
+One refresh serving the waiting callers is **request coalescing**, also called **single-flight**. Refreshing before expiry and spreading expiry times across keys can reduce sudden refresh demand, but callers still need bounded waiting and the database still needs protection if the cache is lost. Verify that the profile reloads and database load returns to safe levels; a restored cache is not evidence that every stale value met its contract.
+
+## Explain the old bio without calling it a lost write
+
+Explain caching as “a faster copy,” trace a hit and miss, then explain how a profile update can produce a stale read and how you would bound it.
+
+## Before moving on
+
+Artifact: `READY`; comprehension not yet demonstrated.
+
+Proceed only when you can:
+
+- trace hit, miss, update, and expiration paths;
+- explain why the database remains authoritative;
+- choose a freshness policy for profile, catalog, and payment data;
+- diagnose and mitigate a cache stampede.
+
+## Questions and explained answers
 
 <details>
 <summary>1. Why does adding a cache create a consistency problem?</summary>
@@ -121,7 +107,7 @@ With cache-aside, application code reads the cache and loads misses from the dat
 <details>
 <summary>3. Why is a TTL not a complete invalidation strategy?</summary>
 
-It bounds how long an entry can remain stale but does not make updates immediately visible. The acceptable TTL depends on business correctness, and mass expiration can create a stampede.
+It limits an entry's usable lifetime after population under its expiry policy, rather than automatically bounding staleness from a later database write. Concurrent delayed refills can repopulate an old value after invalidation. Immediate visibility requires a stronger protocol, and simultaneous expiration can create a stampede.
 
 </details>
 
@@ -131,16 +117,3 @@ It bounds how long an entry can remain stale but does not make updates immediate
 A cache can support browsing, but checkout must confirm or reserve against an authoritative inventory system. Otherwise two buyers can act on the same stale count. The design needs reservation, idempotency, and expiration—not only caching.
 
 </details>
-
-## Teach-back
-
-Explain caching as “a faster copy,” trace a hit and miss, then explain how a profile update can produce a stale read and how you would bound it.
-
-## Stop/go
-
-Proceed only when you can:
-
-- trace hit, miss, update, and expiration paths;
-- explain why the database remains authoritative;
-- choose a freshness policy for profile, catalog, and payment data;
-- diagnose and mitigate a cache stampede.

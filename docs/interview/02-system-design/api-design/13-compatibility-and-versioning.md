@@ -8,15 +8,21 @@ How do you evolve an API, select a versioning strategy, and retire an old contra
 
 ## What you will learn
 
-Classify structural and semantic breaking changes, compare four version-selection mechanisms, implement proposed Spring MVC version boundaries, and plan expansion, migration, retirement, and rollback.
+Spot a change that breaks an old caller, choose how old and new clients select their contracts, and walk a feed migration with a workable rollback.
 
-Prerequisites: [response contracts](03-status-and-response-contracts.md), [pagination](07-offset-pagination.md), and [caching](12-caching-and-privacy.md). Study in two passes: compatibility and version selection; implementation and rollout. Allow 15–20 minutes per pass plus the migration exercise.
+Builds on [response shapes](03-status-and-response-contracts.md), [pagination](07-offset-pagination.md), and [cache selection](12-caching-and-privacy.md).
 
-## Must understand: why a new deployment is not a new client
+## Your new server still has old clients
 
-An old mobile build may stay installed for months; two server releases can run during a rollout; a generated client may reject a field an ordinary JavaScript client ignores. Backward compatibility means the supported existing caller’s promised behavior still works. A breaking change invalidates one of those promises. Version selection identifies which contract the caller requests, not which Git commit or database schema is running.
+The current feed returns an array. An installed mobile build reads it with the equivalent of `response.map(...)`. You deploy a useful improvement: the feed now returns an object with `items`, `nextCursor`, and `hasNext`. The HTTP request still succeeds, but the old app cannot call `.map` on that object.
 
-The analogy is replacing a power socket while old plugs remain in homes. The analogy stops because API compatibility also includes business meanings, error behavior, authorization, ordering, and performance budgets rather than only shape.
+Both formats are reasonable. The problem is changing a promise while a supported caller still depends on it. **Backward compatibility** means the supported old caller's promised behavior continues to work. A **breaking change** violates one of those promises. The change can break meaning as well as shape: seconds in a field previously measured in milliseconds is still a number, but the client calculates the wrong time.
+
+We can offer both contracts while clients migrate. **Version selection** is how a caller asks for a particular public contract, perhaps through `/api/v2/feed`. It is not the server's Git commit or database version. Two server deployments can implement the same contract, and one deployment can support more than one contract.
+
+Think of changing power sockets while old plugs remain in people's homes. The comparison stops at behavior: APIs also promise permission rules, ordering, errors, and supported limits. A response that still fits the old JSON shape can violate those promises.
+
+Keep the array-to-envelope change as our running migration. We will first decide what breaks, then choose a boundary, and only then discuss retiring the old contract.
 
 ## Classify the change before inventing v2
 
@@ -120,9 +126,11 @@ The standardized Deprecation header reports deprecation timing; Sunset can commu
 
 Database schema expansion/contraction is a related but separate migration. New application contracts may share one model through adapters. Keeping two APIs does not require two databases; keeping two adapters does require tests so their meanings do not drift.
 
-## Controlled failure drill
+## Deploy the envelope where an array was promised
 
-Prediction: deploy an envelope at the existing array route. Symptom: an old consumer throws when it calls `.map` on an object, despite a 200 response. Detect with a saved old-client fixture before deployment and consumer error telemetry after. Containment: stop rollout and route users to the old contract. Recovery: restore the old response shape and confirm rendering with the old client. Prevention: parallel contract migration, consumer verification, stable default version, and a removal gate. Separately test lost version headers at a gateway and cache mixing between versions selected by headers.
+On paper, return the new feed object from the current array route while an old client still calls `.map`. Predict the failure: the request returns 200, but the client cannot use the response. A server health check can stay green throughout.
+
+Detect this before rollout with an old-client fixture and compare contract-version error rates during rollout. Contain a bad release by routing old requests back to their supported adapter. Recover the old array shape while retaining compatible storage, then migrate clients through the new boundary deliberately. Prevent recurrence by testing both contracts and reviewing rollout and rollback order. A provider rollback cannot recover fields or data that an incompatible storage change has already removed.
 
 ## Interview-ready answer
 
@@ -130,9 +138,11 @@ I first identify the supported consumers and their promises: request shape, resp
 
 In this backend I would keep the unversioned feed’s contract while adding a bounded new contract through a shared service and separate DTO adapters. I would deploy provider support first, migrate clients, measure usage, and retain old-consumer tests. Deprecation and retirement have separate dates and gates. Rollback must preserve compatible database state as well as routes. A version number is a support commitment, not a substitute for compatibility tests or a reason to create a version for every internal release.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Classify five changes, justify a version mechanism, trace an old and new client through mixed rollout, and diagnose the envelope failure without notes. Draft the F-016 migration and record evidence in [learner progress](learner-progress.md). SD-004 remains unmastered until demonstrated.
+Walk the array-to-envelope migration for an installed old client. Continue when you can justify a version selector, a rollout order, and a rollback that still has the data the old adapter needs.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

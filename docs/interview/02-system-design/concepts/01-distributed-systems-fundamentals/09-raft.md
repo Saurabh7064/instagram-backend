@@ -2,23 +2,21 @@
 
 [Module](./README.md) · [Previous: consensus and election](./08-consensus-and-election.md) · [Next: Paxos](./10-paxos.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes; election and read subtleties are Useful later.
-- Primary idea: distinguish storing a command, committing it, and applying it.
-- Prerequisites: consensus, majority, safe replacement of a leader, and durable protocol state.
-- Core terms: replicated log, term, commit.
+Core study: 10–15 minutes; election and read subtleties are Useful later. Prerequisites: consensus, majority, safe replacement of a leader, and durable protocol state.
 
-## Why one agreed value is not enough — Must understand
+## Saved on A, agreed by the group, visible in the app — Must understand
 
-An application needs a sequence of decisions, such as “set caption,” then “hide post.” Every copy must interpret those commands in the same accepted order. If one copy hides a post and another later replays an obsolete visibility command as newest, merely holding the same set of messages is insufficient.
+Post 42's caption is “Sunset.” A coordinates a change to “Evening” for three copies, A/B/C. When A writes that command into its own history, is it ready to tell the user the edit succeeded?
 
-**Raft is a protocol name, not an acronym with a full form.** It organizes consensus around a leader that replicates an ordered history. This is not an instruction to implement Raft in the Instagram service.
+One local save is too little: A could disappear before any other participant receives it. But the group also needs more than a pile of commands. Every copy must execute the accepted commands in the same order; “set caption,” then “hide post” cannot be arbitrarily rearranged.
 
-A **replicated log** is an ordered sequence of commands maintained across participants. Each entry has a position, called an index. A **term** is an increasing election generation used to distinguish leadership attempts. **Commit** means the protocol has made an entry part of the authoritative history; a copy merely storing it locally is weaker.
+**Raft** is a protocol for maintaining that agreed order through a leader. Its name is not an acronym. The ordered command history is a **replicated log**, and an entry's position is its **index**. An increasing election generation, called a **term**, distinguishes leadership attempts.
 
-**Applying** a committed entry means executing its command against the application's state. The distinction matters: an entry can be stored but not yet committed, or committed but not yet applied by a lagging follower.
+Keep three different moments separate. An entry is **stored** when a participant has saved it. It is **committed** when the protocol makes it part of authoritative history. It is **applied** when its command executes against application state. A follower can have stored an entry without knowing it is committed, or know it is committed while still catching up on application.
 
-## One entry, three stages
+Those stages answer our publishing question. A must establish commitment under the protocol and perform the application's required processing before it returns the corresponding completed result. Let us follow one entry through those stages.
+
+## Follow caption entry 5 through the three stages
 
 Fixed group: A/B/C, majority=2. Term=7, A is leader. All have the same committed history through index 4, whose last entry is from term 6. Index 5 is initially absent. Application caption for post 42 is “Sunset.” The next command is “set caption to Evening,” not a nondeterministic action such as reading the current local clock.
 
@@ -36,7 +34,7 @@ Fixed group: A/B/C, majority=2. Term=7, A is leader. All have the same committed
 
 The purpose of ordered application is deterministic state: the same starting state plus the same commands yields the same result. External effects still need duplicate protection; Raft does not magically turn replaying an email send into a safe operation.
 
-## How history survives a new leader — Useful later
+## Why an incomplete follower cannot simply take over — Useful later
 
 Each voter grants at most one vote per term and retains that choice across crashes. Two winning majorities in the same term would share a voter, which cannot grant both votes. Candidates also have to pass a log-history check: compare the last entry's term first; the larger last term is considered more up to date. If last terms match, compare the last index, with the larger index more up to date. A voter rejects a candidate whose history is less up to date than its own.
 
@@ -48,7 +46,7 @@ Raft directly commits entries by majority counting only when the counted entry i
 
 The ledger analogy is a chair distributing numbered instructions. An entry penciled into one ledger is different from an accepted group decision. The analogy stops where election generations and conflicting unfinished suffixes need algorithmic handling.
 
-## Limits and choice
+## What this overview leaves to a tested implementation
 
 Use a tested Raft-backed system for coordination or replicated metadata. It costs durable writes, network confirmation, and leadership management. Losing a majority prevents new commits even when one node is healthy. An obsolete leader's local data does not by itself justify a current read; safe read paths need evidence of current authority and sufficiently applied state.
 
@@ -58,15 +56,17 @@ Do not use this lesson's three-stage trace as an implementation recipe. Snapshot
 
 [PostService.create](../../../../../src/main/java/com/instagram/backend/service/PostService.java) has a database transaction commit but no Raft log. The shared word “commit” does not make these identical layers. A future database or coordination service might internally use Raft; verify that service's actual contract instead of assuming Spring runs the protocol.
 
-## Failure drill — paper exercise
+## Disconnect A before the second copy stores entry 5 — paper exercise
 
-- **Predict:** A loses B/C after step 1, before any second acknowledgment. May it report a committed change?
-- **Symptom:** one local entry exists, but the client cannot obtain a successful committed result. Later recovery may replace an uncommitted suffix.
-- **Contain:** do not apply uncommitted commands as authoritative or read from a stale leader without the required checks.
-- **Recover:** restore a quorum, establish a valid leader and history, then inspect the command's committed outcome before retrying its business effect.
-- **Prevent:** test crashes at append, commit, and apply boundaries separately. Include durable client-operation deduplication for uncertain retries.
+A has appended entry 5 locally, then loses B and C before a second acknowledgment. Predict whether it may report the caption change as committed.
 
-## Recap and stop/go
+The entry exists on A, but that is only the stored stage. A client cannot obtain a successful committed result from this evidence. A later valid history may replace the uncommitted suffix, so neither applying it as authoritative nor trusting an obsolete leader's read is safe.
+
+Restore a quorum, establish a valid leader and history, then inspect the command's committed outcome before repeating its business effect. Test failures around append, commit, and apply separately: each leaves different evidence. A durable client-operation identity is still needed for uncertain retries; an agreed log does not make every repeated application request a new or harmless operation.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Explain the three stages using index 5. Identify why A alone cannot commit, what the current-term condition adds, and why a follower's stored entry may not yet be visible in application state.
 

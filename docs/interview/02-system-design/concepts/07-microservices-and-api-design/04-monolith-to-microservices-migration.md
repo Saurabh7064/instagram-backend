@@ -1,62 +1,24 @@
 # Micro-Lesson 04 — Monolith-to-Microservices Migration
 
-- Status: `READY`; comprehension not yet demonstrated
-- Time: 20 minutes
-- Primary idea: replace one business capability at a time behind stable contracts instead of rewriting the whole system
-- New terms: domain boundary, strangler migration, anti-corruption layer
-- Prerequisite: [Scalability, Availability, and Reliability](../09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md)
+Core study: 20 minutes. Prerequisite: [Scalability, Availability, and Reliability](../09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md).
 
-## Why does this exist?
+## Move media work while people keep publishing — Must understand
 
-A legacy monolith may have tightly coupled modules, one shared database, slow deployments, obsolete frameworks, and little automated testing. A big-bang rewrite appears clean but asks a new system to reproduce years of hidden behavior before delivering value.
+Suppose media processing has become the painful part of our backend. We want it to scale or deploy independently, but people still need to upload photos and publish posts every day. Copying `MediaStorageService` into a new application is easy compared with deciding who owns existing files, what a failed upload means, and which path serves the next request.
 
-The migration problem is therefore not “How do I create services?” It is “How do I change ownership safely while users and developers continue operating the product?”
+A **monolith** is one deployable application containing several capabilities. A network service is a separately running participant reached through messages. Splitting the deployment changes failure boundaries; it does not automatically separate ownership or remove coupling. Ten services all freely updating the same tables still depend on each other's data decisions.
 
-## Analogy: renovating an occupied apartment building
+Think of renovating an occupied building. You isolate one section, discover the pipes it shares, move use gradually, and retain a safe route back. The analogy stops at data: sending traffic back does not automatically reverse writes already accepted by the new implementation.
 
-You do not demolish the building while residents are inside. You isolate one section, provide temporary routing, inspect hidden pipes, move residents safely, and keep a rollback route until the new section proves stable.
+## Choose a capability, then draw its ownership boundary
 
-The analogy stops at database transactions, duplicated events, API versioning, and software requests that can be mirrored to both implementations.
+Start by recording what publishing actually does: requests, scheduled work, file writes, database updates, and integrations. Add tests describing current behavior, even where that behavior is awkward; these are **characterization tests**. Request IDs, logs, metrics, and traces help compare the old and new paths rather than relying on a successful deployment alone.
 
-## Plain-language model
+A **domain boundary** groups behavior and data that change for the same business reason. Media storage/processing is a candidate here because its inputs, outputs, and ownership can be stated. That is a proposal, not proof that extraction is worthwhile. First compare the benefit with the simpler option of enforcing that boundary inside the current application.
 
-- A **domain boundary** groups behavior and data that change for the same business reason, such as catalog, order, or payment.
-- A **strangler migration** routes one capability at a time from the old system to a new implementation until the old path can be removed.
-- An **anti-corruption layer** translates between the legacy model and the new model so legacy concepts do not leak everywhere.
+Prefer a first capability with limited cross-boundary transactions, measurable pain, a clear owner, and failure behavior the product can tolerate. Correctness-sensitive settlement is usually a harder first experiment. If the team cannot say who writes each piece of state, extraction is premature.
 
-## Predict before reading
-
-A team extracts ten services at once from a pre-Java-6 Spring/Struts/JSP monolith, gives every service direct access to the original database, and switches all traffic on one release night. What risks remain even though the code is now deployed as services?
-
-<details>
-<summary>Reveal the prediction</summary>
-
-The shared database preserves tight coupling and unclear ownership. The simultaneous cutover creates a large blast radius, hidden legacy behavior may be missing, rollback becomes difficult, and network calls add new latency/failure modes. This is a distributed monolith, not safe decomposition.
-
-</details>
-
-## Step-by-step migration
-
-### 1. Establish safety before extraction
-
-- inventory user journeys, integrations, scheduled jobs, and database writes;
-- add characterization tests around current behavior, even when the behavior is imperfect;
-- add request IDs, logs, metrics, and traces;
-- identify rollback and data-recovery procedures.
-
-### 2. Find a first boundary
-
-Prefer a capability with:
-
-- clear inputs and outputs;
-- limited transaction coupling;
-- measurable value or pain;
-- a failure that can degrade safely;
-- a team able to own it.
-
-Media upload or read-only catalog search is usually safer than payment settlement as a first extraction.
-
-### 3. Put a stable entry point in front
+## Keep the client's entrance stable while the route changes
 
 ```text
 Client → Gateway/facade
@@ -64,50 +26,29 @@ Client → Gateway/facade
           └─ new service route
 ```
 
-The client contract stays stable while routing changes behind it. This enables gradual traffic movement and rollback.
+A **facade** is the stable entry point hiding which implementation handles the request. Route only the selected capability to the new path at first. This gradual replacement is a **strangler migration**: the old application keeps serving while one capability after another moves.
 
-### 4. Separate behavior before data
+Create an interface around the existing behavior before replacing it. If the new service must call the legacy path during transition, translate at a narrow boundary. That translator is an **anti-corruption layer**: it keeps old request shapes and data concepts from spreading through the new model. It is a bridge with a removal plan, not permanent permission for every service to depend on every legacy table.
 
-Create an interface around legacy behavior. The new service initially may call the legacy system through an anti-corruption adapter. Avoid giving new services permanent write access to shared tables.
+## Move the authority to write, not just the code that calls it
 
-### 5. Move data ownership deliberately
+Choose one authoritative writer for each business entity. During transition, build a new read view from its changes. An **outbox** records a pending change message in the same local transaction as the authoritative database update; a sender delivers it later. **Change data capture**, or **CDC**, is another approach that derives a change stream from the database's recorded changes. Both require recovery and duplicate handling; neither is a reason to let two services independently edit the same truth.
 
-Use one authoritative writer per business entity. During transition, publish changes with an outbox or change-data-capture flow to build a new read model. Avoid unconstrained dual writes because one write can succeed while the other fails.
+Two unconstrained writes leave a gap: the new store can succeed while the legacy update fails or merely loses its reply. Plan how existing data is copied, changes are caught up, and IDs/results are reconciled before switching the writer. Treat legacy shared-table access as a time-limited transition rather than the end state.
 
-### 6. Compare before switching
+## Compare a small amount of traffic before moving everyone
 
-- mirror safe read traffic;
-- compare old and new results;
-- run contract and integration tests;
-- send a small canary percentage to the new path;
-- measure errors, latency, and business outcomes.
+Mirror only safe reads, compare results, and run contract and integration checks. A **canary** sends a small fraction of real traffic through the new path while we watch errors, latency, and business outcomes. Do not mirror a publishing write into two live systems and accidentally create two effects.
 
-### 7. Cut over and remove the old path
+Increase traffic only while those outcomes agree with the intended contract. Keep routing rollback available, but check whether the old path can interpret new data before using it. Stop old writes, reconcile remaining differences, and remove the old implementation only after evidence shows its callers and background jobs have moved. The migration ends when obsolete ownership disappears, not when another service starts.
 
-Increase traffic gradually, retain a rollback window, stop old writes, reconcile data, and delete the legacy path only after evidence shows it is unused.
+## Coexistence needs compatible messages and one writer
 
-## Maintaining backward compatibility
+While both paths operate, clients must keep understanding responses. Prefer additive API changes, keep old fields/endpoints through a stated deprecation window, and translate at the boundary. Contract tests check whether known consumers still receive the behavior they use.
 
-### API compatibility
+Events need equally deliberate evolution: include a schema version, preserve existing field meanings, and allow new optional fields where consumers support them. Replays and repeated deliveries must be safe, so event consumers need operation identity and idempotent processing rather than assuming a message arrives once.
 
-- prefer additive changes;
-- keep old fields and endpoints during a deprecation window;
-- translate old request/response shapes at the boundary;
-- use consumer-driven contract tests for known clients.
-
-### Event compatibility
-
-- include schema versions;
-- make consumers tolerant of new optional fields;
-- do not change the meaning of an existing field silently;
-- support replay and idempotent consumption.
-
-### Database coexistence
-
-- one writer owns each entity;
-- replicate changes asynchronously for reads when possible;
-- reconcile counts and checksums;
-- never treat permanent shared-table access as service independence.
+For the data, keep one writer per entity and replicate changes for read views where suitable. Compare counts, identities, and checksums as appropriate; a matching row count alone can hide mismatched content. These checks tell us when it is safe to retire a path and when the new view still needs repair.
 
 ## Project mapping
 
@@ -117,7 +58,7 @@ A sensible learning extraction would be media processing/storage because it can 
 
 Do not split these classes into network services merely to claim microservices. First enforce module boundaries and data ownership inside the monolith.
 
-## How to minimize risk
+## Which evidence protects each part of the move?
 
 | Risk | Control |
 |---|---|
@@ -129,16 +70,31 @@ Do not split these classes into network services merely to claim microservices. 
 | Debugging across calls | Correlation IDs, logs, metrics, tracing |
 | Team confusion | Explicit service and data ownership |
 
-## Failure drill
+## The legacy call times out after the new path saved its work — paper exercise
 
-Scenario: the new order service writes its database, then synchronously calls the legacy monolith to update a shared customer record. The call times out, but the monolith may have completed the update.
+Stay with the proposed media extraction. The new service stores the upload, then asks the legacy application to record the media reference. The call times out. Predict whether another ordinary request is safe: the legacy save may have completed even though its reply did not arrive.
 
-1. **Prediction:** retrying blindly can apply the update twice, while not retrying can leave uncertainty.
-2. **Symptom:** order and customer views disagree; operators cannot tell whether the timed-out call committed.
-3. **Recovery:** use an idempotency key/status query, reconcile the entity, and avoid assuming timeout means failure.
-4. **Redesign:** one owner records the transaction and publishes a durable event through an outbox; consumers process idempotently.
+Compare the durable media identity with the legacy operation's status. Stop blind retries that could duplicate references, and avoid declaring the upload wholly failed just because the reply is missing. An idempotency key or status lookup can connect recovery to the original intended operation.
 
-## Interview questions
+Reconcile the reference, then redesign the handoff around one owner recording a durable change and delivering it through an outbox, with identity-aware consumers. This removes the unreliable assumption that two independent writes finish together; it still needs retries and repair. Test lost replies and replayed messages before expanding traffic. Routing rollback is useful only alongside a plan for the state already written.
+
+## Explain one complete move, including the way back
+
+Explain the apartment-renovation analogy, choose the first capability from this project to extract, and describe traffic routing, data ownership, validation, rollback, and final retirement.
+
+## Before moving on
+
+Artifact: `READY`; comprehension not yet demonstrated.
+
+Proceed only when you can:
+
+- distinguish modularization from service extraction;
+- choose and justify a first boundary;
+- explain coexistence without permanent shared-database ownership;
+- recover from the ambiguous timeout scenario;
+- name a condition where retaining the monolith is the better decision.
+
+## Questions and explained answers
 
 <details>
 <summary>1. How would you decompose a tightly coupled Java monolith?</summary>
@@ -150,7 +106,7 @@ Start with business capabilities and change patterns, not technical layers. Add 
 <details>
 <summary>2. How do you maintain functionality during migration?</summary>
 
-Keep the existing path as the control, preserve external contracts, mirror or canary traffic, compare outputs, use feature flags and routing rollback, and migrate one user journey at a time. Characterization and contract tests protect known behavior.
+Keep the existing path as the control, preserve external contracts, mirror safe reads or canary explicitly routed writes, compare outputs, use feature flags and routing rollback, and migrate one user journey at a time. Characterization and contract tests protect known behavior.
 
 </details>
 
@@ -174,17 +130,3 @@ Payment is correctness-sensitive, externally integrated, difficult to compensate
 Avoid the move when one team can deploy the modular monolith effectively, scaling needs are uniform, boundaries are unclear, operational maturity is low, or the expected benefit does not justify network, data consistency, deployment, and observability complexity.
 
 </details>
-
-## Teach-back
-
-Explain the apartment-renovation analogy, choose the first capability from this project to extract, and describe traffic routing, data ownership, validation, rollback, and final retirement.
-
-## Stop/go
-
-Proceed only when you can:
-
-- distinguish modularization from service extraction;
-- choose and justify a first boundary;
-- explain coexistence without permanent shared-database ownership;
-- recover from the ambiguous timeout scenario;
-- name a condition where retaining the monolith is the better decision.

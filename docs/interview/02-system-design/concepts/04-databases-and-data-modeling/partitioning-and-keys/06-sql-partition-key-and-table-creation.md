@@ -2,18 +2,21 @@
 
 [Module](./README.md) · [Previous: consistent hashing](./05-consistent-hashing.md) · [Next: Cassandra primary keys](./07-cassandra-primary-key-syntax.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: identity, lookup, and partition boundaries can use different columns.
-- Prerequisites: range bounds, child partitions, pruning; an index helps find rows inside a table.
 - New core terms: primary key, partition key, query plan. SQL means Structured Query Language.
 
-## Start with the operations — Must understand
+Core study: 10–15 minutes. Prerequisites: range bounds, child partitions, pruning; an index helps find rows inside a table.
 
-We need to read user 42's October 25 activity and retire old dates efficiently. A unique activity identifier tells us which event it is, but does not automatically group old dates together. A frequent user filter does not by itself tell us which time partition to retain or remove.
+## One query needs identity, date grouping, and a way to find the rows — Must understand
 
-A **primary key** is a non-null unique row identity enforced by a table constraint. A **partition key** supplies values used by the partitioning rule. An **index** is an access structure for locating matching rows. A **query plan** describes the database's chosen steps for executing a query. These roles can overlap, but are not synonyms.
+We want user 42's October 25 activity, newest first. Later we want to remove old days efficiently. The five-row dataset gives us two useful tests: user 84's event must stay out of user 42's result, and event 1004 at October 26 midnight must go into the next day's storage.
 
-## Derive the key choice
+Three jobs are involved. First, distinguish one event row from another. Second, choose the day group that owns it. Third, locate matching rows within the groups a query needs. A unique event number addresses only the first job; a date split does not automatically provide the third.
+
+A table's **primary key** is its enforced non-null unique row identity. Its **partition key** supplies values to the subdivision rule. An **index** is an access structure that helps locate matching rows. Those roles can use some of the same columns, but they promise different things.
+
+For this PostgreSQL exercise, use the date to choose child tables, a date/user/event tuple for identity, and a user/time index for the frequent read. We will derive each choice before reading the declaration. When we later inspect a **query plan**, we are looking at the database's selected execution steps, not another key.
+
+## Why these columns serve different jobs
 
 Our [fixed dataset](./README.md#fixed-activity-dataset) has five rows across two dates. Choose `activity_date` for range partitioning because date-window queries and lifecycle operations align with it. Choose `(activity_date,user_id,activity_id)` as this learning table's primary key. PostgreSQL requires a partitioned table's primary/unique constraint to include the partition-key columns, since child-local indexes alone cannot enforce an unconstrained uniqueness claim across all date children.
 
@@ -21,7 +24,7 @@ This primary key makes the tuple unique. It does **not** independently enforce t
 
 For the frequent user/time query, add an index on `(user_id,occurred_at DESC,activity_id ASC)`. It helps locate a user's recent rows within surviving children and distinguishes equal event times. It does not choose the date child. A small test table may still use a sequential scan because that is cheaper; a scan on the correct child is not evidence pruning failed.
 
-## Read the schema and insert in order
+## Create the routing rule, create one child, then insert
 
 The complete checked script is [postgresql-partitions.sql](./examples/postgresql-partitions.sql). It creates a separate learning schema inside a transaction and rolls it back.
 
@@ -51,7 +54,7 @@ INSERT INTO user_activity VALUES
 
 This insert targets the parent. The date selects the October 25 child; user 42 and activity 1002 identify the row within the constraint. `+00` states the zero-offset time explicitly. The declared column order matches the values; production code should normally name columns to avoid mistakes when schema order changes.
 
-## Trace the query and physical evidence
+## Derive the order and check where the rows live
 
 ```sql
 SELECT activity_id, activity_type, occurred_at
@@ -66,7 +69,7 @@ The script queries `tableoid::regclass`, PostgreSQL's physical table identifier 
 
 Official references: PostgreSQL's [partition declarations and constraints](https://www.postgresql.org/docs/current/ddl-partitioning.html) and [CREATE TABLE grammar](https://www.postgresql.org/docs/current/sql-createtable.html). SQL syntax is database-specific; do not generalize PostgreSQL's exact rules to every SQL product.
 
-## Comparison, analogy, and project mapping
+## When is this extra table management worthwhile?
 
 An archive uses calendar drawers, a receipt number, and a lookup card. Those are placement, identity, and retrieval respectively. The analogy stops where the database automatically routes writes and enforces constraints concurrently.
 
@@ -74,15 +77,17 @@ Use date partitions when pruning/retention justify maintenance. Keep an ordinary
 
 [Post.java](../../../../../../src/main/java/com/instagram/backend/domain/Post.java) currently uses an ID primary key and `createdAt`. [PostRepository](../../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) does not declare this activity table or a partition migration. The schema here is isolated learning material, not an application database change.
 
-## Failure drill — executed isolated SQL exercise
+## Recover the missing-child failure — existing isolated SQL exercise
 
-- **Predict:** only October 25 exists, then the script inserts 1004 at October 26 00:00. There is no matching child.
-- **Symptom:** a partition-bound check error is caught as the expected controlled failure; no row is inserted.
-- **Contain:** retain the failed event identity and correct timestamp instead of changing its date.
-- **Recover:** create the October 26 child, retry 1004, and verify counts 4/1 and its exact physical child.
-- **Prevent:** provision upcoming intervals, enforce the UTC-date rule, and validate routing during deployment. The script finally rolls back the schema and checks its absence; see [verification](./verification.md).
+In the recorded SQL exercise, only October 25 exists when the script attempts event 1004 at October 26 00:00. Before reading the recorded result, predict whether a matching child exists.
 
-## Recap and stop/go
+The expected partition-bound error is caught and no row is inserted. Keep the event identity and correct timestamp; changing its date would conceal the storage gap by creating incorrect data.
+
+The script creates the October 26 child, retries 1004, and verifies counts of 4/1 plus its physical child. It also rolls back the learning schema and checks its absence. See the [existing verification record](./verification.md) for that execution evidence. Upcoming intervals, the UTC-date check, and deployment routing checks help prevent recurrence. This editorial revision does not rerun the lab.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Explain the three key/index roles, walk through parent/child creation, and derive the ordered result. Distinguish executed PostgreSQL evidence from the later unexecuted Cassandra walkthrough.
 

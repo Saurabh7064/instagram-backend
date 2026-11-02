@@ -1,41 +1,32 @@
 # Micro-Lesson 08 — Backpressure and Load Shedding
 
-- Status: `READY`; comprehension not yet demonstrated
-- Time: 15 minutes
-- Primary idea: when demand exceeds sustainable capacity, deliberately limit accepted work so the system keeps a bounded, useful service
-- New terms: bounded queue, backpressure, load shedding
-- Prerequisite: [Latency, Throughput, and Saturation](../15-advanced-architecture-and-performance/06-latency-throughput-and-saturation.md)
+Core study: 15 minutes. Prerequisite: [Latency, Throughput, and Saturation](../15-advanced-architecture-and-performance/06-latency-throughput-and-saturation.md).
 
-## Why does this exist?
+## Two hundred requests arrive; only one hundred finish — Must understand
 
-Every service has a maximum sustainable rate. If requests arrive faster than they finish, excess work waits somewhere. An unlimited line does not create capacity; it converts overload into latency, memory use, timeouts, and wider failure. A resilient service limits active and waiting work, then handles the rest explicitly.
+The feed receives 200 requests each second while its constrained path can finish only 100. Suppose the waiting queue starts empty, these rates remain fixed for 30 seconds, and we ignore discrete arrival timing, retries, cancellations, and failures for the calculation. What happens if we simply keep accepting everything?
 
-## Analogy: a venue with a safe occupancy limit
+Each second adds `200 − 100 = 100` unfinished requests. After 30 seconds, arrivals total `200 × 30 = 6,000` and completions total `100 × 30 = 3,000`. The difference is **3,000 waiting requests** in this simplified model. The queue created waiting, not capacity.
 
-A venue admits only as many people as it can serve safely. A short line absorbs a brief rush. When both are full, staff stop admission and preserve space for critical visitors.
+If new arrivals now stop and service stays at 100 per second, draining that backlog takes `3,000 / 100 = 30` seconds. If 200 per second keep arriving, it never catches up under these assumptions. Real queues also have memory costs, caller deadlines, and retries that can make overload worse.
 
-The analogy stops matching because clients may retry automatically, one request can fan out, and rejected writes have correctness consequences. Outcomes and retries must be explicit.
+## Decide how much waiting is still useful
 
-## Plain-language model
+A short line can absorb a brief burst. A line that keeps growing turns a capacity shortfall into long latency and timeouts. A **bounded queue** sets a maximum number of waiting items and defines what happens when that space is full.
 
-- A **bounded queue** has a fixed maximum number of waiting items. Once full, it applies an explicit overflow policy instead of growing without limit.
-- **Backpressure** is a signal or control that makes upstream senders slow down when downstream capacity is full.
-- **Load shedding** deliberately rejects, delays, or disables lower-priority work to preserve critical service during overload.
+The bound does not make the 200/100 shortfall vanish. Once full, the service must cause arrivals to slow, reject some work, or reduce how much work each accepted request needs. The correct response depends on whether the caller can slow down and which work remains valuable after waiting.
 
-These controls do not add capacity. They bound latency and resource use while the system recovers.
+Think of a venue with limited safe occupancy and a short entrance line. Once both are full, admission stops. Software has a further complication: rejected clients can immediately retry and crowd the entrance again, so the response and retry contract are part of the control.
 
-## Predict before reading
+## Slow the sender, or decline work locally
 
-A feed service receives `200 requests/second` but can complete only `100 requests/second`. Its waiting queue is unlimited. What happens after 30 seconds if the rates do not change?
+**Backpressure** is a signal or control that makes upstream senders slow down when downstream capacity is full. It works only when the upstream side can and does respond to it. Sending a retry delay that clients ignore does not reduce arrivals.
 
-<details>
-<summary>Reveal the prediction</summary>
+**Load shedding** deliberately rejects or disables work to preserve useful service during overload. That can mean refusing excess feed requests or pausing optional enrichment. Merely moving everything into another unlimited queue postpones the same problem.
 
-The queue grows by `100 requests/second`, so about `3,000` requests wait after 30 seconds. Draining them takes at least another 30 seconds if new traffic stops. If traffic continues, the queue never catches up, and client retries can add more work.
+Choose the admission limit to protect the actual constrained dependency. A backend allowing far more concurrent queries than PostgreSQL can use safely has bounded the wrong resource at the wrong level. Reserve capacity for critical paths only when the product and dependency layout make that reservation effective.
 
-</details>
-
-## Concrete overload flow
+## Follow the next request after the line fills
 
 ```text
 Client
@@ -45,25 +36,19 @@ Client
       └─ no safe capacity   → reject or degrade clearly
 ```
 
-1. A traffic spike reaches the service.
-2. The service admits work only up to a measured safe maximum.
-3. A small queue absorbs a short burst.
-4. Once full, new work receives an explicit response instead of waiting for a timeout.
-5. Critical operations can receive reserved capacity while optional enrichment or background work is paused.
-6. Clients wait before a bounded retry.
-7. As active work completes, the queue drains and normal admission resumes.
+An arrival with available active capacity starts work. If only short waiting space remains, it waits within the permitted deadline. When neither exists, the service returns its explicit overload response or a defined reduced result rather than allowing an unbounded wait.
 
-The limit should protect the actual constrained dependency. A generous application limit does not help if PostgreSQL can safely run only a much smaller number of concurrent queries.
+Clients then need a delay and a bounded retry policy. As active requests finish, waiting requests move forward. Admission can reopen when capacity recovers. Adding instances helps only if their work can run in parallel and the shared dependency has headroom; otherwise they add more callers to the same bottleneck.
 
 ## Instagram-backend mapping
 
 The current [PostController.java](../../../../../src/main/java/com/instagram/backend/controller/PostController.java) accepts synchronous requests, while [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) performs database work. The feed reads all posts, so its cost grows with stored data.
 
-[application.properties](../../../../../src/main/resources/application.properties) configures latency buckets and database-aware readiness. [JourneyMetricsInterceptor.java](../../../../../src/main/java/com/instagram/backend/observability/JourneyMetricsInterceptor.java) records business outcomes. These detect overload but do not limit admission.
+[application.properties](../../../../../src/main/resources/application.properties) configures latency buckets and database-aware readiness. [JourneyMetricsInterceptor.java](../../../../../src/main/java/com/instagram/backend/observability/JourneyMetricsInterceptor.java) records business outcomes. These provide some evidence about latency and dependency readiness, but do not implement admission control. A shared-database overload also needs demand control: marking every dependent instance unready provides no alternative serving path, and database-aware probes can themselves compete for connections.
 
 A gateway limit, maximum active feed requests, cursor pagination, reserved authentication capacity, and an overload response are **proposed**. Any future media-processing queue should also be bounded.
 
-## Decision and trade-off
+## Choose the control the caller and product can support
 
 | Choice | Choose it when | Cost or limitation |
 |---|---|---|
@@ -74,21 +59,21 @@ A gateway limit, maximum active feed requests, cursor pagination, reserved authe
 
 Priority follows business correctness. Omitting recommendation enrichment may be safe; dropping an accepted payment is not. Acknowledge durable work only after it reaches storage that survives process failure.
 
-## Failure drill
+## Every rejected client immediately tries three more times — paper exercise
 
-**Scenario:** the service starts rejecting excess feed requests correctly, but every client retries immediately three times.
+The service rejects excess feed requests, but each client retries immediately three times. Predict whether the original 200-per-second user demand still describes the offered request rate.
 
-1. **Prediction:** one rejected request becomes several new requests, so overload persists or worsens.
-2. **Observable symptom:** request rate jumps above user demand, rejection count stays high, and accepted-request latency also increases.
-3. **Containment:** cap retry attempts, tell clients to wait, and temporarily disable nonessential feed enrichment.
-4. **Recovery:** allow active and queued work to drain, then reopen admission gradually while watching latency and saturation.
-5. **Prevention:** publish retry behavior in the contract, spread retry timing, test overload before release, and reserve capacity for critical operations.
+It does not: repeated attempts add requests without adding new user intent. A high rejection count, an offered rate above user demand, and rising accepted-request latency reveal the retry feedback loop. Cap attempts, tell callers how long to wait, spread retry timing, and pause optional enrichment where safe.
 
-## Teach-back
+Allow active and waiting work to drain, then reopen admission gradually while checking latency and saturation. Test this client behavior before release and document what an overload response means for whether work was accepted. Acknowledged durable work must not simply be dropped later; priorities and degraded responses must preserve the product's correctness contract.
+
+## Explain where the 3,000 waiting requests came from
 
 In 60–90 seconds, use the `200 in / 100 out` example to explain why an unlimited queue cannot solve overload, then describe what happens when the bounded queue fills.
 
-## Stop/go
+## Before moving on
+
+Artifact: `READY`; comprehension not yet demonstrated.
 
 Proceed only when you can:
 

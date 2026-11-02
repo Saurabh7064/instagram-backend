@@ -4,21 +4,29 @@
 
 How do you design errors that clients can handle safely?
 
-[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Define safe Problem Details and field-error extensions; map framework, domain, and persistence failures without misclassifying defects or exposing secrets.
+Design an error the app can act on and a person can understand, while keeping server diagnostics private. Explain why a database outage must not look like a bad form field.
 
-Prerequisites: Lesson 4 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
+Builds on [request validation](04-request-validation.md).
 
-## Must understand: problem and model
+## An error message has two readers
 
-Clients need to distinguish invalid fields from missing resources without parsing human prose. Problem Details is a standard JSON error shape; a stable application error code adds a domain-specific decision key. Think of a repair ticket with a category and explanation; unlike a human ticket, machines need stable categories even when wording changes.
+The app requests post 42 and receives “Post is unavailable.” Mira can understand that sentence. The app still needs to decide whether to show a missing-post screen, ask her to sign in, or offer a retry. Parsing the English sentence would make that decision depend on wording that might change.
 
-## Spring Boot example
+Give the two readers different parts of the response. The HTTP status gives the broad outcome; a stable application code such as `POST_NOT_FOUND` gives the app a documented decision key. A readable detail explains the problem to the person. Changing “unavailable” to “could not be found” should not break client logic.
 
-Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
+**Problem Details** is a standard shape for describing HTTP errors. You can use its status, title, and detail fields and add a safe application code. The value is consistency: a form, mobile screen, and monitoring tool do not each need to interpret a different error structure.
+
+A repair ticket is a helpful analogy. The category helps route it and the description helps a person understand it. The limit is that software needs stable, exact categories; it cannot infer that two differently worded messages mean the same thing.
+
+[Validation](04-request-validation.md) tells us why an input should fail. This lesson follows that failure across the API boundary without exposing internal diagnostics.
+
+## Map one known domain failure
+
+The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle). The excerpt below is a design proposal unless identified as current code; omitted imports and collaborators still need implementation.
 
 ```java
 @RestControllerAdvice
@@ -34,17 +42,19 @@ class ApiErrors {
 }
 ```
 
-### Walkthrough
+### Read the boundary in the code
 
-This proposed advice handles a proposed domain exception, not every exception. `forStatusAndDetail` supplies 404 and safe prose. The title is readable; code is stable for client branching. Framework validation exceptions need their own deliberate handling, typically through ResponseEntityExceptionHandler; never map all exceptions to 400.
+The proposed advice catches a specific proposed domain exception, `PostMissing`. It creates a 404 Problem Details object, adds a readable title, and supplies stable code `POST_NOT_FOUND`. The exception category is what makes that mapping justified.
 
-## Request trace: predict, act, observe, explain
+It deliberately does not catch every exception and call it missing or invalid. Framework parsing and validation failures need their own handling, often through `ResponseEntityExceptionHandler`; an unexpected storage failure must retain its server-failure classification.
 
-Before following the trace, predict the status and final stored state. Then trace these transitions in order:
+## Follow one missing-post response
 
-GET post 42 -> proposed service throws PostMissing -> advice returns 404 application/problem+json with status, title, detail, and code. Client chooses its missing-post screen from code, not from the English detail. An unexpected database failure must instead produce a sanitized 5xx and internal diagnostics.
+The client asks for post 42. The proposed query service finds it unavailable and throws the specific `PostMissing` exception. The advice maps that known situation to a 404 Problem Details body with code `POST_NOT_FOUND`. The app can show its missing-post state without comparing the English detail.
 
-The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
+Contrast that with a failure to reach the database while looking for the same post. The server has not established that the post is missing. Calling it `POST_NOT_FOUND` would hide the real failure and tell the user the wrong thing. Return a sanitized server error, and retain the diagnostic cause internally.
+
+A correlation ID lets support connect the safe public response to those internal diagnostics. It is a lookup aid, not permission to send stack traces or database messages to the client.
 
 ## An error is a protocol object
 
@@ -85,31 +95,31 @@ A proposed extension `errors: [{"field":"caption","code":"SIZE_MAX","limit":500}
 
 Use the returned correlation ID to find internal diagnostics. Log the cause once at the boundary responsible for diagnosis, preserve its stack internally, and redact tokens and PII. Error shape stability is part of compatibility, including code spelling and optional extensions. See [Problem Details](https://www.rfc-editor.org/rfc/rfc9457.html) and [Spring error handling](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-rest-exceptions.html).
 
-## Project mapping and practice
+## Apply this to the backend
 
-Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/service/PostService.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
+[PostService](../../../../src/main/java/com/instagram/backend/service/PostService.java) currently uses `ResponseStatusException` for missing posts and owner-only denials. The proposed `PostMissing` advice above is a possible evolution, not a claim that this backend already emits that error contract.
 
-**Practice task:** Propose safe error codes for F-017: invalid content, missing post, and permission denied, without exposing database names.
-
-Keep this a design exercise until a feature change is explicitly undertaken. An implementation must follow the repository integration-test, API verification, documentation, and commit workflow.
+For F-017, draft safe codes for invalid comment content, an unavailable target post, and denied deletion. Write one client action for each, then check that no response needs to expose table names, SQL, or an exception class.
 
 ## Useful later: choices and costs
 
 Choose a standard shape when multiple clients need predictable errors. A small custom DTO can work but needs equivalent documentation. Do not include stack traces, SQL, token values, or rejected secret fields. Field-level errors help forms, but only expose fields the caller is entitled to know.
 
-## Controlled failure drill
+## Make the database fail while reading post 42
 
-Predict returning a database exception message on duplicate registration. Internal table details leak. Detect sensitive strings in test responses, contain by suppressing raw exception text, recover with safe codes, prevent with negative response assertions and reviewed error mappings.
+On paper, assume the query fails before it can establish whether post 42 exists. Predict the public response: a sanitized server failure, not `POST_NOT_FOUND`, and no raw database message. Returning 404 would turn an inability to look up the post into a claim that it is absent.
 
-Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
+A future fault test should detect leaked SQL, exception classes, or wrong status/code combinations while retaining an internal correlation trail. Contain a faulty error handler by removing raw exception text and restoring the correct classification. Recover the dependency separately, then verify the same lookup returns its actual domain result. Prevent recurrence with deliberate known-failure mappings and a negative assertion that unexpected diagnostics never enter the public body.
 
 ## Interview-ready answer
 
 I use a stable machine-readable error contract and keep human detail separate from client branching. HTTP status and body status agree; problem type/code identifies the category; a safe correlation ID helps diagnosis. I map known domain and validation failures explicitly and leave unexpected faults as sanitized server failures. Controller advice does not automatically cover every filter rejection. I never expose SQL, stack traces, or rejected secret values. In this backend I would coordinate token/filter failures with domain advice and test malformed bodies, known conflicts, missing posts, and unexpected database outages. A friendly error response is not a substitute for transactional correctness: a rejected mutation must also leave the expected stored state.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Proceed only after explaining the request trace without notes, predicting the failure, and answering all three checks below before opening their answers. Record the attempt in [learner progress](learner-progress.md). Artifact readiness does not establish comprehension or implementation readiness.
+Explain why a missing post and an unavailable database need different classifications. Continue when you can design one safe public response and show where its detailed internal cause belongs.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

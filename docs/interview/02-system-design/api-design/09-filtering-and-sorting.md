@@ -4,21 +4,29 @@
 
 How do you expose search options without exposing the database?
 
-[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Specify filter combination, empty/unknown parameter policies, allowlisted sorting, wildcard handling, and bounded query cost.
+Define a small set of search choices, follow their order of application, and explain how the server retains control of permissions and query cost.
 
-Prerequisites: Lesson 8 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
+Builds on the ordered, bounded result from [cursor pagination](08-cursor-pagination.md).
 
-## Must understand: problem and model
+## Let callers choose results without writing your query
 
-Users need to select subsets and order results, but arbitrary query expressions can be expensive or unsafe. A filter selects matching records; a sort defines result order; an allowlist names accepted choices. A restaurant menu offers bounded options; unlike a menu, combinations can change database query cost dramatically.
+Mira wants to see her recent posts, newest first. A request such as `/api/posts?author=mira.frames&order=NEWEST` expresses that need without exposing a database column or SQL fragment. The server translates the supported choices into its own query.
 
-## Spring Boot example
+A **filter** decides which posts qualify. A **sort** decides their order. Those are separate decisions: selecting Mira's posts does not say whether the oldest or newest should appear first. We also need the page limit from the [pagination lessons](08-cursor-pagination.md), because a filter can still match many posts.
 
-Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
+It is tempting to accept any column name for sorting and any expression for filtering. That makes a short controller, but transfers control over query cost and internal fields to the caller. An **allowlist** is the opposite approach: publish a small set of supported choices and translate each one deliberately.
+
+A restaurant menu is a useful comparison: the customer chooses among options the kitchen has agreed to provide. The limit is cost. Two individually cheap filters can combine into an expensive database query, so listing supported options does not remove the need to inspect their plans.
+
+We will use one author's posts and one time boundary below. Extra options in the reference table are proposed extensions, not current endpoint behavior.
+
+## Expose named choices in the controller
+
+The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle). The excerpt below is a design proposal unless identified as current code; omitted imports and collaborators still need implementation.
 
 ```java
 enum PostOrder { NEWEST, OLDEST }
@@ -31,17 +39,19 @@ PostPage search(
 }
 ```
 
-### Walkthrough
+### Read the boundary in the code
 
-The enum limits accepted sort choices instead of accepting raw SQL. An absent author means the documented default scope, not permission to see private data. postQueries must also enforce pagination, authorization, and parameter binding. Unknown enum values should become a documented 400 response.
+`PostOrder` gives the caller two named choices. The service maps them to server-owned sort expressions, instead of accepting raw database syntax. If `order` cannot bind to the enum, it should produce the documented 400 error rather than a raw exception.
 
-## Request trace: predict, act, observe, explain
+An omitted author means the API's default selection, never “skip visibility checks.” The proposed query service still needs page bounds, permissions, and bound filter values; the controller signature alone supplies none of those guarantees.
 
-Before following the trace, predict the status and final stored state. Then trace these transitions in order:
+## Apply selection before taking the page
 
-GET /posts?author=mira.frames&order=NEWEST -> validate options -> bind author as data -> apply visibility scope -> order timestamp and ID -> bounded response. order=DROP_TABLE is not a recognized enum, so reject it before querying.
+Use three posts: 9 by Mira at `2026-10-17T10:00:00Z`, 8 by Lee at that same time, and 7 by Mira at `2026-10-16T10:00:00Z`. The caller asks for Mira's posts created after `2026-10-16T12:00:00Z`, newest first, limit 20.
 
-The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
+The author condition leaves `[9,7]`. The exclusive time condition removes 7, because 10:00 is before 12:00 on October 16. The selected result is therefore `[9]`; sorting and limit 20 keep that one post. Visibility must be part of this selection too.
+
+Taking 20 unrelated posts and only then filtering them in Java would answer a different question. It could return a short page despite more matching rows in the database. The query must select the authorized matching set before it takes the bounded window.
 
 ## Specify a query language small enough to operate
 
@@ -71,37 +81,37 @@ Sort sort = switch (order) {
 
 Proposed service fragment: each enum maps to server-owned entity property names. Bound query parameters protect values; they do not make arbitrary caller-supplied SQL column names safe. For text LIKE queries, escaping SQL injection is separate from escaping `%` and `_` wildcard semantics. Decide whether a user searching `100%` means the literal percentage sign or a wildcard.
 
-### Work through combined filtering
+### Keep the public choice separate from storage details
 
-Suppose posts are 9(mira,2026-10-17), 8(lee,2026-10-17), 7(mira,2026-10-16). For author=mira, createdAfter=2026-10-16T12:00:00Z, NEWEST, assume post 7 is at 10:00 that day. Filter by author -> [9,7]. Apply exclusive time boundary -> [9]. Sort -> [9]. Limit 20 -> [9]. Filtering after fetching 20 unrelated posts would produce incomplete pages and potentially false hasNext values.
+For the fixed request above, the service combines author, exclusive time, and visibility in one database selection before ordering and limiting. This means a new storage layout can preserve the same public request: callers ask for NEWEST, while the server owns what fields and query plan implement that choice.
 
 Public “contains anywhere” search may not use a normal B-tree index efficiently. Case-insensitive comparison, language normalization, relevance ordering, and full-text search need an explicit storage/query strategy. Start with exact-match contracts until the product needs more. Bound query length, repeated filters, page size, and expensive combinations; authorization remains a mandatory predicate for every plan.
 
-## Project mapping and practice
+## Apply this to the backend
 
-Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
+[PostRepository](../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) is the current feed query starting point. It does not support the author/time/tag language proposed here. Map future public choices to explicit repository predicates rather than exposing its Java property names directly.
 
-**Practice task:** For F-022 define supported search fields, matching rules, sort order, maximum query length, and a bounded result window.
-
-Keep this a design exercise until a feature change is explicitly undertaken. An implementation must follow the repository integration-test, API verification, documentation, and commit workflow.
+For F-022, choose the smallest useful search contract: supported fields, exact-versus-pattern matching, time boundary, order, query-length cap, and result cap. Explain which combinations will need query-plan verification before implementation.
 
 ## Useful later: choices and costs
 
 Explicit options keep contracts stable as table names change. Flexible query languages help complex internal tools but need cost controls, field permissions, and query planning. Case sensitivity, whitespace, empty filters, and repeated parameters need documented meanings. A missing filter must never bypass visibility rules.
 
-## Controlled failure drill
+## Let a sort option reach the query unchanged
 
-Predict passing a query expression as a raw ORDER BY fragment. Concatenation can allow injection or unindexed sorts. Detect malicious-input tests and slow-query metrics, contain by disabling arbitrary fields, recover with bound values and allowlisted expressions, prevent with review and query-budget tests.
+On paper, replace the admitted `NEWEST` choice with caller-supplied query text. Predict two possible failures: SQL assembled by concatenation can admit unintended syntax, and an otherwise valid but unsupported sort can force expensive work. Binding filter values does not justify accepting arbitrary identifiers or expressions.
 
-Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
+Detect the first with malicious-input rejection checks and the second with representative query plans and latency limits. Contain the public surface by removing arbitrary sort expressions. Restore the fixed choice-to-expression mapping and verify the existing author/time result remains `[9]`. Prevent recurrence by reviewing each new supported option's permissions and cost, rather than treating all accepted strings as equally safe.
 
 ## Interview-ready answer
 
 I publish a small intentional query language instead of exposing database expressions. I define exact matching, repeated-parameter semantics, filter combination, order and ties, limits, and unknown-field behavior. I parameterize values and map admitted sort choices to server-owned expressions. SQL injection protection is distinct from deciding whether percent or underscore is a wildcard. Filtering and permissions must happen before pagination. For the future search feature I would start with a bounded indexed use case, inspect representative plans, and introduce full-text or flexible query syntax only when its operational and compatibility costs are justified.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Proceed only after explaining the request trace without notes, predicting the failure, and answering all three checks below before opening their answers. Record the attempt in [learner progress](learner-progress.md). Artifact readiness does not establish comprehension or implementation readiness.
+Derive `[9]` from the fixed author/time request. Continue when you can explain filter-before-limit, the sort allowlist, and the difference between binding a value and admitting a query expression.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

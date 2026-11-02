@@ -6,53 +6,52 @@ Creating a post waits for feed updates, notifications, and analytics. Slow analy
 
 **“When should work be synchronous, queued, or published to multiple consumers?”**
 
-## Why this problem exists
 
-A request should wait only for work required to give a truthful result. Making every side effect synchronous couples user latency to every dependency; making everything asynchronous can return success before the authoritative write exists. The system needs a durable boundary between accepting a post and completing later work.
+## What does “your post was created” promise?
 
-## Analogy: a restaurant order
+A user submits a post. Before saying it exists, the backend must authenticate the caller, validate the request and durably save the post. The user does not need to wait for an analytics report about that post. If analytics takes four seconds, attaching it to the response makes an optional activity part of the publishing delay.
 
-The customer waits for the cashier to record an order, not for marketing reports. One kitchen ticket goes to one cook, while several teams may receive an “order completed” notice. Unlike paper tickets, software messages can be duplicated, delayed, or reordered, so consumers need explicit correctness rules.
+Work completed before the response is **synchronous**. Work completed later is **asynchronous**. The split follows the API promise: moving the authoritative save into an unreliable background task would make a successful response misleading.
 
-## Terms to establish
+A restaurant records an accepted order before giving the customer a receipt; marketing reports can happen later. Software needs a stronger handoff than a paper ticket, because a process can stop between recording the order and notifying the kitchen.
 
-- **Synchronous work** finishes before the caller receives a response.
-- A **queue** lets one worker in a group claim each item.
-- **Pub/sub** gives independent subscribers separate event copies.
-- A **transactional outbox** stores an event with its business change.
+## Close the gap between saving and announcing
 
-## What I would do
+In the proposed flow, one database transaction saves post 42 and an event record `PostCreated(eventId=e7, postId=42)`. That event record is a **transactional outbox**. If the transaction fails, neither record commits. If it succeeds and the process stops, the event remains available for a publisher to find.
 
-Authentication, validation, and the durable post write stay synchronous. Feed fanout, notifications, thumbnails, and analytics can usually be asynchronous, each with a freshness target.
+The API can now return `201 Created` for the saved post. A separate relay publishes `e7`. It may publish again after an uncertain acknowledgement, so consumers must recognize repeated event IDs. Durable publication makes recovery possible; it does not make every effect happen exactly once.
 
-I would commit the post and `PostCreated` outbox row together. A relay publishes it to separate feed, notification, and analytics subscriptions. Workers within one subscription form a consumer group. Events carry a stable ID, post ID, version, and time; consumers deduplicate, bound retries, monitor oldest-message age, and quarantine poison events.
+## Who needs a copy of the event?
 
-## Concrete walkthrough
+Feed preparation, notifications and analytics each need to hear that post 42 exists. **Publish/subscribe**, often shortened to pub/sub, gives these independent subscribers their own event stream or subscription. Analytics can fall behind without taking feed delivery's copy.
 
-1. The client submits a valid post.
-2. One transaction commits the post and outbox row.
-3. The API returns `201 Created`.
-4. The relay publishes `PostCreated(eventId=e7, postId=42)`.
-5. Feed, notification, and analytics each receive `e7`.
-6. One feed worker applies its subscription copy.
-7. Analytics may retry without delaying feed visibility or recreating the post.
+Inside feed delivery, several workers may share a **queue** so work is distributed among them. One worker's successful processing should satisfy that subscription's work item. Broker acknowledgement and redelivery details still require duplicate handling.
 
-## Instagram-backend mapping
+These are different relationships: independent capabilities each need the fact; workers doing the same capability share its work. Putting feed and analytics on one competing queue could cause one to receive an event the other also needed.
+
+Give later work an explicit freshness target, a bounded retry policy and a way to quarantine malformed events. Otherwise a faster create response can conceal a permanently unfinished workflow.
+
+## Where this appears in our backend
 
 **Implemented:** [PostController.java](../../../../../src/main/java/com/instagram/backend/controller/PostController.java) sends `POST /api/posts` to [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java), which authenticates and saves the authoritative post synchronously. The feed reads PostgreSQL through [PostRepository.java](../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java).
 
 **Proposed, not implemented:** there is no broker, outbox, relay, asynchronous feed, or notification subscriber. These are future scale-out components, not current behavior.
 
-## Choices and trade-offs
+## Choosing the approach and paying its costs
 
 - Use synchronous calls when the response requires the dependency’s answer, such as authorization; avoid them for optional side effects.
 - Use a queue when one successful worker should handle each item, such as image processing. It adds backlog and dead-letter operations.
 - Use pub/sub when independent capabilities need the same fact. It reduces producer coupling but multiplies storage, compatibility, and lag monitoring.
 - Keep direct database reads while they meet the SLO; a materialized feed improves isolation but introduces staleness.
 
-## Failure drill
 
-**Prediction:** one malformed event repeatedly crashes the feed consumer and blocks its partition. **Detection:** one partition’s oldest-message age rises while the same `eventId` fails. **Containment:** pause that partition or quarantine the event without deleting evidence. **Recovery:** fix the consumer, replay idempotently, and reconcile posts with feed entries. **Prevention:** validate schemas, bound retries, define dead-letter handling, and test poison events.
+## Paper drill: the same event keeps failing
+
+Predict the effect of a malformed `e7` that repeatedly crashes a feed worker before acknowledgement. Depending on the broker and ordering policy, it can prevent later work on that partition from progressing.
+
+Detect repeated failure of the same event ID together with increasing oldest-event age. Contain the damage by pausing the affected work or moving the event into a recorded quarantine under an explicit policy; preserve enough evidence to repair it.
+
+Fix the consumer or event handling, replay safely and compare feed entries against committed posts. Prevent recurrence with schema validation, bounded retries and an exercised repair path. An empty queue still needs a business-state check: a worker could have acknowledged an event without creating its intended result.
 
 ## Two-to-three-minute interview answer
 
@@ -62,9 +61,10 @@ I commit the post and a `PostCreated` outbox row in one transaction. A relay pub
 
 The benefit is lower request latency and failure isolation; the cost is eventual consistency and broker operations. This project currently writes posts and reads the feed synchronously. The outbox and consumers are proposed, and I would prove recovery by replaying an event and reconciling the derived feed with authoritative posts.
 
-## Practice status
 
-The artifact is `READY`; comprehension remains `TODO`. Practice requires explaining the durable handoff and diagnosing the failure drill without notes.
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`. Explain this scenario in your own words, predict the paper drill, and attempt the questions before opening their answers. Record learning only from your own explanation and predictions.
 
 ## Questions and explained answers
 

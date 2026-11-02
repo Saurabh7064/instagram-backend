@@ -4,18 +4,15 @@
 
 > [One-page revision card](../../revision-cards/microservices/04-distributed-transactions-and-data-consistency.md)
 
-## Why is this question important?
+## The stock was reserved. The payment failed. What now?
 
-Inside one application and one database, a transaction can make several changes succeed or fail together. In microservices, an order, inventory reservation, payment, and shipment normally belong to different services and different databases. No single local database transaction covers the complete business operation.
+Imagine checkout has reserved the last laptop for order `O-42`. Payment then declines the card. The order cannot be confirmed, but the inventory reservation is already real. Until something releases it, another shopper may be told the laptop is unavailable.
 
-The hard question is therefore not only, “How do I update four databases?” It is:
+Inside one database, a transaction can make related changes succeed or roll back together. Here, Order, Inventory, and Payment each own their state. Payment may even belong to an outside company. Wrapping the calling Java method in `@Transactional` cannot make those independently committed operations one local database transaction.
 
-- what state is allowed while the work is incomplete;
-- what happens when only some steps succeed;
-- how duplicate messages and retries are made safe;
-- how the system discovers and repairs inconsistencies that escape the normal flow.
+We need to decide what the system may show while the work is incomplete, how it moves forward or repairs partial progress, and how it discovers work that got stuck. Choosing a pattern comes after those decisions.
 
-## Analogy: booking a vacation through separate companies
+## Think of booking with companies that cannot share an undo button
 
 Imagine booking a flight, hotel, and rental car. The companies do not share one cash register or one undo button.
 
@@ -27,30 +24,21 @@ That cancellation is a **compensating action**. It is a new business operation; 
 
 The analogy has limits. Software messages can be duplicated, arrive late or out of order, and be processed after a caller times out. Some real-world effects—an email already read, a package already shipped, or money already settled—cannot be perfectly undone.
 
-## Plain-language model
+## Each owner can commit its part; nobody has one undo button
 
-- A **local transaction** atomically changes data owned by one service. For example, Order Service can write an order and its outbox row in one database transaction.
-- A **distributed transaction** is one business operation whose state changes span multiple independently owned resources or services.
-- **Eventual consistency** means temporary disagreement is allowed, but the system has a defined path that eventually reaches a valid state.
-- A **Saga** divides the business operation into local transactions. Each successful step triggers the next step, and a later failure triggers compensating actions for earlier steps.
-- **Idempotency** means processing the same logical command more than once has the same externally visible result as processing it once.
-- **Reconciliation** is a later comparison against business invariants or an authoritative source so missed or stuck work can be detected and repaired.
+A **local transaction** changes one service's database atomically: either all its included changes commit or none do. Order Service can save `O-42` and an outgoing event record this way. It cannot use that same local commit to control Inventory's database or the payment provider.
 
-Eventual consistency does **not** mean “hope the data becomes correct.” It requires explicit intermediate states, durable progress, safe retry behavior, and repair procedures.
+A **distributed transaction** is a business operation whose changes span those separately owned resources. To handle checkout, we can divide it into local steps and persist which step has completed. If a later step definitely fails, send a new business action to repair an earlier one—for example, release the stock reservation. A workflow built this way is called a **Saga**.
 
-## Start with a business invariant
+Other users may see the reserved stock while payment is still pending. We deliberately allow that temporary disagreement between completed business stages. This is **eventual consistency** only if the design includes a path to a valid end state: confirmation, cancellation, or an explicit unresolved case requiring review. It does not mean that the databases become correct on their own.
 
-Before choosing a pattern, state what must never become false.
+Two supporting ideas matter throughout the example. **Idempotency** makes repeating one logical command produce one intended effect, so a retried release does not release twice. **Reconciliation** compares authoritative records later to find and repair progress the normal workflow missed. We will see why both are needed when the payment response disappears.
 
-For checkout, useful invariants include:
+## What must be true before we call the order confirmed?
 
-- one idempotency key creates at most one order;
-- confirmed quantity must not exceed reserved inventory;
-- a confirmed order has one successful payment authorization;
-- an order cannot be both `CONFIRMED` and `CANCELLED`;
-- every order stuck in `PENDING` is eventually completed, compensated, or sent for manual review.
+For `O-42`, confirmation must mean that inventory is reserved and one payment authorization succeeded. The order must not be both confirmed and cancelled, and another delivery of the same checkout request must not create another order. These rules are the business **invariants**: conditions the workflow must preserve.
 
-The status model makes partial progress visible:
+Now name the temporary states instead of hiding them. `PENDING` means the process has started but confirmation requirements are not yet satisfied. `CANCELLING` means a repair action still needs to finish. `REVIEW_REQUIRED` means the system cannot safely infer the next action.
 
 ```text
 PENDING
@@ -61,9 +49,9 @@ PENDING
                          unexpected outcome ─> REVIEW_REQUIRED
 ```
 
-`PENDING` is not corrupt data. It is a valid, temporary business state with a deadline and a recovery path.
+A pending order is not automatically corrupt. It is a valid intermediate state, provided it has a deadline, durable progress, and a recovery owner. The broken design is a pending order nobody can explain or resolve.
 
-## Concrete e-commerce Saga
+## Follow order O-42 through success and decline
 
 Assume Order, Inventory, and Payment each own a database.
 
@@ -101,7 +89,7 @@ Failure flow when payment is declined:
 
 This is not global all-or-nothing isolation. Another shopper may temporarily see less available inventory while `O-42` is pending. The reservation and expiry rules make that temporary state intentional.
 
-## Saga coordination choices
+## Who decides which checkout step runs next?
 
 ### Choreography: services react to events
 
@@ -145,7 +133,7 @@ Use orchestration when the workflow has several steps, branches, timeouts, or ma
 | Best fit | Small, simple reaction chains | Multi-step workflows and compensations |
 | Main failure risk | Invisible event web | Central coordinator bottleneck or “god” workflow |
 
-## The transactional outbox: avoid an unsafe dual write
+## Saving the order and announcing it must not split
 
 This code is unsafe:
 
@@ -163,14 +151,14 @@ Order database transaction
   ├── INSERT orders(id='O-42', status='PENDING')
   └── INSERT outbox(event_id='E-91', type='OrderCreated', payload=...)
                      |
-                     | committed rows read by relay / CDC
+                     | committed rows read by a publishing relay
                      v
                  Message broker
 ```
 
 If the transaction rolls back, neither record exists. If it commits, a relay can keep retrying publication. The relay may publish the same event more than once—for example, if it publishes successfully and crashes before marking the outbox row sent—so consumers must still be idempotent.
 
-## The inbox and idempotent consumers
+## Publishing safely still allows duplicate delivery
 
 An **inbox** records which message IDs a consumer has already handled. The inbox row and the consumer's business update must share one local transaction.
 
@@ -195,7 +183,7 @@ Important details:
 
 “Exactly once” is usually achieved at the business-effect level through durable deduplication and idempotency, not by assuming the network delivers a message exactly once.
 
-## Compensation is not database rollback
+## Releasing stock is a new action, not time travel
 
 A compensating action applies business meaning:
 
@@ -209,7 +197,7 @@ A compensating action applies business meaning:
 
 Every compensation must itself be retryable and idempotent. For irreversible or ambiguous effects, transition to `REVIEW_REQUIRED` instead of inventing a false automatic rollback.
 
-## Timeouts and ambiguous outcomes
+## What if payment succeeded but its answer disappeared?
 
 Suppose Payment Service processes the authorization, but its response is lost:
 
@@ -228,30 +216,13 @@ Safe recovery is:
 3. keep the order pending while the result is uncertain;
 4. escalate to reconciliation or manual review after a defined deadline.
 
-## Reconciliation: the safety net
+## What if the normal workflow never finishes?
 
-Even well-designed message flows can suffer bugs, configuration errors, or long outages. A reconciliation job periodically searches for invariant violations:
+Suppose payment's records show that `O-42` was authorized, but Order still says `PENDING` ten minutes later. Retrying message delivery may resolve it; a bug or missing event may not. A periodic reconciliation process compares order, reservation, and provider state and asks whether the confirmation rules hold.
 
-```text
-Orders PENDING for more than 10 minutes
-             |
-             v
-Compare order, reservation, and payment status
-             |
-       +-----+------------------+
-       |                        |
-known safe action          ambiguous action
-retry / compensate         REVIEW_REQUIRED + alert
-```
+If payment succeeded and the reservation is still valid, the workflow may safely advance under its state-transition rules. If the order is cancelled but inventory remains reserved, it can retry the release. If payment is uncertain or inventory has already been given to someone else, it must not guess that confirmation is safe.
 
-Examples:
-
-- payment succeeded but the order is still pending;
-- inventory remains reserved for a cancelled order;
-- an outbox row has not been published by its deadline;
-- a consumer inbox shows receipt but no expected business state exists.
-
-Reconciliation needs metrics, an audit trail, bounded automated repair, and a human path for cases that cannot be safely inferred.
+Each repair needs an audit trail and the same duplicate protection as the ordinary workflow. Automate only actions the observed facts justify, bound their rate, and send ambiguous cases to `REVIEW_REQUIRED`. Monitoring the number and age of those cases gives an operator an actual queue of unresolved business work, rather than a vague alert that consistency is “eventual.”
 
 ## What about two-phase commit (2PC)?
 
@@ -289,11 +260,11 @@ The current application is a modular monolith, so [`PostService.create`](../../.
 
 Do not claim this is already implemented. It is a learning extension for the current [`PostController`](../../../../../src/main/java/com/instagram/backend/controller/PostController.java) and service boundaries.
 
-## Choosing the consistency mechanism
+## Choose the mechanism for the failure gap
 
 | Need | Prefer | Trade-off |
 |---|---|---|
-| Atomic changes inside one service database | Local ACID transaction | Does not span other owners |
+| Atomic changes inside one service database | Local transaction | Does not span other owners |
 | Multi-step business workflow | Saga | Intermediate states and compensation logic |
 | Reliable database-change publication | Transactional outbox | Relay, storage, duplicate delivery |
 | Safe event consumption | Inbox/deduplication + idempotent handler | Retention and key-management overhead |
@@ -311,7 +282,7 @@ Do not claim this is already implemented. It is a learning extension for the cur
 4. **Recover:** query/retry payment with the original idempotency key and inspect whether the conditional release already committed. If inventory was released, do not confirm against that missing reservation: cancel and void/refund the payment, or successfully reserve again before confirmation. Send an unsafe or ambiguous case to `REVIEW_REQUIRED`.
 5. **Prevent:** use persisted Saga state, outbox/inbox, stable operation IDs, version-checked state transitions, idempotent reserve/release commands, reservation expiry, alerts, and reconciliation.
 
-## Interview-ready answer
+## A 2–3 minute interview answer
 
 In microservices, I would avoid stretching one database transaction across independently owned services. I would first define business invariants—such as “one checkout key creates at most one order” and “a confirmed order has reserved inventory and one successful payment”—then define valid intermediate states such as `PENDING`, `CANCELLING`, and `REVIEW_REQUIRED`.
 
@@ -320,6 +291,8 @@ I would implement checkout as a Saga of local transactions. For a multi-step flo
 For a concrete failure, suppose payment authorizes the card but its response is lost. The timeout does not mean payment failed. The orchestrator keeps the order pending, queries or retries with the same key, and prevents fulfilment until it knows the result. If payment definitely declined, it sends an idempotent release-inventory compensation and cancels the order. If the outcome stays ambiguous, reconciliation compares order, reservation, and provider records and moves the case to manual review rather than guessing.
 
 The trade-off is that a Saga improves availability and service autonomy but exposes temporary states and requires compensation, deduplication, monitoring, and repair logic. Compensation is a new business action, not a true rollback; a refund cannot erase fees or history. I would use 2PC only inside a controlled group of compatible resources when strict atomicity is worth blocking, lock duration, and coupled availability. For most service and external-provider workflows, local transactions plus Saga, outbox/inbox, idempotency, and reconciliation are the safer operational choice.
+
+Before marking this answer practiced, explain `O-42` through payment decline and lost response without notes, including what other shoppers can observe. Predict the repair, then try the questions below before opening them. The described Saga is a design exercise, not an implemented project workflow.
 
 ## Questions and explained answers
 

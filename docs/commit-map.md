@@ -909,3 +909,11 @@ For every new feature or learning concept:
 ## Learning Studio project explorer — 2026-10-31
 
 - UI `f9a8eec`: [Feature 25](./features/25-learning-project-explorer.md). Concepts: recursive path trees, accessible disclosure controls, selected-document state. Build and nine browser tests passed; screenshot verified. UI push blocked by missing origin.
+
+
+## Readable system-design lessons — 2026-11-01
+
+- Artifact commit: pending.
+- Learning change: [Feature 26](./features/26-readable-system-design-lessons.md) revises 96 system-design lesson/entry documents, the author template and the saved writing preference. Concrete scenarios, causal explanations and topic-specific questions replace compressed checklist prose while preserving technical guarantees, project links and explained checkpoints.
+- Concept mapping: distributed failure/consistency, data placement, cache freshness, API contracts, safe retries/workflows, latency and overload, service boundaries, operational recovery and teaching prerequisites. Existing implementation and learner statuses remain unchanged.
+- Evidence: [semantic review and all document pointers](./interview/02-system-design/editorial-review.md), [browser/source/HTTP verification](./demo-proofs/2026-11-01/system-design-editorial-verification.txt), and [reviewed screenshot](./demo-proofs/2026-11-01/system-design-scaling-human-explanation.png). Documentation only; proposed designs are not claimed as executed labs.

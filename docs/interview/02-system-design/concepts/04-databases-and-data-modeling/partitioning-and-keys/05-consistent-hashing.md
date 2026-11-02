@@ -2,20 +2,23 @@
 
 [Module](./README.md) · [Previous: hotspots](./04-hotspots-and-hot-keys.md) · [Next: SQL keys](./06-sql-partition-key-and-table-creation.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: change ownership of a portion of a stable hash space instead of changing every key's divisor.
-- Prerequisites: deterministic hashing, modulo remapping, and why an unchanged hot key stays concentrated.
 - New core terms: token, token ring, virtual node.
 
-## What should happen when we add a server? — Must understand
+Core study: 10–15 minutes. Prerequisites: deterministic hashing, modulo remapping, and why an unchanged hot key stays concentrated.
 
-Directly computing `hash(key) % live_node_count` makes membership part of every routing calculation. As lesson 3 showed, adding a destination can move keys even when their original servers remain healthy. We want a stable hash space with an ownership rule that changes only selected ranges.
+## Adding D should not change every user's address — Must understand
 
-A **token** is a numeric position produced by hashing the complete partition key. A **token ring** treats the ordered token space as wrapping from its largest position back to its smallest. **Consistent hashing** assigns ownership using positions/ranges in this space so adding a member moves the affected ownership ranges rather than recomputing every key modulo a new count.
+Our modulo example changed destinations when we changed the divisor from three to four. A new server can help, but it would be useful to move only the data it will own rather than change every routing calculation's server count.
 
-The word “consistent” here describes placement under membership change. It is not the read-consistency promise from CAP and does not mean all replicas immediately show the same value.
+Keep a fixed numbered space instead. Give each key a position in that space, and give servers responsibility for intervals. When a server joins, transfer a selected interval to it. The key's position stays the same; the owner of that position changes.
 
-## Walk a tiny ring with real boundaries
+A hashed numeric position is a **token**. Treating the numbered space as wrapping from its end back to its beginning creates a **token ring**. **Consistent hashing** uses this arrangement to change selected ownership ranges as membership changes, instead of recomputing every key modulo the new member count.
+
+“Consistent” here concerns placement when servers join or leave. It does not make a promise that reads show the latest write. That is the separate consistency topic from CAP.
+
+We will reuse three user/day keys from the activity dataset on a deliberately tiny 0–99 ring. Drawing the new ownership is only the first step: data still has to move safely before requests can rely on it at the new owner.
+
+## Give D the interval (50,70] and follow each key
 
 Teaching ring: integer positions 0–99. These are **toy tokens**, not Cassandra Murmur3 outputs. Nodes have endpoints A=20, B=50, C=90. A node owns the interval after its predecessor through its own endpoint: `(previous,current]`. The right endpoint is included.
 
@@ -39,13 +42,13 @@ Now insert D=70. D takes `(50,70]` from C; C retains `(70,90]`.
 
 Only one of these three logical partitions moves. Its token did not change. This movement is placement, not splitting the contents of a logical partition. Data transfer and routing-metadata updates must still happen safely; drawing D on the ring does not copy its rows.
 
-## What virtual nodes add
+## Why one physical server may own several ring positions
 
 A **virtual node**, often shortened to vnode, is an ownership position/range assigned to a physical node. Giving each physical node several positions can spread ownership and let a new server take smaller pieces from multiple existing owners. It is not another process and does not create a new copy of each partition.
 
 The [Cassandra architecture documentation](https://cassandra.apache.org/doc/latest/cassandra/architecture/dynamo.html) describes token rings, ranges, and multiple tokens per physical node. Actual replica placement also observes configured topology; this single-owner ring deliberately isolates placement before lesson 10 adds copies.
 
-## Why this does not cure the hot key
+## Moving token 35 would move its traffic too
 
 Every request for `(42,Oct25)` still computes 35. It still routes to one logical partition's replica set, regardless of how often that request repeats. More balanced range ownership may improve many-key distribution, but it cannot divide that unchanged key across independent partitions. Even if 35 were moved, its load would move with it.
 
@@ -57,15 +60,17 @@ Use consistent hashing when incremental ownership changes and many distributed k
 
 [PostRepository](../../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) does not implement token ownership. A future Cassandra store would delegate it to Cassandra and its driver, not reimplement this 0–99 ring inside `PostService`. The exact production token type and replica policy must be checked against the selected configuration.
 
-## Failure drill — paper exercise
+## Advertise D before its rows arrive — paper exercise
 
-- **Predict:** D is advertised as owner of 65 before its data is available. Could a read appear to lose user 42's October 26 event?
-- **Symptom:** routing reaches D but event 1004 is absent; C may still have it.
-- **Contain:** use the database's supported membership/streaming transition, not a manual instantaneous map swap.
-- **Recover:** complete transfer and reconcile state; verify 1004 and the two unaffected keys before treating movement as complete.
-- **Prevent:** test reads/writes during ownership change and monitor transfer progress. Ring balance is neither data migration nor a hot-key guarantee.
+D becomes owner of token 65 before event 1004 has been transferred. Predict what a read directed to D might show.
 
-## Recap and stop/go
+The event can appear missing even while C still stores it. The new ownership map and the physical transfer are different stages. Use the database's supported streaming and membership transition rather than swapping a routing map instantly.
+
+Complete transfer, reconcile state, and verify 1004 plus the two unchanged keys before treating the move as finished. Test reads and writes during the transition and monitor transfer progress. Balanced ownership is useful, but it is neither proof of completed migration nor a cure for one repeated hot key.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Place tokens 35,65,80 before and after adding D. Explain why only `(50,70]` changes owner and why the unchanged hot key remains concentrated.
 

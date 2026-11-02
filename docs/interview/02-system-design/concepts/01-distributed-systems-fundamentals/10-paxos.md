@@ -2,20 +2,21 @@
 
 [Module](./README.md) · [Previous: Raft](./09-raft.md) · [Next: split brain and locks](./11-split-brain-and-locks.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: proposal numbers and promises prevent replacing a value that may already have been chosen.
-- Prerequisites: consensus, durable state, majority overlap; a proposal is a candidate decision.
-- Core terms: proposer, acceptor, ballot.
+Core study: 10–15 minutes. Prerequisites: consensus, durable state, majority overlap; a proposal is a candidate decision.
 
-## Why “let the new leader pick” is unsafe — Must understand
+## The old proposer vanished. Was X already chosen? — Must understand
 
-A coordinator stops responding after some participants accepted X. A replacement cannot necessarily know whether X reached enough participants to be chosen. Selecting a fresh Y from scratch risks contradicting a decision that already exists.
+A, B, and C are the three voters for one decision. A previous attempt got value X accepted on A and B, enough for a majority. Then its coordinator stopped before announcing success. A replacement can reach B and C. It wants to choose Y.
 
-**Paxos is a proper name, not an acronym.** Basic Paxos chooses one value for one decision instance. Repeating the mechanism can support an ordered history, but one instance alone is not a complete replicated database.
+The replacement did not see the old attempt finish, but that does not make X disappear. It needs a way to discover earlier acceptances and carry forward a value that might already be chosen. Otherwise a successful recovery could create a contradictory decision.
 
-A **proposer** tries to get a candidate value chosen. An **acceptor** retains protocol state and votes by accepting proposals under the rules. A **ballot** is a uniquely ordered proposal number; in this example 8 is newer than 7. Real implementations need a numbering scheme that avoids collisions between proposers. Learning the chosen result is another role, often performed by the same physical processes.
+**Paxos** supplies rules for that recovery. The name is not an acronym. Basic Paxos chooses one value for one decision instance; repeating instances can support a longer ordered history, but one instance is not a complete replicated database.
 
-## Understand promise versus acceptance
+The participant trying to choose a value is the **proposer**. The voters retaining the protocol's durable facts are **acceptors**. Proposals carry a uniquely ordered number, called a **ballot**. We will use 7 for the earlier attempt and 8 for the replacement. A real numbering scheme must prevent different proposers from issuing colliding ballot identities. Learning the chosen answer is another role, which can run in the same physical processes.
+
+Before walking the replacement through B/C, we need to distinguish the two facts an acceptor can record.
+
+## “I will ignore older attempts” differs from “I accepted X”
 
 A promise says “I will not accept proposals below this ballot.” An acceptance says “I have accepted this ballot and value.” Those are different durable facts. Acceptors also retain the highest accepted ballot/value needed for recovery; forgetting them after a restart destroys the safety assumptions.
 
@@ -26,7 +27,7 @@ There are two phases:
 
 If any report contains an accepted value, the proposer must use the value attached to the highest accepted ballot it received. If none do, it can propose a fresh value. “Highest” refers to the reported **accepted** ballot, not simply the newest promise number.
 
-## Derive preservation from a fixed example
+## B carries X into ballot 8
 
 Three acceptors: A/B/C; majority=2. There is one decision slot. Initially none has promised or accepted anything.
 
@@ -46,7 +47,7 @@ Why must X be carried forward? The old majority {A,B} and new prepare majority {
 
 The required rules and quorum argument are specified in Lamport's [Paxos Made Simple](https://lamport.azurewebsites.net/pubs/paxos-simple.pdf). The numerical table is a worked instance; it is not a substitute for the paper's proof.
 
-## Progress and comparison with Raft
+## Why a safe protocol can still struggle to progress
 
 Two proposers can repeatedly interrupt each other with higher ballots. They may prevent a decision while still obeying the rule that conflicting values cannot both be chosen. A stable active proposer and suitable communication conditions help progress. Consensus safety and progress are different properties.
 
@@ -58,15 +59,17 @@ The analogy is a committee making durable numbered promises. A new chair must re
 
 [PostService](../../../../../src/main/java/com/instagram/backend/service/PostService.java) implements no acceptor or ballot state. A proposed authoritative coordination service might use Paxos internally. Use a tested implementation when agreement justifies its operational cost; ordinary mergeable updates or one-database transactions do not automatically require application-level Paxos. Building it introduces persistent protocol state, recovery, and contention among coordinators.
 
-## Failure drill — paper exercise
+## Let ballot 8's proposer prefer Y — paper exercise
 
-- **Predict:** ballot 8's proposer receives `(7,X)` from B but wants Y. Which value may it send?
-- **Symptom of the bug:** a trace shows a new proposal discarding prior accepted evidence. If enough nodes accept it, agreement can be broken.
-- **Contain:** stop the faulty proposer; do not force a new value into the same decision slot.
-- **Recover:** inspect durable promises/acceptances and resume a correct protocol preserving X. Never erase acceptor state to make recovery easier.
-- **Prevent:** model crashes between phases and competing proposals; test persistent state restoration. A new ballot is authority to continue safely, not permission to forget history.
+B reports `(7,X)`, but the replacement proposer wants Y. Predict which value it may send in its accept request.
 
-## Recap and stop/go
+A trace that discards B's accepted evidence exposes the bug before a contradictory majority forms. Stop that proposer rather than forcing Y into the same slot. A fresh ballot permits safe continuation under the preservation rules, not a fresh interpretation of a chosen decision.
+
+Recover by examining durable promises and acceptances, then resume the correct protocol carrying X forward. Erasing acceptor state to make the system easier to start would erase its safety evidence. Test recovery between phases, competing proposers, and restoration of persisted state; progress after a restart matters only if it preserves the old decision.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Explain each role, both phases, and why `(8,X)` follows from the B/C reports. Distinguish promised, accepted, and chosen; then contrast safety with progress.
 

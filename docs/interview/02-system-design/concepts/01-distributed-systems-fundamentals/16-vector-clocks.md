@@ -2,22 +2,21 @@
 
 [Module](./README.md) · [Previous: Lamport clocks](./15-lamport-clocks.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: preserve separate progress counters so incomparable histories can be recognized.
-- Prerequisites: happened-before, logical counters, and why a smaller Lamport timestamp alone does not prove dependency.
-- Core terms: vector clock, dominance, concurrent versions.
+Core study: 10–15 minutes. Prerequisites: happened-before, logical counters, and why a smaller Lamport timestamp alone does not prove dependency.
 
-## The information a single counter loses — Must understand
+## “Evening” and “Dusk”: which edit saw the other? — Must understand
 
-Two disconnected replicas edit the same caption. When they reconnect, should one edit replace the other as a later change, or are they independent edits that need a conflict decision? A single larger counter cannot tell us that one writer observed the other's work.
+A and B both store post 42 with caption “Sunset.” They lose contact. A changes it to “Evening”; B changes it to “Dusk.” When they reconnect, choosing whichever has a larger single counter can hide the important fact: neither writer saw the other's edit.
 
-A **vector clock** stores a collection of logical counters, one component per tracked participant. In this fixed lesson, `[a,b]` means “this version's recorded history includes a events from A and b events from B.” A **component** is one position in that collection; it is not a caption character or a wall-clock reading.
+Instead of one counter, keep a separate progress count for each participant. Start with `[0,0]`, where the positions always mean `[A,B]`. A's independent edit produces `[1,0]`; B's produces `[0,1]`. The first version knows one event from A, the second knows one from B. Neither contains the other's recorded history.
 
-**Dominance** compares histories component by component. V is causally earlier than W when every V component is at most the corresponding W component and at least one is strictly smaller. W then dominates V: W includes V's recorded progress and additional progress.
+This collection is a **vector clock**. Each position is a **component**, recording progress from one tracked participant rather than a caption character or a wall-clock time. Keeping the counts separate lets us ask whether one version includes everything known to the other.
 
-**Concurrent versions** are incomparable: neither includes all the history of the other. “Concurrent” here means no represented causal order, not necessarily execution at the same physical instant.
+If every count in V is at most its matching count in W, and at least one is smaller, W includes more recorded history. W **dominates** V. If each version has progress missing from the other, neither dominates: they are **concurrent versions**. Here “concurrent” means no represented dependency order, not necessarily simultaneous physical execution.
 
-## Build the comparison before using it
+Comparing these histories can reveal that the two captions need a choice. It cannot make that choice for the user. We will keep the same two edits while deriving both the comparison and a later explicit resolution.
+
+## Carry known progress forward without losing a branch
 
 If A has made an event that B has not seen, A's component records that fact. If B has independently made another event, B's component records a different fact. Keeping both counters avoids collapsing independent knowledge into one misleading scalar.
 
@@ -27,7 +26,7 @@ For the worked storage example, the version-resolution event at A consumes both 
 
 The [Dynamo paper](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf) describes vector-based version histories and reconciliation trade-offs. Here we use two fixed participants and no metadata pruning; conclusions rely on those assumptions.
 
-## Derive every vector in one caption example
+## Compare the edits, then record a resolution
 
 Fixed dataset: post 42's caption is “Sunset,” vector `[0,0]`, on replicas A/B. Component order is always `[A,B]`. They become disconnected before either edit.
 
@@ -49,13 +48,13 @@ Fixed dataset: post 42's caption is “Sunset,” vector `[0,0]`, on replicas A/
 
 The text in step 6 is a deliberate example resolution, not something `max` computes. The vector arithmetic merges knowledge of events; a person or domain rule merges the caption. Choosing one caption could also be a valid business policy, but it should not be misrepresented as “the clock proved this edit newer.”
 
-## Equal, ordered, and incomparable
+## What each comparison actually tells us
 
 Equal vectors describe the same recorded progress under the model. Ordered vectors let the service recognize that one history includes another. Incomparable vectors expose a conflict needing reconciliation. If two payloads have equal vectors but different text, the system must investigate its event-identity/version rules rather than infer that clocks alone validate both payloads.
 
 A revision card with one tally for each branch is an analogy: each branch can see which contributions are missing. The analogy stops where participants join, restart, or disappear; real systems need stable identities and metadata-lifecycle rules.
 
-## Cost and limits
+## The history metadata also needs a lifecycle
 
 The vector grows with the number of tracked participants. Dynamic membership, long-offline writers, and safe pruning complicate the model. Pruning can lose information needed to recognize relationships, so a bounded implementation must specify weakened assumptions instead of promising perfect knowledge of arbitrary history.
 
@@ -65,15 +64,17 @@ Use vector metadata when detecting concurrent versions is worth the storage, com
 
 [PostService.update](../../../../../src/main/java/com/instagram/backend/service/PostService.java) sets caption fields directly. It carries no per-replica vector or conflict response. Adding vector clocks would require protocol fields, stable participant identities, comparison rules, and a user/domain merge policy; this lesson does not claim that feature exists.
 
-## Failure drill — paper exercise
+## Reconnect without silently choosing a winner — paper exercise
 
-- **Predict:** the replicas reconnect with `[1,0]` and `[0,1]`. Can either safely be called causally newer?
-- **Detect:** component comparisons fail in opposite directions. Preserve both version payloads as a conflict.
-- **Contain:** do not silently overwrite one merely because a scalar timestamp is larger. Also avoid exposing unresolved text as if reconciliation finished.
-- **Recover:** choose a documented content policy, merge histories to `[1,1]`, record the resolving event as `[2,1]` at A, and propagate it.
-- **Prevent:** test independence, dominance, equality, restart identity, and pruning assumptions. Clock comparison detects a relationship; it does not choose the right caption for the user.
+A returns with `[1,0]` and B with `[0,1]`. Predict whether either can be called causally newer.
 
-## Recap and stop/go
+Each comparison fails in a different component, so preserve both payloads as a conflict. Overwriting one because a single timestamp is larger would conceal the independent edit. Exposing unresolved text as though reconciliation had finished would also misstate the result.
+
+Apply the documented content policy, combine history to `[1,1]`, and record A's resolving event as `[2,1]` before propagating it. Test equality, dominance, independence, restart identity, and any pruning rule. The comparison discovers the relationship between the edits; a separate product decision determines the caption the user should keep.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Calculate `[1,0]`, `[0,1]`, `[1,1]`, and `[2,1]` without notes. Explain why the first two are incomparable and why the content result requires an explicit choice. Compare what this tells us with what Lamport counters tell us.
 

@@ -2,63 +2,47 @@
 
 [Module](./README.md) · [Previous: partial failure](./01-partial-failure.md) · [Next: PACELC](./03-pacelc.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: during lost communication, a read/write service cannot promise both one current view and successful operations everywhere.
-- Prerequisite: a missing message does not prove a remote process stopped. A read fetches a value; a write changes it.
-- Core terms: consistency, availability, partition tolerance.
+Core study: 10–15 minutes. Prerequisite: a missing message does not prove a remote process stopped. A read fetches a value; a write changes it.
 
-## Why keep copies at all? — Must understand
+## B missed the caption update. What can it answer? — Must understand
 
-Suppose post 42 is stored on one database machine. If that machine becomes unreachable, users cannot read it. We might maintain a second copy elsewhere so another machine can answer. A maintained copy is a **replica**; copying updates between replicas is **replication**. Call our two participants A and B; a participating process or machine is often called a **node**.
+Post 42 starts with caption “Sunset” on database machines A and B. Keeping a second maintained copy, called a **replica**, gives us another place to read when one machine is unreachable. Sending changes between those copies is **replication**. A participating machine or process is often called a **node**.
 
-Copies help only if we decide how they behave when they disagree. Sending an update takes time, and communication can stop. “We have two copies” alone says nothing about which answers are legal.
+Now the connection between A and B breaks. Both machines still run and can receive requests from their own clients. This is a **network partition**: the participants are alive, but messages cannot pass between them. Assume it can last indefinitely.
 
-**CAP stands for Consistency, Availability, and Partition tolerance.** Each letter names a specific promise. They are not three independent switches that can all remain guaranteed under every failure.
+You change the caption through A to “Evening.” To explore what happens if both sides keep completing operations, suppose A saves the change and says “success.” Call the old version v1 and the new version v2. B still has v1. There is no third edit in this example.
 
-## C — Consistency: one logical current value
+After that success, another user asks B for the caption. B faces a problem no faster processor can solve: it does not know what A accepted. From B's perspective, A might have saved “Evening,” another caption, or nothing at all.
 
-Here **Consistency** means reads and writes behave as if there were one up-to-date copy. If a write completes before a read begins, that read must reflect that write or a later one. Operations overlapping in time may be placed in either order if the observed results fit that order. The formal name for this behavior is **linearizability**, developed in [lesson 6](./06-linearizability-and-serializability.md).
+## Two reasonable responses, two different promises
 
-For post 42, if updating caption from “Sunset” to “Evening” has already returned success, a later read must not return “Sunset” unless another write legitimately restored it. The important boundary is a **completed** write. A request still in progress has not made the same promise.
+B could return “Sunset.” The user gets a completed read, but an already successful edit seems to disappear. Or B could wait until it can establish a safe answer. If the connection never recovers, that read never finishes. Returning an unavailable response, such as HTTP 503, is another honest way to refuse the read; it still leaves the requested operation unavailable.
 
-This does not mean that every physical copy contains identical bytes at every instant. Some copies may lag internally, provided the service does not expose an answer that violates its promise. It also does not mean database constraints such as “caption cannot be null”; those are a different use of “consistency.”
-
-## A — Availability: operations complete at reachable, non-failing nodes
-
-**Availability** in CAP means every request received by a non-failing node eventually completes with a valid result for the requested operation. The model does not impose a particular millisecond deadline. Production availability targets normally add such deadlines; they are related operational measures, not identical definitions.
-
-A read of our existing post must eventually return a permitted value. A write must complete according to the service's contract. Returning an unavailable response such as status 503 tells the user the operation is unavailable; the fact that an error packet arrived does not satisfy this promise. A disconnected client that cannot reach any node is outside the narrower question of what a non-failing node does with a request it receives.
-
-## P — Partition tolerance: account for broken inter-node communication
-
-A **network partition** prevents messages passing between groups of nodes, even though the nodes themselves may still run and receive clients. Here A can serve its local clients, B can serve its local clients, but A and B cannot communicate.
-
-**Partition tolerance** means the design accounts for that failure instead of assuming every message eventually arrives. It does not promise every operation continues successfully during the split. To preserve one current view, the system may have to refuse or delay some operations; to keep completing operations on both sides, it may have to permit divergent observations.
-
-Two shop branches with disconnected order ledgers are a useful analogy. Each branch can talk to local customers but cannot know the other's new entries. The analogy stops at informal human reconciliation: a real service needs explicit rules for when to answer and how to repair data later.
-
-## Derive the conflict with one fixed example
-
-Initial state: A and B both store post 42 with caption “Sunset,” version v1. Version v2 means the later caption “Evening.” Assume the partition can last indefinitely; A and B continue running. No concurrent third update occurs.
-
-1. Communication between A and B breaks. Both still contain v1.
-2. A receives a write of v2. To explore the availability-preserving branch, suppose A commits locally and tells its client “success.” B receives no update.
-3. **After that success**, another client asks B to read post 42. B holds only v1.
-4. If B returns v1, it completes the read but violates C: the acknowledged v2 write preceded this read.
-5. If B waits until it can learn a safe answer, the read may never finish while the split persists. If B refuses it, it also sacrifices A for that operation.
-6. B cannot simply guess “Evening.” From its perspective A might have accepted any caption or no update at all. No local calculation reveals the missing information.
-
-| Choice at B after A acknowledged v2 | User-visible result | Promise lost during this split |
+| B's response after A acknowledged v2 | What the user observes | What the service gives up |
 |---|---|---|
-| Return its stored v1 | Stale caption | Consistency |
-| Wait indefinitely for safe knowledge | No completed read | Availability |
-| Return an unavailable error | Failed read | Availability |
+| Return stored v1 | A stale caption | The single-current-value promise |
+| Wait indefinitely for safe information | No completed read | Operation availability |
+| Return an unavailable error | A failed read | Operation availability |
 
-That is the conflict. A consistency-preserving design could instead have prevented A from acknowledging step 2 without sufficient coordination. It still sacrifices some operation availability; it moves where the refusal occurs.
+This is the conflict described by **CAP: Consistency, Availability, and Partition tolerance**. The names become useful once we connect them to the choice B is making.
 
-The formal theorem concerns single-copy read/write behavior and availability under partition in an asynchronous model, where message delays have no known bound. [Gilbert and Lynch's review of CAP](https://groups.csail.mit.edu/tds/papers/Gilbert/Brewer2.pdf) provides the precise model. Our caption trace is an illustration of the missing-information argument, not a database-product classification.
+**Consistency** here means the service behaves like one up-to-date copy. A read begun after a write completes must reflect that write or a later one. Therefore B returning v1 after A's successful v2 write violates the promise. Overlapping operations can be ordered either way if their results fit that order. This precise behavior is called **linearizability**, developed in [lesson 6](./06-linearizability-and-serializability.md).
 
-## What “choose two” hides
+The promise concerns visible results. B may lag internally if the read path waits, routes elsewhere, or otherwise avoids exposing the old value. It is separate from database rules such as “caption cannot be null.”
+
+**Availability** in CAP means every request received by a non-failing node eventually completes with a valid result for its operation. An error packet is a response, but it is not a successful caption read. This formal promise has no specified millisecond deadline; production availability targets usually add one. A client unable to reach any node is outside this narrower question about requests a working node receives.
+
+**Partition tolerance** means accounting for broken communication rather than assuming it cannot occur. It does not mean all operations must succeed during the break. Once the split exists, the service cannot guarantee both of the preceding promises for all covered operations.
+
+## Could A have made a different choice?
+
+Yes. A could have withheld success until it had enough coordination to preserve the current-value promise. Then the unavailable operation occurs at the write rather than B's read. Changing where we wait does not remove the missing information.
+
+Two shop branches with disconnected order ledgers offer a useful picture: each can serve local customers, but cannot know the other's new entries. The analogy stops at recovery. A service needs explicit rules for accepted history and conflicting edits; reconnecting the cable does not decide them.
+
+The theorem uses single-copy read/write behavior and availability in an asynchronous model, where message delays have no known bound. [Gilbert and Lynch's review of CAP](https://groups.csail.mit.edu/tds/papers/Gilbert/Brewer2.pdf) gives the precise model. The caption example illustrates the information problem within those assumptions.
+
+## Choose the promise for the operation
 
 **CP** means prioritizing Consistency when communication is Partitioned, accepting unavailable operations. **AP** means preserving Availability during a Partition while relaxing the single-current-view promise. These labels need a specified operation and failure model; they do not mean a CP service is normally down or that an AP design has no correctness rules.
 
@@ -70,15 +54,17 @@ For an ownership check, returning old permission data can expose something that 
 
 [PostService.update and feed](../../../../../src/main/java/com/instagram/backend/service/PostService.java) save and read through one repository. [PostRepository](../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) has no replica-selection policy. A/B are proposed database participants, not the current two backend instances. Adding backend instances that share one database does not itself create the replicated data scenario taught here.
 
-## Failure drill — paper exercise
+## Reconnect the copies without guessing the history — paper exercise
 
-- **Predict:** after step 2, what can B safely return if the single-current-view promise must hold?
-- **Detect:** compare the acknowledged write's version with B's read; record unavailable operations as failures, not successful reads.
-- **Contain:** stop accepting operations that cannot meet the chosen contract. Do not silently label stale data authoritative.
-- **Recover:** reconnect A/B, determine the accepted write history, repair B, and verify both reads show v2. If both sides accepted competing writes, apply an explicit resolution rule first.
-- **Prevent/mitigate:** test partitions and document per-operation policy. Extra replicas improve options but cannot eliminate this information limit. Reconnection alone does not merge conflicting edits.
+After A acknowledges v2, predict what B can safely return if later reads must include that completed edit. Returning v1 is not made safe by B being healthy.
 
-## Recap and stop/go
+Compare the acknowledged write version with the read result. Count a refused operation as unavailable rather than recording its error response as a successful read. While the split lasts, prevent operations that cannot meet their chosen contract; stale permission data must not quietly become authoritative.
+
+After reconnection, establish the accepted write history, bring B to v2, and verify reads on both copies. If both sides accepted competing edits, apply the explicit resolution rule before claiming recovery. Partition tests and per-operation policies help expose this boundary. Extra replicas provide more options, but neither extra copies nor reconnection alone resolves missing or conflicting history.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Expand CAP, explain each letter without the acronym, and reproduce why B cannot both return promptly and know v2 in this scenario. Compare the stale-response and refused-operation outcomes before advancing.
 

@@ -10,90 +10,92 @@ Your manager asks:
 
 > [One-page revision card](../../revision-cards/production-scenarios/03-high-p99-with-normal-average.md)
 
-## Why this problem exists
+## Two users can have very different experiences behind one average
 
-An average compresses the entire latency distribution into one number. If 99 requests finish near 140 ms and one takes 8 seconds, the average is still roughly 219 ms. That single slow request is not statistical noise to the affected user. It can also hold a thread or connection long enough to amplify queueing.
+Use one fixed measurement window: 10,000 feed requests, with 9,800 completing in 60 ms and 200 taking 8,000 ms. The total observed time is `9,800 × 60 + 200 × 8,000 = 588,000 + 1,600,000 = 2,188,000 ms`. Divide by 10,000 and the mean is `218.8 ms`, close to the dashboard's 220 ms.
 
-Tail latency usually comes from an occasional condition rather than the normal code path: a cold cache, garbage-collection pause, lock wait, connection acquisition delay, retry, noisy instance, unusually large result, or slow dependency. The investigation must isolate what is different about slow requests.
+That average is arithmetically correct. It just does not tell us that 200 users waited eight seconds. Once the observations are sorted, the first 9,800 are fast and positions 9,801 through 10,000 are slow. The 99th-percentile position, around 9,900, lies inside the slow group. Here, p99 is eight seconds even though the mean looks normal.
 
-## Analogy: average travel time
+The useful question is what those 200 requests have in common. Improving the already-fast branch may barely help them. They might be waiting for a connection, a lock, a runtime pause, a cold cache, or a retry. We need to isolate that conditional difference.
+
+## A faster open road does not remove a closed crossing
 
 A road can average a 20-minute commute while one in every hundred drivers waits at a closed railway crossing for eight minutes. Improving the normal road speed barely helps those drivers; the crossing must be identified.
 
 The analogy stops because service requests share resources. One slow request can occupy a connection, trigger retries, and delay requests that arrived later.
 
-## Terms to establish
+## Read the distribution before choosing a fix
 
-- **p50** is the median: half of requests are faster and half are slower.
-- **p99** is the latency at or below which 99% finish; the slowest 1% exceed it.
-- **Tail latency** is latency in the slow end of the distribution, commonly p95, p99, or p99.9.
-- A **histogram** counts observations in latency ranges so percentiles can be estimated across many requests.
+**p50**, the median, describes the middle observation; here it is 60 ms. **p99** is the latency at or below which 99% of observations finish; here it is eight seconds because 2% are slow. Exact percentile estimators differ at boundaries, which is why we use a slow group larger than 1% in this example.
 
-## Investigation sequence
+**Tail latency** means the slow end of the distribution. A **histogram** counts requests in latency ranges, preserving information the average discards. A monitoring query can estimate percentiles from those counts across instances. Coarse ranges give coarse estimates, so the reported percentile is not necessarily an exact measured request duration.
 
-### 1. Validate the measurement
+A high p99 tells us the slow population exists. It does not tell us which route, instance, or cause produced it. We still need comparable slices and representative requests.
 
-Confirm the time window, route, status, region, instance, and version behind p99. Ensure there is enough traffic for p99 to be meaningful and compare client/gateway latency with server latency. Separate successful slow responses from timeout errors. Plot p50, p95, p99, and maximum together; do not replace one misleading aggregate with another.
+## What is different about the slow 200?
 
-### 2. Find the affected population
+First make sure the measurement describes the same traffic: route, window, status, version, and location. Compare client or gateway timing with application timing. If the delay happens before the application sees the request, optimizing its handler will not address it. Check that the window contains enough observations to make a percentile meaningful.
 
-Break p99 down by normalized route, instance, zone, payload or result-size bucket, and application version using bounded dimensions. Look for one noisy instance, one route, or one input class. Avoid user IDs and raw URLs as metric labels because their unbounded values can overwhelm the monitoring system.
+Then split the slow population with bounded dimensions such as route, instance, version, and result-size range. Do not put a different user ID or raw URL into every metric label; that creates an unbounded number of series. Individual request identities belong in logs and traces.
 
-### 3. Compare slow traces with fast traces
+Compare several eight-second traces with fast traces for the same route. Find the extra wait in code order: before the handler, borrowing a database connection, executing SQL, calling a dependency, retrying, or pausing the runtime. Align the proposed cause with its population signal—for example, connection wait or database lock age—so one anecdotal trace does not become the whole diagnosis.
 
-Take traces from the tail and compare span shape and duration with fast requests on the same route. Ask whether the extra time is before handler execution, inside database acquisition or SQL, during a downstream call or retry, or in a runtime pause. Correlate with garbage collection, thread queues, connection waits, database locks, cache misses, and downstream percentiles.
+Fix that conditional cause and then check p99, errors, and throughput together. A shorter timeout may make the latency graph look better by turning slow successes into failures. Extra capacity may relieve a queue, but it will not remove an eight-second lock held by another transaction.
 
-### 4. Fix the conditional cause
+## Test the database-wait explanation
 
-Optimize the rare slow branch, bound result sizes, remove lock contention, warm or coalesce cache misses, or set a realistic deadline on remote work. Adding capacity can help queueing but will not fix an eight-second lock or retry. Verify that p99 improves without hiding failures or damaging throughput.
+Keep the same 10,000-request window and its 200 slow requests. Suppose those requests arrive while PostgreSQL work is blocked by a lock or while every application connection is occupied.
 
-## Concrete request walkthrough
+1. The 9,800 fast requests obtain the needed resources promptly and finish in 60 ms.
+2. The other 200 wait before doing much of the same feed work. Their elapsed time reaches eight seconds.
+3. All return `200`, so an error-only dashboard misses the problem.
+4. The mean remains 218.8 ms, but p99 and the histogram's high-duration counts reveal the slow group.
+5. Database wait evidence appears in the same window and is present in representative slow requests, while fast requests lack that wait.
 
-Consider 10,000 `GET /api/feed` requests in five minutes.
-
-1. Most requests obtain a connection quickly and return in 140–250 ms.
-2. A small group arrives while PostgreSQL is waiting on a lock or the pool has no idle connection.
-3. Those requests wait several seconds before the same feed code executes.
-4. Their completion logs show `durationMs` near 8,000, but all return `200`.
-5. The overall average remains near 220 ms; p99 and the histogram’s upper bucket rise.
-6. Slow traces share database-wait time, while fast traces do not.
-
-The observable result identifies a conditional database wait. If slow requests instead cluster on one JVM with long pause time, the same method would point to garbage collection rather than SQL.
+That would support a database-wait diagnosis. If the slow requests instead cluster on one Java process during runtime memory-management pauses, the comparison points there. The arithmetic tells us why the average hides the experience; the telemetry tells us why the experience occurred.
 
 ## Instagram-backend mapping
 
-[application.properties](../../../../../src/main/resources/application.properties) enables the `http.server.requests` percentile histogram and explicit `100 ms`, `250 ms`, `500 ms`, `1 s`, and `2 s` service-level buckets. Requests above two seconds still enter the histogram’s final overflow bucket, but more upper buckets may be proposed if operators need finer resolution around an eight-second objective.
+[application.properties](../../../../../src/main/resources/application.properties) enables the `http.server.requests` percentile histogram and explicit `100 ms`, `250 ms`, `500 ms`, `1 s`, and `2 s` service-level buckets. Those configured service-level boundaries are not necessarily the entire exported bucket set: percentile-histogram publication can add generated boundaries as well. Inspect the actual scrape before deciding whether an eight-second objective needs extra boundaries. [Micrometer explains how service-level and generated histogram buckets combine](https://docs.micrometer.io/micrometer/reference/concepts/histogram-quantiles.html).
 
 [RequestCorrelationFilter.java](../../../../../src/main/java/com/instagram/backend/observability/RequestCorrelationFilter.java) emits a completion event with normalized route, status, correlation ID, and duration. [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) wraps feed work in `instagram.feed.load`, so comparing HTTP time with feed-operation time can help distinguish time around the service method from time inside it.
 
 Normal tracing samples 10% through [application.properties](../../../../../src/main/resources/application.properties). **Proposed, not implemented:** retain slow/error traces with tail-aware sampling, connect histogram exemplars to trace IDs, add JVM/pool/database dashboards, and alert on a sustained p99 objective. A 10% random sample can miss rare tail requests.
 
-## Choices and trade-offs
+## Better evidence and bounded waiting both have costs
 
 - **More detailed histogram buckets** improve tail resolution but increase metric series and storage cost. Choose boundaries around user objectives, not every possible millisecond.
 - **Tail-aware trace retention** preserves slow requests and is ideal for rare latency. It requires buffering or collector support and costs more than low-rate random sampling.
 - **A shorter timeout** bounds resource occupation when a dependency is no longer useful. It does not make the dependency faster and can convert slow successes into failures if chosen below legitimate latency.
 
-## Failure drill
+## Rehearse a problem the mean will hide
 
-**Prediction:** one database lock makes 1% of feed requests exceed five seconds while average latency stays below 300 ms. **Symptom and detection:** p99 and the overflow histogram bucket rise; slow logs return `200`; database lock-wait metrics align with them. **Containment:** stop or isolate the conflicting maintenance/write operation and bound incoming concurrency. **Recovery:** clear the lock, drain waiting requests, and verify p99—not only average—returns to baseline. **Prevention:** shorten transaction scope, monitor lock age, retain tail traces, and alert on p99 over multiple windows.
+**Prediction:** a controlled database-lock test delays 2% of the fixed 10,000 feed requests to eight seconds while the others take 60 ms. The mean stays near 220 ms and p99 rises to the slow duration.
+
+**Detect:** match slow successful requests and high histogram ranges to lock-wait evidence. The current repository's service-level feed observation alone cannot identify a specific SQL lock; that needs additional database evidence.
+
+**Contain:** stop the controlled conflicting operation and bound new database work so the waiting queue does not grow indefinitely. In production, inspect the transaction owner and its data implications before cancelling it.
+
+**Recover:** release the lock, drain useful waiting work, and verify p99, failure rate, and throughput return to baseline.
+
+**Prevent:** reduce unnecessary transaction scope, observe lock age, retain representative slow traces, and alert over sustained tail-latency windows instead of trusting the mean.
 
 ## Two-to-three-minute interview answer
 
 The average looks normal because a small number of eight-second requests contribute little to the arithmetic mean. I would first validate p99 by route, window, traffic volume, status, instance, zone, and version, and compare server latency with gateway or client latency. Then I would segment the tail using bounded dimensions and compare slow traces with fast traces for the same route.
 
-I am looking for a conditional difference: connection acquisition, database lock or slow query, garbage-collection pause, cold cache, retry, noisy instance, large result, or slow dependency. I would align traces with thread queues, pool waits, JVM pauses, database locks, and downstream percentiles. The fix targets that cause—such as reducing transaction scope, bounding results, eliminating a retry, or isolating a bad instance—rather than optimizing the already-fast median. I would verify p99, errors, and throughput together. Finally, I would add a sustained tail-latency alert and retain slow traces, because a 10% random trace sample may miss the exact 1% users we need to understand.
+I am looking for a conditional difference: connection acquisition, database lock or slow query, garbage-collection pause, cold cache, retry, noisy instance, large result, or slow dependency. I would align traces with thread queues, pool waits, JVM pauses, database locks, and downstream percentiles. The fix targets that cause—such as reducing transaction scope, bounding results, eliminating a retry, or isolating a bad instance—rather than optimizing the already-fast median. I would verify p99, errors, and throughput together. Finally, I would add a sustained tail-latency alert and retain slow traces, because a 10% random trace sample may miss the 2% slow population in this example.
 
-## Practice status
+## Before you practise
 
-Artifact readiness does not prove mastery. Mark this practiced only after explaining why the mean is misleading without notes, predicting one tail-only failure, and answering the questions below before opening them.
+Artifact readiness does not prove mastery. Mark this practiced only after explaining why the mean hides the 200 slow requests without notes, predicting the database-wait failure, and answering the questions below before opening them.
 
 ## Questions and explained answers
 
 <details>
-<summary>How can one 8-second request among 100 requests leave the average near 220 ms?</summary>
+<summary>How can 200 eight-second requests coexist with an average near 220 ms?</summary>
 
-If the other 99 requests are about 140 ms, total time is roughly `99 × 140 + 8,000 = 21,860 ms`; divided by 100, that is about 219 ms. The average hides the one severely affected user.
+In the fixed 10,000-request window, 9,800 requests take 60 ms and 200 take 8,000 ms. The total is `588,000 + 1,600,000 = 2,188,000 ms`, so the mean is `2,188,000 ÷ 10,000 = 218.8 ms`. The 99th-percentile position lies inside the 200 slow requests, so p99 is eight seconds. The mean and percentile answer different questions.
 </details>
 
 <details>

@@ -4,45 +4,29 @@
 
 > [One-page revision card](../../revision-cards/microservices/09-api-event-contract-evolution.md)
 
-- Status: `READY`; comprehension not yet demonstrated
-- Time: 20–25 minutes
-- Primary idea: expand a contract compatibly, migrate consumers, observe adoption, and only then remove the old shape
+## The backend deployed. Why did the old app break?
 
-## Why does this matter?
+Imagine the post API starts returning `text` instead of `caption`. The new backend passes its tests and returns valid JSON. An older phone app still asks the response for `caption`, so the post appears to have no text.
 
-Independent deployment works only if a producer and every consumer do not need to release at the same instant. In production, old mobile apps may remain for months, services roll out gradually, queued events may be replayed years later, and an emergency rollback may reintroduce an older binary.
+Within one application, we could rename the field and every caller together. Once callers deploy independently, that assumption disappears. A phone may run an old app for months. During a server rollout, old and new instances coexist. A queued event can outlive both, and an emergency rollback can bring an older reader back into use.
 
-A field rename that is trivial inside one process can therefore break clients, poison a message queue, or make old events unreadable.
+The design problem is to let the producer change while those readers continue working. Compatibility is therefore about what supported consumers can still do, rather than whether the latest producer builds successfully.
 
-## Analogy: changing an electrical outlet
+## Keep the old plug working while devices move
 
 If a building has old plugs, replacing every wall outlet overnight breaks existing devices. A safer transition supports the old plug while an adapter or new outlet is introduced, moves devices gradually, verifies usage, and removes the old form only after it is unused.
 
 The analogy has limits. Software contracts include meaning, validation, ordering, security, and side effects—not only shape. Two schemas may look compatible while a changed meaning silently corrupts behavior.
 
-## Plain-language model
+## A field carries a promise, not just a type
 
-### Contract
+The consumer relies on more than the spelling of `caption`. It may rely on the field being present, containing text, and having the same meaning as before. It also relies on error responses and authorization behavior. Together, those expectations form the **contract** between producer and consumer.
 
-A **contract** is everything a consumer relies on:
+An **additive change** introduces something a supported old reader can safely ignore, such as an optional `location` object alongside the existing `locationLabel`. A **breaking change** invalidates an expectation: removing `caption`, turning its string into an object, or requiring a new input old clients never send.
 
-- request and response fields;
-- types, required/optional rules, and error codes;
-- authentication and authorization behavior;
-- event field meanings and delivery guarantees;
-- ordering, idempotency, and latency expectations when promised.
+Even an addition needs a little thought. A strict parser may reject unknown fields. A new enum value can break a reader that assumes only the existing values exist. A larger response can exceed a client's practical size or latency limit. “Additive” describes the intended migration; supported-reader tests establish whether it is safe.
 
-OpenAPI or a schema file captures structure, but documentation and tests must also protect behavior.
-
-### Additive and breaking changes
-
-An **additive change** adds something old consumers can ignore, such as a new optional response field. A **breaking change** invalidates an existing expectation, such as removing a field, changing its type, making an optional request field required, or changing “amount in dollars” to “amount in cents” under the same name.
-
-“Additive” is not automatically safe. Adding an enum value can break a consumer with an exhaustive switch. Making responses much larger can violate latency or payload assumptions.
-
-### Consumer contract test
-
-A **consumer contract test** records an important request/response or event expectation from a real consumer and verifies the provider still satisfies it. It complements provider tests; it does not prove every runtime behavior or replace integration testing.
+A consumer contract test records an expectation from an actual consumer and checks that the producer still meets it. It gives the old app a voice in the producer's build. It cannot prove every production interaction, but it catches disagreements that tests written only for the new producer might miss.
 
 ## Predict before reading
 
@@ -55,7 +39,7 @@ The old client still looks for `caption`, so it may render blank text or fail. J
 
 </details>
 
-## Safe API flow: expand, migrate, contract
+## Let both clients work during the location change
 
 Suppose `locationLabel` will eventually become an object containing a display name and place ID.
 
@@ -77,11 +61,9 @@ The producer populates both. Old clients read `locationLabel`; new clients prefe
 
 ### 2. Migrate
 
-- update consumer code and contract tests;
-- deploy consumers independently;
-- measure which client/service versions still rely on the old field;
-- communicate an explicit deprecation date;
-- retain compatibility long enough for rollback and long-lived clients.
+Now readers can move at different times. Update their code and contract tests, deploy them, and check that they actually use the new representation. A release announcement does not mean every phone upgraded.
+
+For a response field, the server usually cannot see which property the client read. Adoption evidence may need supported client-version telemetry, consumer confirmation, or a separately versioned endpoint. For an old request field, the server can count its continued use directly. Agree on the deprecation window and keep enough compatibility for both long-lived clients and a rollback to an older reader.
 
 ### 3. Contract
 
@@ -89,23 +71,17 @@ Only after usage reaches the agreed threshold should the producer stop accepting
 
 For database changes behind the API, use the same shape: add nullable columns or new tables, make code handle both schemas, backfill, switch reads, verify, and remove the old schema in a later deployment. Never deploy code that requires a column before the database change exists everywhere.
 
-## Safe event evolution
+## What changes when the reader is a message consumer?
 
-Events are historical facts and may be retained or replayed. Treat their published fields as long-lived contracts.
+The same compatibility problem lasts longer for events. A `PostPublished` event is a record of something that happened. A consumer rebuilding its feed next year may read that old record, long after today's producer has stopped emitting it. Renaming fields in the current code does not rewrite those stored facts safely.
 
-For a `PostPublished` event:
+Give the record an event ID, type, occurrence time, and schema version so readers can identify what they received. Add optional information with explicit defaults where possible. Readers should ignore unknown fields and know what a missing optional field means. If the business fact changes, give it a new name or version: “publication was scheduled” is not the same fact as “post was published.”
 
-1. Give each event an event ID, event type, occurrence time, and schema version.
-2. Prefer adding optional fields with clear defaults.
-3. Make consumers ignore unknown fields and handle missing optional fields.
-4. Never silently reuse a field with a new meaning.
-5. If meaning changes fundamentally, publish a new event type or major schema version, such as `PostPublicationScheduled`, rather than pretending it is the old fact.
-6. During transition, translate at a controlled adapter or publish both versions when the operational cost is justified.
-7. Test replay using older stored events and test new events against supported consumer versions.
+During a transition, either teach readers both supported forms or translate them through a maintained adapter. Publishing both versions can also work, but subscribers must not mistake them for two independent business events and apply the effect twice. Include that duplicate risk in the migration design.
 
-A schema registry can reject structurally incompatible changes, but it cannot determine whether `price` silently changed from dollars to cents. Semantic review is still required.
+A schema registry can reject incompatible field types before release. It cannot know that a number formerly measured in dollars now means cents. Human review must protect meaning, and replay tests using old stored examples must protect the versions we still promise to read.
 
-## Handling common changes
+## Check the consumer’s expectation before changing a field
 
 | Proposed change | Compatibility risk | Safer evolution |
 |---|---|---|
@@ -121,11 +97,11 @@ A schema registry can reject structurally incompatible changes, but it cannot de
 
 The current API contract is visible in [CreatePostRequest.java](../../../../../src/main/java/com/instagram/backend/dto/CreatePostRequest.java), [FeedPostResponse.java](../../../../../src/main/java/com/instagram/backend/dto/FeedPostResponse.java), and [PostController.java](../../../../../src/main/java/com/instagram/backend/controller/PostController.java).
 
-For example, changing `CreatePostRequest.locationLabel` from required text to a required nested object in one release would break the existing browser. A safe path is to add an optional `location` representation while continuing to accept `locationLabel`, update clients, record old-field usage, and remove it only through a deliberate major-version policy.
+For example, replacing `CreatePostRequest.locationLabel` with a required nested object in one release would break a browser that still sends only the text field. A safe path is to add an optional `location` representation while continuing to accept `locationLabel`, update clients, record old-field usage, and remove it only through a deliberate major-version policy.
 
 [AuthIntegrationTests.java](../../../../../src/test/java/com/instagram/backend/AuthIntegrationTests.java) already asserts selected JSON fields. Those tests protect the provider's current response, but a future extracted service would also need consumer-focused contract tests and fixtures for old/new event versions.
 
-## Decision and trade-off
+## When coexistence needs a new version
 
 | Choice | Prefer it when | Cost or limitation |
 |---|---|---|
@@ -156,6 +132,8 @@ For compatible evolution I use expand-migrate-contract. I add an optional new fi
 Events require extra care because retained messages may be replayed years later. Consumers should ignore unknown fields, supply documented defaults for missing optional fields, and understand every version the replay policy supports. I put machine-readable schemas and real consumer contracts in CI, verify the provider against supported consumers, and replay old event fixtures. A schema registry catches structural incompatibility, but human review must still catch changed meaning.
 
 For example, renaming this project's `caption` response field to `text` in one deployment would make the old web client render blank content. I would return both temporarily and migrate the client first. If a producer instead sends an incompatible event and the feed consumer stops, I would pause the producer, quarantine the bad messages, deploy a compatible reader, replay, and reconcile source post IDs with feed IDs. I monitor deserialization failures, dead letters, lag, client versions, and deprecated use. The trade-off is temporary duplicate fields, versions, and adapters, but that buys independent deployment, replayability, and safe rollback.”
+
+Before marking this answer practiced, explain how an old phone and a new server can coexist, then predict what an old event reader will do. Try the questions below before revealing the answers; documentation readiness does not establish comprehension.
 
 ## Questions and explained answers
 

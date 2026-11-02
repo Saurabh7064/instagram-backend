@@ -6,54 +6,49 @@ Most creators have hundreds of followers, but a celebrity has tens of millions. 
 
 **“Would you build the feed with fan-out on write, fan-out on read, or a hybrid strategy?”**
 
-## Why this problem exists
 
-Precomputing every follower’s feed makes reads fast, but one celebrity post can trigger millions of writes. Building the feed entirely at read time avoids that write explosion, but each read must query, merge, filter, and rank many creators. A skewed social graph rarely fits one strategy.
+## When should we do the work of building a feed?
 
-## Analogy
+Mira has 800 followers and publishes `P20`. We could place a reference to `P20` into each follower's prepared feed now. That does about 800 feed writes once, so opening the feed later can be cheap. This is **fan-out on write**: distribute references when the post is published.
 
-A local newspaper can deliver to every doorstep, while national breaking news is fetched from a central broadcast when someone opens the app.
+Now a celebrity with 30 million followers publishes `P21`. The same rule asks for 30 million writes from one publish. Even with background workers, that burst can delay other creators' posts. The follower count changes the cost of the decision.
 
-The analogy stops because follows, deletions, personalized ranking, and asynchronous retries continuously change feed membership.
+The alternative is to collect relevant posts when a viewer opens the feed. This is **fan-out on read**. Publishing is cheaper, but the reader waits while the service gathers and combines posts from followed accounts. A viewer following many active creators can make that path expensive.
 
-## Terms to establish
+Newspaper delivery gives a useful picture: prepare and deliver copies in advance, or let readers collect news when they need it. The analogy leaves out changing follows, deletions, privacy and repeated delivery attempts, all of which a software feed must handle.
 
-- **Fan-out on write:** copy a new post reference into follower feeds at publish time.
-- **Fan-out on read:** gather followed creators’ posts when the viewer requests a feed.
-- **Hybrid fan-out:** precompute ordinary creators and merge high-fan-out creators on read.
-- **Feed store:** a per-user ordered collection of candidate post IDs.
+## Combine the two paths only when the traffic justifies it
 
-## What I would do
+In a proposed hybrid, ordinary creators use prepared feeds while high-follower creators are merged at read time. Viewer `V7` opens the app: the service loads prepared IDs including `P20`, fetches eligible recent celebrity IDs including `P21`, combines them and removes duplicates.
 
-I would use a hybrid. Publishing commits the post and a durable outbox event in one transaction. For ordinary creators, workers append the post ID and ranking metadata to follower feed stores. A uniqueness key such as `(viewerId, postId)` makes retries idempotent.
+These IDs are candidates, not permission to show a post. Check current visibility and deletion rules before returning content. Then rank or order the eligible candidates and fetch their current display fields in batches. Copying IDs instead of full posts reduces the number of captions and counters that need updating after an edit.
 
-Creators above a measured delivery-cost threshold use fan-out on read. The feed service loads precomputed candidates, fetches recent posts from followed high-fan-out accounts, merges and deduplicates them, applies privacy and deletion rules, ranks them, then batch-hydrates post details. The threshold should adapt to follower count, active followers, and freshness targets. I would monitor event lag, write amplification, store size, merge latency, and missing candidates.
+## Make delayed delivery repairable
 
-## Concrete walkthrough
+The post transaction can record an event alongside `P20`. Workers later read that durable handoff and update follower feeds in bounded batches. A uniqueness rule such as `(viewerId, postId)` makes repeating the same delivery safe. Track the oldest unfinished event, not just whether workers are running.
 
-1. Mira, with 800 followers, publishes `P20`; its transaction also writes an outbox event.
-2. Workers append `P20` to 800 feed stores in bounded batches.
-3. A celebrity publishes `P21`; the system avoids 30 million immediate writes.
-4. Viewer `V7` opens the feed. The service merges precomputed IDs including `P20` with recent celebrity candidates including `P21`.
-5. It deduplicates, ranks, and hydrates the first page.
+Choose the high-follower threshold from measured delivery cost, active audience and freshness needs. A hybrid creates two paths to operate, deduplicate and reconcile. While the existing global chronological feed meets requirements, a simpler bounded database query may be the right starting point.
 
-Reads stay predictable without letting one creator overwhelm publishing.
-
-## Instagram-backend mapping
+## Where this appears in our backend
 
 [PostController.java](../../../../../src/main/java/com/instagram/backend/controller/PostController.java) exposes the feed endpoint. [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) currently asks [PostRepository.java](../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) for every post globally and maps all results. [Post.java](../../../../../src/main/java/com/instagram/backend/domain/Post.java) records author and creation time.
 
 **Implemented:** a global chronological feed and synchronous post creation. **Proposed:** follows, transactional outbox, durable events, idempotent workers, per-user candidate stores, high-fan-out classification, merge/ranking, and deletion tombstones.
 
-## Choices and trade-offs
+## Choosing the approach and paying its costs
 
 - Choose **fan-out on write** for ordinary creators when fast reads dominate. Avoid it for huge audiences; write and storage amplification are the cost.
 - Choose **fan-out on read** for high-fan-out creators. Avoid it when viewers follow many active accounts; merge latency is the cost.
 - Choose **hybrid** for a skewed graph. Do not add two paths before scale requires them; classification and deduplication complexity are the cost.
 
-## Failure drill
 
-**Prediction:** workers lag, so ordinary posts are missing from feeds. **Detection:** oldest event age, queue depth, and freshness probes rise. **Containment:** pause optional recomputation, scale within datastore limits, and merge recent posts on read. **Recovery:** replay events idempotently and backfill stores. **Prevention:** partitioned consumers, burst tests, backpressure, celebrity isolation, and lag alerts.
+## Paper drill: Mira's post is missing
+
+Predict what `V7` sees if `P20` commits but its feed-delivery event waits behind a celebrity-sized backlog. The source post exists, while the prepared feed is stale. Compare the publish time with event progress and an actual freshness probe.
+
+Protect ordinary delivery by limiting expensive background work and separating exceptional creators where needed. A bounded read-time merge can fill recent gaps if the source has capacity; an unlimited fallback could overload that source too.
+
+Recover by replaying the pending deliveries with duplicate-safe writes, then compare prepared entries with authoritative posts. Prevent recurrence by testing follower-count skew, measuring event age and enforcing limits on each delivery batch.
 
 ## Two-to-three-minute interview answer
 
@@ -61,9 +56,10 @@ I would use a hybrid because follower counts are highly skewed. Ordinary publish
 
 The read path merges both candidate sets, deduplicates, applies privacy and deletion rules, ranks, and batch-hydrates a cursor page. I would set the threshold from measured delivery cost, monitor freshness and lag, and use bounded read-time fallback during worker delays.
 
-## Practice status
 
-The artifact is ready; comprehension requires selecting strategies for two follower distributions without notes.
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`. Explain this scenario in your own words, predict the paper drill, and attempt the questions before opening their answers. Record learning only from your own explanation and predictions.
 
 ## Questions and explained answers
 

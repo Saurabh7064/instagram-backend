@@ -2,20 +2,21 @@
 
 [Module](./README.md) · [Previous: hashing](./03-hash-partitioning.md) · [Next: consistent hashing](./05-consistent-hashing.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: measure what is concentrated before choosing a remedy.
-- Prerequisite: equal partition keys route together; many logical groups can share a server.
 - New core terms: hotspot, hot key, write shard.
 
-## Why a balanced cluster can still be slow — Must understand
+Core study: 10–15 minutes. Prerequisite: equal partition keys route together; many logical groups can share a server.
 
-Suppose every server stores roughly the same number of bytes, but one user's events dominate incoming requests. Storage balance does not imply work balance. We must distinguish the key, partition, and server before saying “add more nodes.” A **cluster** is the cooperating group of database servers.
+## The servers look balanced. User 42 is still overwhelming one of them. — Must understand
 
-A **hotspot** is a location receiving more work than its capacity can handle. A **hot key** is one key receiving disproportionate requests. A partition can also be **oversized**: too many stored rows/bytes even when current traffic is modest. A partition can be hot, oversized, both, or neither.
+Imagine the database servers hold roughly equal amounts of data. Most users generate little traffic, but user 42 suddenly sends 9,000 activity events every second to the same user/day group. The servers holding other users' groups stay quiet. Adding another empty server elsewhere does not make those requests choose a different key.
 
-A server can be hot because it owns many moderately busy partitions rather than one extreme key. That case may improve by moving some ownership. One extreme unchanged key cannot be split merely by moving unrelated ownership ranges.
+The cooperating servers form a **cluster**. Its average storage or request rate can hide one overloaded location. A **hotspot** receives more work than its capacity can handle; a **hot key** concentrates requests on one key. Here the important key is `(42,2026-10-25)`.
 
-## Calculate the concentration
+A different problem is an **oversized partition**: it contains too many stored rows or bytes, even if nobody is using it heavily right now. Size and active demand are separate measurements. A partition can have either problem, both, or neither.
+
+A server can also be busy because it owns many moderately active keys. Moving some of those keys can help. Our extreme single-key case requires another question: can the work for that one user/day be deliberately divided, and what would the reader then have to do? Let us calculate the shortfall before choosing a remedy.
+
+## Calculate how fast the waiting work grows
 
 Use the fixed user-activity model. User 42's key `(42,2026-10-25)` contains events like 1001,1002,1003. For a workload exercise, suppose this same user/day produces 9,000 new events per second during a sustained burst, while the responsible replica set can handle 3,000 per second of this operation mix. These are invented capacities, not Cassandra benchmarks.
 
@@ -23,7 +24,7 @@ Demand exceeds capacity by 9,000−3,000=6,000 events each second. In ten second
 
 A one-day time bucket bounds history, but all 9,000 current writes still share today's key. Yesterday being cold does not help today's overloaded group. Shortening to an hour bounds size more tightly but does not automatically split writes within the same active hour.
 
-## Introduce several write destinations deliberately
+## Split the user/day on purpose, then pay for the read
 
 A **write shard** adds a deterministic sub-group to the natural partition key. Suppose we choose four sub-groups:
 
@@ -35,7 +36,7 @@ If the 9,000 writes distribute evenly across four groups, each gets 9,000/4=2,25
 
 The reader now needs all four groups to reconstruct a user's day. **Fan-out** means issuing work to multiple destinations. It must merge their ordered results, handle partial failures, and retain a stable pagination position. The distribution benefit is purchased with more read work and operational complexity.
 
-## Match remedy to cause
+## Choose a remedy for the concentration you measured
 
 | Observed problem | Candidate remedy | What it does not solve |
 |---|---|---|
@@ -53,15 +54,17 @@ Choose write sharding after identifying a worst-case key and acceptable read cos
 
 [Post.likeCount](../../../../../../src/main/java/com/instagram/backend/domain/Post.java) and [PostService.like](../../../../../../src/main/java/com/instagram/backend/service/PostService.java) illustrate a current shared post record that could receive concentrated traffic. This module does not implement sharded counters or fix concurrency in that method. A future activity store is a separate design requiring its own load tests.
 
-## Failure drill — paper exercise
+## Move the hot key without dividing it — paper exercise
 
-- **Predict:** change only the ring layout while the 9,000 writes retain one exact key. Has the fundamental key concentration disappeared?
-- **Symptom:** the hot replica set changes location but remains overwhelmed; other servers are quiet.
-- **Contain:** throttle or bound the queue; avoid an unbounded retry storm.
-- **Recover:** provision a measured new key layout if justified, version the transition, migrate/catch up, and verify complete reads across old/new groups.
-- **Prevent:** monitor both per-key rates and stored partition sizes, including worst-case users. Test the added read fan-out and partial failures.
+Change only the ownership ring while all 9,000 writes still use the same exact user/day key. Predict whether the responsible group is now capable of processing them.
 
-## Recap and stop/go
+The work may move to another replica set, but it remains concentrated. A hot group and quiet neighboring servers expose that mismatch. Bound waiting work or throttle demand while investigating; an unlimited retry queue only increases the backlog.
+
+If measurement justifies a new key layout, version it, migrate or catch up the data, and verify complete reads across old and new groups. Monitor per-key rates as well as stored size, especially for worst-case users. The recovery design must also test the added read fan-out and partial failures introduced by any write split.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Derive 6,000 pending events/second and the conditional 2,250/shard result. Explain why time bucketing, consistent hashing, and write sharding address different dimensions.
 

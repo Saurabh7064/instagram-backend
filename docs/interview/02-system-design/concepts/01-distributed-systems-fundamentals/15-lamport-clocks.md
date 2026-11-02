@@ -2,20 +2,19 @@
 
 [Module](./README.md) · [Previous: safe retries](./14-idempotency-and-delivery.md) · [Next: vector clocks](./16-vector-clocks.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: encode “must happen before” without claiming to measure elapsed seconds.
-- Prerequisites: independent processes send messages; a reply can depend on a received request.
-- Core terms: happened-before, logical clock, Lamport timestamp.
+Core study: 10–15 minutes. Prerequisites: independent processes send messages; a reply can depend on a received request.
 
-## Why timestamps on different machines can mislead — Must understand
+## A reply cannot cause the request that came before it — Must understand
 
-You want to reconstruct whether a reply followed a request. Each machine has a wall clock, but those clocks may disagree or be adjusted. Sorting independent logs by displayed time can place a reply before the request that caused it.
+A sends a request to B, and B sends a reply. You inspect their logs and find the reply's displayed time is earlier than the request's. The machine clocks disagree. Sorting those times has made a real dependency look backwards.
 
-Before choosing a timestamp, identify the actual relationship. An event is an individual action such as sending or receiving a message. Within one process, earlier program actions precede later ones. A message must be sent before it can be received. Chains of those relationships establish additional dependencies.
+Start with what we know without trusting either clock. A must send before B can receive. B receives before it sends its reply. Those relationships form a chain from A's request to B's reply. An **event** is one such action: sending, receiving, or doing local work.
 
-**Happened-before** names that dependency relation. If A sends a message, B receives it, and then B replies, A's send happened before B's reply. If two events have no chain connecting them in either direction, this model treats them as concurrent even if a physical observer could rank their wall times.
+**Happened-before** names this dependency relation. Earlier actions in one process precede later ones; sending precedes receiving; and chains preserve that order. If no chain connects two events either way, the model calls them concurrent. That word does not require them to occur at the same physical instant.
 
-## Build a clock for order, not seconds
+In our fixed exchange, A and B send one request and reply. C does two local events and sends no messages. We want numbers that preserve the A/B dependency chain without pretending C's unrelated work caused anything in it. A counter can preserve the first requirement, but we will see its limit on the second.
+
+## Make a receive number larger than both known histories
 
 A **logical clock** tracks ordering information through counters or metadata rather than estimating physical time. A **Lamport timestamp** is a logical counter assigned according to these rules. Lamport is a person's name, not an acronym.
 
@@ -29,7 +28,7 @@ Why this receive formula? The receipt must follow the receiver's own previous ev
 
 The [original Lamport paper](https://lamport.azurewebsites.net/pubs/time-clocks.pdf) formalizes happened-before and the clock condition: dependency order implies increasing timestamps. The formulas below are a concrete instance of those rules.
 
-## Work the whole fixed exchange
+## Calculate the request and reply counters
 
 Processes A/B exchange one request and reply. C performs independent local work and sends no messages. Initial counters are A=0, B=0, C=0.
 
@@ -52,7 +51,7 @@ A's request-send timestamp 1 is less than B's receive 2, which is less than repl
 
 But C's second event also has timestamp 2. Its number being below A's final 4 does not prove C influenced A. Numbers from unrelated counters can compare even when events are independent.
 
-## The one-way implication is the important limit
+## A smaller counter does not prove a dependency
 
 Write L(e) for event e’s Lamport timestamp. If event e happened before f, then L(e)<L(f). The converse is false: L(e)<L(f) does not establish a dependency. The C event demonstrates that missing inference using the same fixed exchange.
 
@@ -66,15 +65,17 @@ Use logical ordering when dependency order matters and physical clock agreement 
 
 [PostRepository.findAllByOrderByCreatedAtDesc](../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) orders posts by a stored creation time, not by Lamport metadata. [RequestCorrelationFilter](../../../../../src/main/java/com/instagram/backend/observability/RequestCorrelationFilter.java) helps correlate a request; an identifier alone is not a logical clock. Cross-service logical timestamps are proposed work here.
 
-## Failure drill — paper exercise
+## Let B's wall clock run behind A's — paper exercise
 
-- **Predict:** B's wall clock is behind A's. Can wall-time sorting make the request/reply appear reversed?
-- **Detect:** a log sequence contradicts a known send-before-receive relationship. Compare carried logical metadata separately from displayed time.
-- **Contain:** do not derive causality solely from wall-time or scalar ordering.
-- **Recover:** reconstruct the exchange using message relationships and logical timestamps; preserve physical time for diagnostics with its uncertainty understood.
-- **Prevent:** define counter/identity behavior across restart and propagate metadata. Logical clocks cannot recover message relationships that were never recorded, nor make incomplete logs complete.
+Predict whether sorting displayed times can place B's reply before A's request. Then compare that order with the known send-before-receive chain.
 
-## Recap and stop/go
+The contradiction tells us that wall-time sorting is insufficient for dependency reconstruction. A larger scalar counter alone is also insufficient proof that unrelated events influenced each other, so keep message relationships alongside the carried logical metadata.
+
+Reconstruct the exchange from those relationships and logical timestamps. Physical time remains useful for diagnostics, with its uncertainty understood. Define counter persistence and process identity across restart, and propagate the metadata with messages. No clock can reconstruct a relationship that was never recorded or turn incomplete logs into a complete history.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Derive 1,2,3,4 with the receive formula and explain C's two independent events. State what increasing counters prove and what they cannot prove before advancing.
 

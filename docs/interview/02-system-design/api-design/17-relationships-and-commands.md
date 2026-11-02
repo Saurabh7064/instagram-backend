@@ -8,15 +8,21 @@ How do you model likes, follows, and publishing actions without ambiguous toggle
 
 ## What you will learn
 
-Choose desired-state resources versus commands, derive retry behavior, and protect relationship invariants under concurrent requests.
+Explain why replaying a toggle can undo a like, then separate the HTTP intention from the database rules needed to maintain one relationship and the right count.
 
-Prerequisites: the foundational contract, method, authorization, and compatibility lessons. These are proposed teaching examples; routes, collaborators, DTOs, and policies shown here are not installed by this documentation change. Imports and application wiring are omitted. Use the existing authentication rules when implementing any extension.
+Builds on [method repeat behavior](02-http-methods.md) and [identity](06-identity-and-ownership.md). Desired-state routes below are proposals; the current like routes are identified at the end.
 
-## Must understand: say the desired result
+## A repeated tap should not undo the user's intention
 
-A mobile user taps Like while the network is unreliable. “Toggle” means invert whatever state exists now, so a repeated request can undo the first. A desired-state operation says ensure liked or ensure unliked, making retries easier to reason about. An invariant is a condition that must hold after every commit, such as at most one like per user/post pair. A command requests a business transition or action with its own rules.
+Post 42 has 10 likes from other users; user 7 has not liked it. User 7 taps Like; the server stores the like, but the response disappears. The app retries. If the operation means “toggle,” the second call sees liked and changes it back to unliked. Both calls executed correctly according to toggle semantics, yet the user ends up with the opposite of what they wanted.
 
-A light switch that toggles is different from a control labelled “set on.” The analogy stops because concurrent database writers, stale counts, and notifications need coordinated durable state beyond a physical switch.
+Instead say “ensure my like exists.” The first request creates it; a repeat leaves it present. This is a **desired-state operation**: it names the result to achieve rather than an inversion of whatever happens to be there. The relationship has a known identity, the pair `(post 42, user 7)`, so a proposed `PUT /posts/42/likes/me` can address it directly.
+
+An **invariant** is a rule that must remain true after every committed change. Here we need at most one relationship for that pair, and a stored count that agrees with the chosen counting policy. Expressing the intention clearly in HTTP helps the client, but the database must still uphold those rules under concurrent requests.
+
+The everyday comparison is a light control marked “set on” instead of a switch marked “toggle.” The comparison stops at the stored relationship and count: two requests can race, and a notification is another effect to coordinate.
+
+The table keeps that desired-state distinction visible. Publishing is a supporting comparison: some business actions need a processing contract rather than simply ensuring one relationship exists.
 
 | Intent | Proposed API | Retry expectation |
 |---|---|---|
@@ -52,9 +58,11 @@ Publishing might check moderation, media readiness, schedule, and policy, then s
 
 Version checks protect competing transitions; attempt keys protect replay; outgoing events protect the database/notification boundary. Those mechanisms address different failures. A successful relationship PUT can still emit duplicate notifications if each retry publishes a new event without deduplication.
 
-## Controlled failure drill
+## Replay the same Like attempt twice
 
-Prediction: submit the same toggle twice after dropping the first response. Symptom: the visible like is removed although the user intended like. Contain retry of that command, recover by reading authoritative state and setting the intended value, prevent with desired-state operations and duplicate-attempt tests. Separately race two different users and assert both relationship rows plus exact count; sequential tests miss that bug.
+Use user 7's initially absent relationship with post 42. On paper, drop the response after the first toggle and repeat it. Predict the final state: absent again, although the person intended present. Detect it with a lost-response/repeat test rather than two different user actions.
+
+Contain retries of the ambiguous command, recover by reading authoritative state and explicitly setting the desired result, then verify repetition leaves it present. Prevention needs desired-state semantics and an implementation that honors them. Also test two different users liking from count 10: both rows must exist and the exact count must become 12. The unique pair constraint cannot prevent that separate counter race.
 
 ## Project mapping and practice
 
@@ -64,9 +72,11 @@ Current [PostController](../../../../src/main/java/com/instagram/backend/control
 
 I prefer desired-state operations for relationships with a known identity: ensure my like exists or is absent. A toggle is ambiguous after an uncertain response. I still need database uniqueness and atomic count handling; HTTP idempotency does not implement those. For a workflow such as publication I choose an explicit command or attempt resource, validate legal transitions, and define replay. I test duplicate requests and different-user races because a uniqueness constraint cannot prevent a separate lost counter update.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Explain the worked request without notes, justify a competing option, predict the failure, and describe a test that checks the final state or response. Record an attempt in [learner progress](learner-progress.md). A completed artifact does not establish understanding or an implemented feature.
+Derive the state after a repeated toggle and after repeated desired-state requests. Continue when you can explain why pair uniqueness and correct counter updates need separate coordination.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

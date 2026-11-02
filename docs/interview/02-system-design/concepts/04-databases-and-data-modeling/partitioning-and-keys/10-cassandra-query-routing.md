@@ -2,22 +2,21 @@
 
 [Module](./README.md) · [Previous: partition creation](./09-cassandra-partition-creation.md) · [Next: Instagram design](./11-instagram-key-design.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: distinguish the coordinating node from the nodes responsible for storing a partition.
-- Prerequisites: complete partition key, clustering tuple, token ring, and replication as copies.
 - New core terms: partitioner, coordinator, consistency level.
 
-## Correct the one-node shortcut — Must understand
+Core study: 10–15 minutes. Prerequisites: complete partition key, clustering tuple, token ring, and replication as copies.
 
-“Partition key → hash → token range → node” is a useful start, but it hides copies and the request's entry point. With replication, the destination is a **replica set**, not necessarily one node. A node receiving a request may coordinate it without owning the data itself.
+## A receives the request, but B and C hold the rows — Must understand
 
-A **partitioner** defines how encoded partition-key bytes become a token. Cassandra commonly uses `Murmur3Partitioner`; the toy tokens below are not calculated with that algorithm. The **coordinator** is the node handling a client operation and contacting the required replicas. A **consistency level** specifies how many/which replicas must respond for completion; it is not a rule choosing the partition key.
+We ask for user 42's October 25 activity, with `LIMIT 2`. Suppose the client sends the request to A, while B and C hold copies of that user/day. Can A still serve the request? Yes: receiving a request and owning its data are different roles.
 
-The useful chain is:
+The node handling the operation is its **coordinator**. It locates the relevant copies and obtains the responses the operation requires. It need not store the selected partition itself. The complete `(user_id,activity_date)` tuple chooses the data group; the event time and ID then choose and order rows *inside* that group.
 
-**complete partition key → encoded bytes → partitioner hash/token → owned token range → topology-aware replica set → required responses → client result.**
+A **partitioner** turns the encoded complete key into a token. Cassandra commonly uses `Murmur3Partitioner`; our small teaching tokens are invented so we can follow placement without hiding it in real hash arithmetic. The token identifies an owned range, and topology-aware replication identifies the set of copies.
 
-## Fix topology before predicting an answer
+The **consistency level** says how many or which of those relevant replicas must respond for completion. It does not turn every live node into a copy and does not choose the partition key. The common shortcut “partition key → hash → token range → node” leaves out the replica set and the coordinator. We need the topology before we can count the required replies, so set that up next.
+
+## Place the copies before counting their responses
 
 Use the same 0–99 teaching ring from lesson 5 **before** adding D: A=20, B=50, C=90. There is one datacenter, each node is in a different rack, one token per node for this illustration. Replication factor (**RF**, number of copies) is 2 with topology-aware placement. In this simplified layout, replicas are the primary clockwise owner and the next distinct node in another rack.
 
@@ -31,7 +30,7 @@ The same user/day teaching hashes are 35,80,65. Therefore:
 
 The primary range owner is not a permanent write leader: Cassandra permits any appropriate replica/coordinator path under its protocol. Actual deployments can have many tokens, multiple datacenters, and rack constraints; do not treat this simplified “next node” rule as the complete placement algorithm. The [Cassandra token/replication architecture](https://cassandra.apache.org/doc/latest/cassandra/architecture/dynamo.html) explains the full setting.
 
-## Trace one bounded read
+## Follow A to the two replicas for token 35
 
 ```cql
 SELECT activity_id, occurred_at, activity_type
@@ -51,7 +50,7 @@ Assume the fixed writes have reached both relevant replicas and no concurrent up
 
 The quorum count is a participation condition, not an independent proof of linearizability under arbitrary concurrent writes. See [quorum reasoning](../../01-distributed-systems-fundamentals/07-quorums.md) for the distinction.
 
-## Compare query shapes on the same table
+## Which predicates identify a group, and which only filter rows?
 
 | Query shape | Routing consequence |
 |---|---|
@@ -62,21 +61,23 @@ The quorum count is a participation condition, not an independent proof of linea
 
 Some indexes, token scans, or explicitly filtered queries allow other shapes in supported versions. They do not turn an incomplete key into one known partition or guarantee inexpensive work. `ALLOW FILTERING` is permission to perform otherwise rejected filtering, not a universal performance repair. [Cassandra SELECT restrictions](https://cassandra.apache.org/doc/latest/cassandra/developing/cql/dml.html) describe the supported cases.
 
-## Analogy, choice, and project mapping
+## Coordination is separate from ownership
 
 A receptionist can direct a request to the two archives holding the right folder without personally storing it. The analogy stops where replica reconciliation and consistency-level failure rules need a protocol.
 
 Use full-key bounded queries for predictable routing. A new access pattern may deserve another query-specific table, with extra write/storage consistency work. [PostService.feed](../../../../../../src/main/java/com/instagram/backend/service/PostService.java) currently reads one relational repository; it does not implement this coordinator protocol. The RF=2 three-node scenario is a paper model, separate from the single-node CQL script.
 
-## Failure drill — paper exercise
+## Lose B while coordinator A stays healthy — paper exercise
 
-- **Predict:** B is unavailable while C and coordinator A are alive. Can LOCAL_QUORUM succeed for token 35?
-- **Symptom:** only one relevant replica, C, is available; two required responses cannot be obtained. A's health is not an extra copy.
-- **Contain:** preserve the requested contract; do not silently lower the consistency level and claim the same guarantee.
-- **Recover:** restore the replica, perform required data catch-up/repair, and verify the operation's result under the chosen level.
-- **Prevent:** test owner/coordinator failures separately, keep driver metadata current, and size replication against the actual failure requirement.
+For token 35, replicas are B/C and LOCAL_QUORUM requires both. B fails; C and coordinator A remain alive. Predict whether the read can finish at the requested level.
 
-## Recap and stop/go
+Only C is an available relevant replica. A's health does not add another copy, so the required two responses cannot be obtained. Do not silently lower the level and claim the operation retained the same guarantee.
+
+Restore B, complete required catch-up or repair, and verify the result under the chosen level. Test coordinator and replica failures separately, keep driver metadata current, and select replication for the actual failure requirement. Counting all healthy cluster nodes would miss the placement that determines this operation's availability.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Route token 35, distinguish A's role from B/C, derive the required count, and identify which query fields affect placement versus clustering.
 

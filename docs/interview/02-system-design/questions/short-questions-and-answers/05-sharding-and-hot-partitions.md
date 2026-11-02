@@ -6,44 +6,47 @@ A celebrity post receives millions of likes in a few minutes, and one database p
 
 **“How would you shard data and prevent celebrity accounts from creating hot partitions?”**
 
-## Why this problem exists
 
-Sharding spreads data when one database cannot meet storage or throughput needs. A popular account can still send most requests to one shard, which queues and times out while fleet averages look healthy.
+## More shards do not split one popular key
 
-## Analogy: supermarket checkout lanes
+Our celebrity post receives five million likes in one minute. That is `5,000,000 ÷ 60 ≈ 83,333` writes each second. Suppose routing uses the post ID: all writes for post 42 go to the same destination, even if there are many otherwise quiet destinations.
 
-Many checkout lanes add capacity, but sending everyone to one special lane recreates a bottleneck. The analogy stops because changing a shard key requires moving durable data while preserving uniqueness and in-flight writes.
+Each independently operated subset of the data is a **shard**. The value used to choose that subset is the **shard key**. A **hot partition** is a subset receiving more work than its owner can safely handle. Spreading different post IDs does not split requests that all carry the same ID.
 
-## Terms to establish
+Imagine many supermarket checkouts with a rule sending every customer holding one popular item to the same lane. The other lanes do not help that line. The limit of the analogy matters: changing database routing requires moving stored data and coordinating writes, not simply asking people to change lanes.
 
-- A **shard** is one independently operated subset of the data.
-- A **shard key** determines which shard owns a record or request.
-- A **hot partition** receives disproportionately high traffic or storage.
-- **Salting** adds a controlled bucket value so one logical key can spread writes across several physical keys.
+## Separate the relationship from the count
 
-## What I would do
+There are two jobs: remember that user 7 liked post 42, and report a total for post 42. Keep an authoritative relationship with an enforceable uniqueness rule. Choosing how to distribute those relationships requires its own query and transaction design.
 
-1. Start from queries and invariants, then choose a high-cardinality key and explicit routing scheme.
-2. Measure load per shard and key; isolate exceptions with buckets or a celebrity path.
-3. Plan online rebalancing, retry-safe writes, verification, and reconciliation before an emergency.
+The total can sometimes be maintained in several counter buckets rather than one contested row. For an illustrative 128-bucket counter, a stable hash of the user selects a bucket. Under an even-distribution assumption, `83,333 ÷ 128 ≈ 651` updates reach each bucket per second. This is an average estimate, not a promised capacity.
 
-## Concrete walkthrough
+Adding a bucket value to the counter key is often called **salting**. It helps physical write distribution only if the storage routing actually places those buckets across sufficient capacity. Keeping all 128 counters behind one saturated owner may reduce a row-lock hotspot without solving that owner's overall limit.
 
-Five million likes in one minute is about 83,000 writes per second. Routing by `post_id` sends them all to one shard. Keep the authoritative like relation under a key supporting viewer/post lookup, but replace one counter row with 128 buckets chosen from a stable user hash. Writes average about 650 per second per bucket; reads sum or cache them and accept brief staleness.
+## The read pays for the simpler write
 
-## Instagram-backend mapping
+An exact count now requires summing all buckets. A cached aggregate is cheaper to read but can lag. Relationship updates and bucket updates also need a correctness and recovery plan; a uniqueness constraint on a single database does not automatically span independently sharded databases.
+
+Choose this extra complexity only after measuring the hotspot. Monitor individual shards and popular keys: a fleet-wide average can look healthy while every request for post 42 is struggling.
+
+## Where this appears in our backend
 
 [PostLike.java](../../../../../src/main/java/com/instagram/backend/domain/PostLike.java) stores the viewer/post relation, while [Post.java](../../../../../src/main/java/com/instagram/backend/domain/Post.java) stores one `likeCount`. [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) updates both in one PostgreSQL transaction. Shard routing, salted counters, rebalancing, and a celebrity path are proposed, not implemented.
 
-## Choices and trade-offs
+## Choosing the approach and paying its costs
 
 - Shard only after one tuned database cannot meet measured needs; distribution adds transaction and operational complexity.
 - Choose for the dominant access pattern; other queries may require fan-out or projections.
 - Salt hot counters when write distribution outweighs immediate exact reads; aggregation becomes costlier.
 
-## Failure drill
 
-**Prediction:** a celebrity post saturates one shard’s CPU, locks, or write queue while fleet averages look normal. **Symptom and detection:** per-shard and per-key metrics show concentrated latency, throttling, and queue depth. **Containment:** rate-limit or queue the hot operation and protect unrelated keys. **Recovery:** split or isolate the key, drain queued idempotent writes, and reconcile relationships with aggregate counters. **Prevention:** alert on skew, load-test celebrity traffic, pre-create buckets, and rehearse online rebalancing.
+## Paper drill: most machines are quiet
+
+Predict why adding shards might leave the celebrity post just as slow. If every request still routes by its one post ID, the hot key still has one owner.
+
+Group latency, waiting work and write load by destination and key. Protect unrelated traffic by bounding or queuing hot-key work. Then test a design that isolates the key or distributes the relevant writes; do not move live data without a routing and reconciliation plan.
+
+After recovery, compare authoritative like relationships with the aggregate count and replay only duplicate-safe work. Prevent recurrence with skew alerts, celebrity-shaped load tests and a rehearsed data-migration procedure. Randomizing a counter key is only one part of that procedure.
 
 ## Two-to-three-minute interview answer
 
@@ -53,9 +56,10 @@ Hashing by post ID still sends every celebrity like to one shard. I would preser
 
 Before launch I would prepare versioned routing, bounded migration, retry-safe writes, dual-read verification, rollback, and per-shard alerts. During an incident I would rate-limit or queue the hot operation, protect unrelated keys, isolate the celebrity key, and reconcile relationships with counters after traffic stabilizes. I would treat sharding as an operational program, not only a hash function.
 
-## Practice status
 
-The artifact is ready; comprehension is not implied. Practice by choosing a shard key, predicting its hottest key, and explaining how a salted counter changes both writes and reads.
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`. Explain this scenario in your own words, predict the paper drill, and attempt the questions before opening their answers. Record learning only from your own explanation and predictions.
 
 ## Questions and explained answers
 

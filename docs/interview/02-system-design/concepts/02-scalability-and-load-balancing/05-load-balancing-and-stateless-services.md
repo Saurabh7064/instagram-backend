@@ -1,43 +1,26 @@
 # Micro-Lesson 05 — Load Balancing and Stateless Services
 
-- Status: `READY`; comprehension not yet demonstrated
-- Time: 15 minutes
-- Primary idea: a load balancer can safely spread requests only when any healthy instance can serve the next request
-- New terms: load balancer, stateless service, health check
-- Prerequisite: [Scalability, Availability, and Reliability](../09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md)
+Core study: 15 minutes. Prerequisite: [Scalability, Availability, and Reliability](../09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md).
 
-## Why does this exist?
+## Upload on A, fetch on B: where did the photo go? — Must understand
 
-One instance has finite capacity and can fail. Multiple instances need one stable entry point that distributes traffic.
+You upload a photo through backend A. A saves it to its local disk and returns a URL. Your next request goes to backend B, which looks for that file on its own disk. It is absent. Both backends are healthy; the request changed behavior because required state stayed on A.
 
-Distribution is safe only if B can serve after A. Instance-local login state or files make later requests fail randomly, so state must be portable.
+Now we can state the condition for safely spreading requests: the next suitable instance needs access to the information the previous request produced. Adding instances first can expose this problem rather than solve it.
 
-## Analogy: a restaurant host
+A **load balancer** supplies a stable public entry point and selects an appropriate backend instance for incoming traffic. It can spread work and route around an unavailable instance. It does not copy that instance's memory or files to its neighbors.
 
-A host sends each party to an open table. Any server can continue the order because a shared system holds it, not one server's memory.
+## “Stateless” means no required state is stranded on one instance
 
-The analogy stops at partial network failures, in-flight requests, retries, and shared dependency bottlenecks.
+Posts, accounts, and uploaded media are still state. A **stateless service** keeps no required client or workflow state solely in one application instance between requests. Shared durable storage or a verifiable client token carries what later requests need.
 
-## Plain-language model
+For our upload, shared object storage would let B retrieve the file A stored. For authentication, a bearer token can let either backend validate the same caller when both have the required signing configuration. A login remembered only in A's memory would have the same portability problem as A's file.
 
-- A **load balancer** is the stable entry point that selects a healthy backend instance for each request.
-- A **stateless service** keeps no required client or workflow state only in one application instance between requests. Durable state lives in a shared database, object store, or client token.
-- A **health check** is a probe that decides whether an instance is alive and ready for traffic. An alive process may still be unable to reach a dependency.
+Always sending the user back to A can temporarily hide the problem. It leaves uneven load and loses the user's path if A restarts. Think of a restaurant host directing you to any server: the arrangement works only if the order is in a shared system rather than one server's private notebook. The analogy stops at in-flight work and retries; a failed request can already have changed shared data before the next server sees it.
 
-Stateless does not mean “the system has no state.” Posts, users, and likes are state. It means the application instance is not the only owner of state needed by a later request.
+## Follow an authenticated request after making state portable
 
-## Predict before reading
-
-A user logs in through instance A. A stores the login only in its memory. The next request goes through the load balancer to instance B. What happens?
-
-<details>
-<summary>Reveal the prediction</summary>
-
-B cannot find A's memory, so it may reject the user. Always routing that user to A hides the problem until A restarts and creates uneven load. Shared storage or a verifiable token removes the dependency.
-
-</details>
-
-## Concrete request flow
+The diagram is a proposed layout with shared media storage, rather than the current local-file arrangement:
 
 ```text
 Client → load balancer → instance A ─┐
@@ -45,14 +28,15 @@ Client → load balancer → instance A ─┐
                        instance C ─┘→ shared object storage
 ```
 
-1. The client sends `GET /api/feed` to one public address.
-2. The load balancer selects instance B from the ready instances.
-3. B validates the bearer token without needing an earlier request on B.
-4. B reads shared data from PostgreSQL and returns the response.
-5. A or C can serve the next request from the same token and data.
-6. If B becomes unready, the balancer sends new traffic to A and C.
+A client requests `GET /api/feed` through one public address. Suppose B is selected. It validates the token, reads the shared post/user data from PostgreSQL, and returns the response. The next request can go to A or C because the required identity and durable data did not depend on B's earlier memory.
 
-The balancer improves the application tier, not the whole path automatically. If PostgreSQL is unavailable or overloaded, every application instance can still fail.
+If B stops, the balancer can send new requests to A/C, provided they can serve the path and have enough capacity. That qualification matters: all three can still depend on the same overloaded or unavailable database.
+
+## Is the process alive, and can this path serve traffic?
+
+A **health check** probes a specific serving condition. **Liveness** asks whether a process should remain running; **readiness** asks whether it should receive the relevant new traffic. A basic alive check does not prove a feed request can get a database connection.
+
+Use readiness to handle failures it can actually route around. If B alone is stuck while A/C have headroom, removing B from rotation can help. If every backend shares one overloaded database, ejecting all of them creates no healthy destination. A database-aware probe may also need a scarce connection. Pair readiness with bounded admission and dependency monitoring, rather than turning every overload signal into a global routing outage.
 
 ## Instagram-backend mapping
 
@@ -60,9 +44,9 @@ The balancer improves the application tier, not the whole path automatically. If
 
 **Current scaling blocker:** [MediaStorageService.java](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java) stores uploads on the instance's local filesystem. A later media request routed to another instance may not find that file.
 
-**Proposed:** put multiple instances behind a load balancer and move media to shared object storage. Use the readiness probes in [application.properties](../../../../../src/main/resources/application.properties) to stop routing when the database is unavailable. This infrastructure is not implemented here.
+**Proposed:** put multiple instances behind a load balancer and move media to shared object storage. Review the database-aware readiness probes in [application.properties](../../../../../src/main/resources/application.properties) alongside dependency and admission policy. They can expose inability to serve, but removing all instances from routing during shared database overload does not restore capacity. This infrastructure is not implemented here.
 
-## Decision and trade-off
+## When do the extra instances earn their complexity?
 
 | Choose | Choose it when | Avoid or delay it when | Cost or new failure mode |
 |---|---|---|---|
@@ -70,21 +54,21 @@ The balancer improves the application tier, not the whole path automatically. If
 | Balanced stateless replicas | Requests can run on any instance and traffic or availability requires redundancy | Required files or sessions remain instance-local | More infrastructure, health-check design, and downstream load |
 | Keep one user routed to one instance temporarily | A legacy session cannot yet be externalized | Treating it as the final design | Uneven load and user failure when that instance disappears |
 
-## Failure drill
+## B's pool fills while its process stays alive — paper exercise
 
-Scenario: an instance's process is running, but its database connection pool is exhausted.
+Predict what an alive-only probe reports when B cannot obtain a database connection. Then ask whether this is B's isolated problem or a limit shared by all instances.
 
-1. **Prediction:** an alive-only probe passes, so traffic keeps reaching an instance that cannot complete requests.
-2. **Failure:** requests wait for connections until they time out.
-3. **Observable symptom:** active requests and connection waits rise while basic health stays successful.
-4. **Containment and recovery:** mark the instance unready, stop new traffic, bound waits, and let work drain.
-5. **Prevention:** separate alive from ready checks, bound pools and queues, and test dependency failure.
+Requests may wait until timeout while the basic probe remains successful. Connection-wait time and active-request counts reveal that difference. Bound waits and new work. If suitable A/C capacity exists, temporarily taking B out of rotation lets it drain; if the database is saturated everywhere, reduce offered work instead of cycling every backend through readiness failure.
 
-## Teach-back
+Recover by verifying the constrained dependency and a successful request path, then restore admission carefully. Test instance loss separately from shared dependency failure. Keep health probes cheap enough that they do not consume the same scarce resources they are meant to diagnose.
+
+## Explain why B can serve the next request
 
 In 60–90 seconds, explain why adding three instances is insufficient by itself. Trace one authenticated feed request, identify where state lives, and name the current media-storage obstacle.
 
-## Stop/go
+## Before moving on
+
+Artifact: `READY`; comprehension not yet demonstrated.
 
 Proceed only when you can explain without notes why stateless does not mean “no data,” predict the in-memory-login failure, trace routing around one failed instance, and state why the database can remain a shared bottleneck.
 

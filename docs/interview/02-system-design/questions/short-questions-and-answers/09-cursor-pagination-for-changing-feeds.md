@@ -6,54 +6,47 @@ Users scroll a newest-first feed while new posts arrive. With page-number pagina
 
 **“How would you paginate a changing feed so scrolling remains stable and efficient?”**
 
-## Why this problem exists
 
-Offset pagination identifies rows by current position. A new row shifts every later position, so `OFFSET 20` no longer means “continue after the twentieth row I saw.” Deep offsets also make the database skip increasing amounts of data. A continuation token should name the last stable ordering position returned.
+## Continue after a post, rather than after a row number
 
-## Analogy
+Start with this newest-first feed: `(12:05, 105)`, `(12:04, 104)`, `(12:03, 103)`, where each pair is a timestamp and post ID. Page one contains 105 and 104. The client wants whatever follows post 104.
 
-A bookmark records the last sentence read; “start at page 20” fails if an editor keeps inserting pages at the front.
+Before page two, post 106 arrives at 12:06. The ordered feed is now 106, 105, 104, 103. Skipping two rows returns 104 again. **Offset pagination** remembers a count of rows to skip, and that count no longer describes where the reader stopped.
 
-The analogy stops because rows can share timestamps, disappear, and be filtered differently, so the bookmark needs deterministic database keys and query context.
+Instead, remember the last returned ordering value: `(12:04, 104)`. The next request asks for posts older than that pair, so it returns 103 even after 106 arrives. This is **keyset pagination**. The client carries the saved position in a **cursor**, usually an opaque token rather than an editable database expression.
 
-## Terms to establish
+A bookmark works similarly: it remembers where you stopped reading rather than relying on the number of pages before it. The analogy needs an extra rule for data: multiple posts can have the same timestamp, and deleted posts need not remain present for the boundary to work.
 
-- **Cursor:** opaque token representing an ordered position.
-- **Keyset pagination:** continues by comparing with the last sort key.
-- **Tie-breaker:** unique secondary field that makes ordering deterministic.
-- **Composite index:** stores multiple ordered fields for an efficient continuation query.
+## Why the cursor needs both fields
 
-## What I would do
+Order by `created_at DESC, id DESC`. For saved timestamp `t` and ID `k`, continue where `created_at < t`, or where `created_at = t` and `id < k`. The ID breaks timestamp ties. Using only a strict timestamp comparison would omit any remaining posts with that timestamp; using a non-strict comparison would repeat rows.
 
-I would order by `created_at DESC, id DESC`. The API accepts a bounded `limit` and optional `after` cursor containing the final item’s timestamp, ID, and cursor version. The query selects tuples older than that position, preserves the same order, and fetches `limit + 1` rows to determine whether another page exists.
+Fetch `limit + 1` rows in this same order. With a page size of two, a third row tells us there is more data. Return the first two and build the continuation from the last row actually returned, not the extra row. A matching index lets the database seek near the saved position instead of repeatedly skipping a long prefix.
 
-The response returns items and a next cursor, not a total page count. New posts appear on refresh from the top rather than entering an in-progress scroll. Deletions create a harmless gap. Filters or ranking versions that change ordering must be encoded in the cursor or invalidate it clearly. A matching composite index keeps continuation efficient.
+## What this does and does not stabilize
 
-## Concrete walkthrough
+Post 106 appears when the viewer refreshes from the top. Deleting an earlier post does not shift our saved key. But this is not a frozen copy of the entire feed: changed sort values, filters or permissions can change membership. Use a stable sort for this design, bind the cursor to its query context, cap the page size and validate token versions. A true snapshot requires an additional explicit mechanism.
 
-1. The feed is `(12:05, 105)`, `(12:04, 104)`, `(12:03, 103)`.
-2. Page one returns `105` and `104`, with cursor `(12:04, 104)`.
-3. New post `106` arrives at `12:06`.
-4. Offset two now returns `104` again because positions shifted.
-5. Keyset pagination requests tuples older than `(12:04, 104)` and returns `103`; `106` appears after refresh.
-
-The continuation remains stable without scanning shifted positions.
-
-## Instagram-backend mapping
+## Where this appears in our backend
 
 [PostController.java](../../../../../src/main/java/com/instagram/backend/controller/PostController.java) currently returns a list from `GET /api/feed`. [PostRepository.java](../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) uses `findAllByOrderByCreatedAtDesc()`, and [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) maps every post. [Post.java](../../../../../src/main/java/com/instagram/backend/domain/Post.java) already has `createdAt` and unique `id`.
 
 **Implemented:** newest-first ordering. **Proposed:** bounded page contracts, tuple continuation query, `(created_at DESC, id DESC)` index, cursor versioning, and concurrent-insert tests. The endpoint is currently unbounded.
 
-## Choices and trade-offs
+## Choosing the approach and paying its costs
 
 - Choose **cursor pagination** for large, changing feeds. Do not choose it when arbitrary page jumps are essential; opaque navigation is the cost.
 - Choose **offset pagination** for small, stable administrative tables. Avoid it for deep feeds; duplicates, skips, and scans are the cost.
 - Choose a **snapshot boundary** only when one session must exclude later changes; retaining that context is the cost.
 
-## Failure drill
 
-**Prediction:** a timestamp-only cursor skips posts sharing one timestamp. **Detection:** tests return fewer unique IDs near equal timestamps. **Containment:** reject ambiguous old cursors after deploying a corrected version. **Recovery:** add the ID tie-breaker and restart pagination safely. **Prevention:** test equal timestamps, concurrent inserts, deletions, malformed cursors, and index usage.
+## Paper drill: two posts share a timestamp
+
+Predict what a timestamp-only strict “older than” condition does to remaining rows tied at the page boundary. It skips them. Look for missing unique IDs when testing a page boundary with equal timestamps.
+
+Contain the problem by versioning the corrected cursor and explicitly asking clients with incompatible old tokens to restart. Recover using both timestamp and ID in the ordering and continuation predicate, then verify every eligible row across the boundary.
+
+Keep tests for equal timestamps, a new post between pages, deletions and changed filters. Verify the query plan as well: correct output on a tiny table does not prove efficient deep scrolling.
 
 ## Two-to-three-minute interview answer
 
@@ -61,9 +54,10 @@ I would replace page numbers with keyset pagination ordered by `created_at DESC,
 
 New posts do not disrupt the current scroll; they appear on refresh. Deletions create gaps rather than shifts. I would version and validate cursors, bind relevant filter context, cap page size, and test equal timestamps and concurrent insertion.
 
-## Practice status
 
-The artifact is ready; comprehension requires deriving the continuation predicate without notes.
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`. Explain this scenario in your own words, predict the paper drill, and attempt the questions before opening their answers. Record learning only from your own explanation and predictions.
 
 ## Questions and explained answers
 

@@ -6,54 +6,49 @@ A celebrity post is requested thousands of times per second. PostgreSQL is overl
 
 **“How would you design the cache, and how would you keep cached data from becoming dangerously stale?”**
 
-## Why this problem exists
 
-Rebuilding the same response wastes database capacity. A cache serves reusable data faster, but creates another copy that can outlive the source value. Incorrect keys or failed invalidation can reveal another viewer’s state or return deleted content, so caching is also a correctness decision.
+## Which part of this response belongs to everyone?
 
-## Analogy
+Thousands of viewers ask for post 42. They all need its caption and media URL, so rebuilding those fields from PostgreSQL for every request repeats work. But each viewer also needs an answer to “have I liked this post?” User 7 and user 8 may need different answers.
 
-A restaurant posts its menu near the entrance so customers do not repeatedly ask the kitchen. When an item sells out, the sign needs an update or expiry.
+A **cache** is a reusable copy of a result. Before deciding where to put it, decide whose result it is. A shared key such as `post:v1:42` can hold approved public fields. It must not accidentally hold the entire response after it has been personalized for user 7. Keep viewer-specific state separate, or include the viewer in the key and accept the larger number of entries.
 
-The analogy stops because distributed caches have concurrent readers, evictions, partial failures, and personalized values.
+## Walk through the first read and the edit
 
-## Terms to establish
+With **cache-aside**, the application looks in the cache first. If post 42 is absent, it reads PostgreSQL and stores a reusable copy. Later reads can reuse that copy. Like a menu posted outside a restaurant, it saves repeated questions to the source. Unlike a physical sign, several software requests can rebuild and change the copy concurrently.
 
-- **Cache-aside:** read the cache first and load the database on a miss.
-- **TTL:** maximum lifetime of a cached entry.
-- **Invalidation:** remove or replace entries affected by a write.
-- **Stampede:** many simultaneous misses overload the source.
+Now the author edits the caption. Commit the database change before removing the old cached entry; removal is called **invalidation**. The next miss can load the accepted caption. A durable change record can make a failed invalidation retryable.
 
-## What I would do
+Ordering the edit this way closes one race, but it does not close every race. A reader may load the old caption before the edit, then place that value in the cache after invalidation. If the product needs stronger freshness, use a version-aware design or another explicitly verified strategy. Simply saying “invalidate after commit” is not a proof that stale values cannot reappear.
 
-I would separate reusable public fields from viewer-specific fields. Caption, author, media URL, and stable counts can use `post:v1:42`; `likedByViewer` must be loaded separately or keyed by viewer and post. Each field needs an explicit staleness limit.
+## How long may an old value survive?
 
-For reads, use cache-aside with bounded, jittered TTLs. For edits and deletes, commit PostgreSQL first, then invalidate through an after-commit action or durable outbox event. On a hot miss, single-flight loading or a short lease lets one request rebuild while others wait briefly or receive approved stale public data. I would monitor hit rate, miss amplification, evictions, entry age, rebuild time, and database load.
+**TTL** means time to live: the expiry duration attached to an entry. It limits how long that particular cached copy remains eligible without refresh. The end-to-end freshness limit also depends on where the copy came from, racing fills, and any policy for serving stale values.
 
-## Concrete walkthrough
+For an ordinary caption, a short documented delay may be acceptable. For permission revocation or removed private content, the same delay may expose data. Keep authoritative eligibility checks where the safety contract requires them.
 
-1. Post `42` misses `post:v1:42`.
-2. One request obtains a rebuild lease, loads public data, and caches it with TTL jitter.
-3. Other viewers reuse that object, but resolve their own like state separately.
-4. The author edits the caption; PostgreSQL commits, then invalidation removes the key.
-5. The next request loads the new value. If invalidation is delayed, TTL bounds staleness.
+Finally, thousands of simultaneous misses can all reload PostgreSQL. Let one request rebuild a hot key while others wait briefly or receive an approved older public value. That request coalescing protects the source; spreading expiry times helps with many different keys but cannot alone coalesce one hot key's callers.
 
-Database traffic falls without sharing private state indefinitely.
-
-## Instagram-backend mapping
+## Where this appears in our backend
 
 [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) loads every post and calls `existsByPostAndUser(...)` while mapping it. [FeedPostResponse.java](../../../../../src/main/java/com/instagram/backend/dto/FeedPostResponse.java) therefore mixes reusable post fields with personalized `likedByViewer`. Edits and deletes also run through `PostService`.
 
 **Implemented:** PostgreSQL reads and transactional mutations. **Proposed:** a distributed cache, split public and personalized entries, after-commit invalidation, TTL jitter, single-flight rebuilds, and cache metrics. No application cache currently exists.
 
-## Choices and trade-offs
+## Choosing the approach and paying its costs
 
 - Choose **cache-aside** for read-heavy data with a database source of truth. Avoid it when every read must be current; miss latency and staleness are the cost.
 - Choose **write-through** when all writers share one path and freshness dominates. Cache coupling and write latency are the cost.
 - Choose **stale-while-revalidate** for public content during brief failures. Never use stale authorization decisions; controlled staleness is the cost.
 
-## Failure drill
 
-**Prediction:** a hot key expires and thousands of requests hit PostgreSQL. **Detection:** cache misses, connection wait, and one key’s traces spike together. **Containment:** permit one rebuild and serve bounded stale content where safe. **Recovery:** repopulate the key and drain work. **Prevention:** TTL jitter, request coalescing, proactive refresh, and per-key miss alerts.
+## Paper drill: the hot post expires
+
+Predict the database load if every waiting viewer independently rebuilds post 42. Cache misses and database-connection waits can rise together even though ordinary cache hits were fast.
+
+Contain the burst by coalescing the rebuild and bounding waiters. Use an older value only if its age and content policy permit it. Recover by verifying the rebuilt version, repopulating the key and allowing database queues to drain.
+
+Prevent recurrence with a tested hot-key rebuild policy, bounded fallbacks and per-key investigation evidence. Also test a reader racing an edit; high hit rate does not establish freshness or correct personalization.
 
 ## Two-to-three-minute interview answer
 
@@ -61,9 +56,10 @@ I would cache only data with a stated staleness policy. Public post fields are r
 
 For hot misses, one caller rebuilds while others wait briefly or receive an approved stale public value. Cache failure should degrade to controlled database access, not data loss. I would monitor hit rate, entry age, miss amplification, rebuild latency, and database load; authorization always uses authoritative data.
 
-## Practice status
 
-The artifact is ready; comprehension requires choosing cache boundaries and diagnosing a stampede without notes.
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`. Explain this scenario in your own words, predict the paper drill, and attempt the questions before opening their answers. Record learning only from your own explanation and predictions.
 
 ## Questions and explained answers
 
@@ -82,5 +78,5 @@ Invalidating first can let another request reload and cache the old database val
 <details>
 <summary>Does a longer TTL prevent a stampede?</summary>
 
-It delays the miss but does not prevent synchronized rebuilding. Jitter and request coalescing address simultaneous misses directly.
+It delays expiry but does not prevent many callers rebuilding the same expired key. Request coalescing directly combines that key's concurrent rebuilds. Jitter spreads expiry across different keys; it does not alone prevent a stampede on one hot key.
 </details>

@@ -10,71 +10,77 @@ Your manager asks:
 
 > [One-page revision card](../../revision-cards/production-scenarios/06-queue-backlog-and-stale-results.md)
 
-## Why this problem exists
+## The write succeeded. The work it promised has not happened
 
-A queue separates accepting work from processing it. That improves availability during short bursts, but it does not create consumer capacity. When producers publish faster than consumers complete for a sustained period, unprocessed work and its age must grow.
+The user publishes a post and receives success. The post is durable, but a worker still needs to update feeds or send notifications. If that worker falls behind, request success and user experience begin telling different stories: Publish works while followers see old information.
 
-The investigation must distinguish increased input, slower processing, one blocked partition, repeatedly failing messages, and a saturated dependency. Recovery must preserve accepted work and avoid duplicating side effects during replay.
+A queue lets us accept work before processing it, which helps absorb short bursts. It cannot make the worker complete more per second. Sustained backlog means work is arriving faster than it completes somewhere in the processing path—or that a piece of work has blocked the path entirely.
 
-## Analogy: parcels at a sorting depot
+Those cases need different repairs. More workers may help a uniformly overloaded workload. They may do nothing for one ordered stream stuck retrying the same malformed event. First find which kind of waiting we have.
+
+## A bigger depot does not make sorting faster
 
 A depot can hold parcels during a short delivery rush. If trucks arrive faster than staff sort them all day, the oldest parcel becomes later no matter how large the floor is. One damaged parcel blocking a conveyor differs from every station working too slowly.
 
 The analogy stops because messages can be redelivered, processed out of order, or produce effects in other systems. An “already handled” parcel cannot simply be recognized unless the software records that fact.
 
-## Terms to establish
+## Count pending work, and ask how old it is
 
-- **Consumer lag** is unprocessed work, measured by count or by the age of the oldest item.
-- A **partition** is an ordered subset of a queue that limits and organizes parallel consumption.
-- A **dead-letter queue (DLQ)** holds messages that repeatedly fail so they do not block healthy work.
-- **Idempotent consumption** makes redelivery produce one logical effect.
+**Consumer lag** is work accepted but not yet processed. Its count tells us how much remains; its age tells us how long the oldest accepted work has waited. A short queue with one 30-minute-old post can still violate the product's freshness promise.
 
-## Investigation and recovery sequence
+In a partitioned broker, a **partition** is an ordered subset of the message stream. Parallelism is limited by how that broker assigns partitions to workers. One blocked partition can leave other partitions healthy; this model is not a promise that every queue product uses partitions in the same way.
 
-### 1. Measure arrival, service, and freshness
+A **dead-letter queue (DLQ)** is a quarantine for messages that repeatedly fail. Moving a message there may unblock healthy traffic, but it does not complete that message's business effect. Someone still owns repair and replay.
 
-Compare messages published per second with successful completions per second. Track oldest-message age, processing duration, retry count, DLQ volume, and the user-visible age of a notification or feed projection. A queue depth of 100 may be harmless at 10,000 completions per second; a 30-minute oldest item is not.
+Messages can be delivered again after a crash. **Idempotent consumption** means that repeated delivery of the same event ID applies the local effect once. That lets us catch up without turning replay into duplicate notifications or feed entries.
 
-### 2. Split the backlog
+## Is every worker slow, or is one stream stuck?
 
-Break lag down by partition, event type, consumer version, instance, and outcome. One stuck partition suggests a poison message, hot key, or ordering block. Uniform lag suggests a shared dependency or insufficient total throughput. Confirm whether consumers are alive, repeatedly restarting, or rebalancing.
+Compare publish rate with successful completion rate and oldest-message age. If arrivals stay above completions, the backlog cannot shrink. Depth alone is ambiguous: a queue of 100 can drain quickly at 10,000 completions per second, while one old event can remain unresolved indefinitely.
 
-### 3. Find the slow stage
+Split the pending work by partition, event type, consumer version, and outcome. If one partition stops advancing and repeats the same exception, inspect that event and its ordering rules. If every partition grows older, look for shared slow database work, remote rate limits, larger messages, or insufficient processing capacity. Confirm consumers are making progress rather than merely running or restarting.
 
-Trace receipt, validation, database work, remote calls, and acknowledgment. Check database connections, locks, API rate limits, and message sizes. Add consumers only when partitions and dependencies have headroom; otherwise parallelism moves the bottleneck.
+Follow receipt, parsing, database updates, remote effects, and acknowledgment in that order. Add workers only where the broker can parallelize them and their dependencies have spare capacity. Otherwise the new workers may add connections and worsen the underlying constraint.
 
-### 4. Contain and catch up
+Contain harmful input, quarantine a poison event with its reason, or prioritize critical work. Preserve accepted events. After the fix, replay with duplicate protection and compare authoritative posts with derived feed state. Recovery means the missing business effects exist and their age is acceptable, not simply that lag reached zero.
 
-Pause a harmful producer feature, isolate poison messages with their reason, prioritize critical events, or temporarily add proven capacity. Do not discard accepted events to make the graph green. After repair, replay idempotently and reconcile source records with derived state.
+## Follow event e7 instead of restarting every worker
 
-## Concrete event walkthrough
+In this proposed system, `PostCreated(postId=42, eventId=e7)` normally reaches the feed projection within five seconds. A projection is a stored read copy built for rendering the feed; the post service remains authoritative.
 
-1. `PostCreated(postId=42, eventId=e7)` is published successfully.
-2. Feed consumers normally materialize it in under five seconds.
-3. A new consumer version cannot parse one optional field and retries the same event endlessly.
-4. Its partition stops advancing while other partitions remain current.
-5. Metrics show high age on one partition and repeated failures for `e7`.
-6. The team quarantines `e7`, deploys a compatible parser, then replays it.
-7. The consumer records `e7` as processed in the same transaction as the projection update.
-8. A reconciliation job verifies every source post appears in the intended feed projection.
+1. A producer publishes `e7`. A newly deployed consumer cannot parse one optional field and rejects it.
+2. The consumer retries `e7` endlessly, so its ordered partition does not advance. Other partitions continue normally.
+3. Partition age and repeated failures identify `e7`, rather than suggesting the whole worker fleet lacks CPU.
+4. The team preserves the event in quarantine, repairs the parser, and checks whether later events may safely advance before it. Where order matters, keep the affected key or partition blocked until a correct replay path exists.
+5. On replay, the consumer records `e7` as processed and updates post 42's projection in the same local database transaction.
+6. It acknowledges only after the commit. If that acknowledgment is lost, redelivery finds the durable processed ID and does not apply the update twice.
+7. Reconciliation confirms post 42 and every other required source post appear in the intended projection.
 
-The observable recovery is decreasing oldest-message age plus restored feed freshness, not simply a restarted consumer.
+The end condition is restored freshness plus correct state. Restarting a worker that deterministically rejects the same event would only repeat the incident.
 
 ## Instagram-backend mapping
 
 The current project has no message broker or asynchronous feed projection. [PostService.create(...)](../../../../../src/main/java/com/instagram/backend/service/PostService.java) saves a post synchronously, and [PostService.feed(...)](../../../../../src/main/java/com/instagram/backend/service/PostService.java) reads PostgreSQL directly. Therefore queue metrics, a DLQ, inbox deduplication, and replay are **proposed**, not implemented.
 
-A future design could publish `PostCreated` through a transactional outbox after the post commit, then let feed and notification consumers process it. The event would need `eventId`, `postId`, `type`, `version`, and `occurredAt`; each consumer would store processed `eventId` with its local update. Existing bounded business metrics in [InstagramMetrics.java](../../../../../src/main/java/com/instagram/backend/observability/InstagramMetrics.java) show the style, but new freshness and lag signals would be required.
+A future design could save the post and a `PostCreated` outbox record in one transaction, then publish the committed record for feed and notification consumers. The event would need `eventId`, `postId`, `type`, `version`, and `occurredAt`; each consumer would store processed `eventId` with its local update. Existing bounded business metrics in [InstagramMetrics.java](../../../../../src/main/java/com/instagram/backend/observability/InstagramMetrics.java) show the style, but new freshness and lag signals would be required.
 
-## Choices and trade-offs
+## More consumers, more partitions, or quarantine?
 
 - **Add consumers** when partitions and downstream capacity permit parallelism. Avoid it when one partition is blocked or the database is saturated; it adds rebalance and connection pressure.
 - **Add partitions** when sustained parallel throughput is needed. Do not do it casually when strict global order is required; repartitioning and per-key ordering become harder.
 - **Move a message to a DLQ** when repeated failure would block healthy work. This restores flow but creates a mandatory investigation, repair, replay, and reconciliation task.
 
-## Failure drill
+## Rehearse the crash between commit and acknowledgment
 
-**Prediction:** a consumer crashes after writing a notification but before acknowledging the message. **Symptom and detection:** the broker redelivers the same `eventId`, and duplicate notification attempts appear. **Containment:** stop side effects that cannot deduplicate and retain the message. **Recovery:** look up the recorded outcome and acknowledge without sending twice, or reconcile a duplicate if the provider lacks idempotency. **Prevention:** use a consumer inbox/idempotency key, make acknowledgment follow durable outcome recording, and test crash-before-ack.
+**Prediction:** after the consumer commits the projection update for `e7` but before its acknowledgment reaches the broker, it crashes. The broker delivers `e7` again.
+
+**Detect:** the stable event ID appears in a second processing attempt, while its durable processed record and projection update already exist.
+
+**Contain:** do not run the effect again simply because delivery repeated. Consult the processed record under the same transactional uniqueness rule.
+
+**Recover:** acknowledge the redelivery without changing the feed again, then verify the projection contains the one intended effect and lag is catching up.
+
+**Prevent:** test crash-before-ack with a processed-event record committed atomically with the local effect. For an external notification provider, a local inbox alone cannot make a remote send atomic; use a stable provider idempotency key or a status/reconciliation design for that additional gap.
 
 ## Two-to-three-minute interview answer
 
@@ -82,9 +88,9 @@ I would start with rates and age: producer rate, successful consumer rate, oldes
 
 I trace processing into validation, database work, remote calls, and acknowledgment before scaling. More consumers help only when partitions and dependencies have headroom. During impact I may pause a harmful producer, quarantine repeatedly failing events with evidence, prioritize critical work, or add tested capacity. I preserve accepted messages. After fixing code, schema, or capacity, I replay using `eventId` for idempotency and reconcile source posts against feed or notification state. Recovery requires oldest-message age and business freshness to return to target. A low error count alone is insufficient because a slow consumer can succeed while falling further behind.
 
-## Practice status
+## Before you practise
 
-The artifact is `READY`; comprehension remains `TODO`. Mark it practiced only after diagnosing one-partition versus uniform lag, explaining safe replay, and answering the final questions before revealing them.
+The written scenario is ready for practice; comprehension remains separate. Explain one-partition versus uniform lag and safe replay, then try the final questions before revealing their answers.
 
 ## Questions and explained answers
 

@@ -1,0 +1,65 @@
+System-design editorial revision — 2026-11-01 (America/Los_Angeles)
+
+Scope
+96 existing authored documents: 34 concept lessons, one module entry, 20 API lessons,
+10 microservices questions, eight production scenarios and 23 short answers.
+No backend, API contract, UI implementation, runnable Java or laboratory file change.
+No learner comprehension/mastery status upgrade.
+
+Source and link checks
+Command: python3 /tmp/check_system_design_editorial.py
+lesson_documents: 96
+final_explained_checkpoints: 347
+local_links_checked: 504
+errors: []
+Additional inbound-heading scan across docs/: no broken inbound anchors to changed files.
+All 39 Java/SQL/CQL reference blocks match HEAD exactly.
+All complete question-answer sections retain explained answers at the end of the lesson.
+Command: git diff --check
+Result: passed.
+
+Manual technical/teaching review
+Concrete scenarios now precede definitions; mechanisms and examples are causally connected.
+Independent read-only review completed for all 35 concept/entry docs and all 23 short answers.
+API source mappings checked against PostController, PostService, Post, FeedPostResponse,
+TokenService and application.properties. Technical corrections are recorded in editorial-review.md.
+Verified fixed arithmetic: 200,000,000/86,400 ≈ 2,315 average requests/second;
+five-times peak ≈ 11,575; 200,000*4 MB=800 GB/day using decimal units;
+(94*200+6*4000)/100=428 ms, nearest-rank p95=4000 ms;
+(9800*60+200*8000)/10000=218.8 ms, p99=8000 ms;
+(200-100)*30=3000 waiting requests under the stated simplified assumptions;
+deadline elapsed100+200+50+150=500 ms, plus up to100 ms return reserve=600 ms.
+Micrometer histogram-bucket wording checked against official reference and cited in lessons.
+
+Reader/browser integration
+An isolated temporary copy of the existing instagram-ui source was used at
+/tmp/system-design-editorial-preview/instagram-ui; the original UI checkout was not edited.
+Its generator read the current backend documentation and produced294 learning documents.
+Command: npm run lessons:generate
+Command: node check-editorial.mjs (local Playwright check)
+Result: documents96; renderedDisclosures353; numberedCodeBlocks90;
+pageErrors0; mobileOverflow=false.
+Every answer disclosure was expanded and checked for explained text.
+Every Markdown code block had stable, one-based displayed line numbers.
+The separate interactive-simulation state panels were excluded from the code-block count.
+Desktop viewport1600x1100; phone viewport390x844.
+Detailed per-document results: system-design-editorial-browser.json.
+
+HTTP verification
+Command: curl -sS -o /tmp/system-design-editorial-preview/learn.html -w 'GET /learn -> HTTP %{http_code}\n' http://127.0.0.1:5173/learn
+Result: GET /learn -> HTTP200.
+Local server/browser/HTTP commands required execution outside the restricted sandbox;
+the successful run above used the approved local verification process.
+
+Screenshot review
+Captured and visually inspected all five final screenshots:
+- system-design-cap-human-explanation.png: caption-copy failure and competing responses visible.
+- system-design-api-human-explanation.png: address/resource reasoning and concrete requests visible.
+- system-design-scaling-human-explanation.png: photo on A, miss on B, shared-storage reasoning visible.
+- system-design-diagnosis-human-explanation.png: waiting-versus-work reasoning and checkout analogy visible.
+- system-design-human-explanation-mobile.png: readable question and heading, no horizontal overflow.
+
+Limits
+These checks verify the documentation and its existing browser reader. They do not execute
+proposed queues, replication, caches, token revocation, cloud infrastructure or failure labs.
+Backend integration and mutating API calls are not applicable to this documentation-only change.

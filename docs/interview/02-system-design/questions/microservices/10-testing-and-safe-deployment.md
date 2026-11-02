@@ -4,37 +4,31 @@
 
 > [One-page revision card](../../revision-cards/microservices/10-testing-and-safe-deployment.md)
 
-- Status: `READY`; comprehension not yet demonstrated
-- Time: 25–30 minutes
-- Primary idea: test each risk at the cheapest reliable boundary, then limit and observe production exposure
+## The tests passed, but the release still broke the feed
 
-## Why does this matter?
+Suppose a post producer adds a field shape its own tests understand. The HTTP endpoint still returns success. Two hours later, a feed worker reads the event, cannot parse it, and stops making progress. From the producer's test suite and request dashboard, the release looked healthy.
 
-One service can pass all its unit tests and still fail because another service changed a response, a database migration is incompatible with the old binary, a message is delivered twice, or a production dependency is slower than the test substitute.
+The gap is between what each check proved and what we assumed it proved. A unit test can show that a business rule works with its supplied inputs. It cannot show that an old consumer accepts a new event or that two application versions can use the same migrated database.
 
-Running every possible journey through every real service is not the solution. A large end-to-end suite is slow, flaky, difficult to diagnose, and still cannot enumerate all network and rollout states. Safe delivery needs focused tests **and** a deployment strategy that assumes some defects will escape.
+We could start every service for every test, but a large end-to-end suite is slow and its failures are hard to locate. It also cannot try every possible crash, timeout, or rollout ordering. We need focused evidence for each important risk, then a production rollout that limits the effect of whatever escaped those checks.
 
-## Analogy: rehearsing a play and opening gradually
+## A full rehearsal cannot replace practicing the difficult scene
 
 Actors first practice individual lines, then scenes, then a complete dress rehearsal. The theater does not replace focused practice with one giant rehearsal. A cautious production may have a preview audience before opening every seat.
 
 The analogy has limits. Software versions coexist during rollout, databases persist after rollback, traffic is uneven, and machines can automatically measure and stop a release. The analogy explains layers and limited exposure, not the mechanics.
 
-## Plain-language model
+## Prove one boundary before rehearsing the whole journey
 
-### Contract test
+Think of the proposed idempotency change to post creation. We need to know several different things: can concurrent requests create only one post, do old clients still work without the new header, and does the new code behave well with real traffic? Those are separate questions, so they deserve different checks.
 
-A **contract test** verifies the request, response, or event assumptions between a consumer and provider without starting the entire production topology. It catches interface disagreement early.
+For the duplicate race, run concurrent requests against real PostgreSQL and its unique constraint. For the old client, verify its request and response expectations with a **contract test**. That test exercises the agreement between caller and provider without requiring the entire production system.
 
-### Canary deployment
+For production behavior, send a small controlled portion of traffic to the candidate while the existing version remains available. This is a **canary deployment**. It limits how many users meet a defect while we compare outcomes. It only helps if the traffic is representative and the comparison includes the thing that might fail.
 
-A **canary deployment** sends a small, controlled portion of production traffic to the new version and compares technical and business health before increasing exposure.
+Persistent data needs another precaution. An **expand-contract migration** adds a compatible representation first, lets old and new code coexist, migrates the data, and removes the old representation later. That overlap matters because application rollback does not turn the database clock backward.
 
-### Expand-contract migration
-
-An **expand-contract migration** changes persistent data in compatible stages: add the new form, run code that tolerates both, migrate data, switch usage, and remove the old form later. It prevents old and new application versions from requiring mutually exclusive schemas during rollout.
-
-## Match the test to the risk
+## Which test would catch which mistake?
 
 ### 1. Unit tests: business rules in isolation
 
@@ -81,34 +75,25 @@ Old instances may continue writing the old shape or fail because their column di
 
 </details>
 
-## Safe deployment flow
+## What must remain true while versions coexist?
 
-### Before production
+Build one immutable artifact, identified by its commit and image digest, so the thing tested is the thing released. Before it receives traffic, verify the focused tests below and review whether the current and candidate versions can both read and write the proposed database and event forms. Decide how we will stop the rollout and whether old code can safely come back.
 
-1. Build one immutable artifact and identify it by commit plus image digest.
-2. Run static checks, unit tests, component tests, provider/consumer contracts, and selected infrastructure integration tests.
-3. Review database and event-schema compatibility with both the currently running and new versions.
-4. Define release health signals and a rollback/roll-forward decision before deploying.
+Start the candidate and let initialization finish. Its **readiness check** answers whether it should receive traffic now. Its **liveness check** answers whether the process is stuck and needs restarting. A temporary database outage may justify removing an instance from traffic; restarting every healthy instance will not repair that database and may make recovery harder.
 
-### During production rollout
+Route a small cohort to the candidate and compare it with the baseline under comparable traffic. Check the user's operation as well as HTTP errors and latency. In the opening example, post creation succeeds while feed freshness fails, so queue progress and source-to-feed reconciliation must participate in the release decision.
 
-1. Deploy the new version with no traffic and wait for startup to finish.
-2. A **readiness check** admits traffic only when this instance can serve it. A **liveness check** should restart only a truly stuck process; using a dependency outage as liveness can restart every healthy instance at once.
-3. Send a small percentage or one internal cohort to the canary.
-4. Compare canary versus baseline by error rate, latency percentiles, saturation, dependency failures, and business outcomes such as successful post creation—not only CPU.
-5. Hold long enough to cover meaningful traffic and background work.
-6. Increase exposure in stages. Automatically pause or roll back on agreed thresholds.
-7. After full rollout, continue watching delayed consumers, scheduled jobs, and data reconciliation.
+Hold long enough for relevant background work and scheduled behavior to run. Increase exposure only while the candidate meets the agreed limits. After full rollout, keep watching delayed effects; reaching 100% traffic does not complete the evidence.
 
-### Feature flags versus deployment
+### Can we turn the behavior off without replacing the binary?
 
-Deploying code and enabling behavior are different actions. A server-side feature flag can expose a path to staff or 1% of users while retaining fast disablement. Flags need owners, expiry dates, tests for important states, and removal; otherwise they create permanent branching complexity.
+A server-side feature flag can enable the new path for staff or a small cohort. That makes disabling the behavior faster than redeploying, provided the old path remains usable and any new data is compatible. Give the flag an owner and removal date: otherwise every retained branch adds combinations future tests and maintainers must understand.
 
-### Rollback is not always safe
+### Can we really roll back?
 
-Application rollback is straightforward only when persistent changes remain backward-compatible. If Version 2 has already written a format Version 1 cannot read, simply redeploying Version 1 makes the incident worse. Prefer an expand-contract design and prepare a roll-forward fix when irreversible data changes occur.
+Only if the previous version understands the data and messages that now exist. If the candidate removed a column or wrote a new incompatible representation, restoring old code can deepen the incident. Use the compatible overlap described above; when an irreversible change already happened, prepare a focused forward fix or a reviewed data recovery path instead of assuming a binary rollback is safe.
 
-## Concrete release example: idempotent post creation
+## Put the checks together for idempotent post creation
 
 Suppose the team adds an idempotency key to post creation:
 
@@ -137,7 +122,7 @@ That is a strong component/integration base. If this repository becomes multiple
 
 These are proposed next steps; the repository currently deploys as one Spring Boot application.
 
-## Decision and trade-off
+## Where should the next piece of confidence come from?
 
 | Choice | Prefer it when | Cost or limitation |
 |---|---|---|
@@ -167,6 +152,8 @@ Before release, I build one immutable artifact identified by commit and image di
 In production, I start the candidate without traffic, verify readiness, and route a small cohort to a canary. I compare it with the baseline using error rate, latency percentiles, resource saturation, dependency failures, consumer lag, dead letters, and business outcomes such as successful post creation. I hold long enough to exercise background processing, then promote in stages with automatic stop thresholds. Feature flags can separate deployment from enablement, but each needs an owner and removal date.
 
 A concrete failure is a producer emitting a new event that the old feed consumer cannot parse. Request metrics may remain green while queue lag grows and feeds become stale. I would pause the producer feature, preserve failed messages, deploy a compatible consumer, replay, and reconcile source versus feed IDs. Simple application rollback is unsafe if the new version already wrote data the old binary cannot read, so I pre-plan either rollback compatibility or a roll-forward fix. The trade-off is more test infrastructure and slower staged delivery, but it sharply limits blast radius and data corruption.”
+
+Before marking this answer practiced, explain which evidence proves each part of the post-creation release, and predict the delayed consumer failure without notes. Answer the questions below before opening them; passing tests and writing a note do not demonstrate understanding.
 
 ## Questions and explained answers
 

@@ -6,64 +6,62 @@ A user logs out after a phone is stolen, but the stolen week-long refresh token 
 
 **“How would you design access tokens, refresh tokens, logout, and revocation at scale?”**
 
-## Why this problem exists
 
-Self-contained access tokens scale because services can verify them without a database lookup, but that also makes immediate revocation difficult. Long-lived refresh tokens reduce repeated login friction and therefore carry more risk. Logout, rotation, key changes, and theft detection need explicit server-side state.
+## Why does logout fail to end the stolen session?
 
-## Analogy: hotel key cards
+The stolen phone holds a refresh token that remains valid for a week. If the server checks only its signature and expiry, it sees a valid credential each time. A logout button that merely erases the legitimate client's local copy cannot erase the thief's copy.
 
-A guest uses a short-lived room key while the front desk keeps the authoritative stay record and can issue or cancel replacements. The analogy stops because copied digital tokens can be replayed from anywhere and may remain valid until expiry unless checked against server state.
+An **access token** is the credential sent to ordinary API endpoints. A **refresh token** obtains replacement credentials without asking for the password again. Short access-token lifetimes limit exposure, but a usable refresh token can keep producing new access until its own rules stop it.
 
-## Terms to establish
+The server therefore needs a session record it can revoke. Store a verifier for the refresh secret, rather than a reusable plaintext secret, together with the session owner, expiry and state. A hotel front desk that can cancel a guest's replacement keys is a helpful analogy. Digital copies add a difficult detail: the server cannot know which person is holding a copied valid credential.
 
-- An **access token** is a short-lived credential presented to APIs.
-- A **refresh token** obtains new tokens without asking for the password again.
-- **Rotation** replaces a refresh token after use and invalidates the previous one.
-- A **token family** links successive refresh tokens from one login session so reuse can revoke the whole chain.
+## Follow one replacement chain
 
-## What I would do
+Login creates session family `f7` with refresh token `r1`. The family is the chain of replacements belonging to this login. On refresh, a transaction consumes `r1` and creates `r2`. This one-time replacement is **rotation**; returning a different token value without remembering consumption is not enough.
 
-1. Issue short-lived signed access tokens with minimal claims, audience, issuer, expiry, and a key identifier.
-2. Store only a hash of each refresh token or opaque session secret with user, device, family, expiry, and revocation state.
-3. Rotate on every refresh in one transaction; if an already-used token reappears, revoke the family as probable theft.
-4. Logout revokes the current session or all user sessions; access tokens expire quickly or are checked against a revocation/session version for high-risk actions.
-5. Rotate signing keys with overlapping verification, secure key storage, audit events, and emergency procedures.
+If `r1` appears again, the server has evidence of replay or a client retry/race. Under a strict reuse policy it revokes `f7`, including `r2`, and requires login again. That contains a possible theft but can also interrupt a legitimate session after a lost refresh response. Coordinate client refresh attempts and document this trade-off; replay is a security signal, not proof of a particular attacker.
 
-## Concrete walkthrough
+## What happens to access tokens already issued?
 
-1. Login creates session family `f7`, refresh record `r1`, and a 15-minute access token.
-2. A legitimate refresh consumes `r1`, stores `r2`, and returns new tokens atomically.
-3. A thief later replays `r1`; the server sees that it was already used.
-4. The service revokes family `f7`, rejects `r1` and `r2`, terminates that device session, and records a security event.
-5. Existing access tokens remain usable only until their short expiry unless a high-risk endpoint performs an additional session check.
+Revoking `f7` stops future refreshes. A self-contained access token may still pass signature and expiry checks until its short lifetime ends. High-risk endpoints can additionally check session state when immediate revocation is required. That check introduces shared state and an availability dependency into those requests.
 
-## Instagram-backend mapping
+Keep access-token claims minimal and verify the intended issuer, audience, expiry and token purpose. Plan signing-key rotation and secure key storage separately from refresh-token rotation: replacing a session token and replacing a signing key solve different problems.
 
-[TokenService](../../../../../src/main/java/com/instagram/backend/service/TokenService.java) signs 15-minute access JWTs and seven-day refresh JWTs and enforces their `type` claim. [AuthService](../../../../../src/main/java/com/instagram/backend/service/AuthService.java) returns a new refresh token from the refresh endpoint. [application.properties](../../../../../src/main/resources/application.properties) configures both lifetimes and the signing secret.
+The design choice is the amount of revocation delay the product accepts, and where it will pay for a server-side check to shorten it.
 
-**Proposed, not implemented:** persisted hashed refresh sessions, one-time rotation state, token families, reuse detection, logout/revocation endpoints, device management, and signing-key identifiers. Current refresh JWTs are not server-revocable before expiry.
+## Where this appears in our backend
 
-## Choices and trade-offs
+[TokenService](../../../../../src/main/java/com/instagram/backend/service/TokenService.java) signs 15-minute access JWTs and seven-day refresh JWTs and enforces their `type` claim. [AuthService](../../../../../src/main/java/com/instagram/backend/service/AuthService.java) issues a refresh JWT again from the refresh endpoint, without recording one-time consumption. [application.properties](../../../../../src/main/resources/application.properties) configures both lifetimes and the signing secret.
+
+**Proposed, not implemented:** persisted hashed refresh sessions, one-time rotation state, token families, reuse detection, logout/revocation endpoints, device management, and signing-key identifiers. Current refresh JWTs are not server-revocable before expiry. Reissuing them does not guarantee a different token value when the encoded claims and timestamps are identical.
+
+## Choosing the approach and paying its costs
 
 - Use short access-token lifetimes to bound stolen-token exposure. Extremely short lifetimes increase refresh load and sensitivity to clock or network problems.
 - Use stateful refresh sessions for revocation and theft detection. They add a database lookup to refresh, not necessarily to every API request.
 - Use an access-token denylist only for exceptional immediate revocation; global denylist checks reduce the main scalability benefit of self-contained tokens.
 
-## Failure drill
 
-**Prediction:** an old rotated refresh token is replayed after theft. **Symptom and detection:** a consumed token ID appears again, possibly from a new location or device. **Containment:** revoke the entire token family and block further refresh. **Recovery:** require reauthentication, terminate affected sessions, and notify the user according to policy. **Prevention:** store hashed tokens, rotate once, detect reuse atomically, protect signing keys, and audit session activity.
+## Paper drill: `r1` returns after `r2` was issued
+
+Predict the strict-policy response to a repeated `r1`. Its consumed state should be detected atomically, the affected family should be revoked, and further refreshes from that family should fail.
+
+Inspect session history to distinguish likely theft from accidental parallel refresh or a lost response, without logging token secrets. Contain possible compromise through family revocation; recover through reauthentication and the product's session-review process.
+
+Prevent avoidable repeats by coordinating refresh on the client and testing concurrent refresh and lost-response behavior. Protect refresh verifiers and signing keys, and state explicitly how long already-issued access tokens can continue working after revocation.
 
 ## Two-to-three-minute interview answer
 
 I would use short-lived signed access tokens for efficient API verification and stateful, rotating refresh sessions for long-lived access. The server stores only a refresh-token hash with its user, device, token family, expiry, and revocation state. Refresh consumes the old record and creates the replacement atomically.
 
-If an already-used refresh token reappears, I treat that as possible theft and revoke the whole family, because I cannot know whether the legitimate client or attacker holds the newest token. Logout revokes one session or all sessions. Ordinary access tokens expire quickly; especially sensitive actions may also verify session state when immediate revocation matters more than a fully stateless path.
+If an already-used refresh token reappears, I treat that as possible theft under a strict reuse policy and revoke the family. I would also document the legitimate retry/concurrency cases and coordinate client refreshes, because the server cannot reliably identify the rightful holder from replay alone. Logout revokes one session or all sessions. Ordinary access tokens expire quickly; especially sensitive actions may also verify session state when immediate revocation matters more than a fully stateless path.
 
-The current project distinguishes access and refresh JWTs and rotates the returned token value, but it has no persisted session or reuse detection, so logout cannot revoke a refresh token before expiry. That is the next correctness and security step.
+The current project distinguishes access and refresh JWTs and issues them again on refresh, but it has no persisted consumption state or reuse detection, so logout cannot revoke a refresh token before expiry. That is the next correctness and security step.
 
-## Practice status
 
-The artifact is `READY`; comprehension remains `TODO` until the learner can trace rotation, explain family revocation, and state the statelessness trade-off without notes.
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`. Explain this scenario in your own words, predict the paper drill, and attempt the questions before opening their answers. Record learning only from your own explanation and predictions.
 
 ## Questions and explained answers
 
@@ -76,7 +74,7 @@ A database leak should not immediately provide usable session credentials. The p
 <details>
 <summary>Why revoke the whole token family after reuse?</summary>
 
-Reuse proves that at least two parties may possess tokens from the chain, but the server cannot know which is legitimate. Revoking the family safely ends that compromised session.
+Reuse can indicate theft, but a lost response or concurrent legitimate refresh can also repeat a consumed token. A strict policy revokes the family because the server cannot reliably identify the legitimate holder. That contains possible compromise at the cost of possible forced reauthentication.
 </details>
 
 <details>

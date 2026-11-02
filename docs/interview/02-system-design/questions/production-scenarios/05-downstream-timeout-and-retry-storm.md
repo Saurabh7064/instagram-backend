@@ -10,54 +10,50 @@ Your manager asks:
 
 > [One-page revision card](../../revision-cards/production-scenarios/05-downstream-timeout-and-retry-storm.md)
 
-## Why this problem exists
+## The users did not triple. Why did dependency traffic?
 
-A slow dependency keeps caller threads, sockets, and connections occupied while new requests continue arriving. Callers then time out and retry, which adds work to the already-slow service. If a gateway and two services each retry three times, one user request can produce up to `3 × 3 × 3 = 27` bottom-level attempts.
+Profile normally replies in 50 ms. It begins taking four seconds, but Feed still stops waiting after one second. Feed sends another attempt while the first may still be executing. If more callers do the same thing, Profile receives additional work precisely when it is finishing work more slowly.
 
-The goal is not to make every call eventually succeed. It is to keep waiting and retry work bounded, preserve critical paths, and handle uncertain writes safely.
+A retry can therefore multiply occupied resources without any increase in user demand. Feed workers and sockets remain busy; unrelated work that shares those resources starts waiting too. That spread is a **cascading failure**: the original slowdown causes other components to lose capacity.
 
-## Analogy: repeatedly pressing an elevator button
+Our immediate aim is to stop that multiplication and preserve useful work. Trying indefinitely to make every individual request succeed can make the whole service less available.
+
+## Pressing the elevator button again does not add capacity
 
 When an elevator is delayed, pressing the button ten more times does not create ten elevators. It adds no useful capacity. In a distributed system, retries are worse: each press can start real duplicated work and hold another resource.
 
 The analogy stops because some requests may already have committed before their responses were lost. Retrying a write can therefore duplicate money, posts, or notifications.
 
-## Terms to establish
+## Give the original request one clock and one retry budget
 
-- A **deadline** is the remaining end-to-end time in which a result is still useful.
-- **Backoff with jitter** increases retry delay and randomizes it so clients do not retry together.
-- A **circuit breaker** temporarily rejects calls after sustained failure, then permits limited probes for recovery.
-- **Idempotency** means repeating one logical request has the same intended effect as processing it once.
+A **deadline** is the point after which the end-to-end result is no longer useful. Each attempt, its connection setup, and the pause before retrying must fit inside the remaining time. Starting a fresh full timeout at every hop discards that boundary.
 
-## Containment and design sequence
+**Backoff with jitter** means waiting longer between attempts and adding a random variation. Backoff reduces pressure; jitter stops many callers returning together. Neither makes an unsafe write safe to repeat.
 
-### 1. Prove where amplification begins
+**Idempotency** means another delivery of one logical operation applies its intended effect only once. A stable operation key and durable stored result can protect a write whose first response disappeared. A **circuit breaker** stops ordinary calls after enough failure evidence and later admits a limited set of recovery probes. It protects capacity; it cannot tell us whether an earlier write committed.
 
-Compare incoming user requests with outgoing dependency attempts. Break attempts down by caller, retry number, result, and latency. Align active calls, queues, timeouts, and pool usage across the call chain. A threefold downstream rate with flat user demand is direct retry-amplification evidence.
+## Stop amplification before tuning the retry delay
 
-### 2. Bound time and concurrency
+Compare original incoming requests with outgoing Profile attempts. If user demand is flat but attempts per request rise, that is direct amplification evidence. Trace the caller and attempt number, then check how long attempts remain active after upstream timeouts.
 
-Start from the user deadline and give each downstream hop a smaller timeout. Limit concurrent calls per dependency so one slow service cannot occupy every request worker. When the limit is full, reject or use an explicitly approved fallback instead of building an unlimited queue.
+Remove redundant retry layers first. Suppose the gateway makes three total attempts, the next service makes three for each gateway attempt, and its client makes three for each of those. One original request can cause `3 × 3 × 3 = 27` bottom-level attempts. Assign one retry owner and a small total budget across the original deadline. Permanent validation or authorization failures should not retry.
 
-### 3. Assign one retry owner
+Next bound concurrent Profile calls, not only their individual duration. If that limit fills, reject promptly or use an approved reduced response. An unlimited queue merely creates another place for callers to wait and consume memory.
 
-Retry only transient conditions, at one layer, with a small total attempt budget, backoff, and jitter. Do not retry validation errors or an overloaded dependency blindly. A timeout says “the caller stopped waiting,” not “the callee did nothing.”
+During sustained failure, the circuit breaker can stop normal calls and allow the dependency to recover. After the cooldown, let only a few probes through and check their real latency and outcomes. A timer expiring does not establish recovery, and every instance probing at once can recreate the spike.
 
-### 4. Open and recover the circuit safely
+## Follow the slow Profile call through its callers
 
-When recent failures cross the policy threshold, stop normal calls and fail fast. After a wait, admit a few half-open probes. Close the circuit only when those real calls meet the recovery rule; avoid synchronized probes from every instance.
+Use the same hypothetical feed request and four-second Profile latency:
 
-## Concrete failure walkthrough
+1. Feed starts a Profile call. At one second, Feed's timeout expires, but Profile may still be working.
+2. If Feed starts two retries as well as the initial call, one feed request can now cause three Profile attempts. A gateway retry layer would multiply that further.
+3. More attempts occupy Feed's finite calling capacity, while old Profile work continues after its callers stopped waiting.
+4. Unrelated Feed operations wait for shared workers or sockets. This is the visible spread beyond the original dependency.
+5. The team removes duplicate retries, caps Profile concurrency, and uses a cached display name only within an approved freshness window.
+6. Profile attempts and active calls fall. Feed latency and unrelated route health recover while the dependency is repaired.
 
-1. Feed Service calls Profile Service with no per-call concurrency limit.
-2. Profile latency rises from `50 ms` to `4 s`.
-3. Feed times out after one second and retries twice; the gateway also retries.
-4. Profile continues executing attempts after callers have timed out.
-5. Feed workers and database connections accumulate; unrelated feed work queues.
-6. The team disables duplicate retry layers, caps profile calls, and serves a cached display name.
-7. Downstream request rate and active calls fall; feed p99 recovers.
-
-The stale display-name fallback is acceptable only if product requirements allow it. Authorization or payment decisions should fail safely rather than use stale identity or correctness data.
+A stale display name can be an honest reduced response. A stale authorization decision or guessed payment outcome cannot be substituted on the same reasoning. The product's correctness requirement determines whether a fallback exists.
 
 ## Instagram-backend mapping
 
@@ -67,15 +63,23 @@ The existing [HTTP histograms and trace settings](../../../../../src/main/resour
 
 **Proposed, not implemented:** if profile or media becomes a remote service, propagate deadlines and trace context, record attempt number, use one bounded retry layer, isolate its concurrency, and require idempotency for mutating calls. The deeper model is in [Inter-Service Communication Resilience](../microservices/03-inter-service-communication-resilience.md).
 
-## Choices and trade-offs
+## A retry, circuit breaker, and fallback do different jobs
 
 - **Retry** when failures are brief, transient, and the operation is safe. Avoid it during sustained overload; it adds latency, load, and duplicate risk.
 - **Circuit breaker** when repeated calls are unlikely to succeed and fast failure is useful. Avoid treating it as health discovery alone; bad thresholds can block a recovering dependency.
 - **Fallback** when stale or partial data is explicitly acceptable. Do not use it for authorization, balances, or other correctness-critical facts.
 
-## Failure drill
+## Rehearse slow success, then a lost response
 
-**Prediction:** Profile Service commits an update, but its response is lost and Feed retries. **Symptom and detection:** one operation ID has multiple attempts and the caller timed out while the server recorded success. **Containment:** stop blind retries and query operation status. **Recovery:** return the stored result for the same idempotency key or reconcile the duplicate effect. **Prevention:** persist idempotency outcome atomically, propagate deadlines, and test lost-response behavior.
+**Prediction:** a four-second Profile response can exhaust callers even when Profile returns mostly `200`. Feed's timeouts and retries rise before the dependency's error rate tells the story.
+
+**Detect:** compare attempts per original request, active calls, and latency on both sides. A server completion after the caller timed out confirms that abandoned work remained active.
+
+**Contain:** stop blind retries, enforce the Profile concurrency bound, and use the approved display-name fallback or an explicit unavailable result. Protect unrelated work from the same calling pool.
+
+**Recover:** repair Profile, admit limited probes, and restore traffic while checking that attempts per request and active calls remain within their budgets. Discard work whose deadline already expired.
+
+**Prevent:** test both slow successful reads and, for future mutating operations, a commit followed by a lost response. Writes need a durable idempotency result or status lookup; the fact that a read fallback is safe does not make a repeated write safe.
 
 ## Two-to-three-minute interview answer
 
@@ -83,9 +87,9 @@ This is a retry-amplified slow dependency. I would compare user request rate wit
 
 One layer owns a small retry budget for transient failures only, using exponential backoff and jitter. Writes also need an idempotency key because a timeout does not prove failure; the server may have committed and lost the response. A circuit breaker stops normal traffic during sustained failure and later allows limited recovery probes. I would monitor dependency latency, active calls, timeouts, attempts per request, rejections, circuit state, and fallback use. Recovery means user latency improves while downstream attempt rate and concurrency return to safe levels, not merely that errors disappear.
 
-## Practice status
+## Before you practise
 
-The artifact is `READY`; comprehension remains `TODO`. Mark it practiced only after explaining the 27-attempt example, deciding when a retry is safe, and answering the questions below before opening them.
+The written scenario is ready for practice; comprehension remains separate. Explain the 27-attempt calculation, decide when a retry is safe, and try the questions below before opening their answers.
 
 ## Questions and explained answers
 

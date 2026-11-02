@@ -4,21 +4,29 @@
 
 How do two editors avoid silently overwriting each other?
 
-[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Connect strong HTTP validators to atomic versioned writes, distinguish 412/428, and diagnose stale requests, lost responses, and validator scope.
+Follow two edits from revision 7, show why only one may succeed, and connect the HTTP condition to the database write that actually enforces it.
 
-Prerequisites: Lesson 10 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
+Compare with [idempotency keys](10-idempotency-keys.md): replay identity and revision protection solve different problems.
 
-## Must understand: problem and model
+## Both editors started from the same old caption
 
-Two clients can read the same post and each write a replacement. A version identifies the revision read. An ETag is an HTTP representation validator; If-Match requires a matching current validator before updating. Like editing a signed document revision, the check asks whether you started from the current copy; unlike a document stamp, comparison and mutation must be atomic.
+Two clients open post 42 when its caption is `old`. Both read revision 7. Client A changes the caption to `A` and saves; client B, still looking at the old copy, saves `B`. With unconditional replacements, B can silently erase A's change.
 
-## Spring Boot example
+The server needs to know which revision B edited. It can return an **entity tag (ETag)** with the read response: an HTTP value identifying the selected representation's revision. The client sends that value back in **If-Match**, meaning “perform this write only if that is still the current representation.” For our example, the tag is `"post42-v7"`.
 
-Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
+After A saves, revision 7 becomes revision 8. B still supplies the revision-7 tag, so the condition is false. The server returns `412 Precondition Failed` and preserves A's edit. B can then reload and decide how to reconcile the difference. Automatically attaching revision 8 and overwriting would defeat the protection.
+
+This is like editing a document with a revision stamp. The limit of the comparison is timing: the check and write must be one indivisible database decision. Checking the stamp and then writing unconditionally leaves another gap for competing edits.
+
+The previous lesson's [attempt key](10-idempotency-keys.md) identifies a repeated request. This revision check answers a different question: whether a new write is based on current state.
+
+## Carry the read condition into the write
+
+The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle). The excerpt below is a design proposal unless identified as current code; omitted imports and collaborators still need implementation.
 
 ```java
 @PutMapping("/posts/{id}")
@@ -31,17 +39,19 @@ ResponseEntity<PostView> update(
 }
 ```
 
-### Walkthrough
+### Read the boundary in the code
 
-This proposed service must evaluate a strong validator and update within concurrency control, such as a database version column with optimistic locking. Checking expected then doing an unconditional update leaves a race. The response ETag must describe the representation returned; real If-Match parsing must support the chosen documented header grammar.
+The proposed route passes the supplied condition into a service that must check ownership and enforce the revision atomically. An optimistic version column or a conditional SQL write can do that; an ordinary Java comparison followed by an unconditional save cannot.
 
-## Request trace: predict, act, observe, explain
+The excerpt returns the updated view but deliberately omits a PUT-response ETag. This backend trims inputs, and HTTP restricts validators returned after a transformed PUT. A subsequent GET can provide the authoritative read validator. Header parsing and conflict translation still need implementation.
 
-Before following the trace, predict the status and final stored state. Then trace these transitions in order:
+## Make revision 7 usable by only one edit
 
-A and B read version 7 with ETag "v7". A writes with If-Match "v7" -> atomic update to 8. B submits "v7" -> 412 -> no overwrite. B reloads version 8, shows a comparison, and explicitly resubmits a resolved edit.
+Initially post 42 has caption `old`, version 7. A and B both read that representation and retain its strong tag. A submits caption `A` with the revision-7 condition. The database changes the caption and advances version 7 to 8 in one conditional update.
 
-The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
+B now submits caption `B` with the same revision-7 condition. The current version is 8, so B's update changes zero rows. Return the stale-condition response, 412, and keep caption `A` at version 8. A 200 for B would acknowledge a write that did not occur; an unconditional retry would erase the protection.
+
+The important property is the indivisible check-and-write. Reading 7, comparing it in Java, and later saving without a version condition allows both clients to pass the comparison before either writes.
 
 ## Turn an HTTP precondition into an atomic write
 
@@ -59,7 +69,7 @@ WHERE id = :id
   AND version = :expected;
 ```
 
-This requires a proposed version column/migration. The affected-row count is the concurrency decision: 1 means the matching authorized revision was changed; 0 means nothing matched. Distinguish absent, forbidden, and stale without disclosing data under your policy; do not infer every zero is stale. With JPA @Version, flush/commit can raise the conflict after setter calls, so place exception translation where it can see that failure.
+This requires a proposed version column/migration. The affected-row count is the concurrency decision: 1 means the matching authorized revision was changed; 0 means nothing matched. Distinguish absent, forbidden, and stale without disclosing data under your policy; do not infer every zero is stale. With Java Persistence API (JPA) `@Version`, flush/commit can raise the conflict after setter calls, so place exception translation where it can see that failure.
 
 ### Exact interleaving
 
@@ -81,31 +91,31 @@ A lost response adds another wrinkle: A’s first write commits version 8, then 
 
 Current [Post entity](../../../../src/main/java/com/instagram/backend/domain/Post.java) has no @Version, and the update controller has no If-Match handling. This design is proposed, including the migration, read validator, atomic persistence strategy, and conflict UX.
 
-## Project mapping and practice
+## Apply this to the backend
 
-Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/domain/Post.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
+[Post](../../../../src/main/java/com/instagram/backend/domain/Post.java) has no version field, and [PostController.update](../../../../src/main/java/com/instagram/backend/controller/PostController.java) has no If-Match handling. Both the persistence strategy and the HTTP boundary therefore remain proposed.
 
-**Practice task:** For F-014 propose a version migration, read ETag, If-Match write requirement, and stale-edit UX before changing the endpoint.
-
-Keep this a design exercise until a feature change is explicitly undertaken. An implementation must follow the repository integration-test, API verification, documentation, and commit workflow.
+For F-014, plan the migration, read validator, conditional write, and conflict screen together. A version column alone is not a client protocol, and a header alone is not concurrency control. The two-client test must finish with one accepted edit and the other preserved as an unresolved client choice.
 
 ## Useful later: choices and costs
 
 Choose conditional updates when silent loss is unacceptable. Last-write-wins is simpler but discards earlier changes. A stale precondition maps to 412; an absent required precondition can use 428. The current entity and update route do not implement this protocol. @Version alone does not define the HTTP contract.
 
-## Controlled failure drill
+## Let both clients pass a separate Java check
 
-Predict two updates after both read version 7. Without a check, the later write hides the first. Detect a two-client integration test, contain with conflict UI, recover by reloading and merging, prevent with atomic version enforcement and stale-write tests.
+Keep A and B at revision 7. On paper, A reads 7 and passes a Java comparison; B also reads 7 and passes; A saves `A`; B saves `B` unconditionally. Predict the final value: B silently hides A despite both requests having checked a version.
 
-Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
+A future coordinated two-client test detects the defect by asserting one accepted mutation and one stale-condition response. Contain stale overwrites by restoring an enforced conditional-write path; a conflict screen alone cannot protect an unconditional backend. Recover the user's intended edit by reloading and explicitly reconciling it. Prevent recurrence with a version predicate or correct optimistic locking, checked at the actual write/commit boundary. The expected result is caption `A` at revision 8 when A wins, not two successful replacements.
 
 ## Interview-ready answer
 
 I expose a validator for the selected editable representation and require a matching revision where lost writes are unacceptable. The comparison and write must be one concurrency decision, through a versioned update or correct optimistic locking, not a separate read check. A missing required precondition and a supplied stale one are different failures. I scope the validator to what actually changes in the representation, and remember a weak validator cannot satisfy If-Match strong comparison. This project has neither the version field nor precondition handler today. I would implement the migration, read and write boundaries, exception translation, and two-client tests together, then handle ambiguous response-loss recovery separately from concurrency prevention.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Proceed only after explaining the request trace without notes, predicting the failure, and answering all three checks below before opening their answers. Record the attempt in [learner progress](learner-progress.md). Artifact readiness does not establish comprehension or implementation readiness.
+Walk A and B from revision 7 through one accepted write. Continue when you can explain why separate comparison is racy, why a retry may get 412 after success, and how the user recovers.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

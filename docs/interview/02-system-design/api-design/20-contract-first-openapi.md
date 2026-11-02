@@ -8,15 +8,23 @@ How do you turn an API proposal into an implementable, reviewable contract befor
 
 ## What you will learn
 
-Write an OpenAPI operation, distinguish schema checks from behavior guarantees, and apply a release-review rubric grounded in this backend.
+Turn one create flow into an agreement a client and backend can both implement. Read what an OpenAPI excerpt promises, then identify the behavior it still cannot prove.
 
-Prerequisites: the foundational contract, method, authorization, and compatibility lessons. These are proposed teaching examples; routes, collaborators, DTOs, and policies shown here are not installed by this documentation change. Imports and application wiring are omitted. Use the existing authentication rules when implementing any extension.
+Use the [response](03-status-and-response-contracts.md), [validation](04-request-validation.md), and [contract-test](15-contract-tests-and-observability.md) lessons as supporting references.
 
-## Must understand: write the promise before implementation details
+## Agree on what Publish means before building both sides
 
-A UI developer and backend developer can both finish their work yet disagree about nulls, error codes, or pagination. Contract-first design writes the external agreement before implementation. OpenAPI is a machine-readable description of HTTP operations and schemas. Provider verification checks that the running provider satisfies selected documented promises.
+The frontend developer treats the caption as optional and builds a form that can send `{}`. The backend developer uses `@NotBlank`, so that request fails with 400. Each implementation can pass its own tests while the Publish flow still fails for the user. The missing piece is an agreement between the two sides.
 
-A building blueprint helps people coordinate before construction. The analogy stops because a schema cannot prove authorization, concurrency, latency, or runtime data correctness; those require tests and observations.
+Start by writing the request and response the caller will use, including required fields and failure examples. This is **contract-first design**: settle the externally visible promises before choosing controller signatures. It does not mean every internal decision must be finished first; it means the two sides should not independently invent incompatible meanings.
+
+**OpenAPI** is a machine-readable description of HTTP operations and data shapes. It can state that create accepts JSON with required caption, imageUrl, and locationLabel and returns 201 on completion. It helps documentation and tooling share the same structural agreement.
+
+A description still needs checking against the application. **Provider verification** tests selected promises against the provider, the backend that serves the API. A schema can say caption is required; it cannot prove the database committed a post or that another user cannot edit it.
+
+A blueprint is a useful analogy: it lets people coordinate before construction. The limit is runtime behavior. Permissions, races, failure recovery, and acceptable cost need implementation and evidence beyond a drawing or schema.
+
+We will review the existing create-post shape below. The OpenAPI excerpt is a teaching proposal, not a newly installed contract file or generator.
 
 ## Proposed OpenAPI excerpt
 
@@ -90,9 +98,11 @@ A generated schema marks caption as optional, while Spring requires it nonblank.
 
 Similarly, a response schema can permit id:number but omit the JavaScript precision risk; it can describe status 201 but not prove a row committed. Pair structural checks with integration/state assertions. Keep examples validated against the schema where tooling supports it, and add old-consumer fixtures for changes.
 
-## Controlled failure drill
+## Let the description and provider disagree
 
-Prediction: rename response imageUrl to mediaUrl in the provider while keeping the old description. Detect with provider contract verification and an old-consumer fixture, contain rollout, recover the old field or a migration adapter, prevent with contract diff review plus behavioral tests. A documentation-only rename cannot make an incompatible provider safe.
+On paper, leave `imageUrl` in the description but rename it to `mediaUrl` in the provider. Predict the result for an old client: the response may still be valid JSON with status 201, but the promised image field is gone.
+
+Detect the mismatch with provider verification and an old-consumer fixture. Contain the release, restore the supported field or a migration adapter, and verify both description and running behavior agree. Prevent recurrence by reviewing contract differences together with behavioral checks. Editing the schema to bless the incompatible rename only makes the documents agree; it does not repair the caller's supported contract.
 
 ## Project mapping and practice
 
@@ -102,9 +112,11 @@ Prediction: rename response imageUrl to mediaUrl in the provider while keeping t
 
 I start with a concrete caller flow and specify intent, identity, fields, response examples, and failure semantics before choosing controller signatures. I use OpenAPI for a shared structural description and tooling, but review normalization, permissions, retries, races, and operational bounds separately. I verify the provider against the contract and keep meaningful consumer fixtures. In this project the DTOs and tests expose current behavior; the next comments feature can begin with a reviewed contract and then prove it through Spring integration tests and API requests.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Explain the worked request without notes, justify a competing option, predict the failure, and describe a test that checks the final state or response. Record an attempt in [learner progress](learner-progress.md). A completed artifact does not establish understanding or an implemented feature.
+Review create from the caller's request through committed state. Continue when you can point to one schema promise, one behavior it cannot prove, and the evidence needed to verify each.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

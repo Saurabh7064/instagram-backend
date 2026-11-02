@@ -10,60 +10,50 @@ Your manager asks:
 
 > [One-page revision card](../../revision-cards/production-scenarios/02-post-deployment-latency-spike.md)
 
-## Why this problem exists
+## Twenty quiet minutes do not clear the release
 
-A deployment and a latency spike close together are correlated, but correlation is not proof. The release may have added database calls, changed a query plan, leaked connections, or increased allocation until garbage collection became expensive. The twenty-minute delay could also be cache expiry, traffic growth, a downstream incident, or a scheduled job unrelated to the release.
+A deployment ends, everything looks normal, and then latency jumps. The delay makes it easy to argue either side: “It must be the release” or “It would have failed immediately.” Neither conclusion follows from timing alone.
 
-The operational goal is twofold: reduce customer harm quickly and collect enough comparative evidence to avoid both a needless rollback and a dangerous wait for certainty.
+A new path might become expensive only after cached data expires, a queue builds, or connections slowly accumulate. The same delay could come from an unrelated traffic increase or scheduled job. We need a comparison that separates those explanations while keeping users from waiting for a perfect diagnosis.
 
-## Analogy: two production lines
+Pause further rollout, preserve the timeline, and ask what differs between affected and unaffected requests. Containment can be justified by strong evidence before we know the exact faulty line, provided the action itself is safe.
+
+## An unchanged production line is a useful comparison
 
 Imagine a factory replaces one machine and output slows later. Comparing the new line with an unchanged line under the same materials is stronger evidence than comparing Tuesday with Monday. Stopping the new machine may be the safest containment even before the exact defective part is known.
 
 The analogy stops because software versions can share databases, caches, and dependencies. A faulty version may degrade the shared system, so the old version is not always an unaffected control group.
 
-## Terms to establish
+## Use the version still running as a comparison
 
-- A **change point** is the time a metric’s behavior shifts materially.
-- A **canary** is a small production population receiving the new version before broad rollout.
-- A **rollback** restores the previous application version; it does not automatically reverse data or schema changes.
-- A **feature flag** changes behavior without replacing the deployed binary.
+The **change point** is when the measured behavior shifts. Mark it separately from deployment start and finish; the difference may reveal a threshold or delayed effect.
 
-## Investigation and decision sequence
+A **canary** is a small production population on the candidate version. Keeping the old version running gives us a useful comparison under similar traffic, although both versions may still share a database the candidate can overload.
 
-### 1. Declare and bound the incident
+A **rollback** restores the old application. It does not undo committed data or a destructive schema migration. A **feature flag** can disable a behavior without replacing the binary, but only helps if the remaining path still understands the data. Both need a compatibility check before we rely on them.
 
-Confirm which user journeys, routes, regions, instances, and percentiles are affected. Check errors, timeouts, throughput, and saturation as well as latency. Record the deployment start/end time and the observed change point. Pause further rollout and unrelated changes so the evidence remains interpretable.
+## Compare versions, then explain their difference
 
-### 2. Compare new and old populations
+Confirm the affected route, users, region, and latency distribution. Also check failures and completions so “latency improved” cannot mean callers are simply failing faster. Stop additional rollout and unrelated changes while the incident is active.
 
-If both versions still serve traffic, compare identical route metrics by version and instance. Ask whether the new version alone has higher latency, query count, allocation rate, garbage-collection pauses, connection wait, or downstream-call volume. Compare slow traces from both versions. This is the fastest way to strengthen or weaken the deployment hypothesis.
+If old and new versions coexist, compare the same route under comparable traffic. Does the candidate issue more queries, wait longer for a connection, allocate more memory, or call another service more often? Follow one slow candidate trace beside a healthy baseline trace. That comparison tests a mechanism, rather than only noticing nearby timestamps.
 
-### 3. Inspect the complete release delta
+Read the complete release change. Code may look harmless while a configuration, dependency, Java runtime, resource limit, feature flag, or database migration changes behavior. Verify the values actually deployed. At the same time, compare traffic, scheduled jobs, database health, cache behavior, and downstream timing with the change point.
 
-Review code, configuration, dependency, JVM, container-resource, feature-flag, and database-migration changes. Confirm that production actually received the intended values. A harmless code diff can ship with a smaller connection pool or CPU limit.
+If both versions slow together, inspect shared dependencies. That does not automatically clear the candidate: it may be generating enough extra work to slow the shared database for everyone. If impact is serious and old code remains data-compatible, route away from the candidate or roll it back. If compatibility prevents that, disable the path or apply a focused forward fix.
 
-### 4. Check competing explanations
+## Follow one plausible delayed regression
 
-Overlay traffic, database health, cache hit rate, downstream latency, and scheduled workload on the same timeline. If old and new versions degrade simultaneously, investigate shared dependencies—but remember that the new version may be overloading them.
+Assume a hypothetical deployment where version `v42` adds a repository lookup per feed item, and an existing cache initially absorbs most feed reads. The cache in this example is not implemented in this repository.
 
-### 5. Choose a reversible mitigation
+1. At 10:00, `v42` receives traffic. Warm cached results hide the extra query work.
+2. At 10:20, those entries expire. Database calls per uncached feed request rise, and connections remain occupied longer.
+3. Pending borrowers accumulate; feed p95 moves from 250 ms to three seconds even while a brief health check still succeeds.
+4. Version and trace comparisons reveal repeated database work in `v42`; pool measurements show the matching wait.
+5. After checking data compatibility, the team routes away from `v42`. The database queue drains and latency returns to baseline.
+6. The team preserves representative traces, adds a realistic regression/load check, and canaries the corrected path.
 
-Roll back or route traffic away from the new version when customer impact is serious and rollback is known to be data-compatible. Disable the suspected code path with a feature flag when that is safer. If an irreversible migration makes rollback unsafe, roll forward with a focused fix or isolate the affected route.
-
-## Concrete event walkthrough
-
-Assume version `v42` adds an extra repository lookup while building each feed item.
-
-1. At 10:00, `v42` receives all traffic. Cache warmth initially hides the extra cost.
-2. At 10:20, cache entries expire and database query volume per feed request rises.
-3. Database connections become busy; p95 feed latency rises from 250 ms to 3 seconds while health checks still pass.
-4. Metrics grouped by `version` show `v42` slowing first; traces show repeated database work.
-5. The team confirms the previous version is compatible with current data and rolls back.
-6. Latency and connection wait return to baseline, strengthening the causal claim.
-7. The team preserves traces, adds a regression test and query-count guard, then prepares a canary release.
-
-The rollback is both mitigation and an experiment: recovery after traffic leaves `v42` is evidence, though shared-system recovery may lag while queues drain.
+The causal explanation is the added work exposed after expiry. Recovery after removing `v42` strengthens it, but queues may need time to drain. A single improved sample immediately after rollback is not enough.
 
 ## Interactive incident flow
 
@@ -84,15 +74,23 @@ The feed implementation also gives a realistic regression surface: [PostService.
 
 **Proposed, not implemented:** a deployment marker on dashboards, simultaneous old/new canary comparison, automated rollback criteria, feature-flag infrastructure, and a query-count performance test. The repository provides version dimensions, but it does not contain a production rollout controller.
 
-## Choices and trade-offs
+## Choose containment the current data can survive
 
 - **Rollback** is fastest when the old binary is data-compatible. Do not choose it after a destructive schema or event change without checking compatibility; rollback can then corrupt behavior.
 - **Disable a feature** when one optional path is implicated and the flag is tested. Flags add branching, ownership, and stale-flag risk.
 - **Roll forward** when the cause is understood and rollback is unsafe. It avoids incompatible reversal but makes recovery depend on building and validating another release during an incident.
 
-## Failure drill
+## Rehearse the delayed regression, not only startup
 
-**Prediction:** a new release slowly leaks database connections, so latency rises after twenty minutes. **Symptom and detection:** only new-version instances show increasing active connections and acquisition wait before timeouts begin. **Containment:** stop rollout and remove those instances from traffic. **Recovery:** roll back after verifying schema compatibility, wait for queues and sessions to drain, and confirm percentiles recover. **Prevention:** canary on latency and pool-wait thresholds, load-soak the release, and make connection ownership observable.
+**Prediction:** in the hypothetical `v42` release, the per-item repository lookup stays hidden while the cache is warm. Once entries expire, query count and connection waiting rise before feed p95 reaches three seconds.
+
+**Detect:** compare uncached requests and the same route by version. Look for the extra query shape in traces or database evidence, then align it with cache expiry and pool wait. A passing health check does not establish spare capacity.
+
+**Contain:** pause rollout or disable the expensive path. Route back only after confirming that the old binary can still read and write the current data.
+
+**Recover:** let database and request queues drain. Verify feed percentiles, completions, and dependency work return to baseline instead of judging recovery from the first fast request.
+
+**Prevent:** canary through representative expiry and background cycles, include query cost and connection wait in release checks, and reproduce the mechanism with a focused load or soak test. This is a paper exercise until those actions are actually run.
 
 ## Two-to-three-minute interview answer
 
@@ -100,7 +98,7 @@ The deployment is my leading hypothesis, not yet a fact. I would declare the inc
 
 I would not wait for perfect proof while customers suffer. If the new version is clearly worse and the previous version remains data-compatible, I would drain or roll it back, preserve traces and logs, and verify that latency returns after queues drain. If rollback is unsafe because of a schema change, I would disable the suspected feature or roll forward with a narrow fix. After stabilization, I would reproduce the failure, identify the mechanism, add a regression or soak test, and use a canary with automatic latency and saturation guardrails next time.
 
-## Practice status
+## Before you practise
 
 The artifact is ready; practice requires more than reading it. Mark it practiced only after explaining the decision without notes, identifying one reason rollback could be unsafe, predicting a delayed-release failure, and answering the final questions before revealing them.
 

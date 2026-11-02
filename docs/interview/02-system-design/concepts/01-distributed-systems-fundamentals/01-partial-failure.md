@@ -2,28 +2,27 @@
 
 [Module](./README.md) · [Next: CAP](./02-cap.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: a missing response does not tell you whether remote work happened.
-- Prerequisite: a client asks a backend to do work; a database stores records. No distributed-systems knowledge is assumed.
-- Core terms: process, distributed system, partial failure.
+Core study: 10–15 minutes. Prerequisite: a client asks a backend to do work; a database stores records. No distributed-systems knowledge is assumed.
 
-## Start with the problem — Must understand
+## You pressed Publish. Did it work? — Must understand
 
-You press Publish. The app waits, then shows “request timed out.” Should pressing Publish again create the original post or a second post? Before choosing a retry policy, we need to understand why the first request's outcome is uncertain.
+You write “Sunset,” press Publish, and wait. Eventually the app says “request timed out.” Your first instinct is to press Publish again. But what would that second press mean: finish the first post, or create another one?
 
-A **process** is a running program with its own execution and memory. The browser, Spring Boot backend, and database can run as separate processes. A function call inside one process can return directly to its caller. A call to another process must cross a communication boundary: the request and the response are separate messages, and either can be delayed or lost.
+The difficulty is that the screen tells you only that a reply did not arrive in time. It does not tell you where the work stopped. The request might never have reached the backend. Or the database might already contain your post, with only the success reply missing. We will follow that second possibility with post 42.
 
-A **distributed system** consists of independently running participants coordinating through messages. Separate machines are common, but separate communicating processes on one machine already expose some of these failure boundaries. You do not need microservices: one backend using a separately running database must already handle communication failure.
+The browser, backend, and database are separate running programs. A running program, with its own execution and memory, is a **process**. Within one process, a function can return directly to its caller. Between processes, the request and the reply travel as separate messages. Either message can be delayed or lost.
 
-## Why failure can be partial
+That is enough to encounter a **distributed system**: independently running participants coordinating through messages. They need not be microservices or live on different machines. One backend talking to a separately running database already has this communication boundary.
 
-**Partial failure** means some participants or communication paths fail while others continue working. Your browser can lose its connection while the database remains healthy. The backend can stop after saving a post. The database can be unreachable while the backend still answers a health request that does not query it.
+## One part can fail while the rest keeps working
 
-Compare a shop clerk placing an order by telephone. The line goes dead after the clerk speaks. The warehouse may have received the order, or may never have heard it. The analogy captures uncertainty, but programs have no extra human judgment that can reliably distinguish a dead peer from a slow one using silence alone.
+Suppose the database saves the post, but the browser connection breaks. The save and the broken connection can both be real. **Partial failure** means some participants or communication paths fail while others continue working. It is why “the system failed” is often too vague to guide recovery.
 
-A **timeout** is a local decision to stop waiting after a chosen duration. It is not a message from the remote participant saying “nothing happened.” Extending the duration can reduce unnecessary failures, but cannot eliminate this uncertainty.
+Think of a clerk ordering stock over the telephone. If the line goes dead after the order is spoken, the warehouse may have received it. Silence cannot settle the question. The analogy stops where people might find another informal way to check; a program needs recorded evidence or a defined recovery protocol.
 
-## Worked request: post 42
+A **timeout** is the caller deciding it has waited long enough. It is not the database saying “I saved nothing.” Waiting longer can reduce unnecessary timeouts, but cannot make a missing reply prove the absence of a save.
+
+## Follow the save, then lose the reply
 
 Fixed setup: one client, backend A, and a separate database. The client requests one new post with caption “Sunset.” A database **commit** is the point at which the transaction's changes become durable according to its storage contract. The application must not report success before its required commit.
 
@@ -43,7 +42,7 @@ Now compare three possible failures on this **same request**:
 
 The observations are identical while the durable outcomes differ. Therefore the screen's timeout cannot select a safe recovery by itself. This is an information problem, not simply a slow-server problem.
 
-## What follows from this model
+## What would make the second press safe?
 
 We need a way to connect a retry to the *same intended operation*. Otherwise A can interpret the second request as a new post and create ID 43. [Lesson 14](./14-idempotency-and-delivery.md) teaches the durable request identity that makes this safe; do not assume it already exists.
 
@@ -55,15 +54,17 @@ Use a remote component when shared storage, independent capacity, or separate ow
 
 [PostController.create](../../../../../src/main/java/com/instagram/backend/controller/PostController.java) accepts the request; [PostService.create](../../../../../src/main/java/com/instagram/backend/service/PostService.java) constructs and saves the post inside a transaction. Transaction completion surrounds the service invocation; `save` alone is not the same as telling the client the transaction committed. There is no request-key deduplication in these methods. The response-loss example is a proposed failure test, not an executed test result.
 
-## Failure drill — paper exercise
+## Lose the reply after the save — paper exercise
 
-- **Predict:** the reply is lost after commit. Does retrying an ordinary create safely return 42?
-- **Symptom:** client timeout; database has 42; a naive retry may create 43. Compare request logs with saved rows.
-- **Contain:** avoid automatic unlimited retries of unprotected creates. Preserve the original request identity and outcome as unknown.
-- **Recover:** inspect durable operation evidence. Do not identify an operation solely by matching caption text; two intentional posts can share it.
-- **Prevent:** implement atomic request-key/result storage before promising safe retries. A broken network can still delay the user seeing the result.
+Before continuing, predict what an ordinary retry does when post 42 has committed but its reply is lost. Is the backend obliged to return 42, or could it create 43?
 
-## Recap and stop/go
+The client timeout and the saved row can coexist. Request logs help locate the attempt; the durable database outcome tells us whether it committed. Until we know more, treat the result as unknown and avoid unlimited automatic retries of an unprotected create.
+
+Recovery needs evidence identifying this operation. Matching caption text is insufficient because two intentional posts can share a caption. The later request-key design will connect retries to the original result and store them atomically. Test the response-loss boundary when implementing it; a log entry alone does not enforce one effect, and a broken connection can still delay the user's final answer.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Reconstruct the five steps without notes. Explain how a successful commit and a timeout coexist, and why neither a longer wait nor a log entry alone provides duplicate protection. Proceed after you can predict the three failure points' outcomes.
 

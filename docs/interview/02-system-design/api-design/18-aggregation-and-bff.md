@@ -8,15 +8,23 @@ When should a screen use an aggregated API instead of calling many fine-grained 
 
 ## What you will learn
 
-Compare client composition, aggregation, and a Backend for Frontend; budget fan-out, partial failures, and authorization.
+Decide who should combine a profile screen's data, calculate the cost of that choice, and represent a failed section without inventing a false value.
 
-Prerequisites: the foundational contract, method, authorization, and compatibility lessons. These are proposed teaching examples; routes, collaborators, DTOs, and policies shown here are not installed by this documentation change. Imports and application wiring are omitted. Use the existing authentication rules when implementing any extension.
+Builds on [permissions](06-identity-and-ownership.md) and [waiting budgets](14-timeouts-and-async-work.md). The mobile adapter is proposed; the existing profile composition is linked below.
 
-## Must understand: the screen needs more than one object
+## One profile screen, several pieces of data
 
-A profile screen needs identity, counts, and recent posts. Calling several endpoints adds network round trips and forces every client to compose errors. Aggregation combines results into one response. Fan-out means making several downstream requests for one incoming request. A Backend for Frontend (BFF) is an API tailored to a particular client experience, such as mobile, rather than a universal domain interface.
+The profile screen needs the user's identity, counts, and a preview of recent posts. The phone could call three endpoints and combine the results. That works, but now every client must arrange those calls, decide which failure blocks the screen, and avoid displaying missing information as a real value.
 
-A concierge gathering several desk answers is a useful analogy. It stops matching because downstream calls can race, timeout, return different snapshots, and consume independent connection pools.
+We can move that composition to the backend and return one deliberate view. **Aggregation** means combining several pieces of data into one response. It is useful when the same caller flow keeps repeating that work; it is not a requirement that every response contain everything a user could ever need.
+
+The current Spring application can do this in one in-process read service. If mobile and web eventually need substantially different experiences, a separate **Backend for Frontend (BFF)** can provide an API tailored to each. The name describes the audience of the API. It does not by itself justify a new service or remote network calls.
+
+When an aggregate does call several downstream services, one incoming request causes several outgoing requests. That is **fan-out**. It can reduce phone-to-server round trips while increasing simultaneous backend work. We must count that work rather than assume one client request means one cheap query.
+
+A concierge gathering answers from several desks is a helpful comparison. Its limit is consistency and failure: the answers can arrive at different times, one desk can be unavailable, and the combined answer is not automatically a single snapshot.
+
+Keep identity, counts, and recent-post preview as our fixed screen. The choices below differ in who does the composition and which new responsibilities that creates.
 
 | Approach | Choose when | Cost/failure mode |
 |---|---|---|
@@ -47,9 +55,11 @@ If counts times out but identity is required, choose a documented policy: fail t
 
 Set an overall deadline and allocate sub-budgets. Cancel/limit unnecessary work on failure where supported, cap outstanding calls, and avoid multiplying retries at the client, BFF, and every downstream layer. Independent calls are not necessarily consistent: a post can appear after the count was read. If exact consistency matters, design a common snapshot/read model; otherwise state the eventual-consistency policy.
 
-## Controlled failure drill
+## Slow the counts section while the other sections work
 
-Prediction: counts sleeps beyond its budget while profile and preview remain fast. Symptom in a naive implementation: every profile request occupies threads until the slow service times out. Detect dependency latency and pool saturation, contain with bounded waits and the chosen partial-response policy, recover after the dependency returns and verify resources drain, prevent with deadlines, load limits, and slow-dependency tests.
+For a future fault test, keep identity at 40 ms and post preview at 120 ms, but delay counts beyond its allotted budget. Predict the naive behavior: profile requests keep waiting for counts, accumulating work even though the other sections are available.
+
+Detect dependency latency and exhausted thread/connection capacity. Contain it with bounded waits and the agreed required-versus-optional section policy; if counts is optional, return explicitly unavailable rather than 0. Once counts recovers, verify waiting work drains and complete profiles return. Prevent recurrence with overall deadlines, bounded fan-out, and a slow-section test. Merely parallelizing the calls does not make a stalled dependency stop consuming resources.
 
 ## Project mapping and practice
 
@@ -59,9 +69,11 @@ Prediction: counts sleeps beyond its budget while profile and preview remain fas
 
 I aggregate when the same screen repeatedly composes several pieces and network latency or duplicated client logic justifies it. I first consider an in-process read service; a separate BFF is useful only when client needs and ownership justify another boundary. I bound fan-out, set an overall deadline, preserve authorization, and decide whether each section is required. I do not replace missing data with false zero values. I measure latency, query count, resource saturation, and partial failures, and explain that a combined response is not automatically a single consistent snapshot.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Explain the worked request without notes, justify a competing option, predict the failure, and describe a test that checks the final state or response. Record an attempt in [learner progress](learner-progress.md). A completed artifact does not establish understanding or an implemented feature.
+Calculate 260 ms sequentially and the ideal 140 ms concurrently. Continue when you can justify one composition boundary and an explicit result when only counts is unavailable.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

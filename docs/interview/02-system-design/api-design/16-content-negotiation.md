@@ -8,15 +8,21 @@ How do Content-Type, Accept, and representation selection affect an API contract
 
 ## What you will learn
 
-Distinguish request parsing from response selection; derive 400, 406, and 415 outcomes; design media types and cache variation.
+Distinguish the format being sent from the format requested back. Use the same create request to explain why 415, 400, and 406 call for different corrections.
 
-Prerequisites: the foundational contract, method, authorization, and compatibility lessons. These are proposed teaching examples; routes, collaborators, DTOs, and policies shown here are not installed by this documentation change. Imports and application wiring are omitted. Use the existing authentication rules when implementing any extension.
+Builds on [response contracts](03-status-and-response-contracts.md) and the [method examples](02-http-methods.md). The explicit media-type route below is proposed; imports and wiring are omitted.
 
-## Must understand: two directions, two decisions
+## What are you sending, and what can you read?
 
-A server needs to know how to parse submitted bytes and which response format the caller can consume. A media type names the representation format. Content-Type describes the body actually being sent; Accept lists response formats the caller is willing to receive. Negotiation is the process of selecting an available representation that fits the request.
+A client submits a new post as JSON. It also asks for the response as XML, a different structured text format. Those are two independent statements: “these are the bytes I am sending” and “these are the formats I can read back.” Confusing them makes failures difficult to diagnose.
 
-Think of submitting a form in one language while requesting a receipt in another. The analogy stops because media types specify machine syntax and semantics, not only human language, and selection also affects caches and errors.
+A **media type** names a representation format. In a request, `Content-Type: application/json` describes the submitted body. `Accept: application/json` says the caller is willing to receive JSON in the response. **Content negotiation** is the server choosing an available representation that the caller accepts.
+
+Use one fixed create request with caption `hi`, a valid image reference, and location `Home`. If the client labels the body `text/plain`, our proposed JSON-only route rejects the input format with 415. If it labels malformed bytes as JSON, the server selects the JSON parser but cannot read them, so the result is 400. If the body is valid but the caller accepts only XML, the server cannot offer that response and can return 406. The correction is different in each case.
+
+Submitting a form in one language and asking for a receipt in another captures the two directions. The comparison stops at media-type meaning: the format can define operations, not just spelling. For example, the two [PATCH formats](02-http-methods.md) both use JSON syntax but interpret their documents differently.
+
+The table below is a reference for that one JSON-only contract. It is not evidence that new routes or converters have been installed.
 
 | Request situation | Server decision | Expected result under this proposed JSON-only contract |
 |---|---|---|
@@ -44,12 +50,15 @@ ResponseEntity<FeedPostResponse> create(
 
 Proposed explicit-media variant of current create: consumes narrows input selection; produces narrows output selection; @RequestBody invokes conversion; @Valid checks the bound DTO; the service authenticates and performs creation. Changing produces from JSON to a custom media type requires integration tests with the actual converters. An error body can have application/problem+json rather than the success body’s type; document both.
 
-## Request trace: metadata and bytes must agree
+## Correct the same request one decision at a time
 
-1. Caller sends Content-Type=text/plain with `{"caption":"hi"}`. Under this explicit route it is not an admitted JSON request; do not infer format by sniffing text.
-2. Caller corrects Content-Type to application/json but sends a trailing broken brace. Now the converter is selected, parsing fails, and the request is 400.
-3. Caller fixes JSON and sends Accept=application/xml. The route offers only JSON, so negotiation can fail with 406 rather than creating an XML contract by accident. If a write must never execute when response negotiation fails, verify that guarantee with a no-persisted-write assertion in the configured stack.
-4. Caller accepts JSON and sends all required valid fields; ownership/media policy passes -> 201 with authoritative representation.
+Keep the proposed create body fixed in meaning: caption `hi`, an authorized image reference, and location `Home`. First send its JSON bytes with `Content-Type: text/plain`. The route admits JSON, so the result is 415; rewriting the JSON values cannot fix the declared format.
+
+Next use `Content-Type: application/json` but break a brace in that body. The input type is now admitted, but parsing fails, so the result is 400. Fixing the brace solves a parsing problem, not a permission or business-rule problem.
+
+Now send the valid body with `Accept: application/xml`. The route offers JSON only, so response selection can fail with 406. If the write contract promises no creation when negotiation fails, assert that there is no persisted post in this case in the configured Spring stack. A status check alone cannot prove it.
+
+Finally accept JSON, keep the valid body, and pass authentication and domain checks. The create can complete with 201 and the authoritative JSON post. There is no reason to infer a format by sniffing text when the agreed metadata already states it.
 
 ## Representation patterns and trade-offs
 
@@ -59,9 +68,11 @@ Sparse field selection, such as fields=id,caption, can reduce bytes but must all
 
 If the same URL can return JSON or another representation selected by Accept, set appropriate Vary: Accept and validate CDN behavior. For query-based selection, preserve relevant query parameters in cache keys. Neither Vary nor a new media type protects private data without authorization and cache policy.
 
-## Controlled failure drill
+## Make the cache ignore the requested representation
 
-Prediction: a cache stores a v2 media-type response by URL alone. An old client requesting v1 receives v2 and fails despite a successful status. Detect with two Accept values through the cache, contain by bypassing/purging affected entries, recover correct variants, prevent with Vary/key tests and explicit representation contracts.
+For a future cache test, let the same post URL offer a v1 and v2 representation selected by Accept. Store the v2 response using only the URL as key, then request v1. Predict the symptom: the old client receives the wrong contract despite a successful status.
+
+Detect it by sending both Accept values through the intermediary, not just directly to Spring. Contain reuse and purge incorrect variants where supported. Recover correct selection with the required Vary/key behavior and verify both responses again. Prevent recurrence by including representation headers in cache-contract tests. This protects format selection; personal data still needs its own authorization and storage policy.
 
 ## Project mapping and practice
 
@@ -71,9 +82,11 @@ Prediction: a cache stores a v2 media-type response by URL alone. An old client 
 
 I separate the format the client sends from the formats it accepts back. I use consumes and produces to state the supported contract, DTOs to isolate writable and readable state, and tests for unsupported media, malformed content, and unacceptable output. I prefer a small set of explicit views over arbitrary field selection until overfetching warrants that complexity. When selection varies by headers, I make cache variation explicit and test old/new clients through intermediaries. Negotiation does not replace domain validation or access control.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Explain the worked request without notes, justify a competing option, predict the failure, and describe a test that checks the final state or response. Record an attempt in [learner progress](learner-progress.md). A completed artifact does not establish understanding or an implemented feature.
+Correct the fixed request through 415, 400, and 406, explaining the decision at each stage. Continue when you can state what consumes, produces, and converter support actually provide.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

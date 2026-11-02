@@ -6,65 +6,64 @@ A media upload succeeds, post metadata is saved, but the response or follow-up e
 
 **“How do you keep a multi-step post-publish workflow correct when steps fail or repeat?”**
 
-## Why this problem exists
 
-A workflow that crosses storage, a database, and a broker cannot usually commit everything in one local transaction. Timeouts are ambiguous: the caller may not know whether a step failed or completed just before the response disappeared. The design must make retries safe and provide a way to finish or repair partial work.
+## One Publish button crosses several boundaries
 
-## Analogy: tracked parcel delivery
+The photo upload has completed. The client asks to create a post using it, the database saves the post, and the HTTP response disappears. The client sees a timeout. Should it try again?
 
-A parcel has one tracking number and recorded states such as accepted, shipped, and delivered. Repeating a status message does not create another parcel. The analogy stops because some distributed side effects cannot be undone; compensation may be a new action rather than a true reversal.
+It should be able to, but the server needs to recognize that retry as the same intended publish. **Idempotency** means repeated processing has the intended effect of one operation. Give this publish the stable key `publish-91`; generating a new key for the retry would describe a new operation instead.
 
-## Terms to establish
+## Save the evidence with the effect
 
-- **Idempotency** means repeating the same logical request has the same intended effect as processing it once.
-- A **Saga** coordinates local transactions across components using later steps and compensations.
-- A **transactional outbox** commits a business change and its event record together.
-- **Reconciliation** compares actual state with expected state and repairs discrepancies.
+In the proposed design, one transaction commits the post, the key's request fingerprint and stored result, and outbox event `e91`. All of those records must share the commit boundary. Saving the post first and its key result afterwards would leave another crash window in which a retry could create a second post.
 
-## What I would do
+If the response is lost after commit, retrying `publish-91` returns the stored post result after authenticating the caller and checking the input matches. If the transaction failed before commit, none of those changes exists and the request can execute. Concurrent claims need a database uniqueness rule and a bounded in-progress policy.
 
-1. Give the publish attempt a stable idempotency key and persist its result or workflow state.
-2. Keep each owner’s state change locally transactional; do not claim one transaction spans every service.
-3. Commit the post and outbox record together, then publish asynchronously with retry.
-4. Make every consumer deduplicate by event ID and make each transition valid only from expected prior states.
-5. Define compensation for reversible work and reconciliation for ambiguous or irreversible outcomes.
+A parcel tracking number offers a useful analogy: repeating a status enquiry does not order another parcel. Its limit is that a server must enforce the identity and transaction rules automatically, including when two requests arrive together.
 
-## Concrete walkthrough
+## What about steps outside that transaction?
 
-1. The client sends `POST /api/posts` with idempotency key `publish-91`.
-2. The service finds no prior result, stores the post and `PostCreated(eventId=e91)` outbox row in one transaction, then records the response for `publish-91`.
-3. The HTTP response is lost, so the client retries with the same key.
-4. The service returns the stored result instead of creating a second post.
-5. A relay publishes `e91`; duplicate deliveries are ignored by consumers that already recorded `e91`.
-6. If media processing later fails, the workflow marks the post unavailable or deletes orphaned media according to product policy.
+A PostgreSQL transaction does not include a separately stored photo or a message broker. The outbox makes publication retryable; consumers must also commit their local effect with their duplicate-detection state where that is possible.
 
-## Instagram-backend mapping
+For a larger workflow, a **saga** records progress across separate local transactions and defines corrective actions for failures. Deleting an unused photo may be a valid cleanup; undoing an already delivered external effect may not be possible. A corrective action is not automatically a true rollback.
+
+**Reconciliation** compares the recorded workflow with actual durable state and repairs a discrepancy. If a media outcome is unknown, inspect its stable identity before blindly repeating or deleting it. Keep a documented policy for abandoned uploads, unfinished posts and irreversible effects.
+
+Use this machinery where the workflow needs it. When all required changes fit one database transaction, that simpler boundary avoids unnecessary intermediate states.
+
+## Where this appears in our backend
 
 [PostService](../../../../../src/main/java/com/instagram/backend/service/PostService.java) currently saves a post in one Spring transaction. [MediaStorageService](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java) stores media before post creation as a separate operation. [PostLike](../../../../../src/main/java/com/instagram/backend/domain/PostLike.java) provides a concrete idempotency guard through its unique `(post_id, user_id)` constraint.
 
 **Proposed, not implemented:** publish idempotency keys, workflow states, an outbox, consumer inbox/deduplication records, orphan-media cleanup, and reconciliation jobs.
 
-## Choices and trade-offs
+## Choosing the approach and paying its costs
 
 - Use idempotency keys for externally retried writes; do not generate a new key on every retry. Stored keys and responses require retention and conflict rules.
 - Use a Saga when independent owners must complete a workflow over time. Do not use it when one database transaction is sufficient; Sagas expose temporary intermediate states.
 - Use compensation only when the business action can be meaningfully counteracted. A refund or cleanup is a new auditable action, not erased history.
 
-## Failure drill
 
-**Prediction:** a worker completes a side effect, crashes before acknowledging the event, and repeats it after restart. **Symptom and detection:** the same event ID appears twice and duplicate output is attempted. **Containment:** pause the consumer if the effect is unsafe and reject already-recorded event IDs. **Recovery:** reconcile the authoritative workflow state, apply compensation where required, and replay safely. **Prevention:** persist deduplication with the local effect and test crashes before and after every acknowledgement boundary.
+## Paper drill: the effect happened, the acknowledgement did not
+
+Predict what a worker does after completing an effect and stopping before acknowledgement. On redelivery, it can attempt the effect again. The message appearing twice is expected; applying an unsafe effect twice is the failure to prevent.
+
+Detect repetition by event ID and compare it with durable workflow and output records. Pause unsafe processing while deciding which effect already completed. Recover by replaying duplicate-safe transitions or applying an auditable corrective action where the business permits one.
+
+Prevent recurrence by storing local duplicate detection with the local effect, using stable identities for remote effects, and testing crashes on both sides of every commit and acknowledgement boundary. A database transaction protects only the resources it actually owns.
 
 ## Two-to-three-minute interview answer
 
-I would assume retries, duplicate events, and ambiguous timeouts are normal. The client supplies a stable idempotency key, and the API stores the key with the resulting post or workflow record. If the response is lost, the retry returns the original result instead of creating another post.
+I would assume retries, duplicate events, and ambiguous timeouts are normal. The client supplies a stable idempotency key, and the API commits the key, request fingerprint and stored result atomically with the post or workflow record. If the response is lost, the retry returns the original result instead of creating another post.
 
 Each component performs only its own local transaction. The post transaction also writes an outbox event, so a crash cannot leave a committed post with no durable publication record. The relay may publish more than once, so consumers record event IDs and apply transitions idempotently. A Saga coordinates later steps and defines compensation where a real business reversal exists; reconciliation repairs cases whose outcome cannot be inferred from acknowledgements alone.
 
 For this project, post metadata and media storage are already separate operations, while likes demonstrate a database uniqueness guard. Full publish idempotency, outbox delivery, workflow status, and orphan cleanup are future work.
 
-## Practice status
 
-The artifact is `READY`; comprehension remains `TODO` until the learner can explain the retry path, identify an ambiguous failure, and choose compensation or reconciliation without notes.
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`. Explain this scenario in your own words, predict the paper drill, and attempt the questions before opening their answers. Record learning only from your own explanation and predictions.
 
 ## Questions and explained answers
 

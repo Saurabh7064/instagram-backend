@@ -1,51 +1,32 @@
 # Micro-Lesson 01 — Scalability, Availability, and Reliability
 
-- Status: `READY`; comprehension not yet demonstrated
-- Time: 15 minutes
-- Primary idea: these are different system qualities, so improving one does not automatically improve the others
-- New terms: scalability, availability, reliability
-- Prerequisite: none
+Core study: 15 minutes. Prerequisite: none.
 
-## Why does this exist?
+## Three backend instances still share one database — Must understand
 
-“Make it scalable” is not a complete requirement. A system can serve more users but fail frequently. Another system can stay reachable while returning incorrect results. An interviewer needs to know which problem you are solving before evaluating your architecture.
+The feed works on one Spring Boot instance. Traffic grows, so we place three instances, A/B/C, behind one public address. Requests can now be spread across them. If B stops, perhaps A and C can continue. Have we solved “scalability,” “availability,” and “reliability” all at once?
 
-## Analogy: a grocery store
+Not yet. Every feed request still needs the same PostgreSQL database. If that database is unavailable, adding another healthy backend does not give it the missing posts. And if retrying a successful publish creates a duplicate, all three backends may be reachable while the user's intended outcome is wrong.
 
-- **Scalability:** Can the store add checkout lanes when more shoppers arrive?
-- **Availability:** Is at least one checkout lane open when a shopper needs it?
-- **Reliability:** Does the checkout charge the correct amount and record the purchase every time?
+Those are separate questions about the same request path. Naming them helps us choose a change that addresses the actual problem.
 
-The analogy is useful for separating the goals. It stops working when software introduces replication lag, partial network failure, retries, and requests duplicated across machines.
+## More work, continued service, and correct outcomes
 
-## Plain-language model
+**Scalability** is the ability to handle more load by adding or enlarging resources without unacceptable performance loss. Adding backends can provide more application capacity when their work can run independently and the database has headroom. It is not proof that the entire path can handle more requests.
 
-### Scalability
+**Availability** asks whether users can obtain the required service when they need it, measured over a defined period and success criteria. A redundant backend can keep the feed serving through one instance failure. It cannot compensate for every instance depending on an unavailable database. A process responding to a basic probe is weaker evidence than a user completing a feed request.
 
-The ability to handle more load by adding or enlarging resources without unacceptable performance loss.
+**Reliability** concerns correct, durable behavior over time. A successful response should correspond to the intended saved result. Transactions, safe retries, and durable storage address different parts of that requirement. Extra serving instances alone do not prevent a duplicated or lost effect.
 
-Example: add Spring Boot instances behind a load balancer when feed traffic increases.
+Think of a grocery store. Extra checkout lanes address capacity; keeping a lane open through a breakdown addresses continued service; recording purchases and charging correctly addresses outcomes. The analogy separates the goals, but software adds a complication: partial communication failures can leave the caller uncertain whether a purchase-like operation completed. A human cashier's judgment is not a recovery protocol.
 
-### Availability
+## Predict what the extra instances actually bought us
 
-The proportion of time the system can accept and serve requests. Redundant instances across failure zones improve availability because one failure does not remove every serving path.
+Before following the path below, answer two questions: if B alone stops, which requests can still finish? If PostgreSQL stops, do A and C provide an alternative source for the feed?
 
-### Reliability
+The first failure can be routed around if the remaining instances have enough capacity and no required state is stranded on B. The second breaks the shared dependency used by every branch. End-to-end availability depends on the whole path, while capacity depends on its constrained resources.
 
-The ability to produce correct, durable outcomes over time. A payment endpoint that returns `200 OK` but occasionally charges twice may be available, but it is not reliable.
-
-## Predict before reading
-
-One backend instance becomes three instances behind a load balancer, but all three use one database. What improved, and what major risk remains?
-
-<details>
-<summary>Reveal the prediction</summary>
-
-Application-tier capacity and availability improved: traffic can be spread and one application instance can fail. The single database remains a shared bottleneck and single failure domain, so the whole request path is not highly available.
-
-</details>
-
-## Concrete Instagram feed flow
+## Follow the dependency path before claiming the goal is met
 
 ```text
 Client
@@ -70,7 +51,7 @@ The current application exposes HTTP endpoints through [PostController.java](../
 
 The token design in [TokenService.java](../../../../../src/main/java/com/instagram/backend/service/TokenService.java) can support stateless authentication because any instance with the signing configuration can validate a token. Local media storage in [MediaStorageService.java](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java), however, becomes instance-local state and would need shared object storage before multiple instances can serve the same media reliably.
 
-## Decision and trade-off
+## Match the change to the quality you need
 
 | Goal | Typical move | Cost or new risk |
 |---|---|---|
@@ -81,16 +62,30 @@ The token design in [TokenService.java](../../../../../src/main/java/com/instagr
 
 Do not say “microservices make the system scalable.” A well-structured monolith can scale horizontally, and poorly bounded microservices can amplify failures.
 
-## Failure drill
+## One pool is full. Should every instance disappear from routing? — paper exercise
 
-Scenario: the load balancer continues routing to an instance whose process is alive but whose database connections are exhausted.
+Suppose B's process is alive, but its database connections are all occupied. Predict what a probe checking only whether the process runs can tell us about a new feed request.
 
-1. **Prediction:** some requests hang or fail even though the process responds to a basic liveness check.
-2. **Observable symptom:** elevated latency, timeouts, and connection-pool saturation on one or more instances.
-3. **Recovery:** stop routing new traffic to an unready instance, bound request time, and allow capacity to recover.
-4. **Mitigation:** distinguish liveness from readiness, use bounded pools and queues, alert on saturation, and prevent retry storms.
+That probe may pass while the feed waits for a connection and times out. Inspect latency, connection waits, and active work. If B alone is stuck and A/C can safely absorb traffic, taking B out of rotation can help while its work drains. Bound waits and accepted work so the instance can recover.
 
-## Interview questions
+If the database is overloaded for *every* instance, marking every database-dependent backend unready does not create a healthy destination. Repeated probes may themselves need scarce connections. Separate process liveness from readiness for a particular serving path, and design readiness alongside admission limits rather than using it as a universal overload switch. Verify the dependency and successful request path during recovery, then rehearse both an isolated-instance failure and shared-database saturation.
+
+## Explain it using the feed path
+
+In 60–90 seconds, explain the grocery-store analogy, then replace it with the Instagram request path and identify one choice for each quality.
+
+## Before moving on
+
+Artifact: `READY`; comprehension not yet demonstrated.
+
+Proceed only when you can:
+
+- define all three qualities without using them as synonyms;
+- explain what adding backend instances improves and what it does not;
+- diagnose the exhausted-connection-pool scenario;
+- name one trade-off introduced by redundancy.
+
+## Questions and explained answers
 
 <details>
 <summary>1. Does horizontal scaling automatically make a system highly available?</summary>
@@ -102,7 +97,7 @@ No. It helps only if instances do not share an unprotected failure dependency, a
 <details>
 <summary>2. Can an available system be unreliable?</summary>
 
-Yes. It may accept every request but lose writes, return stale authorization, or duplicate payments. Availability describes reachability; reliability includes correct and durable behavior.
+Yes. It may accept every request but lose writes, return stale authorization, or duplicate payments. A reachable HTTP endpoint alone does not establish useful availability. Define its success criteria, then assess the correctness and durability of the resulting business behavior as well.
 
 </details>
 
@@ -119,16 +114,3 @@ Ask what is saturated or violating a target: request rate, CPU, database connect
 Latency is the time one operation takes. Throughput is the amount of work completed per unit time. Batching may improve throughput while increasing the waiting time of an individual item.
 
 </details>
-
-## Teach-back
-
-In 60–90 seconds, explain the grocery-store analogy, then replace it with the Instagram request path and identify one choice for each quality.
-
-## Stop/go
-
-Proceed only when you can:
-
-- define all three qualities without using them as synonyms;
-- explain what adding backend instances improves and what it does not;
-- diagnose the exhausted-connection-pool scenario;
-- name one trade-off introduced by redundancy.

@@ -15,18 +15,11 @@ You are interview-ready when you can:
 
 ## Your learning format
 
-Every micro-lesson follows the same sequence:
+Start with one concrete problem and stay with it. For example, if a photo uploaded through application A is missing on application B, first explain where the bytes went. Then work out what both copies need to access. The name “stateless” becomes useful once that need is clear.
 
-1. **Why:** What real problem forces this concept to exist?
-2. **Analogy:** Build one accurate mental picture, then state where the analogy stops working.
-3. **Plain-language model:** Define no more than three new terms.
-4. **Concrete flow:** Trace a request, event, or failure step by step.
-5. **Instagram-backend mapping:** Connect the idea to this repository.
-6. **Decision:** State when to use it, when not to use it, and the trade-off.
-7. **Failure prediction:** Predict what breaks before revealing the answer.
-8. **Checkpoint questions:** Answer 3–5 questions aloud before opening the explanations.
-9. **Teach-back:** Explain the concept in 60–90 seconds without notes.
-10. **Spaced review:** Revisit after 1 day, 1 week, and 1 month.
+A lesson should help you reconstruct the decision: what happened, why the obvious approach failed, how the proposed mechanism changes the result, and what it costs or cannot guarantee. Definitions, analogies and precise qualifications fit into that explanation where they help. Different topics do not need identical headings.
+
+After reading, explain the same example without notes, predict its failure case and attempt the expandable questions before opening the answers. Apply the idea to this backend, distinguishing existing code from proposed work. Revisit it after one day, one week and one month; adjust review timing from what you can still explain.
 
 Reading a lesson or drawing a diagram does not mean it is understood. Progress is tracked separately in [Learner Progress](./learner-progress.md).
 

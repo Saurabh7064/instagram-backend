@@ -2,20 +2,21 @@
 
 [Module](./README.md) · [Previous: boundaries](./01-partitions-shards-and-replicas.md) · [Next: hashing](./03-hash-partitioning.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: grouping neighboring values makes range operations manageable but can concentrate recent traffic.
-- Prerequisite: a partition subdivides rows; local partitions need not reside on separate servers.
 - New core terms: range partitioning, boundary, partition pruning.
 
-## Why dates are a useful split — Must understand
+Core study: 10–15 minutes. Prerequisite: a partition subdivides rows; local partitions need not reside on separate servers.
 
-A user asks for October 25 activity. A retention job later needs to retire old days. If rows are grouped by date intervals, each operation can reason about a relevant group instead of treating the table as one undifferentiated history.
+## October 26 midnight belongs to which day? — Must understand
 
-**Range partitioning** assigns each row to an interval of ordered key values. A **boundary** is an interval endpoint. In this PostgreSQL example, lower bounds are included and upper bounds excluded: `[start,end)` means `start <= value < end`. One interval ending exactly where the next begins avoids overlap and gaps.
+A user requests October 25 activity. Our five events span two days: 1001, 1002, 1003, and 2001 belong to October 25; 1004 arrives exactly at midnight on October 26. Grouping by day would let the database ignore October 26 for the first request and retire whole old days later.
 
-**Partition pruning** is the query planner/executor skipping partitions whose bounds cannot contain matching rows. It is not an index and does not guarantee that every query is fast. The query must supply information that lets the database exclude irrelevant intervals.
+The boundary needs one clear rule. If October 25 includes midnight on October 26 *and* October 26 starts there, event 1004 fits twice. Instead, include the start of each interval and exclude its end. P25 covers `2026-10-25 <= activity_date < 2026-10-26`; P26 begins where P25 stops.
 
-## Derive row placement on the fixed dataset
+Assigning rows to ordered intervals is **range partitioning**. The interval endpoints are its **boundaries**. The shorthand `[start,end)` means start included, end excluded. It lets adjacent daily intervals meet without overlap or a gap.
+
+Once a query asks specifically for October 25, the database can exclude a child whose bounds contain only October 26. Skipping impossible partitions is **partition pruning**. It reduces the data groups to inspect; it does not yet find user 42's rows inside the remaining day. We will keep those two jobs separate as we follow the rows and query.
+
+## Apply both date comparisons before creating the children
 
 Use `activity_date` as the partition key. Define P25 as `[2026-10-25,2026-10-26)` and P26 as `[2026-10-26,2026-10-27)`.
 
@@ -47,13 +48,13 @@ CREATE TABLE user_activity_2026_10_26
 
 `CREATE TABLE` declares columns and constraints. `PARTITION BY RANGE` makes the parent route rows using date intervals. Each `PARTITION OF` statement creates one child with its bounds. `FROM` is inclusive; `TO` is exclusive. `timestamptz` is PostgreSQL's timestamp-with-time-zone type; here values use UTC. The primary-key columns identify rows and include the partition key, as required for this partitioned table's uniqueness constraint. It is not declaring that every user/day becomes a child table.
 
-## Derive query work
+## Skipping a day is different from finding a user
 
 A date predicate `activity_date = DATE '2026-10-25'` excludes P26. Within P25, filtering `user_id=42` still needs a scan or an appropriate index: four rows are in the date group, but only IDs 1001,1002,1003 belong to user 42. Pruning eliminates a whole irrelevant partition; it does not magically find the three rows inside the remaining one.
 
 Without the date predicate, “all events for user 42” can require checking both date partitions. Those dates may still be efficiently searched with indexes, but date pruning cannot infer an omitted time range. The [PostgreSQL partitioning documentation](https://www.postgresql.org/docs/current/ddl-partitioning.html) defines bounds and describes pruning.
 
-## Trade-off and analogy
+## Why a useful date split can still have a busy newest day
 
 Calendar folders help you find one day's receipts and retire one whole folder. The analogy stops at database constraints, concurrent writes, and query plans. The newest folder may receive nearly all current writes; range partitioning is not a guarantee of balanced traffic.
 
@@ -63,15 +64,17 @@ Choose ranges when date windows, retention, or adjacent-key scans matter. Avoid 
 
 [Post.createdAt](../../../../../../src/main/java/com/instagram/backend/domain/Post.java) is a real timestamp, but its presence does not partition the `posts` table. These `user_activity` statements are isolated learning objects. The [SQL lesson](./06-sql-partition-key-and-table-creation.md) teaches execution and a missing-child failure in detail; [the example script](./examples/postgresql-partitions.sql) verifies the bounds without changing application tables.
 
-## Failure drill — isolated SQL lab / prediction first
+## Insert midnight's event before P26 exists — isolated SQL exercise
 
-- **Predict:** insert activity 1004 when only the P25 child exists. Where can October 26 go?
-- **Symptom:** no child matches; the insertion fails instead of creating a date child automatically.
-- **Contain:** stop/retry the affected writes with their event identities; do not discard them or falsify their date.
-- **Recover:** create the correct P26 child and retry 1004. Verify four rows in P25 and one in P26.
-- **Prevent:** create upcoming intervals ahead of time, alert on missing coverage, and keep date derivation consistent with UTC.
+Suppose only the P25 child exists. Predict where event 1004, dated October 26, can go. Its date must not be changed merely to fit the available child.
 
-## Recap and stop/go
+No child matches, so the insert fails; PostgreSQL does not automatically create the next daily child. Retain the event identity and correct timestamp for retry rather than discarding the activity.
+
+Create P26, retry 1004, and check that P25 contains four rows while P26 contains one. Prepare upcoming intervals ahead of time and alert on missing coverage. The date-derivation rule must consistently use UTC, especially at midnight. The existing SQL lesson and verification record describe the lab evidence; this explanation does not claim a new execution.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Calculate both comparisons for activity 1004. Explain the difference between choosing a child, pruning a child, and finding rows inside it.
 

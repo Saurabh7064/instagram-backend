@@ -2,20 +2,21 @@
 
 [Module](./README.md) · [Previous: SQL key roles](./06-sql-partition-key-and-table-creation.md) · [Next: clustering columns](./08-cassandra-clustering-columns.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: read the nested parentheses before deciding what one Cassandra row represents.
-- Prerequisites: identity differs from placement; equal partition keys stay together.
 - New core terms: CQL, composite partition key, clustering column.
 
-## Start with the question, not a guessed primary key — Must understand
+Core study: 10–15 minutes. Prerequisites: identity differs from placement; equal partition keys stay together.
 
-We want all activities for one user on one UTC date, newest first, while preserving multiple events of the same type. A table's primary key must make that query practical *and* distinguish events that should coexist.
+## Two VIEW_POST events must remain two events — Must understand
 
-**CQL means Cassandra Query Language.** It resembles SQL syntax, but its keys define different access and placement rules. **Cassandra is a product name, not an acronym.** “NoSQL,” commonly expanded as “not only SQL,” is a broad family label; do not assume all those databases use Cassandra's key structure.
+User 42 viewed post 900 and post 901 at 09:05 on October 25. These are activities 1002 and 1003. Our history must preserve both and return recent activity for one user/day. A key that says only “user 42, October 25, VIEW_POST” cannot distinguish the occurrences.
 
-A **composite partition key** has more than one column whose values together define one exact logical partition. A **clustering column** distinguishes and orders rows within that partition. The complete Cassandra primary key consists of the partition-key columns plus every clustering column, so it determines row identity as well as grouping.
+This is a row-identity question as well as a grouping question. Which values name the group, and which values distinguish rows inside it? We will use those two questions to read Cassandra's parentheses rather than memorize their appearance.
 
-## Decode the syntax in small steps
+**CQL** means **Cassandra Query Language**. Its declarations resemble SQL, but the keys define different placement and access rules. Cassandra is a product name, not an acronym. “NoSQL,” commonly expanded as “not only SQL,” is a broad label and does not give every database Cassandra's key behavior.
+
+In Cassandra, several columns grouped as a **composite partition key** name one exact logical partition. A **clustering column** distinguishes and orders rows inside that partition. The complete primary key contains both sets of columns, so leaving activity_id out of that complete identity matters even if it exists as an ordinary column.
+
+## Read the inner parentheses as one group
 
 ```cql
 PRIMARY KEY (user_id, activity_date, activity_type)
@@ -33,7 +34,7 @@ There are not two independent routing stages, “choose user then choose date.�
 
 The [Cassandra data-definition documentation](https://cassandra.apache.org/doc/latest/cassandra/developing/cql/ddl.html) defines this grammar and component roles. Parentheses are functional syntax, not cosmetic formatting.
 
-## Work through the problem in your proposed key
+## The type-only key addresses the same row twice
 
 Use the fixed dataset, especially two different events for user 42 on October 25:
 
@@ -46,7 +47,7 @@ Under `PRIMARY KEY ((user_id,activity_date),activity_type)`, both have full key 
 
 This is appropriate if the business wants *one latest summary per activity type per day*. It is incorrect if the business wants every occurrence. The problem is row identity, not a hash collision or a hot partition.
 
-## Choose a key that preserves the requested events
+## Keep the user/day group; distinguish each occurrence
 
 ```cql
 PRIMARY KEY ((user_id, activity_date), occurred_at, activity_id)
@@ -56,7 +57,7 @@ The partition still groups one user/day. Event time orders rows, while activity_
 
 Changing a primary key is not an in-place reinterpretation of existing rows. A new layout requires a new table/migration design. Data already overwritten because identity was too coarse cannot be recreated from the surviving row alone.
 
-## Analogy, choice, and project mapping
+## A summary key and an event-history key serve different purposes
 
 Think of a folder labeled user/day and files labeled event time/ID. Labeling files only “VIEW_POST” reuses the same slot. The analogy stops where Cassandra resolves concurrent cell writes and places replica copies.
 
@@ -64,15 +65,17 @@ Use the type-only layout for a one-per-type summary if that is the actual query.
 
 [Post.id](../../../../../../src/main/java/com/instagram/backend/domain/Post.java) is a relational identity, not a Cassandra partition/clustering declaration. The proposed activity table is not part of the backend. [The CQL example](./examples/cassandra-activity.cql) contains both layouts so the identity distinction can be tested later; runtime status is recorded in verification.
 
-## Failure drill — paper exercise
+## Write both views with the type-only identity — paper exercise
 
-- **Predict:** insert 1002 then 1003 into the type-only key. How many VIEW_POST rows can this partition hold?
-- **Symptom:** one addressed row instead of two; a column called activity_id exists but was not part of identity.
-- **Contain:** stop treating the table as complete history; preserve any original event log for recovery.
-- **Recover:** design a new event-keyed table, replay recoverable source events, and compare IDs. Do not invent overwritten events.
-- **Prevent:** test equal types and equal times before schema acceptance. State whether the table stores events or summaries.
+Insert 1002, then 1003, under the type-only key. Predict how many addressed VIEW_POST rows can remain in that user/day group.
 
-## Recap and stop/go
+Both writes name one row. Having a separate activity_id column does not help if the column is outside the primary key. Stop treating that table as a complete occurrence history and preserve any original event log.
+
+Recover into a new event-keyed table by replaying the source events you still have, then compare their IDs. The surviving summary row cannot recreate overwritten occurrences on its own. Test equal types and equal times before accepting the schema, and explicitly decide whether the table represents a history or a one-per-type summary.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Read both parenthesis patterns aloud, identify partition/clustering components, and derive why 1002 and 1003 collide in one layout and coexist in the other.
 

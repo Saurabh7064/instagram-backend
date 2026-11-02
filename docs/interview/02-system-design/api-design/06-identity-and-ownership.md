@@ -4,21 +4,29 @@
 
 How do you stop a user from modifying somebody else’s post?
 
-[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Separate authentication, object/collection/field authorization, CORS, and CSRF; trace a cross-owner write and design consistent denial behavior.
+Explain exactly why user 9 cannot edit user 7's post, then apply that reasoning to lists, editable fields, and business actions. Browser security mechanisms are a later supporting distinction.
 
-Prerequisites: Lesson 5 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
+Builds on [error contracts](05-error-contracts.md).
 
-## Must understand: problem and model
+## Signing in answers only the first question
 
-Knowing who called does not prove they may act on every ID. Authentication establishes identity; authorization establishes permission for an operation. A bearer token grants access to whoever possesses it. A building badge identifies a person, but does not open every office; unlike a badge check, API permissions may change between requests.
+Post 42 belongs to user 7. User 9 signs in successfully, changes the URL to `/api/posts/42`, and submits an edit. Their token is valid. Should the edit work?
 
-## Spring Boot example
+The token answers “who is calling?” Checking that identity is **authentication**. We still need to answer “may this person change this post?” Checking permission is **authorization**. For an owner-only edit, compare the stored author's ID, 7, with the authenticated caller's ID, 9. They differ, so reject the edit and leave the caption unchanged.
 
-Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
+Notice where the owner comes from: the saved post. Accepting `authorId:7` in the request would let the attacker supply the very fact we are trying to verify. The token identifies the caller, and stored data identifies the owner; neither fact should be replaced by a claim in the edit body.
+
+A building badge provides the same first distinction: it identifies someone, but does not grant access to every office. The comparison has a limit because API permissions can depend on the specific object and can change between requests.
+
+The [error-contract lesson](05-error-contracts.md) covers how to communicate a denial. First we need to make the decision at the point that protects the write.
+
+## The existing owner check
+
+The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle). The excerpt below is a design proposal unless identified as current code; omitted imports and collaborators still need implementation.
 
 ```java
 private Post requireOwnedPost(UserAccount viewer, Long postId) {
@@ -32,17 +40,19 @@ private Post requireOwnedPost(UserAccount viewer, Long postId) {
 }
 ```
 
-### Walkthrough
+### Read the boundary in the code
 
-This is the existing service logic with a shortened type name. Load the target, compare its stored author ID with the identity derived from the token, reject mismatches, and only then return an editable object. Never trust authorId from the body. The transaction wraps lookup and mutation; stricter policies may require additional race protection.
+This is the current ownership helper with the fully qualified user type shortened. `requirePost` loads the stored target; the comparison then uses its author's ID and the viewer already resolved from the token. A mismatch throws before the helper returns an editable post. The caller therefore cannot establish ownership by adding an author ID to the body.
 
-## Request trace: predict, act, observe, explain
+The current update transaction includes lookup and mutation. If a future policy permits ownership or visibility to change concurrently, that policy will also need an explicit locking or revision rule.
 
-Before following the trace, predict the status and final stored state. Then trace these transitions in order:
+## Follow user 9's attempted edit
 
-User 7 owns post 42. Token for user 9 -> token parsed -> user 9 loaded -> post 42 loaded -> 7 differs from 9 -> 403 -> caption unchanged. Missing token -> 401 before ownership comparison. Missing post -> current service 404.
+Start with post 42 owned by user 7 and caption unchanged from its saved value. The token service resolves the submitted valid token to user 9. The post service loads post 42, reads its stored author ID 7, and compares it with 9. They are different, so it throws 403 before applying the edit. A fresh read should still show the original caption.
 
-The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
+Removing the token changes which question fails: the server cannot establish the caller's identity and rejects authentication before it compares owners. Removing the post instead makes the current lookup return 404. These are distinct facts, even if an API deliberately chooses a concealment policy for some private resources.
+
+For an implementation test, check both the denial response and unchanged stored state. A method that writes first and throws 403 afterwards has failed its permission promise.
 
 ## Permissions apply to rows, fields, and transitions
 
@@ -64,37 +74,37 @@ Even with central authentication, keep domain checks close to the mutation. A co
 
 ### CORS, CSRF, and bearer tokens solve different problems
 
-CORS is a browser rule controlling which origins may read certain responses or issue preflighted requests. It does not stop a scripted caller using curl. CSRF is a browser sending ambient credentials, commonly cookies, on a request a malicious site induced. A token supplied explicitly in an Authorization header has a different threat model from a session cookie; switching to cookies requires a CSRF design. TLS protects tokens in transit, but cannot stop a compromised client or token leakage in logs.
+Cross-Origin Resource Sharing (CORS) is a browser rule controlling which origins may read certain responses or issue preflighted requests. It does not stop a scripted caller using curl. Cross-Site Request Forgery (CSRF) is an attack that induces a browser to send ambient credentials, commonly cookies, on a request a malicious site induced. A token supplied explicitly in an Authorization header has a different threat model from a session cookie; switching to cookies requires a CSRF design. Transport Layer Security (TLS) protects tokens in transit, but cannot stop a compromised client or token leakage in logs.
 
 Sequential IDs reveal that another object may exist but guessing-resistant IDs do not establish permission. For private objects, a consistent 404 policy can reduce existence disclosure, at the cost of less explicit diagnostics. Keep internal audit evidence separate from the public denial response.
 
 **Adversarial trace:** user 9 sends valid token plus postId 42 and authorId 7 in JSON. DTO excludes authorId -> service resolves token to 9 -> loads stored author 7 -> denies -> no write. Repeat via batch and nested routes: they require the same rule for every item. A permission check only on the collection’s first item is insufficient.
 
-## Project mapping and practice
+## Apply this to the backend
 
-Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/service/PostService.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
+[PostService.update and delete](../../../../src/main/java/com/instagram/backend/service/PostService.java) resolve the viewer and call `requireOwnedPost` before mutation. `requireViewer` uses the current custom [TokenService](../../../../src/main/java/com/instagram/backend/service/TokenService.java); a new filter-chain security model is not installed by this lesson.
 
-**Practice task:** Extend F-017 policy: may an author delete comments on their own post, and may a commenter delete their own comment? Test both identities.
-
-Keep this a design exercise until a feature change is explicitly undertaken. An implementation must follow the repository integration-test, API verification, documentation, and commit workflow.
+For F-017, decide whether a post's author may delete someone else's comment and whether commenters may delete their own. Test each identity against stored ownership, including a body that claims a different author.
 
 ## Useful later: choices and costs
 
 403 communicates denial; 404 can intentionally hide existence but should be applied consistently. URL secrecy is not authorization. Central security filters can reduce duplicated identity parsing; service-level ownership rules still express domain policy. CORS controls browser access behavior and does not authenticate curl callers.
 
-## Controlled failure drill
+## Change only the target ID, keep a valid token
 
-Predict changing /posts/42 to /posts/43 while authenticated. Without object checks, another user’s post changes. Detect cross-owner mutation tests, contain mutation access, restore affected data from audit/backup, prevent with owner/non-owner integration cases.
+For a future test, sign in as user 9 and target user 7's post 42. Predict 403 under the current contract and an unchanged caption. A successful edit, or even a denied response with a changed row, demonstrates a broken ownership boundary.
 
-Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
+Detect it using both identities and fresh persisted state. Contain the affected mutation route if it is leaking write access; investigate and restore affected data from reviewed audit or backup evidence rather than guessing. Recovery is complete only when the owner still can edit and the non-owner cannot. Prevent recurrence by reusing the service-level rule across single-item, nested, and batch entry points. This is a planned check, not evidence of an incident or a completed lab.
 
 ## Interview-ready answer
 
 I derive identity from validated credentials and decide permission for each object, field, collection, and transition. Knowing a post ID or carrying a valid token does not grant edit rights. I keep ownership near the business mutation and scope collection queries to visible rows. In this backend tokens are parsed in services; adding a full security filter chain would be a real separately tested change. CORS is a browser access mechanism, not authentication, and a move to cookie credentials requires a CSRF design. I test owner/non-owner requests, attacker-supplied actor IDs, nested membership, and mixed-permission batch items, then assert denied writes leave data unchanged.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Proceed only after explaining the request trace without notes, predicting the failure, and answering all three checks below before opening their answers. Record the attempt in [learner progress](learner-progress.md). Artifact readiness does not establish comprehension or implementation readiness.
+Walk user 9's attempt against post 42 without notes. Continue when you can identify the trusted identity and owner sources, explain the 403, and specify a check that proves no write occurred.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

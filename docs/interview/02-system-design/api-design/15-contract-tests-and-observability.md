@@ -4,21 +4,31 @@
 
 How do you prove that an API contract survives a release?
 
-[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Build a promise-based test matrix, verify committed state under concurrency, distinguish schema/provider/consumer evidence, and measure bounded diagnostics.
+Turn a caller promise into an integration check, verify the stored result of a denied edit, and choose diagnostics that help find failures after release.
 
-Prerequisites: Lesson 14 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
+Builds on the failure boundaries in the previous API lessons. Examples here describe tests to write; they are not test-run evidence.
 
-## Must understand: problem and model
+## The endpoint compiled. Did its promise survive?
 
-A controller can compile while returning the wrong status, exposing fields, or breaking the database path. An integration test exercises components together; a contract assertion checks externally promised behavior; a correlation ID connects one request to diagnostics. Like checking a complete delivered order, the analogy stops because concurrent and failure paths need separate deliberate experiments.
+A release compiles and the service tests pass. Yet a client that previously read `imageUrl` now receives `mediaUrl`, or an edit returns 403 after it has already changed the row. Neither problem is ruled out by checking that Java methods return the expected objects in isolation.
 
-## Spring Boot example
+An **integration test** sends a request through connected parts of the application: request conversion, validation, service logic, persistence, and response serialization. A **contract assertion** checks something a caller has been promised, such as the create status or the spelling of a response field. We need both externally visible output and the stored effect.
 
-Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
+Take one fixed flow: an authenticated user creates a post with caption `hello`, then a different user tries to edit it. Creation should return 201 and a server-assigned ID. The second request should return the current service's 403, and a fresh read must still show `hello`. The rejection is correct only if the write did not happen.
+
+Testing a delivered order is a useful analogy: inspect what arrived, rather than trusting that each kitchen station worked. The comparison stops at timing. Concurrent requests and crashes need deliberately arranged experiments; one successful order cannot establish every failure guarantee.
+
+The [job lesson](14-timeouts-and-async-work.md) makes the same distinction: an initial success status is only one part of a larger promise.
+
+## Assert the public create response
+
+MockMvc drives an HTTP-style request through Spring inside the test process. Testcontainers supplies a real PostgreSQL database for the fixture. Together they exercise more of the actual boundary than a controller backed only by mocks.
+
+The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle). The excerpt below is a design proposal unless identified as current code; omitted imports and collaborators still need implementation.
 
 ```java
 // Excerpt inside the existing Testcontainers/MockMvc test fixture.
@@ -34,17 +44,19 @@ mockMvc.perform(post("/api/posts")
     .andExpect(jsonPath("$.id").isNumber());
 ```
 
-### Walkthrough
+### Read the boundary in the code
 
-This is an illustrative test excerpt, not an added test or a claimed test run. bearerToken must come from fixture authentication; seed permitted media if future validation requires it. perform sends a MockMvc request through Spring, status checks HTTP semantics, and jsonPath checks selected public fields. Add persistence assertions and forbidden-field checks rather than asserting implementation details.
+`perform` sends the request through MockMvc and the configured Spring application. The assertions check 201 and selected public fields; they do not yet prove a committed post exists. Obtain `bearerToken` from fixture authentication, and seed permitted media if the feature adds such validation.
 
-## Request trace: predict, act, observe, explain
+This is an illustrative excerpt in the existing Testcontainers/MockMvc fixture, not an added or executed test. Add a fresh persistence check and assertions that protected fields are absent. Those test the public promise more directly than counting calls to a mocked repository.
 
-Before following the trace, predict the status and final stored state. Then trace these transitions in order:
+## Check the response, then check the saved effect
 
-Seed user -> obtain token -> POST valid content -> expect 201 and numeric ID -> query persistence or read through API -> prove one post exists. Repeat with a non-owner token for edit -> expect 403 and unchanged caption. Send X-Correlation-Id: api-lesson-15 -> current filter echoes the safe value and attaches it to diagnostics.
+Create an authenticated user and submit the fixed caption `hello` with valid image and location fields. Assert 201, a numeric server-assigned ID, and returned caption `hello`. Then inspect fresh persisted state to prove one post was committed. This distinguishes an attractive response from an actual completed creation.
 
-The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
+Next obtain another user's token and edit that post. Assert the current contract's 403 and read the stored caption again. It must remain `hello`. If it changed, the API has violated ownership even though the status assertion passes.
+
+The current correlation filter can attach a safe `X-Correlation-Id`, such as `api-lesson-15`, to diagnostics and echo it in the response. That helps connect a failed check to logs; it is supporting evidence rather than a substitute for either response or state assertions.
 
 ## A test matrix from promises and failure boundaries
 
@@ -85,31 +97,31 @@ For observability, compare error rate, latency percentiles, and saturation again
 
 The current [integration fixture](../../../../src/test/java/com/instagram/backend/AuthIntegrationTests.java) uses Spring Boot Test, MockMvc, PostgreSQL Testcontainers, and Boot 4’s `org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc`. Reuse that version-correct starting point; a random Boot 3 import can fail here. Executable feature work still needs real test runs plus curl/.http evidence. This lesson revision itself changes documentation only.
 
-## Project mapping and practice
+## Apply this to the backend
 
-Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/observability/RequestCorrelationFilter.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
+[AuthIntegrationTests](../../../../src/test/java/com/instagram/backend/AuthIntegrationTests.java) is the existing real-database test starting point. [RequestCorrelationFilter](../../../../src/main/java/com/instagram/backend/observability/RequestCorrelationFilter.java) supplies the current correlation behavior. They demonstrate different boundaries: durable API behavior and diagnostic association.
 
-**Practice task:** For F-017 add successful create, invalid content, missing authentication, unauthorized deletion, persistence, and correlation-header integration cases.
-
-Keep this a design exercise until a feature change is explicitly undertaken. An implementation must follow the repository integration-test, API verification, documentation, and commit workflow.
+For F-017, derive checks for successful creation, invalid content, missing authentication, unauthorized deletion, committed state, and correlation headers. Run the actual tests and API requests when implementing the feature; these written examples are not execution evidence.
 
 ## Useful later: choices and costs
 
 Use MockMvc plus PostgreSQL Testcontainers for backend integration; browser tests cover UI behavior separately. Mock-only controller tests are faster but cannot prove database constraints. Avoid brittle full-response snapshots when only a few fields are contractual. Never put bearer tokens or user IDs into high-cardinality metric labels.
 
-## Controlled failure drill
+## Rename a response field without changing service tests
 
-Predict a renamed JSON property while all service unit tests pass. Old clients fail. Detect contract tests and release comparison, contain rollout, recover by restoring the field, prevent with old-consumer fixtures plus negative/security cases.
+On paper, change `imageUrl` to `mediaUrl` in the public DTO while service tests continue to check only saved posts. Predict the outcome: the backend can create correctly while an old client can no longer render the image.
 
-Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
+Detect it with a caller-facing contract assertion and a representative old-consumer fixture, then contain the rollout. Restore the promised field or a compatible adapter and verify the old client path again. Prevent recurrence by deriving checks from both the public shape and durable behavior. The ownership test in this lesson covers a different promise; it cannot substitute for checking serialization. These are complementary checks, not a claim that the sample tests have run.
 
 ## Interview-ready answer
 
 I derive tests from external promises, not controller internals. I combine Spring integration tests with a real PostgreSQL database, meaningful identity fixtures, boundary inputs, and final-state assertions. Concurrency needs independent transactions and controlled interleavings; one service mock or sequential repeat cannot prove it. OpenAPI validates shape, consumer fixtures expose real compatibility expectations, and provider tests cover domain/security behavior. I keep route-template labels bounded and use correlation IDs in diagnostics rather than metrics. This backend’s existing Boot 4 Testcontainers/MockMvc fixture is the correct version-specific starting point. For a release I require observed API behavior and the repository’s verification workflow, while documentation examples remain explicitly unexecuted.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Proceed only after explaining the request trace without notes, predicting the failure, and answering all three checks below before opening their answers. Record the attempt in [learner progress](learner-progress.md). Artifact readiness does not establish comprehension or implementation readiness.
+Explain what each create and denied-edit assertion proves and leaves unproven. Continue when you can design a meaningful persisted-state check and a separate old-client shape check.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

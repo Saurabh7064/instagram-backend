@@ -4,21 +4,29 @@
 
 Where should API input be validated?
 
-[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Design a staged validation pipeline, distinguish missing/null/blank/normalized values, prevent mass assignment, and enforce concurrent invariants in the database.
+Follow one caption from submitted text to stored text, decide which layer owns each check, and explain why concurrent writes need database rules as well as validation.
 
-Prerequisites: Lesson 3 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
+Builds on [response contracts](03-status-and-response-contracts.md).
 
-## Must understand: problem and model
+## A request can look sensible and still be invalid
 
-Invalid input should fail before it reaches durable storage. Structural validation checks shape and local limits; business validation checks meaning using current state. A constraint is a declared rule such as a maximum length. Think of a form checking required boxes before a clerk checks eligibility; the analogy stops because concurrent database changes require atomic enforcement.
+Mira submits a caption containing 501 letters. The editor normally stops her at 500, but a caller can send an HTTP request without using that editor. The backend must enforce the rule itself before writing a post.
 
-## Spring Boot example
+Start with the cheapest question: can we read the request at all? Next ask whether its individual values are acceptable, such as a nonblank caption no longer than 500. These are **field constraints**: rules you can usually check from the submitted value alone. Then ask questions that need knowledge of the application, such as whether the caller may use the referenced image. That is **business validation**.
 
-Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
+Passing the first set does not imply passing the second. A nonblank image URL tells us only that some text was supplied; it says nothing about who owns the image or whether it exists. This is why one collection of annotations cannot settle every input rule.
+
+It is similar to a clerk first checking that a form is filled in and then checking whether the applicant is eligible. The comparison stops when requests run together: two individually acceptable requests can conflict, so the database must enforce rules that must survive concurrent writes.
+
+The [response lesson](03-status-and-response-contracts.md) explains why rejected input needs a predictable status. Here we work out where rejection should happen and what must remain unwritten.
+
+## The current caption rules in Java
+
+The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle). The excerpt below is a design proposal unless identified as current code; omitted imports and collaborators still need implementation.
 
 ```java
 public record CreatePostRequest(
@@ -31,17 +39,19 @@ public record CreatePostRequest(
 // @Valid @RequestBody CreatePostRequest request
 ```
 
-### Walkthrough
+### Read the boundary in the code
 
-This record matches the existing request. `@NotBlank` rejects null, empty, and whitespace-only strings; `@Size` limits length but alone permits null. `@Valid` activates object validation at the controller boundary. An arbitrary nonblank imageUrl still passes these annotations: ownership, allowed media origin, and file existence need separate policies.
+The record matches the current create request. `@NotBlank` rules out null, empty, and whitespace-only text. `@Size(max=500)` adds the caption length bound; it does not reject null on its own. The controller's `@Valid` is what asks Spring to evaluate these object constraints.
 
-## Request trace: predict, act, observe, explain
+Those annotations describe properties of the supplied strings. A nonblank `imageUrl` can still refer to media the caller should not use. That needs a separate, explicit policy rather than a stronger-sounding string annotation.
 
-Before following the trace, predict the status and final stored state. Then trace these transitions in order:
+## What happens to the caption before storage?
 
-Caption containing 501 letters -> @Size fails -> 400 -> service not called. Caption containing three spaces -> @NotBlank fails. Caption " hi " passes -> current service trims -> stores "hi". A well-shaped request for another person’s media still needs business authorization.
+Keep the current maximum at 500. A submitted caption of 501 letters fails `@Size(max=500)`, so validation rejects it before the service creates a post. Three spaces fail `@NotBlank` even though their length is small. Neither request should leave a new row.
 
-The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
+Now submit `" hi "`. It is nonblank and its original length is 4, so these checks pass. The current service trims it and stores `"hi"`, length 2. That order matters: 499 letters surrounded by two spaces have submitted length `499 + 2 = 501`, so they fail before trimming could reduce them to 499.
+
+After these field checks, a referenced image still needs whatever existence and ownership policy the API declares. Do not infer permission from the fact that its URL is nonblank.
 
 ## Validation is a pipeline, not one annotation
 
@@ -72,31 +82,31 @@ A and B both ask “does username mira exist?” and both get false. Both attemp
 
 Validation failures should identify safe field names and stable codes. Never return the rejected password/token value. Tests need null, missing, blank, exactly-at-limit, one-over-limit, malformed JSON, and state-dependent rejection with no persisted write. Check Unicode policy explicitly: Java String length counts UTF-16 code units, which can differ from visible characters or code points.
 
-## Project mapping and practice
+## Apply this to the backend
 
-Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/dto/CreatePostRequest.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
+Compare the existing [CreatePostRequest](../../../../src/main/java/com/instagram/backend/dto/CreatePostRequest.java) constraints with [PostService.create](../../../../src/main/java/com/instagram/backend/service/PostService.java), which trims accepted strings. They establish the validation-before-normalization behavior worked through above; they do not establish a media-ownership protocol.
 
-**Practice task:** For F-017 comments, define blank/length rules and distinguish them from permission to comment on the target post.
-
-Keep this a design exercise until a feature change is explicitly undertaken. An implementation must follow the repository integration-test, API verification, documentation, and commit workflow.
+For F-017, write a comment's blank and length rules separately from permission to comment on its target post. State where each check runs and what stored state must remain unchanged when it fails.
 
 ## Useful later: choices and costs
 
 Keep cheap format checks in DTOs and ownership or uniqueness checks in the service/database. Validating only in the UI cannot protect against curl. Excessively strict URL rules can block legitimate future media hosts; unrestricted URLs can allow unwanted external content. Decide permitted origins explicitly.
 
-## Controlled failure drill
+## Bypass the editor and send the 501-letter caption
 
-Predict sending 501 letters with a client that bypasses UI validation. Without backend validation, oversized values reach persistence. Detect database length errors, contain with request limits, recover by rejecting invalid writes consistently, prevent with boundary tests at 500 and 501.
+Before a future lab, predict what should happen when the caller bypasses the editor and sends the same 501-letter caption. The backend must reject it, with no new post. If only the UI enforces the bound, the database may reject the oversized value later, producing a less useful error; a permissive storage column might accept it instead.
 
-Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
+Detect either broken path with a direct API request and a fresh persistence check. Contain invalid writes at the backend boundary, then make its safe error match the declared rule. Recovery includes verifying no rejected row remains; do not assume an error response proves that. Prevent recurrence by testing exactly 500 and 501 under the intended normalization order. This describes verification to perform, not a run recorded by this lesson.
 
 ## Interview-ready answer
 
 I validate by increasing cost: format and bounds, local DTO constraints, identity and domain policy, then durable invariants. @Valid and @NotBlank do not prove ownership or uniqueness. I keep server-managed fields out of writable DTOs and define normalization before comparing or hashing requests. This project trims caption after validation, so boundary-length behavior must be tested as it actually runs. For patch I preserve presence separately from null. A preliminary uniqueness lookup improves user feedback but cannot win a race, so the database must enforce the invariant and the application must translate known failures safely. I test missing, null, blank, limit boundaries, bypassed UI, and concurrent writes with no unexpected persisted state.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Proceed only after explaining the request trace without notes, predicting the failure, and answering all three checks below before opening their answers. Record the attempt in [learner progress](learner-progress.md). Artifact readiness does not establish comprehension or implementation readiness.
+Explain the stored result for `" hi "` and the rejection of 499 letters plus two surrounding spaces. Continue when you can separate field checks, permission, and a database rule that concurrent writers cannot bypass.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

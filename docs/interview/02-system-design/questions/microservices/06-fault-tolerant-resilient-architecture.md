@@ -4,21 +4,15 @@
 
 > [One-page revision card](../../revision-cards/microservices/06-fault-tolerant-resilient-architecture.md)
 
-## Why is this question important?
+## Which part of the product must keep working when payment slows?
 
-Microservices replace some in-process calls with networks, separate deployments, queues, and independently owned databases. That creates partial failure: the caller can be healthy while one dependency is slow, unreachable, restarting, or returning an ambiguous result.
+Imagine a shop where browsing, checkout, recommendations, and payment all work normally. Then the payment provider stops replying promptly. Checkout waits, customers retry, and shared workers fill up. Soon browsing is slow too, even though reading the catalog never needed a payment result.
 
-A strong answer cannot be a list of “circuit breaker, retry, cache.” It must connect requirements to failure boundaries and trace what happens when a real component fails.
+A useful resilient design starts by explaining that sequence and deciding where to stop it. Which operations should continue? Which must return a clear pending or unavailable result? How will we prevent a retry from charging twice, and how will an operator resolve the uncertain orders?
 
-The goal is not a system in which nothing fails. The goal is a system that:
+Those questions connect the architecture to an observable result. A collection of replicas, queues, and circuit breakers is useful only when we can show which failure each one contains and what the user sees while it does.
 
-- continues the most important work when a component fails;
-- contains the failure instead of amplifying it;
-- produces correct outcomes despite retries and duplicate delivery;
-- degrades explicitly when full functionality is impossible;
-- detects, recovers, and learns from the incident.
-
-## Analogy: a hospital during a power outage
+## A hospital chooses what the backup must keep alive
 
 A hospital does not rely on one perfect power source. It identifies critical loads, provides backup generators, separates electrical circuits, tests failover, and accepts that non-critical areas may temporarily lose power so operating rooms can continue.
 
@@ -32,85 +26,52 @@ In a microservice system:
 
 The analogy stops at data consistency. Starting a backup generator does not duplicate a payment, deliver messages out of order, or create split-brain database writers. Software also needs idempotency, ownership, consistency, and reconciliation.
 
-## Plain-language model
+## State the failure we are promising to survive
 
-- A **fault** is an abnormal condition, such as one instance crashing or one network path dropping packets.
-- A **failure** is the visible inability to provide the required behavior, such as checkout not accepting orders.
-- **Fault tolerance** is the ability to continue required service while certain faults are occurring.
-- **Resilience** is the broader ability to absorb disruption, degrade safely, recover, and return to normal operation.
-- A **failure domain** is the set of components that can fail together, such as one process, node, availability zone, region, database, or shared credential.
-- A **service-level objective (SLO)** is a measurable target, such as 99.95% successful checkout requests in 30 days.
-- **Recovery time objective (RTO)** is the maximum targeted recovery time. **Recovery point objective (RPO)** is the maximum targeted data-loss window.
+One application instance crashing is a **fault**, an abnormal condition inside the system. If another instance serves the request successfully, the user may see no failure. A **failure** is the visible inability to provide the promised behavior. This distinction matters: we cannot prevent every fault, but we can keep selected faults from becoming user failures.
 
-Fault tolerance is always stated against an assumed fault. “Survives one application-instance crash” is testable. “Highly available” without a failure assumption or target is not.
+**Fault tolerance** means continuing the required service while a specified fault occurs. **Resilience** also includes absorbing disruption, degrading safely, and recovering. Neither is an unlimited promise. “Survives one application-instance crash at peak traffic” is testable; “never goes down” is not.
 
-## Step 1: define critical journeys and measurable promises
+A **failure domain** is a group that may fail together. Two instances on one machine share the machine's failure domain. Instances in different places may still share one database, credential, or bad release. Follow those shared dependencies before counting replicas as independent protection.
 
-Start with product behavior, not infrastructure.
+## What are we trying to preserve?
 
-For an e-commerce system, an example priority is:
+For the shop example, payment correctness matters more than recommendations. If recommendations disappear, the customer can still buy. If an uncertain payment is reported as a decline and retried as a new charge, the system can hurt the customer while appearing available.
 
-| Journey | Correct degraded behavior | Example target |
+| Journey | Acceptable reduced behavior | What must remain true |
 |---|---|---|
-| Browse catalog | Serve slightly stale cached data | High availability, moderate freshness |
-| Recommendations | Omit section or serve cached popular items | Best effort |
-| Place order | Accept once, reject clearly, or remain pending | No duplicate order; strict latency target |
-| Authorize payment | Return success, decline, or explicit unknown/pending | Never double-charge |
-| Send confirmation email | Delay and retry asynchronously | Eventual delivery |
+| Browse catalog | Serve approved slightly stale data | Do not present stale checkout facts as guaranteed current |
+| Recommendations | Omit the section or use cached popular items | Do not take checkout capacity |
+| Place order | Accept once, reject clearly, or show pending | Do not duplicate the order |
+| Authorize payment | Show success, decline, or explicit unknown/pending | Do not double-charge |
+| Confirmation email | Delay delivery | Keep the valid order and durable delivery intent |
 
-Also define:
+Turn those promises into measurements. A **service-level objective (SLO)** is a target for an explicitly measured outcome, such as 99.95% successful checkout requests over 30 days. If this were a time-based availability objective with every minute eligible, the allowed downtime would be `30 × 24 × 60 × 0.0005 = 21.6 minutes`. A request-based objective instead allows 0.05% of eligible requests to fail; it does not translate directly into minutes under uneven traffic.
 
-- peak and burst request rate;
-- latency objectives such as p95 and p99;
-- legal or durability requirements;
-- RTO and RPO for each data class;
-- which features may degrade and which must fail closed;
-- cost constraints and expected regional failures.
+Recovery needs two separate targets. The **recovery time objective (RTO)** is how long restoration may take. The **recovery point objective (RPO)** is the maximum targeted data-loss window. Restoring quickly from yesterday's backup might meet neither the order-loss requirement nor the required recovery point.
 
-For example, 99.95% availability permits roughly 21.6 minutes of unavailability in a 30-day month. That budget forces more concrete decisions than “five nines sounds good.”
+Also state expected traffic and burst size, acceptable response time, permitted staleness, data durability, and budget. These assumptions decide whether we need spare local capacity, another region, or simply an honest rejection during overload.
 
-## Step 2: draw failure domains, not only service boxes
+## Trace one request through what can fail together
 
-An initial single-region design could be:
+An **availability zone** is a provider-defined location intended to isolate some infrastructure failures from other zones. Put application instances in different zones only if the rest of the request path can survive losing one too.
 
 ```text
-Users
-  |
-DNS / CDN / WAF
+User
   |
 Regional load balancer
-  |
-  +---------------------+----------------------+
-  |                     |                      |
-AZ-A                  AZ-B                   AZ-C
-API instances         API instances          API instances
-  |                     |                      |
-  +---------------------+----------------------+
-                        |
-          +-------------+------------------+
-          |             |                  |
-      Catalog path   Checkout path      Best-effort path
-          |             |                  |
-       cache/search  Saga orchestrator   Recommendations
-                        |
-               +--------+---------+
-               |                  |
-          Order Service      Inventory Service
-          Order DB + outbox  Inventory DB + outbox
-               |                  |
-               +---- replicated message broker ----+
-                                                     |
-                                             Payment worker
-                                                     |
-                                             Payment provider
-
-Cross-cutting: metrics, logs, traces, alerts, audit trail, configuration,
-secrets, deployment controls, backups, and tested recovery procedures.
+  |-- application instance in zone A --|
+  |-- application instance in zone B --|--> required database
+  |-- application instance in zone C --|--> payment provider for checkout
 ```
 
-Now label shared dependencies. Three application instances are not truly independent if all are in one zone, use one exhausted connection pool, depend on one database with no failover, or require one unavailable identity provider on every request.
+If zone A fails, the load balancer must stop sending it work, and B plus C must have enough capacity. But if all three instances need the same unavailable database, the three application copies do not save that journey. If every request calls a shared identity provider, that provider also belongs on the failure map.
 
-## Step 3: remove single points of failure deliberately
+At the edge, the Domain Name System (DNS) maps service names to destinations. A content delivery network (CDN) can serve eligible cached content near users, and a web application firewall (WAF) can filter some unwanted traffic. Each can be useful; each is another dependency with its own configuration and failure behavior. Include it because the request uses it, rather than adding it as decoration to an architecture diagram.
+
+The complete shop may have separate catalog, order, inventory, notification, and payment capabilities. We will choose their waiting, storage, and recovery policies below. First, identify what they still share: database capacity, message storage, credentials, deployment machinery, and observability. A service box is not automatically a separate failure domain.
+
+## What happens when one instance or storage node disappears?
 
 ### Stateless application instances
 
@@ -142,48 +103,25 @@ Replication is not a backup. A bad delete, corrupted write, or application bug c
 
 Use replicated durable storage, acknowledgements, and consumer offsets suitable for the delivery requirement. Producers use an outbox when database state and event publication must not split. Consumers handle duplicate delivery and poison messages. A dead-letter queue is a quarantine and investigation tool, not a place to forget failed business operations.
 
-## Step 4: bound every remote call
+## Leave time to return a truthful answer
 
-An unbounded wait converts one slow dependency into resource exhaustion.
+Suppose checkout has a two-second user deadline. The gateway reserves time for routing and response handling, leaving 1.8 seconds; checkout reserves another 300 ms and works within 1.5 seconds. A payment attempt allowed 900 ms leaves `1.5 - 0.9 = 0.6 seconds` to persist the observed state and return a response.
 
-For each call, define:
+These are illustrative budgets. Healthy and tail latency determine the real values, and every attempt plus its waiting time must fit inside the remaining deadline. A fresh two-second timeout at each hop would allow a downstream operation to continue after the user has already given up.
 
-1. an end-to-end deadline;
-2. a shorter per-attempt timeout;
-3. whether retry is safe;
-4. the maximum attempts and retry budget;
-5. the fallback or explicit failure response;
-6. the concurrency limit;
-7. the metric and trace evidence emitted.
+For each call, also decide how much concurrent capacity it may occupy and what happens when the response is absent. For payment, “unknown/pending” may be the only truthful result; for recommendations, omission may be acceptable. Record timeouts, active calls, and the operation identity so the recovery path can find the same work.
 
-Example timeout budget:
+Cancel work that is no longer useful where supported, but do not confuse cancellation with undoing a commit. A provider can finish the authorization even if the caller stopped waiting.
 
-```text
-Client deadline                         2.0 s
-  Gateway budget                        1.8 s
-    Checkout service budget             1.5 s
-      Payment attempt timeout           0.9 s
-      Remaining time for state update,
-      response, and one policy decision 0.6 s
-```
+## Retry the same intention, within the same budget
 
-The exact values require measurement. The important point is that a downstream timeout leaves time for the upstream service to make and persist a safe decision before its own deadline expires.
+A second attempt can hide a temporary connection fault. It cannot repair invalid input or create capacity in an overloaded provider. Retry only when the fault may clear, the operation is safe to repeat, and enough deadline remains.
 
-## Step 5: use retries carefully
+An **idempotency key** identifies one logical payment attempt. Store it before calling the provider and reuse it when querying or retrying that attempt. If the first authorization succeeded but its response disappeared, using a fresh key can create a second charge.
 
-Retry only when:
+Choose one layer to retry and cap total attempts. Increase delays between attempts, called exponential backoff, and randomize them with jitter so callers do not all return together. Respect overload retry guidance. A small local retry setting becomes a large multiplication when the gateway and service client each repeat the other's attempts.
 
-- the failure is likely transient;
-- the operation is idempotent or carries a durable idempotency key;
-- enough deadline remains;
-- the retry occurs at one chosen layer;
-- a retry budget prevents a storm.
-
-Use exponential backoff and jitter so thousands of clients do not retry simultaneously. Do not retry validation failures, authorization failures, deterministic business declines, or overload responses without respecting their retry guidance.
-
-A timeout is an **unknown outcome**, not proof of failure. If a payment response is lost after authorization succeeded, a retry with a new payment ID can double-charge. Query or retry with the original idempotency key.
-
-## Step 6: contain cascading failures
+## Keep payment’s slowdown inside its capacity allowance
 
 ### Bulkheads
 
@@ -212,23 +150,17 @@ It fails fast while the dependency recovers and admits a small number of probes 
 
 Autoscaling helps sustained load, but it is not immediate and can amplify pressure on a fixed-size database. Keep enough baseline capacity for expected failures and protect the downstream before adding callers.
 
-## Step 7: preserve correctness across services
+## A successful response is not enough if the records disagree
 
-For each business entity, prefer one authoritative writer. Use:
+Checkout spans order, reservation, and payment owners. Keep changes within each owner's database in one local transaction. For the cross-owner workflow, persist the steps and valid intermediate states. This is a Saga; it can direct the next step or send a repair action after a definite failure.
 
-- local database transactions within one service;
-- Saga orchestration or choreography for multi-service workflows;
-- transactional outbox for reliable event publication;
-- inbox/deduplication and idempotent handlers for redelivery;
-- reservations and expirations for temporary resource holds;
-- semantic compensation for completed steps;
-- reconciliation for stuck, missed, and ambiguous operations.
+When saving a business change must also announce an event, save an **outbox** record in that same database transaction. A publisher can retry later. On the receiving side, an **inbox** or processed-event record lets the consumer recognize duplicates; commit it with the local business effect.
 
-See [Distributed transactions and data consistency](./04-distributed-transactions-and-data-consistency.md) for the complete checkout flow.
+If payment definitely declines, releasing inventory is a **compensation**, a new business action repairing earlier progress. If the result is unknown, do not invent a decline. Keep the order pending and reconcile it against provider and reservation facts. Reconciliation is the comparison and repair process for missed or ambiguous work.
 
-Correctness rules must be encoded as states and constraints, not left in a diagram. Examples include unique idempotency keys, allowed state transitions, version checks, non-negative inventory constraints, and a manual-review state for facts the system cannot safely infer.
+The [distributed-transactions lesson](./04-distributed-transactions-and-data-consistency.md) follows that checkout in detail. Here, the architecture requirement is that each temporary state has a durable owner, permitted next transitions, a deadline, and a safe recovery path. A diagram alone does not enforce any of those rules.
 
-## Step 8: degrade by business priority
+## Tell the truth when full functionality is unavailable
 
 Graceful degradation must remain honest:
 
@@ -242,7 +174,7 @@ Graceful degradation must remain honest:
 
 Not every feature deserves a fallback. Security checks and correctness-sensitive writes often need to fail closed. The product owner should approve degraded behavior before an incident.
 
-## Step 9: design asynchronous work for failure
+## Deferred work still needs a deadline and an owner
 
 Queues decouple arrival from processing and can preserve work during a short outage, but they add their own failure modes.
 
@@ -259,40 +191,25 @@ For each queue define:
 
 Track the **age of the oldest message**, not only queue length. A small queue containing one business-critical message stuck for two hours can be worse than a large queue draining normally.
 
-## Step 10: make failures observable and diagnosable
+## How would the operator tell whether containment worked?
 
-Collect three connected forms of evidence:
+Start with checkout's outcome and latency. Then check whether payment calls are trapped, retries are multiplying, or pending orders are aging. An alert about user harm should lead to evidence explaining that harm.
 
-- **metrics:** request rate, error rate, latency percentiles, saturation, bulkhead rejection, circuit state, queue age, connection-pool use, replica lag, and business invariants;
-- **structured logs:** timestamp, service, instance, severity, trace ID, operation ID, order ID, event ID, outcome, and safe error context;
-- **distributed traces:** the end-to-end path, time spent in each service, retries, messaging spans, and failure location.
+**Metrics** summarize the population: request success, latency, active work, rejection, queue age, and unresolved business states. **Structured logs** record individual events with named fields such as operation ID, outcome, version, and safe error context. **Distributed traces** join timed operations for one request so we can see where it waited and which calls repeated.
 
-Alert on customer symptoms and SLO burn, not every isolated technical error. Dashboards should answer:
+Keep the same logical operation identity through retries and messages. It lets an operator distinguish three attempts at one payment from three legitimate payments. Avoid credentials, tokens, payment details, and unnecessary personal data in telemetry.
 
-1. Which journey is failing?
-2. When did it start?
-3. Which change or dependency correlates with it?
-4. Is the system saturated, unavailable, or returning incorrect outcomes?
-5. Is recovery progressing?
+Use the journey's SLO to set urgency, then use resource and dependency signals to diagnose and predict risk. “The circuit opened” is not automatically a new outage: if it protected browsing and pending checkout remains correct, it may be evidence the containment policy worked.
 
-Never place passwords, tokens, payment details, or sensitive personal data in logs or traces.
+## Could our own release defeat the recovery plan?
 
-## Step 11: make deployments reversible
+A bad release can reach every replica, so redundancy alone does not protect against it. Start a candidate with a small traffic cohort, a canary, and compare user outcomes with the baseline before expanding.
 
-Many outages come from change, not hardware.
+Keep API, event, and database changes compatible while versions coexist. Add the new schema before deploying code that requires it, migrate data in stages, and remove the old form only after its readers are gone. A previous application version is a usable rollback only if it understands the data and messages that now exist.
 
-- use backward-compatible API, event, and database changes;
-- deploy additive schema changes before code that needs them;
-- canary a small percentage of traffic;
-- compare technical and business metrics;
-- stop or roll back automatically on a violated threshold;
-- use feature flags for risky behavior, with ownership and expiry;
-- preserve old consumers during an event-schema transition;
-- avoid a coordinated all-services release.
+A feature flag can separate enabling behavior from deploying code, provided the disabled path remains valid. Give the flag an owner and removal date. Prepare stop thresholds for both immediate request failures and delayed consumer failures; one can stay green while the other degrades.
 
-A rollback is only safe when the old version can understand the current schema and messages.
-
-## Step 12: prove recovery with controlled failure
+## Which failures have we actually demonstrated?
 
 Run tests at several levels:
 
@@ -372,11 +289,11 @@ The current repository is a learning-scale modular monolith, so resilience shoul
 - [`PostService.create`](../../../../../src/main/java/com/instagram/backend/service/PostService.java) correctly benefits from one local Spring transaction while post data remains in one service boundary.
 - [`MediaStorageService`](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java) stores uploads on local disk. With multiple instances, one instance may not see another instance's files, and instance loss can lose local data. Shared durable object storage is needed before claiming resilient horizontal scaling.
 - [`PostService.feed`](../../../../../src/main/java/com/instagram/backend/service/PostService.java) loads all posts and performs per-post enrichment. Before large scale, add bounded pagination and remove repeated dependency work; replicas alone do not fix an unbounded request.
-- [`application.properties`](../../../../../src/main/resources/application.properties) points to one PostgreSQL endpoint and currently has no documented health, metrics, failover, or backup behavior. Those are future exercises, not existing guarantees.
+- [`application.properties`](../../../../../src/main/resources/application.properties) points to one PostgreSQL endpoint. It already configures health/readiness, HTTP latency histograms, bounded metric tags, and tracing settings. [RequestCorrelationFilter.java](../../../../../src/main/java/com/instagram/backend/observability/RequestCorrelationFilter.java) supplies structured request completion and correlation. Database failover, restore proof, and centralized monitoring remain future exercises; see the [observability lesson](./02-production-observability-and-debugging.md) for the precise implemented boundary.
 
 A practical evolution order is:
 
-1. add health endpoints, metrics, structured correlation IDs, and latency/error/saturation dashboards;
+1. build retained latency/error/saturation dashboards on the existing health, metric, and correlation baseline;
 2. add pagination and resource bounds;
 3. run multiple stateless application instances and move media to durable shared object storage;
 4. add tested database backup/restore and high-availability configuration;
@@ -384,7 +301,7 @@ A practical evolution order is:
 6. add outbox, idempotent consumers, and reconciliation with that workflow;
 7. inject failures and record whether the defined journey targets are met.
 
-## Decision and trade-off table
+## Which protection earns its operational cost?
 
 | Decision | Protects against | Cost or limitation |
 |---|---|---|
@@ -401,7 +318,7 @@ A practical evolution order is:
 
 ## Failure drill
 
-**Scenario:** a new release causes Inventory Service latency to rise from 50 ms to 8 seconds. Checkout retries three times at the gateway and three times in Order Service. All services share a large connection pool to one database cluster.
+**Scenario:** a new release causes Inventory Service latency to rise from 50 ms to 8 seconds. Checkout makes three total attempts at the gateway and three total attempts in Order Service. All services share a large connection pool to one database cluster.
 
 1. **Predict:** one customer request can create up to nine inventory attempts. Threads and connections accumulate, database latency rises, timeouts spread, and healthy services begin failing.
 2. **Observe:** trace data shows nested retries; inventory p99, active requests, connection-pool saturation, and checkout error rate rise together.
@@ -409,7 +326,7 @@ A practical evolution order is:
 4. **Recover:** allow controlled probes, drain only unexpired work, reconcile orders and reservations with ambiguous outcomes, and restore traffic gradually.
 5. **Prevent:** one retry layer with a budget, shorter downstream timeout, inventory bulkhead, independent connection budgets where justified, canary thresholds, capacity tests under 8-second latency, and a runbook for uncertain orders.
 
-## Interview-ready answer
+## A 2–3 minute interview answer
 
 I would start with critical user journeys and measurable SLOs, latency budgets, RTO, and RPO. Then I would map failure domains—process, node, availability zone, database, broker, external provider, credential, and region—because “three replicas” helps only when those replicas do not share the failed dependency. Stateless services would run across zones behind health-aware load balancing, with graceful shutdown and enough remaining capacity after one planned failure. Stateful components need controlled failover, replication matched to the consistency requirement, and tested backups because replication does not protect against a replicated bad delete.
 
@@ -420,6 +337,8 @@ For example, if Payment Provider authorizes an order but its response is lost, c
 Cross-service state changes use local transactions, Saga, outbox/inbox, idempotent consumers, compensation, and reconciliation. Metrics, structured logs, traces, queue age, saturation, and business-invariant alerts make failures diagnosable. Backward-compatible canaries make releases reversible, and fault injection, failover, duplicate-message, and restore drills prove recovery.
 
 The trade-off is cost and complexity: redundancy, reserved capacity, and stronger consistency reduce efficiency or increase latency. I would add multi-region only when RTO/RPO justify it, explicitly choosing active/passive readiness or active/active traffic with its conflict-management burden.
+
+Before marking this answer practiced, trace the payment slowdown without notes, state what remains available and why, and predict the unresolved order state. Answer the questions below before opening them. The proposed architecture and drills are not claims of executed recovery tests.
 
 ## Questions and explained answers
 
@@ -433,7 +352,7 @@ Only against faults that the instances do not share. Three instances can survive
 <details>
 <summary>2. Why can retries make an outage worse?</summary>
 
-Retries multiply load while a dependency is already slow. If both gateway and service retry three times, one request can create nine downstream attempts. Synchronized retries also arrive in waves. Use one chosen retry layer, safe/idempotent operations, exponential backoff with jitter, a remaining deadline, and a global retry budget. Overload responses often need load shedding, not immediate retries.
+Retries multiply load while a dependency is already slow. If both gateway and service make three total attempts, one request can create `3 × 3 = 9` downstream attempts. Synchronized retries also arrive in waves. Use one chosen retry layer, safe/idempotent operations, exponential backoff with jitter, a remaining deadline, and a global retry budget. Overload responses often need load shedding, not immediate retries.
 
 </details>
 

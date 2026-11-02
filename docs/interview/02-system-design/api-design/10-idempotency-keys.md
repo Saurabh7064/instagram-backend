@@ -4,21 +4,29 @@
 
 How do you retry a create request after a lost response?
 
-[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Design scoped attempt keys, request fingerprints, durable replay states, atomic commit, crash recovery, retention, and outgoing event handling.
+Follow one create through a lost response and retry. Work out what must be stored together to replay the result without creating a second post.
 
-Prerequisites: Lesson 9 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
+Read the [POST retry discussion](02-http-methods.md) first. The later storage and event details build on the one-attempt model.
 
-## Must understand: problem and model
+## The post exists, but the phone never got the answer
 
-A server may commit a post and lose the response, leaving the caller unsure whether retrying creates a duplicate. An idempotency key identifies one logical attempt across retries. A request fingerprint records the input associated with that key. Like a claim ticket, it retrieves the original result; unlike paper tickets, concurrent claims need atomic database coordination.
+User 7 submits a new post. The server saves it as post 42 and commits. Just then the connection drops, so the phone never receives `201 Created`. From the phone's point of view, this looks much like a request that never reached the server.
 
-## Spring Boot example
+If it simply repeats a normal POST, the server may create another post. Comparing the caption is not a sound fix: a person may intentionally publish identical content twice. We need a way for the client to say, “this is another delivery of the same attempt.”
 
-Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
+The client attaches an **idempotency key**, such as `K`, and keeps it for that logical attempt. The server remembers which request and result belong to that key. A **request fingerprint** is a recorded summary of the relevant input, used to detect someone reusing `K` for different content. A retry with the same input can retrieve post 42's result; new content with the same key should be rejected under the documented policy.
+
+Think of a claim ticket that retrieves one completed order. The comparison stops at concurrency and crashes: two server instances can receive the same ticket together, and durable storage must decide which one may create the post.
+
+[HTTP methods](02-http-methods.md) explain why POST does not supply this replay guarantee itself. Adding a header gives us a label; we still have to build the guarantee behind it.
+
+## Carry the attempt identity into the service
+
+The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle). The excerpt below is a design proposal unless identified as current code; omitted imports and collaborators still need implementation.
 
 ```java
 @PostMapping("/posts")
@@ -30,17 +38,19 @@ ResponseEntity<FeedPostResponse> create(
 }
 ```
 
-### Walkthrough
+### Read the boundary in the code
 
-This proposed handler delegates the hard part. The service must scope keys by authenticated user and operation, compare canonical request fingerprints, and atomically commit the post with its replay result. Use a unique database constraint to arbitrate concurrent attempts. A HashMap or check-then-insert does not supply this guarantee across instances.
+The header carries the attempt identity and `viewerId()` stands for an identity resolved from valid credentials. `idempotentPosts` is a proposed service whose result supplies the documented status and body; merely reading the header does not deduplicate anything.
 
-## Request trace: predict, act, observe, explain
+That service must scope keys by user and operation, compare the request fingerprint, and atomically commit the post with its replay record. A unique database rule coordinates competing requests across instances. A Java map or separate existence check cannot provide the same crash and concurrency guarantee.
 
-Before following the trace, predict the status and final stored state. Then trace these transitions in order:
+## Retry K without publishing again
 
-User 7 sends key K with caption hi -> transaction creates post 42 and stores replay -> response lost. Retry K with hi -> stored 201 and post 42 replayed. Retry K with bye -> fingerprint differs -> documented 409, no new post. Two simultaneous K requests must yield one committed effect.
+Start with no record for user 7's create attempt `K`. The first request carries caption `hi` and valid values for the other required fields. One database transaction creates post 42 and records the input fingerprint plus replay result for `K`. It commits; the response is then lost.
 
-The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
+The client repeats `K` with the same validated input. The server finds the completed attempt and returns the promised result for post 42 without creating post 43. If the client instead reuses `K` with caption `bye`, the fingerprint differs. Under the proposed 409 policy, reject that reuse and leave the original post intact.
+
+Two simultaneous deliveries of `K` must reach that same one-post outcome. A preliminary “does K exist?” lookup is insufficient, because both deliveries can observe absence. The unique key and transaction design below have to arbitrate the race.
 
 ## Durable state machine for one logical attempt
 
@@ -57,45 +67,47 @@ A proposed table key is `(actor_id, operation, idempotency_key)`. Store request 
 
 ### Which bytes identify the request?
 
-Raw JSON bytes differ for `{"caption":"hi","location":"Home"}` and the same fields in reverse order. Decide whether the fingerprint hashes raw bytes or a canonical validated request. Canonicalization needs rules for absent/null, whitespace normalization, defaults, and operation/version. Hash only after those semantics are defined; never use a body hash alone as the caller’s key because legitimate separate identical posts can exist.
+Raw JSON bytes differ when the same caption `hi`, imageUrl, and locationLabel properties appear in a different order. Decide whether the fingerprint hashes raw bytes or a canonical validated request. Canonicalization needs rules for absent/null, whitespace normalization, defaults, and operation/version. Hash only after those semantics are defined; never use a body hash alone as the caller’s key because legitimate separate identical posts can exist.
 
 ### Commit and response-loss trace
 
 1. T1 claims (user7,createPost,K), inserts post42, writes replay outcome, then commits.
-2. The TCP response is lost. This does not undo the transaction.
+2. The response is lost. This does not undo the transaction.
 3. T2 repeats the same scoped key and fingerprint. It finds completed state and returns the documented original outcome without creating post43.
 4. If T1 instead crashes before commit, the transaction rolls back; T2 can claim and create once.
 5. After retention expires, a retry might create a new post. Tell clients the maximum supported retry window; “exactly once forever” is not a justified guarantee.
 
 Authorization still runs for retries, and replay storage must not leak another user’s result. Do not persist live credential headers as part of a replay response. Define whether replay returns the original snapshot or current resource; they differ if the post is edited later. Return stable headers such as original Location according to policy.
 
+### Useful later: a notification is another effect
+
 For notifications, insert an outgoing event record in the same database transaction as the post. A publisher sends that event later and records progress; this is the transactional outbox pattern. Delivery can repeat, so consumers deduplicate by stable event ID. It closes a database/event dual-write gap, not every possible distributed exactly-once problem.
 
-## Project mapping and practice
+## Apply this to the backend
 
-Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/service/PostService.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
+[PostService.create](../../../../src/main/java/com/instagram/backend/service/PostService.java) currently creates a post on each accepted call. There is no durable attempt-key protocol, replay table, or outbox in that method.
 
-**Practice task:** Extend F-010 with durable key replay as a proposed follow-up; test simultaneous identical keys and mismatched payloads.
-
-Keep this a design exercise until a feature change is explicitly undertaken. An implementation must follow the repository integration-test, API verification, documentation, and commit workflow.
+As a proposed follow-up to F-010, design the scoped record and commit boundary. Include simultaneous identical keys, same key with different payloads, crash before commit, and lost response after commit. For each, write the expected number of committed posts before implementing a test.
 
 ## Useful later: choices and costs
 
 Use keys where retrying POST would duplicate an important effect. Storage, retention policy, and in-flight recovery add cost. Define what happens after expiration. Replaying a database result does not undo an already-sent external notification; use a transactionally recorded outgoing event and downstream deduplication for external effects.
 
-## Controlled failure drill
+## Crash between the post and a separate replay record
 
-Predict process death after post commit but before a separately committed key record. Retry creates a duplicate. Detect a controlled crash test and duplicate logical attempts, contain automatic retries, recover by reconciling attempts, prevent with one atomic transaction and concurrency tests.
+On paper, put post creation in one transaction and replay recording in another. Let the first commit post 42, then kill the process before the second commits key K. Predict the retry: K appears absent, so a naive implementation creates post 43.
 
-Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
+A future controlled crash test should detect two committed posts for one attempt. Contain automatic retries of the affected operation until the stored attempts can be reconciled; do not blindly delete content that might have independent meaning. Recover by reconciling attempt and post records under a reviewed policy, then make the business write and replay record one atomic commit. Verify both pre-commit and post-commit crash cases. This proposed guarantee remains bounded by retention, rather than an “exactly once forever” claim.
 
 ## Interview-ready answer
 
 I add idempotency to create when an uncertain response must not duplicate a logical attempt. I scope the key by actor and operation, associate a documented request fingerprint, and commit the effect with replay state atomically. A unique constraint arbitrates competing claims; transaction/error handling must be deliberate. I define in-flight and expired behavior and keep authentication on replay. The current create route has no such protocol. A database transaction does not atomically deliver external notifications, so I use an outgoing event record and downstream deduplication where required. I test commit-before-response-loss, crash-before-commit, simultaneous keys, mismatched payloads, and retries after retention.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Proceed only after explaining the request trace without notes, predicting the failure, and answering all three checks below before opening their answers. Record the attempt in [learner progress](learner-progress.md). Artifact readiness does not establish comprehension or implementation readiness.
+Walk K through commit, lost response, and retry. Continue when you can place the post and replay state in one commit and explain the race, changed-payload conflict, and retention boundary.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

@@ -2,22 +2,23 @@
 
 [Module](./README.md) · [Previous: transaction and observation guarantees](./06-linearizability-and-serializability.md) · [Next: consensus](./08-consensus-and-election.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: counting enough responses forces overlap, but overlap still needs a correct protocol.
-- Prerequisites: replicas, completed writes, stale reads, and the meaning of a consistency guarantee.
-- Core terms: quorum, acknowledgment, version.
+Core study: 10–15 minutes. Prerequisites: replicas, completed writes, stale reads, and the meaning of a consistency guarantee.
 
-## What if a reader asks the wrong copy? — Must understand
+## Which copies should a reader ask? — Must understand
 
-A write reaches two copies and returns success, but a reader asks only the third copy and gets an old value. Can asking more copies guarantee that the reader contacts at least one participant in the completed write?
+Post 42 begins at v1 on A, B, and C. A write saves v2 on A and B, then returns success. C still has v1. If the next reader asks only C, it sees the old post. What changes if we require the reader to ask two copies?
 
-A **quorum** is the required number of participants for an operation. An **acknowledgment** is a participant's confirmation of a specified action, such as durable storage; the protocol must say what it confirms. A **version** identifies a data state so a reader can distinguish or order updates. A timestamp chosen independently by each writer is not automatically a reliable version order.
+There are only three possible pairs: A/B, A/C, and B/C. Every pair contains at least one participant in the completed write. That overlap is the useful idea. We will derive the arithmetic from these pairs, then examine why overlap alone does not tell a reader which value is safe.
 
-Let **N** be the number of copies in one fixed membership, **W** the number of write acknowledgments required, and **R** the number of read responses required. These are symbols with defined meanings, not product settings we have already configured.
+A required participant count is a **quorum**. A participant's reply confirming a specified action is an **acknowledgment**; here the write replies confirm durable storage. The protocol must define that action, because “received a message” is weaker than “saved it durably.”
 
-## Derive the overlap instead of memorizing a formula
+We also need a way to distinguish v1 from v2. A **version** identifies a data state; safely ordering concurrent updates requires additional rules. Independently chosen wall-clock timestamps do not automatically provide that order.
 
-Fixed replicas: A, B, C, so N=3. Post 42 begins at v1 on all three. A single write changes it to v2 and waits for durable storage on A and B: W=2. C still has v1.
+Use N for the fixed number of copies, W for required write acknowledgments, and R for required read responses. In our setup N=3, W=2, and we are considering R=2.
+
+## Why two out of three cannot miss both writers
+
+The completed write set is {A,B}; C remains at v1. Keep that membership fixed while we enumerate the read choices.
 
 A reader waits for two responses: R=2. List every possible responding pair:
 
@@ -33,7 +34,7 @@ Compare R=1 on this same state: a read set {C} is disjoint from {A,B} and return
 
 For two write sets to overlap, each of size W, the corresponding condition is 2W>N, or **W>N/2**. With W=2, 2>1.5, so any two such write sets share a member.
 
-## What the arithmetic does not solve
+## The reader still has to interpret the replies
 
 In the {B,C} read, knowing B has v2 is useful only if the reader can safely recognize and select the appropriate version. Concurrent writers can create competing versions. A failed write can reach a subset without completing. Membership changes can make “the same three” assumption false. A temporary replacement copy may not contain the history of the unavailable member it substitutes for.
 
@@ -41,7 +42,7 @@ Consequently, R+W>N alone does **not** prove linearizability. Ordering, read han
 
 A committee analogy explains overlap: any two groups of two from three people share someone. It stops matching when that person must compare machine versions, distinguish accepted from incomplete work, and survive crashes; intersection alone cannot interpret history.
 
-## Cost and availability
+## What do we pay for the second reply?
 
 Waiting for two responses means the operation pays at least the time needed for its second qualifying response. If only A is reachable, W=2 cannot complete. With two suitable reachable copies, the acknowledgment count can be met, subject to the rest of the protocol. Changing W to 1 to keep accepting writes changes the guarantee; it is not cost-free recovery.
 
@@ -51,15 +52,17 @@ Use a documented quorum protocol when tolerating replica outages and controlling
 
 [PostRepository](../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) queries one configured database interface. Neither it nor [PostService.feed](../../../../../src/main/java/com/instagram/backend/service/PostService.java) collects replica replies. The A/B/C setup is a proposed replication exercise. A future database offering quorum settings would still need its exact documented semantics checked.
 
-## Failure drill — paper exercise
+## Leave only A reachable — paper exercise
 
-- **Predict:** B and C become unreachable before A can obtain a second acknowledgment. Can A acknowledge W=2?
-- **Symptom:** timeout or refusal despite A being alive. Inspect participant responses and whether any partial write was stored.
-- **Contain:** preserve the configured completion rule; do not report a one-copy write as a two-copy success.
-- **Recover:** restore connectivity, reconcile any partial/incomplete operation under the protocol, then verify readable versions and safe retry behavior.
-- **Prevent:** test one- and two-member outages and membership changes. Record the operation's outcome as uncertain when the acknowledgment result is lost.
+B and C become unreachable before A gets a second acknowledgment. Predict whether a write requiring W=2 may now report success.
 
-## Recap and stop/go
+A can be alive and still unable to meet the completion rule. Inspect which participants replied and whether any stored a partial write before the timeout. Preserve the two-copy rule instead of relabeling a one-copy save as the same kind of success.
+
+Restore connectivity and use the protocol to reconcile partial or incomplete work. Then check readable versions and the operation's retry behavior. If the acknowledgment itself was lost, its outcome remains uncertain until durable evidence resolves it. Tests should include one-member loss, two-member loss, and membership transitions; those situations exercise more than the easy case where all three copies reply.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Enumerate all three read pairs and derive both inequalities. Explain why one reachable node cannot satisfy W=2 and name two protocol requirements beyond counting.
 

@@ -6,54 +6,51 @@ Photo and video uploads are growing. Uploads tie up application servers, local d
 
 **“How would you design reliable media upload, processing, storage, and delivery for an Instagram-like service?”**
 
-## Why this problem exists
 
-Media bytes are much larger than post metadata. Proxying every transfer through stateless API instances consumes their network, connections, and disk, while replicas may not share files. Media also needs validation, variants, durable storage, and global delivery. Control decisions should be separate from byte transfer.
+## Follow one photo, rather than one large HTTP request
 
-## Analogy
+User 17 wants to upload a 4 MB JPEG. The API needs to decide whether the user may upload it and which post can use it. Moving all four megabytes through the same application is a separate job, and doing that for every photo consumes connections, bandwidth and local disk.
 
-A shipping desk issues a destination label; a warehouse receives and inspects the package; regional depots deliver it near customers.
+**Object storage** keeps file-like objects under keys. In our proposed design, the API creates upload record `U9` and reserves key `raw/17/U9`. It then issues a **pre-signed URL**: a short-lived authorization for a specific storage operation. The client uses it to transfer the bytes directly to storage, without receiving general storage credentials.
 
-The analogy stops because digital objects can be copied, cached after deletion, uploaded partially, and processed repeatedly.
+Creating the upload record does not prove that the bytes arrived. Set an expiry and verify the completed object, including ownership and applicable size/type rules, before allowing the upload to advance.
 
-## Terms to establish
+## Uploaded does not yet mean ready to publish
 
-- **Object storage:** durable file storage addressed by object key.
-- **Pre-signed URL:** short-lived permission for one upload or download.
-- **Transcoding:** creates delivery variants such as thumbnails or lower-bitrate video.
-- **CDN:** caches content at edge locations near users.
+After the object arrives, a background worker inspects the actual content and creates the required variants. A filename ending in `.jpg` is client-controlled; it cannot establish that the file is a valid JPEG. Keep the object private while validation or processing is unfinished.
 
-## What I would do
+For `U9`, the worker validates the original and produces small, medium and large image versions. The upload record progresses from `UPLOADING` to `PROCESSING`, then `READY` or `FAILED`. Mark it ready only when the required outputs have been verified. Processing a video into delivery formats is commonly called transcoding; an image resize is a simpler instance of producing a variant.
 
-The client first asks the API to initialize an upload. The API authenticates the user, validates declared size and type, creates an upload record and unguessable object key, then returns a short-lived pre-signed URL. The client uploads directly to private object storage.
+A shipping desk, warehouse and local depot make a useful analogy: permission, receipt/inspection and delivery are different responsibilities. Digital storage adds failures the analogy misses, including partial uploads, duplicate events and cached copies surviving a change at the source.
 
-An object-created event starts asynchronous processing. Idempotent workers inspect the real file signature, scan content, strip risky metadata when needed, and create immutable variants. The record moves through `UPLOADING`, `PROCESSING`, `FAILED`, and `READY`; only ready media can be published. A CDN serves versioned objects. I would track upload completion, processing age, failures, orphan objects, origin traffic, and CDN hit rate.
+## Deliver the finished version near the reader
 
-## Concrete walkthrough
+A **content delivery network (CDN)** can cache suitable media near readers, reducing repeated transfers from the original storage. Give each finished version an immutable key: changing the bytes means a new key. That makes long-lived caching easier to reason about.
 
-1. User `17` initializes a 4 MB JPEG upload `U9` with key `raw/17/U9`.
-2. The client uploads directly using a URL valid for ten minutes.
-3. Storage emits an event; a worker validates the JPEG and creates small, medium, and large variants.
-4. The worker records checksums and marks `U9` ready.
-5. The post stores the media identifier, and readers receive a CDN URL for the suitable variant.
+Public and private objects still need different access policies. Guess-resistant filenames do not establish permission. Deletion also needs a cache and access-revocation policy; deleting the original alone does not prove every cached copy has disappeared.
 
-API load stays bounded while storage and delivery scale independently.
+Separate these stages because they scale and fail differently. API authorization, byte transfer and background processing each need their own completion evidence.
 
-## Instagram-backend mapping
+## Where this appears in our backend
 
 [MediaController.java](../../../../../src/main/java/com/instagram/backend/controller/MediaController.java) currently accepts multipart bytes through the application and serves `/uploads`. [MediaStorageService.java](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java) authenticates, creates a UUID filename, writes local storage, records metrics, and prevents path traversal. [Post.java](../../../../../src/main/java/com/instagram/backend/domain/Post.java) stores an image URL.
 
 **Implemented:** authenticated local upload and retrieval for development. **Proposed:** object storage, upload state, pre-signed transfer, content inspection, asynchronous variants, CDN delivery, and orphan cleanup. Local temporary storage is neither shared nor durable across replicas.
 
-## Choices and trade-offs
+## Choosing the approach and paying its costs
 
 - Choose **direct object-storage upload** to reduce API load. Never expose unrestricted credentials; URL lifecycle and completion verification are the cost.
 - Choose **asynchronous processing** for expensive variants. Do not present unfinished media as ready; state and retries are the cost.
 - Choose **immutable CDN keys** for long caching. Do not overwrite bytes at one URL; extra stored versions are the cost.
 
-## Failure drill
 
-**Prediction:** a worker crashes after creating one variant but before marking the upload ready. **Detection:** processing age exceeds its deadline. **Containment:** keep the object unpublished. **Recovery:** retry idempotently, verify checksums, create missing variants, and mark ready atomically. **Prevention:** durable events, bounded retries, dead-letter handling, reconciliation scans, and age alerts.
+## Paper drill: the worker stops halfway
+
+Before continuing, predict the state of `U9` if its small variant exists but the worker stops before creating medium and large. It must remain unfinished; one output is not evidence that publication is safe.
+
+Detect it through excessive time in `PROCESSING` and a comparison of required and existing outputs. Keep the media unpublished. Retry with stable upload and variant identities, verify existing output content, and create only missing or invalid variants before completing the ready transition.
+
+A periodic comparison of upload records and stored objects can recover missed events and find abandoned uploads. Clean up only under a documented retention policy, with checks that an object is not referenced. Retried work and orphan cleanup are part of the design, not evidence that one event will always run exactly once.
 
 ## Two-to-three-minute interview answer
 
@@ -61,9 +58,10 @@ I would separate metadata control from byte transfer. The API authenticates the 
 
 Readers use CDN URLs backed by object storage, with different authorization rules for public and private media. I would monitor incomplete uploads, processing age, failures, orphan bytes, origin traffic, and CDN hit rate, and use reconciliation to recover lost events.
 
-## Practice status
 
-The artifact is ready; comprehension requires tracing ownership, retry, and delivery without notes.
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`. Explain this scenario in your own words, predict the paper drill, and attempt the questions before opening their answers. Record learning only from your own explanation and predictions.
 
 ## Questions and explained answers
 
@@ -76,7 +74,7 @@ Instances restart and scale independently. A file written to one disk may be abs
 <details>
 <summary>Why inspect content instead of trusting the filename or content type?</summary>
 
-Both are client-controlled. Signature inspection catches disguised or malformed content before publication or unsafe processing.
+Both are client-controlled. Inspect and decode the actual bytes using supported formats, strict size/resource limits and appropriate isolation. A matching signature helps identify a format but does not prove that the entire file is valid or safe.
 </details>
 
 <details>

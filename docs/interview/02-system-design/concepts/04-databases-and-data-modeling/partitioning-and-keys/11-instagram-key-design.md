@@ -2,18 +2,21 @@
 
 [Module](./README.md) · [Previous: query routing](./10-cassandra-query-routing.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: choose a key by the exact read and its worst-case load, then account for the other queries.
-- Prerequisites: SQL key roles, Cassandra grouping/order, hot-key remedies, full-key routing, and read fan-out.
 - New core term: query-driven model.
 
-## “What is the partition key for Instagram?” needs a query — Must understand
+Core study: 10–15 minutes. Prerequisites: SQL key roles, Cassandra grouping/order, hot-key remedies, full-key routing, and read fan-out.
 
-An author wants their activity, a reader wants a home feed, and an analyst wants interactions with a post. Those are different grouping requirements. Naming the application does not identify one correct key for every table.
+## Design for “show my activity on this day” first — Must understand
 
-A **query-driven model** designs stored groups around the reads that must be efficient. This can duplicate event facts in several tables, with each table serving a distinct lookup. Duplication introduces extra writes and recovery obligations; it is not a free substitute for relational queries. [Cassandra's modeling introduction](https://cassandra.apache.org/doc/latest/cassandra/developing/data-modeling/intro.html) explains this approach.
+User 42 opens October 25 activity. The answer must include both 09:05 VIEW_POST events and list the newest events first. The client knows the user and date. Start with that request, rather than asking for one universal “Instagram partition key.”
 
-## Derive a key for the fixed activity query
+An author listing their posts, a reader opening a home feed, and an analyst asking about interactions with one post supply different lookup values. A group that makes one request direct can make another require many reads. Naming the application does not choose the grouping for every table.
+
+Designing stored groups around the reads they must serve is a **query-driven model**. It can place the same event facts in several tables so each lookup has a suitable key. That convenience costs extra writes and storage, plus a way to repair views when updates arrive late or fail. [Cassandra's modeling introduction](https://cassandra.apache.org/doc/latest/cassandra/developing/data-modeling/intro.html) explains this approach.
+
+We will derive the activity key with the five fixed events, then extend the same request across midnight and through the hot-user workload. That sequence exposes the costs hidden by a schema that looks fine on a tiny sample.
+
+## Choose the group, preserve the occurrences, then check the volume
 
 Fixed requirement: return user 42's activities on October 25, recent first, including both equal-time VIEW_POST events. Keep the five-row dataset and UTC day convention from this module.
 
@@ -25,13 +28,13 @@ Fixed requirement: return user 42's activities on October 25, recent first, incl
 
 A cross-midnight request now queries `(42,Oct25)` and `(42,Oct26)`. The second partition has event 1004 at October 26 00:00, later than all October 25 events. A newest-first merge therefore returns 1004 before 1002,1003,1001. The application needs both buckets because day is part of the key.
 
-## Work through scale rather than assuming buckets are sufficient
+## Four write groups mean more read groups too
 
 Use lesson 4's explicit workload assumption on this same user/day model: 9,000 events/second, 3,000/second available per independent destination group. A day bucket still puts all current writes in one group. If measurement justifies four deterministic sub-groups, `(user_id,activity_date,shard_number)` can produce a modeled 2,250 writes/second each under even distribution and adequate placement.
 
 Reading two days now requires 2×4=8 partition queries rather than 2. Pagination must preserve each group's progress and merge equal-time rows with a stable identity. The capacity benefit trades against eight opportunities for delay/failure and extra merge work. Do not add shards before identifying this need or claim that four partitions ensure four independent servers.
 
-## Compare neighboring Instagram queries
+## A different request can justify a different table
 
 These are **proposed** layouts, not claims about Instagram's actual internal database:
 
@@ -44,7 +47,7 @@ These are **proposed** layouts, not claims about Instagram's actual internal dat
 
 The names alone are not final schemas. Define how buckets are derived, how ordering ties are broken, what retention applies, and how a query locates its required buckets. A ranked feed's ordering changes introduce additional product and pagination choices; do not assume chronological activity is already a ranked home feed.
 
-## SQL and Cassandra decisions side by side
+## Keep the simpler store when it still fits
 
 The SQL activity exercise uses date child partitions for retention plus an index for user/time reads. The Cassandra exercise uses exact user/day groups for one query. Both begin with access patterns and size/load requirements; neither “SQL” nor “NoSQL” universally chooses a key.
 
@@ -58,15 +61,17 @@ The analogy is an archive with separate catalogs by author, recipient, and subje
 
 Proposed task tied to F-016 feed expansion and SD-007 query planning: record expected query shapes and worst-case author/day volume, measure the existing relational query, then compare an indexed relational design with a bounded query-specific read model. For F-021 personalized ranking, define ordering/pagination separately. No Cassandra migration or product-feature completion is claimed by this lesson.
 
-## Failure drill — paper exercise
+## Give one celebrity an unbounded author-only group — paper exercise
 
-- **Predict:** select author_id as the only key and then process a celebrity's prolonged history and traffic. Which assumptions fail?
-- **Symptom:** one group's size and request rate dominate despite many quiet users; a cluster-wide average hides it.
-- **Contain:** bound traffic and recovery queues while preserving event identities; avoid infinite retries.
-- **Recover:** design/version a new bucket/shard layout, catch up from durable data, compare exact event IDs and merged order, then move reads deliberately.
-- **Prevent:** evaluate worst-case users/posts and cross-bucket pagination before adopting the schema. A key change requires migration, not just an edited CREATE TABLE statement.
+Suppose author_id alone is the grouping key, then a celebrity accumulates prolonged history and heavy traffic. Predict which assumptions fail before looking at the cluster average.
 
-## Recap and stop/go
+That one group's stored size and request rate can dominate while most users remain quiet. Bound incoming traffic and recovery queues without losing event identities; infinite retries cannot repair a poor grouping choice.
+
+Design and version the replacement bucket or shard layout, catch it up from durable data, and compare exact IDs plus merged order before moving reads. Evaluate worst-case users and posts, including cross-bucket pagination. A changed key requires migration and new read behavior, not just an edited CREATE TABLE declaration.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Explain why `(user_id,day)` fits the activity query, derive the cross-day order, and calculate two versus eight read groups. State why another Instagram query may need another table/key.
 

@@ -4,23 +4,13 @@
 
 > [One-page revision card](../../revision-cards/microservices/02-production-observability-and-debugging.md)
 
-## Why does this problem exist?
+## A user says the feed is slow. Where do we look?
 
-In a monolith, one debugger and one stack trace may cover an entire request. In microservices, a single “load feed” request can cross a gateway, feed service, identity service, post store, cache, and message broker. Those components may run on different machines and deploy independently.
+A feed request reaches the gateway, then a feed application, then a profile application and a database. The user waits two seconds and sees an error. Each application has its own logs, and several other requests were running at the same time. Searching every log for “timeout” may produce plenty of evidence without telling us which evidence belongs together.
 
-A user only sees “the feed is slow,” but the cause could be:
+We need to answer two questions. First, how many users are affected, and is the problem getting worse? Second, what happened along a representative request's path? Monitoring provides the health picture; debugging follows the cause. A useful production setup lets us move from one to the other without guessing which machine handled the request.
 
-- one slow database query;
-- a full connection pool;
-- one bad service version;
-- retries multiplying traffic;
-- a downstream timeout;
-- a queue backlog;
-- a regional network problem.
-
-Monitoring answers, “Is the system healthy from the user's perspective?” Debugging answers, “Which component and condition caused this specific failure?” A useful production design must support both.
-
-## Analogy: diagnosing a patient in an emergency room
+## A doctor does not start by reading every medical record
 
 A doctor uses vital signs for a fast health summary, the patient's history for detailed context, and targeted tests to follow a suspected cause. In a distributed system:
 
@@ -32,122 +22,69 @@ A doctor uses vital signs for a fast health summary, the patient's history for d
 
 A software request can be copied, retried, queued, or processed twice. Thousands of versions and instances can operate simultaneously, and observing every detail can itself add cost or expose sensitive data. Unlike a single patient, the system needs both aggregate population health and evidence for one request.
 
-## Focus 1 — Use three complementary signals
+## First see the population, then follow one request
 
-Three useful terms:
+Suppose 8% of feed requests now fail. A **metric**, a numeric measurement aggregated over time, tells us that this is a population problem rather than one isolated complaint. Split it by route and deployed version and we may discover that only the new version is affected.
 
-- A **metric** is a numeric measurement aggregated over time, such as request count or the 95th-percentile latency.
-- A **structured log** is an event recorded as named fields such as `service`, `requestId`, `postId`, and `errorType`, rather than only free-form text.
-- A **distributed trace** records the timed path of one request across services.
+Now follow one of its failed requests. A **distributed trace** records the timed operations along that request's path. It can show that most of the two seconds went into a profile call. That narrows our search from the whole system to one dependency and one interval.
 
-No one signal replaces the others.
+At that point, a **structured log**, an event stored with named fields, can explain what happened there: perhaps `errorType=ConnectionPoolTimeout`. The log carries the request's identity, service version, and operation so we can find the relevant event instead of unrelated timeout messages.
 
-| Question | Best starting signal | Concrete example |
+The signals have different jobs:
+
+| What we need to know | Start with | What it can show |
 |---|---|---|
-| Is this affecting many users? | Metric | 8% of `GET /api/feed` requests return 5xx |
-| Which call is consuming the time? | Trace | 1.8 seconds of a 2-second trace is in `feed -> profile` |
-| Why did this instance reject the request? | Structured log | `errorType=ConnectionPoolTimeout`, `dbPoolInUse=20` |
+| How widespread is the problem? | Metrics | Feed failure rate rose to 8% after one release |
+| Where did a representative request spend time? | Trace | Profile occupied 1.8 seconds of a two-second request |
+| What did that component observe? | Structured log | It timed out waiting for a database connection |
 
-### Why logs alone are not enough
+### What deserves a metric label?
 
-Suppose 300 service instances each write thousands of lines per second. Searching for “timeout” can find unrelated events, and the absence of a log does not prove health. Metrics first show when and where the failure rate changed; a trace identifies the responsible hop; logs then explain that hop in detail.
+A label is a dimension used to group measurements. `route=/api/feed` and `version=v42` let us compare useful populations. A different user ID or request ID on every sample creates a separate time series for each distinct combination. That growth is called **high cardinality**, and it can make the monitoring system expensive or unstable.
 
-### What to record for an HTTP service
+Keep labels bounded: normalized route, method, result category, and controlled deployment metadata. Put individual request identities in logs and traces. Measure user outcomes as well as HTTP behavior; a response that says `200` while silently losing a post is still a business failure.
 
-At minimum, each service should expose or derive:
+### Let the symptom choose the next measurement
 
-- request count by route, method, result class, and service version;
-- latency distributions by route, not only an average;
-- error count by stable error category;
-- CPU, memory, thread/worker usage, connection-pool usage, and restart count;
-- dependency latency and failure rate for databases, caches, queues, and remote services;
-- business outcomes such as successful registrations, posts created, and media uploads completed.
+If latency rises, separate time spent doing work from time waiting. Busy CPU points toward computation; long connection-acquisition waits point toward a database or pool constraint; a long remote span points toward a dependency. Track those resource and dependency signals so the trace's clue can be checked across many requests. A graph becomes useful when it answers a question, rather than because every available metric is displayed.
 
-Do not attach unbounded values such as raw user ID, request ID, or full URL to metric labels. Millions of distinct label combinations create excessive storage and query cost. Those high-cardinality identifiers belong in logs and traces.
+## Carry the same request identity through every hop
 
-## Focus 2 — Join evidence across service boundaries
+A trace needs a stable **trace ID** for the whole request. Each timed operation inside it is a **span**: the gateway request, feed handler, profile call, or database operation. Parent/child or linked relationships tell the trace viewer which operations belong together.
 
-Three useful terms:
+A **correlation ID** is the application's handle for finding related logs. It may be the trace ID or a separate value. This project keeps a readable `X-Correlation-Id` alongside the tracing library's trace ID; the later code mapping explains the distinction.
 
-- A **trace ID** identifies one end-to-end request as it crosses services.
-- A **span** represents one timed operation inside that trace, such as an HTTP call or database query.
-- A **correlation ID** is an application-visible identifier used to connect related logs; it may be the trace ID or a separate business/request identifier.
-
-### Concrete request flow
+Here is an illustrative request:
 
 ```text
-Browser
-  │ traceId=7f31
-  v
-Gateway span: GET /api/feed                  420 ms
-  │ forwards trace context
-  v
-Feed service span                            390 ms
-  ├─ PostgreSQL query span                    35 ms
-  ├─ Profile service HTTP span               310 ms  <-- slow hop
-  │    └─ profile database span              290 ms  <-- likely focus
-  └─ response mapping span                    12 ms
+traceId=7f31
+Gateway: GET /api/feed                       420 ms
+  Feed operation                            390 ms
+    PostgreSQL read                          35 ms
+    Profile HTTP call                       310 ms
+      Profile database operation            290 ms
+    Response mapping                         12 ms
 ```
 
-Each structured log emitted during that request includes `traceId=7f31`. The engineer can move from the alert to a slow trace, then from the slow profile span to only the relevant profile logs.
+The durations are nested, so we do not add every line together. The profile database time is inside the profile call, and that call is inside feed time. The useful observation is that profile accounts for most of this request's elapsed time.
 
-### Propagation rules
+When Feed calls Profile, it forwards trace context in the outgoing request. Profile uses that context to create related spans and places the IDs in its logs automatically. If processing moves to another thread or a message queue, instrumentation must carry the context there too; thread-local storage alone does not survive that boundary.
 
-1. The edge accepts or generates trace context.
-2. Every service forwards that context on outgoing HTTP and message calls.
-3. Every service adds the trace and span IDs to logs automatically.
-4. Async producers attach context to message metadata; consumers create a linked processing span.
-5. Service name, environment, region, instance, and deployed version are common attributes.
+Record service, version, environment, and location with the event so we can compare populations after finding the request. Record enough error context to explain the failure, but do not copy credentials, access tokens, or complete request bodies into logs. Searching one request should not expose unrelated private data.
 
-Do not rely on thread-local state without async-aware instrumentation. A request that moves to another thread or is placed on a queue can otherwise lose its context.
+## Decide what would actually wake someone up
 
-### Log enough, but not secrets
+Imagine every process is running and HTTP responses are fast, but feed responses omit newly created posts because a dependency failed. An uptime check would look healthy while the product is broken. Start with a user-visible promise and decide exactly what counts toward it.
 
-Useful fields include:
+A **service-level indicator (SLI)** is the measurement: for example, the fraction of eligible feed requests that return a correct result within 500 ms. A **service-level objective (SLO)** is the target for that measurement, such as 99.9% over 30 days. Define “eligible” and “correct” carefully so an empty fallback caused by an error is not accidentally counted as success.
 
-```text
-timestamp, level, service, environment, version, region,
-traceId, spanId, route, method, status, durationMs,
-errorType, dependency, retryAttempt
-```
+The remaining 0.1% is the **error budget**, the unreliability permitted by that objective. For one million eligible requests, `1,000,000 × 0.001 = 1,000` may miss the objective. That concrete allowance helps a team decide when repeated failures require urgent intervention or reliability work.
 
-Do not log passwords, authorization tokens, refresh tokens, complete request bodies by default, or personally identifiable data without an approved need and retention policy. Prefer an internal user reference when investigation requires correlation.
+Page when the promise is being consumed dangerously fast and someone can act. High CPU by itself is only a clue: a busy machine may still serve every request correctly. It belongs on a diagnostic dashboard unless it reliably predicts imminent harm.
 
-## Focus 3 — Measure what users care about
+A useful dashboard starts with the journey's success, latency, and throughput. Then let the engineer compare route, version, and region, inspect dependencies and resource waits, and overlay deployment or configuration changes. This follows the questions an incident raises rather than making the reader inspect every internal graph before seeing user impact.
 
-Three useful terms:
-
-- A **service-level indicator (SLI)** is a measured reliability signal, such as the percentage of feed requests that complete successfully within 500 ms.
-- A **service-level objective (SLO)** is the target for that indicator, such as 99.9% over 30 days.
-- An **error budget** is the amount of unreliability permitted by the objective; it helps balance release speed against stability work.
-
-### Example
-
-If the SLO is 99.9% successful feed responses during a 30-day window, then up to 0.1% may fail under that definition. The exact SLI must state which requests count and what “successful” means. A fast HTTP 200 containing an empty feed caused by a backend failure should not be counted as a successful business result.
-
-### Alert on symptoms, not every internal fluctuation
-
-A high-value page might say:
-
-> Feed success SLI is consuming the monthly error budget 10 times faster than sustainable for the last 15 minutes.
-
-A low-value page might say:
-
-> One pod used 81% CPU for two minutes.
-
-High CPU is evidence, not necessarily user harm. It belongs on a diagnostic dashboard unless it reliably predicts imminent failure. Pages should require urgent human action; slower capacity or cost trends can create tickets instead.
-
-### Dashboard order
-
-1. **User outcome:** success, latency, and throughput for the journey.
-2. **Service boundary:** errors and latency by route, region, and deployed version.
-3. **Dependencies:** database, cache, queue, and downstream call behavior.
-4. **Resources:** CPU, memory, workers, connections, storage, and restarts.
-5. **Change markers:** deployments, configuration changes, and feature-flag changes.
-
-This order prevents an engineer from staring at CPU graphs while the actual user error comes from an expired certificate on a dependency.
-
-## Observability architecture
+## How the evidence becomes searchable
 
 ```text
 services and gateway
@@ -163,7 +100,7 @@ alert ─> incident owner ─> dashboard ─> exemplar/trace ─> related logs
 
 An **exemplar** is a link from an unusual metric sample to an example trace. For instance, a latency graph can link directly to one trace from its slow bucket. It shortens the path from “latency is bad” to “this database span consumed 90% of the request.”
 
-## A repeatable production-debugging method
+## Once the alert fires, what would we do next?
 
 ### 1. Confirm and bound the impact
 
@@ -206,7 +143,7 @@ Depending on evidence, roll back a version, disable a feature, reduce fan-out, s
 
 After recovery, add the missing alert, dashboard, test, capacity threshold, trace attribute, or runbook step. The objective of a post-incident review is to improve the system, not to assign blame.
 
-## Concrete scenario: feed latency after a deployment
+## Follow the feed regression from alert to cause
 
 **Symptom:** the 95th-percentile latency for `GET /api/feed` rises from 180 ms to 1.7 seconds, but the average changes only slightly.
 
@@ -218,7 +155,7 @@ Debugging flow:
 2. The version breakdown shows only version `v42` is affected.
 3. Slow traces contain 30 profile calls per feed; successful `v41` traces contain one batched call.
 4. Logs show no individual profile error, which explains why an error-only dashboard remained green.
-5. Dependency metrics show a 25-fold increase in profile request traffic.
+5. For the same number of feed requests, profile calls per feed rise from one to 30: `30 ÷ 1 = 30` times the feed-generated profile traffic. Any unrelated profile traffic must be considered separately.
 6. Roll back `v42`; latency and traffic return to baseline.
 7. Add a load test and an alert for unexpected downstream calls per feed request.
 
@@ -228,7 +165,12 @@ This example shows why metrics locate the affected population, traces reveal cal
 
 The project now has an implemented single-service observability baseline. It produces local metrics, structured logs, health signals, and spans; it does **not** yet run the centralized stores shown in the architecture diagram above.
 
-### What is implemented
+### The local instrumentation we can inspect today
+
+The application already gives us a request handle, route timing, and selected business outcomes. The inventory below is a code reference for those claims; it is separate from the cross-service production design above.
+
+<details>
+<summary>Inspect the exact instrumentation, safeguards, and verification files</summary>
 
 | Concern | Code or configuration | Actual behavior |
 |---|---|---|
@@ -242,6 +184,8 @@ The project now has an implemented single-service observability baseline. It pro
 | Upload size | [MediaStorageService.java](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java) | After a file is stored successfully, records `instagram.media.upload.size` in bytes. The only label is bounded to `image`, `video`, or `other`; file names and user IDs are not metric labels. |
 | Diagnostic endpoint protection | [ObservabilityEndpointAuthenticationFilter.java](../../../../../src/main/java/com/instagram/backend/observability/ObservabilityEndpointAuthenticationFilter.java) and [ObservabilityManagementPortGuard.java](../../../../../src/main/java/com/instagram/backend/observability/ObservabilityManagementPortGuard.java) | Keeps health endpoints public but requires `X-Observability-Token` for other endpoints below the configured Actuator base path (default `/actuator`). It matches inside any application context path, so `/instagram/actuator/prometheus` cannot bypass the check. Missing or wrong tokens return `401`; a blank server-side token fails closed with `503`; an ambiguous root base path is rejected. A separate management port is rejected at startup because it would create another web context without the filter. The comparison is constant-time. Only `health`, `info`, `metrics`, and `prometheus` are exposed. |
 | Executable verification | [ObservabilityIntegrationTests.java](../../../../../src/test/java/com/instagram/backend/ObservabilityIntegrationTests.java), [JourneyMetricsInterceptorTests.java](../../../../../src/test/java/com/instagram/backend/observability/JourneyMetricsInterceptorTests.java), [ObservabilityEndpointAuthenticationFilterTests.java](../../../../../src/test/java/com/instagram/backend/observability/ObservabilityEndpointAuthenticationFilterTests.java), [ObservabilityManagementPortGuardTests.java](../../../../../src/test/java/com/instagram/backend/observability/ObservabilityManagementPortGuardTests.java), and [observability.http](../../../../../http/observability.http) | Tests PostgreSQL-backed health/readiness behavior, endpoint protection including context/base-path/management-port cases, journey and media metric increments, exception outcome classification, correlation-ID rules, the real ECS encoding path, normalized safe logs, and incoming W3C trace context. The HTTP file provides manual probe, scrape, and traced-feed requests. |
+
+</details>
 
 Metrics also receive the bounded common tags `application`, `environment`, and `version`. They do not use request ID, user ID, file name, or a raw URL as labels. For example, `/api/posts/1/like` and `/api/posts/999/like` are both observed as the route `/api/posts/{postId}/like` rather than two time series.
 
@@ -274,6 +218,8 @@ They are intentionally separate:
 - `traceId` belongs to OpenTelemetry trace context. W3C `traceparent` can carry it, and the tracing library controls its lifecycle and span relationships. It is the ID to use when navigating a trace backend once one is connected.
 
 Keeping them separate lets customer support quote a readable correlation ID without allowing it to redefine trace topology. A log for one request can contain both. At present this application has no outbound microservice call, so it does not yet demonstrate forwarding either value to another service.
+
+In this implementation, MDC means Mapped Diagnostic Context: logging fields attached to the current execution context. ECS means Elastic Common Schema, the field convention used for the console JSON. The tracing header follows the World Wide Web Consortium (W3C) Trace Context standard. OTLP is the OpenTelemetry Protocol used to export telemetry; export is disabled here by default. These names describe encoding and transport choices, not proof that a remote monitoring store exists.
 
 ### Metric names and bounded dimensions
 
@@ -330,7 +276,7 @@ The boundary matters in an interview and in an incident report:
 
 The integration tests prove known behavior in a controlled environment. Production telemetry would answer the next layer of questions: which versions, regions, instances, and resource conditions cause behavior to degrade under real load.
 
-## Trade-offs
+## How much evidence can we afford to keep?
 
 | Decision | Benefit | Cost or danger |
 |---|---|---|
@@ -362,6 +308,8 @@ For monitoring, I define SLIs and SLOs for user-visible outcomes—for example, 
 For an incident, I follow a fixed process. I confirm impact and scope, inspect recent changes, compare successful and failing traces, use the slow or erroneous span to focus log searches, then check dependency and resource metrics. I mitigate safely—such as rollback, feature disablement, traffic shift, or load shedding—before chasing a perfect root cause. After recovery I add the missing test, alert, dashboard, instrumentation, or runbook step.
 
 I also control observability cost and risk: normalize metric labels, sample normal traces while retaining errors and slow traces, set retention policies, restrict access, and never log credentials or unnecessary personal data. The key is that an alert must lead quickly from user symptom to a representative trace and then to focused evidence in the responsible service.”
+
+Before marking this answer practiced, explain how you would move from a feed alert to one useful log without notes, and predict what the current local tooling cannot show. Try the questions below before opening their answers.
 
 ## Questions and explained answers
 

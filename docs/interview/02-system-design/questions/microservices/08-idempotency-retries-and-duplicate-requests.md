@@ -4,43 +4,31 @@
 
 > [One-page revision card](../../revision-cards/microservices/08-idempotency-retries-and-duplicate-requests.md)
 
-- Status: `READY`; comprehension not yet demonstrated
-- Time: 20–25 minutes
-- Primary idea: a retry is safe only when repeated delivery produces one intended business effect
+## The post exists, but the client saw a timeout
 
-## Why does this matter?
+A user taps Publish. The backend saves the post, but the response disappears before reaching the phone. The phone waits, reports a timeout, and offers Retry. If the retry is treated as a new creation request, the user's feed now contains two copies of the same post.
 
-A timeout does not prove that an operation failed. The server may have committed the write and lost the response on the network. If the client retries `POST /payments` or `POST /posts`, the system can create two charges or two posts.
+Notice what went wrong: the database write succeeded. The missing piece is a reliable way to tell the server, “This is another attempt at the operation I already sent.” A timeout tells the client it did not receive an answer in time; it says nothing certain about whether the server saved the post.
 
-Message brokers also commonly provide **at-least-once delivery**: they try not to lose a message, but may redeliver it. Duplicate delivery is therefore normal, not an exceptional corner case.
+The same problem appears in messaging. A broker may deliver an event, lose the consumer's acknowledgment, and deliver it again. **At-least-once delivery** means delivery can repeat as the system tries to avoid loss. We therefore design the business operation to cope with repetition, rather than assuming duplicates will be rare.
 
-## Analogy: a numbered claim ticket
+## Think of asking about the same repair ticket
 
 You give a repair shop ticket `R-104` with one repair request. If you ask again using `R-104`, the shop shows the original repair status instead of opening another job. A different repair request cannot reuse `R-104`.
 
 The analogy has limits. Distributed systems process concurrent requests, records can expire, a crash can happen between several writes, and events can arrive out of order. A ticket number alone is insufficient without atomic storage and clear scope.
 
-## Plain-language model
+## Give one intended operation an identity
 
-### Idempotency
+First distinguish a new intention from another delivery of the same intention. Publishing a second, deliberately identical post is a new operation. Retrying after the first Publish timed out is still the original operation. The request body alone cannot reliably distinguish them.
 
-An operation is **idempotent** when repeating the same intended operation produces the same business effect as doing it once.
+An **idempotency key** is the identifier the client keeps across those retries, for example `create-post:user-7:attempt-91`. The server remembers the outcome under that key. If another attempt arrives, it returns the existing post ID instead of inserting another row. This makes the operation **idempotent**: repeating this one logical operation has the business effect of doing it once.
 
-- `PUT /posts/42` setting a caption to “Sunset” can naturally be idempotent.
-- `DELETE /posts/42` can be treated as successful even if the post is already gone.
-- `POST /payments` is not naturally idempotent because each call could create a new charge.
+Some APIs already describe a desired state. “Set post 42's caption to Sunset” or “ensure my like exists” can be repeated without adding another resource. Creation-style commands need the extra identity because two calls might otherwise mean two creations.
 
-An **idempotency key** gives a non-idempotent operation a stable identity, for example `create-post:user-7:attempt-91`.
+The server's remembering step is called **deduplication**. The difficult part is not looking up a key. It is making the key and the business effect durable together. If the server saves “already processed” and crashes before creating the post, a retry could be discarded even though nothing was created. If it creates the post and crashes before saving the key, a retry could create a duplicate.
 
-### Retry
-
-A **retry** is another attempt after a failure that might be temporary. Retry only failures likely to recover, such as a connection reset or `503 Service Unavailable`. Retrying invalid input, authorization failures, or a permanent business rejection wastes resources.
-
-Use a maximum attempt count, an overall deadline, exponential backoff, and random jitter. Jitter prevents thousands of clients from retrying at the same instant.
-
-### Deduplication
-
-**Deduplication** records an operation or event ID so the same item is not applied twice. The important part is making the “have I processed this?” record atomic with the business update.
+Safe retries still need limits. Retry a brief connection failure only while the caller's overall time budget remains, and increase the delay between attempts. Add a small random variation to that delay so many recovering clients do not return at once; this is backoff with jitter. A validation error will not become valid merely because the client waits and sends it again.
 
 ## Predict before reading
 
@@ -53,7 +41,7 @@ It should return the outcome of the first successful operation—the same post I
 
 </details>
 
-## Concrete HTTP flow
+## What the server must do with the repeated Publish request
 
 Assume the client sends:
 
@@ -77,15 +65,17 @@ The service handles it as follows:
 
 The unique database constraint is essential. A check-then-insert implemented only in application memory allows two concurrent instances to see “missing” and both perform the operation.
 
-### What if work is slow?
+### What if work is still running?
 
-Store a status such as `IN_PROGRESS`, `SUCCEEDED`, or `FAILED`. A duplicate can receive the completed result, poll a status URL, or receive a retryable response while processing remains in progress. Define what happens to an abandoned `IN_PROGRESS` record; do not leave it ambiguous forever.
+A short database-only operation can create the post and final idempotency result in one transaction. Concurrent duplicates may wait for that transaction or receive a bounded busy response; they must not independently create another post.
+
+For long-running work, a durable record may expose `IN_PROGRESS`, `SUCCEEDED`, or `FAILED`. That is a more involved workflow: the initial claim commits before the slow work, and recovery must safely resume or resolve an abandoned claim. A duplicate may poll a status URL or receive a documented retryable response. Persisting `IN_PROGRESS` does not by itself make a remote side effect atomic; that effect still needs its own stable operation key or a status/reconciliation mechanism.
 
 ### What about key expiry?
 
 Retaining every key forever is expensive. Keep keys at least as long as clients and intermediaries can legitimately retry. Payment keys may need a much longer audit window than feed refresh keys. After expiry, the API can no longer guarantee deduplication for that old attempt, so document the window.
 
-## Concrete event-consumer flow
+## The acknowledgment can be lost too
 
 Suppose a broker redelivers `PostPublished(eventId=e-900, postId=42)`:
 
@@ -101,18 +91,13 @@ If the consumer records `e-900` and then crashes **before** updating the feed in
 
 For publishing events after a database write, use an outbox record committed with the business change. A relay can retry publishing the outbox safely. Producers use an outbox; consumers use an inbox/processed-event record. These solve opposite sides of the delivery gap.
 
-## Retry ownership and retry storms
+## A safe duplicate can still be expensive
 
-Choose one layer to own retries. If the browser retries three times, the gateway retries three times, and the service client retries three times, one request can produce 27 downstream attempts.
+Deduplication protects the business effect, but each incoming attempt still consumes network, application, and often database capacity. A service can avoid duplicate posts and still fall over under retries.
 
-A defensible policy is:
+Suppose the browser makes three total attempts. For each of those, the gateway makes three attempts, and for each gateway attempt the service client makes three more. The dependency receives `3 × 3 × 3 = 27` attempts for one original operation. Each layer thought it was adding resilience; together they multiplied the load.
 
-- propagate one end-to-end deadline;
-- reserve time for downstream work;
-- retry only idempotent operations or operations protected by a key;
-- use backoff and jitter;
-- stop retrying when the remaining deadline cannot fit another attempt;
-- expose retry counts and duplicate-key hits as metrics.
+Choose one layer to retry, give it a small total-attempt budget, and pass the remaining end-to-end deadline to it. Another attempt is useful only if the fault may recover, repeating the operation is safe, and enough time remains to finish. Stop when any of those conditions no longer holds. Track attempts per original operation and duplicate-key hits so a retry storm is visible even when the final responses are successful.
 
 ## Instagram-backend mapping
 
@@ -122,7 +107,7 @@ A future implementation could add the request header at the controller, preserve
 
 The existing `like` behavior checks whether the user already liked the post, and [PostLike.java](../../../../../src/main/java/com/instagram/backend/domain/PostLike.java) already declares the database-level uniqueness rule on `(post_id, user_id)`. That constraint is the reliable protection when two requests reach separate application instances; a future service boundary must preserve it and return a consistent “already liked” outcome for the losing insert.
 
-## Decision and trade-off
+## When should we store a key?
 
 | Choice | Prefer it when | Cost or limitation |
 |---|---|---|
@@ -151,6 +136,8 @@ The service stores the key under a database unique constraint, records a hash of
 For asynchronous delivery, every event has a stable event ID. The consumer writes that ID to a processed-events table in the same local transaction as its business update, so redelivery becomes a no-op. The producer uses an outbox committed with its domain change, allowing publication to retry without losing the event.
 
 I retry only transient failures, within an end-to-end deadline, using exponential backoff and jitter. One layer owns retries so browser, gateway, and service retries do not multiply into a storm. For example, if a payment provider succeeds but its response is lost, retrying with a new key may charge twice. I would reuse the original key, query payment status, contain duplicate automation, and reconcile provider charge IDs against the order. I monitor retry attempts, exhausted retries, duplicate-key hits, stuck in-progress records, and consumer age. The trade-off is extra durable state and cleanup, but it is cheaper than duplicate money movement or user-visible writes.”
+
+Before marking this answer practiced, explain the lost-response case without notes and predict what changes if the retry uses a new key. Try the questions below before opening their answers; a complete note is separate from demonstrated understanding.
 
 ## Questions and explained answers
 

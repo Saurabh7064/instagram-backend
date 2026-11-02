@@ -2,20 +2,21 @@
 
 [Module](./README.md) · [Previous: primary-key grammar](./07-cassandra-primary-key-syntax.md) · [Next: when partitions appear](./09-cassandra-partition-creation.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: choose clustering order for the query inside an already selected partition.
-- Prerequisites: `(user_id,activity_date)` groups a partition; the full key identifies a row.
 - New core terms: clustering order, tie-breaker, slice.
 
-## Why grouping alone is insufficient — Must understand
+Core study: 10–15 minutes. Prerequisites: `(user_id,activity_date)` groups a partition; the full key identifies a row.
 
-Once a read selects user 42 and October 25, it still needs recent events first and must preserve simultaneous activities. Grouping tells us *where* the rows belong. The clustering tuple says how rows are distinguished and traversed within that group.
+## The day is selected. Which two events come first? — Must understand
 
-The correct Cassandra term is **clustering column** or the combined **clustering key**. “Cluster key” is ambiguous: a cluster is a group of servers, not this ordering tuple. This is also different from a relational database's clustered-index terminology, which is product-specific and does not select Cassandra replicas.
+The `(42,2026-10-25)` group contains activity 1001 at 09:00 and activities 1002 and 1003 at 09:05. We want recent events first. Compare time first: both 09:05 events precede 09:00. They tie on time, so compare their IDs in ascending order. The result is 1002, 1003, 1001; the first two are 1002 and 1003.
 
-**Clustering order** defines ascending or descending traversal for each clustering component. A **tie-breaker** is the next component used when earlier components are equal. A **slice** is a contiguous interval in that ordered clustering space.
+The date/user key chose the group. It did not resolve the order or distinguish events with equal timestamps. For those jobs Cassandra uses **clustering columns**. Together, our time and ID form the **clustering key** inside the selected partition.
 
-## Declare the order we actually want
+The declared **clustering order** chooses ascending or descending traversal for each component. An ID that decides between equal times is a **tie-breaker**. We will use descending time, then ascending ID. A contiguous time interval within that ordered group is a **slice**.
+
+Keep the terminology tied to its job: a Cassandra cluster is a group of servers, while clustering columns organize rows within one partition. Relational products also use their own clustered-index terminology, which does not define Cassandra replica placement. Nothing about this time/ID ordering changes the user/day hash.
+
+## Put the comparison rules in the table declaration
 
 ```cql
 CREATE TABLE activity_lessons.activity_by_user_day (
@@ -33,7 +34,7 @@ CREATE TABLE activity_lessons.activity_by_user_day (
 
 Without the explicit clause, clustering columns default to ascending order. This clause changes within-partition ordering, not the partition hash. The [Cassandra key/clustering reference](https://cassandra.apache.org/doc/latest/cassandra/developing/cql/ddl.html) defines these roles.
 
-## Derive the query's exact result
+## Apply LIMIT only after establishing the order
 
 Select the fixed `(42,2026-10-25)` partition. It has:
 
@@ -52,27 +53,29 @@ LIMIT 2;
 
 Both partition-key components identify the group. The selected columns describe the returned values, not routing inputs. The stored clustering order supplies this within-partition traversal. For a time slice starting at 09:05, adding `occurred_at >= '2026-10-25 09:05:00+0000'` includes both tied events and excludes 1001. The bound is inclusive, so equality matters.
 
-## Why component order affects supported filters
+## Why skipping the first clustering column changes the lookup
 
 Cassandra's efficient clustering restrictions follow the tuple's order. After selecting the partition, time is the first clustering column. Filtering only `activity_id=1003` without constraining the preceding time component does not become a direct ordered lookup in this layout. Index-enabled or explicitly filtered queries can have different capabilities, but their work and version-specific rules need analysis; adding `ALLOW FILTERING` does not redesign the key.
 
 Likewise, ordering user 42's events across *two dates* requires querying both date partitions and merging in the application or choosing another table. The clustering order is not a global order of every row across the cluster. [Cassandra's SELECT documentation](https://cassandra.apache.org/doc/latest/cassandra/developing/cql/dml.html) explains clustering restrictions and supported ordering.
 
-## Analogy, trade-off, and project mapping
+## An ordered folder does not order the whole database
 
 A dated folder contains files sorted newest first, with an ID deciding equal-time order. It does not reorder files in other folders or choose the building storing them. Real Cassandra storage may span internal files and memory structures; “ordered” describes the logical clustering access model, not a claim of one physically contiguous disk file.
 
 Choose clustering columns around the required within-group ranges and stable pagination. Avoid treating an unordered event type as an occurrence identity. The cost is a specific access pattern: another lookup shape may need another table. [PostRepository's createdAt-desc query](../../../../../../src/main/java/com/instagram/backend/repository/PostRepository.java) requests relational result ordering, not Cassandra clustering storage. The activity table remains proposed learning material.
 
-## Failure drill — paper exercise
+## Remove the ID tie-breaker — paper exercise
 
-- **Predict:** remove activity_id from the primary key while keeping two 09:05 events. Can the partition preserve both as separate rows?
-- **Symptom:** both address the same user/day/time key and one row's non-key fields replace the other under write-resolution rules.
-- **Contain:** stop writes to the insufficient identity layout; keep original event input for repair.
-- **Recover:** use a new table with the tie-breaker, replay both events, and verify 1002,1003,1001 order.
-- **Prevent:** test timestamp collisions and pagination across equal-time rows. Ordering precision is not a uniqueness guarantee.
+Keep both 09:05 events but remove activity_id from the primary key. Predict whether they still address separate rows.
 
-## Recap and stop/go
+They now share the same user/day/time identity. Under the write-resolution rules, one row's non-key fields can replace the other's. Timestamp precision is not an event-uniqueness guarantee. Stop writing to the insufficient layout and retain original event input for repair.
+
+Create the table with its tie-breaker, replay recoverable events, and verify the traversal 1002,1003,1001. Include pagination tests that cross equal-time rows. Those checks test both preservation and stable ordering rather than accepting a plausible-looking first page as proof.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Identify the partition and clustering tuples, then derive the full order and the LIMIT 2 result. Explain why clustering order does not decide node placement or cross-date global ordering.
 

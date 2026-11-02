@@ -6,44 +6,47 @@ PostgreSQL becomes slower as posts and likes grow, and a teammate proposes repla
 
 **“How do you choose SQL, NoSQL, or both for posts, likes, and feeds?”**
 
-## Why this problem exists
 
-Data paths need different guarantees and query shapes. Users, ownership, and unique likes benefit from transactions and constraints; a precomputed timeline may need partitioned read throughput. Choosing by brand name can trade a bottleneck for lost guarantees and harder operations.
+## Start with the rule a like must obey
 
-## Analogy: a ledger and a noticeboard
+User 7 likes post 42. Whatever database we choose, the product wants one relationship between that user and that post. A retry or two simultaneous taps must not create two likes. This always-true business rule is an **invariant**.
 
-A bank ledger protects authoritative records while a noticeboard provides a fast copy that can be rebuilt. The analogy stops because distributed stores may accept independent writes and serve stale data, so ownership and synchronization must be explicit.
+A relational database can enforce the pair `(post_id=42, user_id=7)` as unique. A **transaction** can commit the relationship and its related database changes together, or roll them back together. These are concrete reasons to retain PostgreSQL for this write path. “The feed is slow” does not tell us that either guarantee should be abandoned.
 
-## Terms to establish
+First inspect the slow query, its indexes and how much data it returns. Moving a query that reads every post into another database may reproduce the same excessive work with different tools.
 
-- A **transaction** groups changes so they commit or fail together.
-- An **invariant** is a rule that must remain true, such as one like per user and post.
-- **Denormalization** duplicates data into a read-friendly shape.
-- The **authoritative source** is the system whose value wins during disagreement.
+## A feed copy has a different job
 
-## What I would do
+Suppose measured growth eventually justifies a separate, viewer-keyed feed store. Its job is to answer “which posts should viewer 7 see?” quickly. It need not own whether the like exists. PostgreSQL remains the **authoritative source**: when the stores disagree, its accepted business records decide what is correct.
 
-1. List access patterns, volume, ordering, consistency, uniqueness, joins, and failure behavior.
-2. Keep users, posts, ownership, and unique likes relational while transactions matter.
-3. Add a specialized store only for a demonstrated access pattern, and make that projection rebuildable from one authority.
+Copying selected data into a shape optimized for a particular read is called **denormalization**. It saves work during reads by doing preparation earlier. The cost is maintaining another copy and handling the time before that copy catches up.
 
-## Concrete walkthrough
+A ledger and a noticeboard provide a useful picture. The ledger records the accepted transaction; the noticeboard displays selected information. The analogy stops when software must handle concurrent updates, duplicate messages and a failed copying process without a person supervising each change.
 
-A like inserts `(post_id=42, user_id=7)` under a uniqueness constraint and updates the count transactionally. A retry cannot create a second relationship. Later, an outbox event can update a denormalized ranking view through an idempotent consumer. If that consumer stops, authoritative data remains correct and the projection catches up.
+## Make the copy recoverable
 
-## Instagram-backend mapping
+A proposed reliable handoff would commit the like and an event record in the same PostgreSQL transaction. A publisher can then retry delivering that recorded event, and a consumer must recognize repeated events. If the consumer stops, the like remains recorded while the read copy becomes stale. Once repaired, the consumer catches up or the copy is rebuilt.
+
+That extra database is worthwhile only if a measured query need pays for the synchronization, backup, monitoring and operational work. SQL and NoSQL each cover many designs; choose the particular store's guarantees and access patterns, rather than treating either category as one universal architecture.
+
+## Where this appears in our backend
 
 [UserAccount.java](../../../../../src/main/java/com/instagram/backend/domain/UserAccount.java), [Post.java](../../../../../src/main/java/com/instagram/backend/domain/Post.java), and [PostLike.java](../../../../../src/main/java/com/instagram/backend/domain/PostLike.java) use PostgreSQL as authority. `PostLike` enforces unique `(post_id, user_id)`, and [PostService.java](../../../../../src/main/java/com/instagram/backend/service/PostService.java) updates likes transactionally. Materialized feeds, search, outbox publishing, and idempotent consumers are proposed, not implemented.
 
-## Choices and trade-offs
+## Choosing the approach and paying its costs
 
 - Choose SQL when transactions and constraints protect important rules; do not force it onto every scale pattern.
 - Choose a key-value or wide-column store for known, partitionable high-volume queries; accept denormalization and limited joins.
 - Use both only when the need justifies synchronization and operational burden.
 
-## Failure drill
 
-**Prediction:** the API best-effort writes PostgreSQL and a NoSQL feed store, then crashes after only one succeeds. **Symptom and detection:** feed entries disagree with authoritative posts, and reconciliation finds missing or orphaned records. **Containment:** stop unsafe dual writes and serve correctness-sensitive data from PostgreSQL. **Recovery:** choose the authority, reconcile projections, and replay durable changes. **Prevention:** commit an outbox record with the business transaction, consume it idempotently, and alert on projection lag.
+## Paper drill: only one of two writes succeeds
+
+Predict the result if the API saves a post in PostgreSQL, then crashes before writing its feed copy. PostgreSQL contains the post; the feed does not. Retrying a best-effort second write is possible only if we still know reliably which change needs copying.
+
+Detect the gap by comparing authoritative posts with feed entries and checking copying progress. Stop treating the two stores as independent authorities. Serve correctness-sensitive fields from PostgreSQL while repairing the projection.
+
+Recover by replaying recorded changes or rebuilding the affected feed range. The prevention is a durable handoff recorded with the original business change, duplicate-safe consumption and regular comparison of the copy against its source. A healthy second database alone cannot prove that it contains every accepted change.
 
 ## Two-to-three-minute interview answer
 
@@ -53,9 +56,10 @@ For a large feed or search path, I may add a specialized read store. A viewer-ke
 
 Committed changes should update projections through an outbox and idempotent consumers, so partial failure creates visible lag rather than silent divergence. I would monitor that lag and rehearse rebuilding. Another database adds consistency, backup, security, capacity, and on-call cost, so I would introduce it only for a measured need whose benefit outweighs that burden.
 
-## Practice status
 
-The artifact is ready; comprehension is not implied. Practice by classifying one authoritative write and one rebuildable read model, then explaining how they remain consistent.
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`. Explain this scenario in your own words, predict the paper drill, and attempt the questions before opening their answers. Record learning only from your own explanation and predictions.
 
 ## Questions and explained answers
 

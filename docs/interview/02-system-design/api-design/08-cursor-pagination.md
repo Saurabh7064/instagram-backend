@@ -4,21 +4,29 @@
 
 How do you continue a feed without shifting offset pages?
 
-[Module sequence](README.md) · Study in two passes: core model, then design decisions (15–20 minutes each) · Artifact: READY · Learning: TODO
+[Module sequence](README.md) · Artifact: READY · Learning: TODO
 
 ## What you will learn
 
-Design a complete cursor protocol, derive time/ID boundaries and size+1 metadata, bind selection context, and identify ranked-feed consistency limits.
+Derive the next feed boundary from the last returned post, handle equal timestamps, and explain which changes a cursor can tolerate without promising a frozen feed.
 
-Prerequisites: Lesson 7 and its stop/go check. All later lessons remain TODO until their own checkpoints are attempted.
+Read [offset pagination](07-offset-pagination.md) first; its shifting pages are the problem we are fixing.
 
-## Must understand: problem and model
+## Remember the last post rather than how many you skipped
 
-A growing feed needs a continuation point based on the last seen item. A cursor encodes that boundary. Keyset pagination asks for rows after that ordered key rather than skipping a count. Think of bookmarking a named sentence instead of a page number; the analogy stops when records are deleted or sort keys change.
+In the [offset lesson](07-offset-pagination.md), new posts could shift the next page. We can change the question from “skip two rows” to “continue after the last post I actually saw.” A new arrival above that post then does not change our starting point.
 
-## Spring Boot example
+Use this fixed order, with each pair showing `(creation time, ID)`: `[(10:00,9),(10:00,8),(10:00,7),(09:59,6)]`. The first two results are 9 and 8. To continue, remember `(10:00,8)` and ask for posts older than that boundary. Post 7 qualifies because its time equals 10:00 and its ID 7 is smaller than 8. Post 6 qualifies because 09:59 is earlier than 10:00.
 
-Examples are proposed except where explicitly identified as current code. Imports/wiring are omitted; named new services and DTOs need implementation. Preserve current authorization rules. The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle).
+That saved continuation value is a **cursor**. Asking for rows after an ordered value is called **keyset pagination**. We need both time and ID because a timestamp alone cannot distinguish posts 9 and 8. The order uses larger IDs first when times tie; the continuation must use the same rule.
+
+This resembles marking a named sentence in a book rather than remembering its page number. The limit of the comparison is that posts can disappear or become invisible. A cursor can keep a position without preserving a frozen copy of the whole collection.
+
+The query below implements the boundary. The rest of the API still has to define what the cursor contains, how to validate it, and who may see the selected posts.
+
+## Translate the boundary into a query
+
+The project uses [Spring Boot 4.0.2 and Java 24](../../../../build.gradle). The excerpt below is a design proposal unless identified as current code; omitted imports and collaborators still need implementation.
 
 ```java
 @Query("""
@@ -31,17 +39,19 @@ List<Post> next(@Param("time") Instant time,
                 @Param("id") Long id, Pageable limit);
 ```
 
-### Walkthrough
+### Read the boundary in the code
 
-This proposed repository query uses strict comparisons because the last row was already returned. Timestamp ties compare ID. Request size+1 rows to determine whether another page exists, return at most size, and create the next cursor from the last returned row, not the extra row. Validate cursor structure and bind its filter/order context.
+The first branch accepts times earlier than the cursor time. The second accepts equal times only when the ID is smaller. Those strict comparisons exclude the last returned row, which the client has already seen. The `order by` uses the same fields and directions as that boundary.
 
-## Request trace: predict, act, observe, explain
+This is a proposed repository query. Its real authorized selection needs visibility and filter predicates around the whole boundary expression. Fetching one extra row helps decide continuation, but the cursor must come from the last row actually returned, as worked out below.
 
-Before following the trace, predict the status and final stored state. Then trace these transitions in order:
+## Continue after post 8, even when post 10 arrives
 
-Rows (10:00,9),(10:00,8),(09:59,7). First size=2 returns 9,8 with cursor (10:00,8). Next predicate excludes 9 and 8 and returns 7. A new (10:01,10) does not shift this boundary, so 8 is not repeated.
+Our fixed rows are `[(10:00,9),(10:00,8),(10:00,7),(09:59,6)]`. With size 2, return posts 9 and 8 and save boundary `(10:00,8)`. The next query asks for an earlier time, or the same time with a smaller ID. It returns posts 7 and 6; neither 9 nor 8 satisfies that condition.
 
-The observable result includes the response **and** the final stored state. A successful status alone cannot prove concurrency or authorization correctness.
+Now insert `(10:01,10)` before the continuation request. It is newer than the boundary, so it does not qualify. The next result remains `[7,6]`, rather than shifting to include post 8 again.
+
+This is a boundary guarantee, not a snapshot guarantee. Deleting post 7 removes it from later results; changing which posts are visible can change the selection. We must state those limits rather than describe the cursor as a copy of the feed.
 
 ## Complete a cursor protocol
 
@@ -52,7 +62,7 @@ Proposed first response for size 2:
 ```json
 {
   "items": [{"id":9},{"id":8}],
-  "nextCursor": "opaque-boundary-for-time-1000-id-8",
+  "nextCursor": "opaque-boundary-for-1000-id-8",
   "hasNext": true
 }
 ```
@@ -61,7 +71,9 @@ The token above is descriptive, not a real encoded token. A real cursor could en
 
 ### Work through size+1 precisely
 
-Rows descending by (time,id): [(1000,9),(1000,8),(999,7),(998,6)]. Request size=2 -> fetch 3 -> [9,8,7]. Return [9,8]. Since 3 > 2, hasNext=true. Build next boundary from **8**, the final returned row. Next query selects time <1000 or time=1000 and id<8 -> [7,6]. Building the cursor from extra row 7 would skip it.
+The server needs to know whether more rows remain without returning an unbounded result. Ask for `size + 1 = 2 + 1 = 3` rows and receive `[9,8,7]`. Return only `[9,8]`. The third row proves another item was available at this query, so set `hasNext:true`.
+
+Build the next cursor from **8**, the last returned row at 10:00. The next boundary admits 7 because it has the same time and `7 < 8`, and admits 6 because 09:59 is earlier. Building the cursor from extra row 7 would instead tell the next request to continue after an item the caller never saw, skipping it.
 
 The SQL-side logical condition should be `(time < boundaryTime OR (time = boundaryTime AND id < boundaryId)) AND visibility/filter predicates`. Parentheses matter: writing `time < boundaryTime OR (tie AND visibility)` accidentally lets the first branch bypass visibility.
 
@@ -73,38 +85,38 @@ Keysets resist inserts before the boundary; they do not freeze the collection. A
 
 For previous-page navigation, reverse the comparison and query ordering, then reverse the selected rows into display order. This is a separate contract; do not reuse a forward cursor without a direction rule. Malformed, unsupported-version, expired, and filter-mismatched cursors need stable errors and tests.
 
-## Project mapping and practice
+## Apply this to the backend
 
-Read the actual [backend implementation](../../../../src/main/java/com/instagram/backend/domain/Post.java) before changing it. The example above distinguishes existing behavior from a proposed extension; a linked file establishes the current starting point, not proof that the proposed design exists.
+[Post.createdAt](../../../../src/main/java/com/instagram/backend/domain/Post.java) is marked non-updatable and initialized on persistence, making it a plausible chronological sort field. The current feed has no cursor protocol or matching query/index guarantee.
 
-**Practice task:** For F-016 add tied-timestamp and insert-between-pages tests; reject malformed cursors with 400, never a raw decoder exception.
-
-Keep this a design exercise until a feature change is explicitly undertaken. An implementation must follow the repository integration-test, API verification, documentation, and commit workflow.
+For F-016, design fixtures with equal timestamps, a new post arriving between pages, malformed tokens, and changed filters. State each expected page before running the eventual test; a decoding exception must become the documented client error, not leak as an internal failure.
 
 ## Useful later: choices and costs
 
 Choose keysets for long, ordered feeds. They make arbitrary page-number jumps difficult and do not create a frozen snapshot across requests. Use immutable sort keys and an appropriate composite index. Opaque encoding hides format but is not authentication; sign the cursor if tampering affects a trusted boundary.
 
-## Controlled failure drill
+## Remove the ID from the cursor on paper
 
-Predict sorting only by timestamp with strict time comparison. A tied row disappears between pages. Detect a fixture with equal timestamps, contain by retaining the old API until fixed, recover with timestamp-plus-ID cursors, prevent with tie and insertion tests.
+Use the same first page `[9,8]` at 10:00, with post 7 also at 10:00 waiting for the next page. If continuation asks only for `createdAt < 10:00`, predict what happens: post 7 is skipped because its time is equal, even though the client has never seen it.
 
-Describe the prediction before reading the symptom. In a future lab, use disposable data, record the observed response and state, and verify recovery rather than assuming it succeeded.
+A future tied-timestamp test detects that omission by deriving the expected next IDs. Keep a faulty new cursor contract out of service while correcting the format and predicate; existing issued cursors need a defined restart or compatibility policy. Recover by continuing with the time-and-ID boundary and verifying `[7,6]`. Prevent recurrence with exact ties, extra-row handling, and insertion-between-pages tests. No cursor implementation or test run is supplied by this document.
 
 ## Interview-ready answer
 
 I use keyset continuation for long ordered feeds, with immutable order fields and a deterministic tie-breaker. I fetch one extra row to determine continuation but build the cursor from the last returned row. I validate cursor version, filters, size, and expiry; encoding alone is not protection or authorization. In this project createdAt and ID form a plausible chronological boundary, supported by a reviewed query/index and current visibility predicates. Keysets resist front inserts but do not freeze visibility or ranking. I test ties, malformed tokens, inserts/deletes, and exact page boundaries, and only add a retained feed snapshot if the product requires stable ranked traversal.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Proceed only after explaining the request trace without notes, predicting the failure, and answering all three checks below before opening their answers. Record the attempt in [learner progress](learner-progress.md). Artifact readiness does not establish comprehension or implementation readiness.
+Derive both pages and the exact cursor source row. Continue when you can explain the tied-time omission, protect the full query with visibility, and say why this is not a frozen ranked feed.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 
 <details>
 <summary>1. Why must a cursor include an ID when timestamps tie?</summary>
 
-With rows (10:00,9) and (10:00,8), time alone cannot distinguish the boundary. After returning ID 9, a strict time-only predicate skips ID 8. Comparing time then ID retains it without repeating ID 9.
+After returning IDs 9 and 8 at 10:00, ID 7 at that same time is still unseen. A strict time-only condition excludes it because 10:00 is not less than 10:00. Adding the ID condition admits it because 7 < 8, while excluding returned rows 9 and 8.
 
 </details>
 

@@ -8,19 +8,23 @@ How do you choose an HTTP method, especially POST versus PUT versus PATCH, and w
 
 ## What you will learn
 
-Choose a method from the requested effect, explain every common method, distinguish replacement from partial modification, derive missing/null behavior for two patch formats, and identify which retries need protection.
+Choose read, replace, modify, or process from what the caller wants to happen. Derive how repeating each post operation behaves, including the difference between two patch formats.
 
-Prerequisite: [resource identity and URLs](01-resources-and-urls.md). Study this chapter in three passes: method semantics; POST/PUT/PATCH examples; patch formats and implementation. Each pass is about 15–20 minutes. The protocol examples are proposed contracts unless explicitly marked current behavior.
+Start with [resource addresses](01-resources-and-urls.md). The method table is a reference; focus first on the worked create and edit requests. Protocol examples are proposed unless marked current behavior.
 
-## Must understand: why methods exist
+## Why the server needs more than an address
 
-A link preview, browser prefetch, proxy retry, and human submit button can all send requests. If reading a URL could like a post, merely previewing it could change data. If retrying an uncertain write always created a new item, a network failure could produce duplicates. Methods describe what the caller asks the server to do, so callers and intermediaries can reason about requests.
+Suppose a messaging app previews a link to post 42 before its user opens it. If requesting that link also likes the post, an automated preview has performed an action the person never intended. We need an agreed way to distinguish “read this” from “change this,” even when the address is the same.
 
-An HTTP method is like an instruction on an addressed envelope: read, replace, or remove the thing at that address. The analogy stops because network delivery and responses can fail independently, and intermediaries may retry under specific rules.
+That instruction is the **HTTP method**. `GET /posts/42` asks for a representation; it must not ask the server to publish, like, or delete the post. `PUT /posts/42/editable-content` can ask for a particular editable state instead. The method describes the requested effect, rather than which Java repository function happens to run.
 
-**Safe** means the caller does not request a state change. Logging or accounting can still occur. **Idempotent** means several identical requests have the same intended server effect as one request. It does not mean identical status codes, zero side effects, or automatic protection against competing different requests. **Cacheable** concerns whether a response can be retained and reused under cache rules; it is a separate property.
+Now add a network failure. A request to set the caption to `Dusk` can be repeated and still leave it at `Dusk`. A request to append `night` to an array may append it twice. This is the useful distinction behind **idempotent**: identical repetitions have the same intended effect as one request. It does not promise identical statuses or protect two different edits from overwriting one another.
 
-The method definitions follow [HTTP Semantics, section 9](https://www.rfc-editor.org/rfc/rfc9110.html#section-9); the worked requests below apply those semantics to this backend.
+**Safe** means the caller is not requesting a state change. Access logs can still be written during GET; they are different from asking for a business mutation. Whether a response may be retained and reused is a separate caching question, covered in the [caching lesson](12-caching-and-privacy.md).
+
+An instruction on an addressed envelope is a useful analogy: the address identifies the target and the instruction says what to do there. The limit is uncertain delivery. Requests and responses can fail independently, so an instruction's repeat behavior matters.
+
+The method definitions follow [HTTP Semantics, section 9](https://www.rfc-editor.org/rfc/rfc9110.html#section-9). The table is a reference; the post-edit examples below explain how to choose.
 
 ## Method comparison
 
@@ -176,9 +180,11 @@ DELETE requests removal of the resource association. It does not promise physica
 
 OPTIONS can advertise supported methods in Allow. Accept-Patch can advertise admitted patch media types. A CORS preflight also uses OPTIONS with Origin and Access-Control-Request-Method; its browser permission response is not the same thing as domain authorization. A caller can still be forbidden from PUT even when PUT is listed as supported. Spring has automatic OPTIONS handling for mappings; explicit CORS configuration and advertised patch formats need deliberate review.
 
-## Controlled failure drill
+## Reject a patch without leaving half of it behind
 
-Prediction: a patch first changes caption then removes a required location; the second step fails. Symptom of a broken implementation: response is an error but a follow-up GET shows the changed caption. Containment: disable the new patch route or keep the old full-edit contract while fixing it. Recovery: restore the original state in disposable lab data, then re-run the failing request. Prevention: apply to a candidate, validate final state, persist atomically, and assert unchanged stored values after failure. Separately test unknown protected fields, unsupported media types, and concurrent stale requests.
+Use the same post state: caption `Sunset`, location `Beach`, tags `[sea,sky]`. On paper, apply the merge patch that sets caption to `Dusk` and removes required locationLabel. Predict the final stored caption if the patch is rejected: it must still be `Sunset`.
+
+The symptom of a broken implementation is an error response followed by a GET showing `Dusk`. Detect it with a fresh stored-state assertion, not only the patch status. Contain the new route while preserving the working full-edit contract. In disposable lab data, restore the original values, fix candidate-state validation and atomic persistence, then repeat the failure and verify both fields remain unchanged. Protected fields, unsupported patch types, and stale concurrent writes need their own checks; this written drill is not a completed test run.
 
 ## Interview-ready answer
 
@@ -186,9 +192,11 @@ I choose the method from the requested effect on the addressed resource. GET and
 
 I distinguish safety, idempotency, caching, and concurrency. Identical PUTs or DELETEs have the same intended effect, though statuses can differ. POST needs an attempt-key contract for safe create replay. PATCH may be idempotent for setting a value but not appending an array item. None of those choices prevents two different edits from clobbering each other, so I add atomic revision preconditions where necessary. In Spring I keep DTOs, field permissions, final-state validation, and transaction/concurrency rules in the design rather than assuming an annotation supplies them. I test repeats, stale writes, and partial-failure rollback.
 
-## Stop/go and learner evidence
+## Before moving on
 
-Explain all seven common methods, derive each worked PUT and patch result, predict a failed multi-change patch, and justify a method for creating a comment, liking a post, and starting an export. Record an attempt in [learner progress](learner-progress.md); do not mark comprehension from reading alone.
+Explain the seven common methods from their requested effect, derive both patch outcomes, and predict the state after an invalid multi-change patch. Choose a method for comment creation and a desired-state like without relying on body size.
+
+Attempt the questions before opening their answers and record the explanation in [learner progress](learner-progress.md). This revision leaves learning status unchanged; a finished document is not evidence that you have demonstrated the idea.
 
 ## Questions and explained answers
 

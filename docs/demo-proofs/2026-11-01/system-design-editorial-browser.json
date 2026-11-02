@@ -1,0 +1,585 @@
+{
+  "documents": 96,
+  "renderedDisclosures": 353,
+  "numberedCodeBlocks": 90,
+  "pageErrors": 0,
+  "mobileOverflow": false,
+  "results": [
+    {
+      "path": "docs/interview/02-system-design/api-design/01-resources-and-urls.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 2
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/02-http-methods.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 6
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/03-status-and-response-contracts.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/04-request-validation.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/05-error-contracts.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 2
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/06-identity-and-ownership.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/07-offset-pagination.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 2
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/08-cursor-pagination.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 2
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/09-filtering-and-sorting.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 2
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/10-idempotency-keys.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/11-conditional-updates.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 2
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/12-caching-and-privacy.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 2
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/13-compatibility-and-versioning.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 3
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/14-timeouts-and-async-work.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/15-contract-tests-and-observability.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 2
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/16-content-negotiation.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/17-relationships-and-commands.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/18-aggregation-and-bff.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/19-bulk-operations.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 2
+    },
+    {
+      "path": "docs/interview/02-system-design/api-design/20-contract-first-openapi.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 2
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/01-partial-failure.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/02-cap.md",
+      "status": 200,
+      "details": 4,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/03-pacelc.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/04-consistency-models.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/05-session-and-causal-consistency.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/06-linearizability-and-serializability.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/07-quorums.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/08-consensus-and-election.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/09-raft.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/10-paxos.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/11-split-brain-and-locks.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/12-distributed-transactions-and-2pc.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/13-sagas.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/14-idempotency-and-delivery.md",
+      "status": 200,
+      "details": 4,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/15-lamport-clocks.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/01-distributed-systems-fundamentals/16-vector-clocks.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/02-scalability-and-load-balancing/05-load-balancing-and-stateless-services.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/02-scalability-and-load-balancing/08-backpressure-and-load-shedding.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/03-caching-and-content-delivery/02-caching-consistency.md",
+      "status": 200,
+      "details": 4,
+      "codeBlocks": 3
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/04-databases-and-data-modeling/03-partitioning-replication-hot-keys.md",
+      "status": 200,
+      "details": 0,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/04-databases-and-data-modeling/partitioning-and-keys/01-partitions-shards-and-replicas.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/04-databases-and-data-modeling/partitioning-and-keys/02-range-partitioning.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/04-databases-and-data-modeling/partitioning-and-keys/03-hash-partitioning.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/04-databases-and-data-modeling/partitioning-and-keys/04-hotspots-and-hot-keys.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/04-databases-and-data-modeling/partitioning-and-keys/05-consistent-hashing.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/04-databases-and-data-modeling/partitioning-and-keys/06-sql-partition-key-and-table-creation.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 3
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/04-databases-and-data-modeling/partitioning-and-keys/07-cassandra-primary-key-syntax.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 3
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/04-databases-and-data-modeling/partitioning-and-keys/08-cassandra-clustering-columns.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 2
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/04-databases-and-data-modeling/partitioning-and-keys/09-cassandra-partition-creation.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 2
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/04-databases-and-data-modeling/partitioning-and-keys/10-cassandra-query-routing.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/04-databases-and-data-modeling/partitioning-and-keys/11-instagram-key-design.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/07-microservices-and-api-design/04-monolith-to-microservices-migration.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/09-reliability-resilience-and-fault-tolerance/01-scalability-availability-reliability.md",
+      "status": 200,
+      "details": 4,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/10-observability-and-production-monitoring/07-tail-latency-percentiles-and-queueing.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/concepts/15-advanced-architecture-and-performance/06-latency-throughput-and-saturation.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/microservices/01-decomposing-a-monolith.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 3
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/microservices/02-production-observability-and-debugging.md",
+      "status": 200,
+      "details": 6,
+      "codeBlocks": 4
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/microservices/03-inter-service-communication-resilience.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 5
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/microservices/04-distributed-transactions-and-data-consistency.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 9
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/microservices/05-bulkhead-isolation.md",
+      "status": 200,
+      "details": 6,
+      "codeBlocks": 8
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/microservices/06-fault-tolerant-resilient-architecture.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 2
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/microservices/07-service-boundaries-and-data-ownership.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/microservices/08-idempotency-retries-and-duplicate-requests.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/microservices/09-api-event-contract-evolution.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 1
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/microservices/10-testing-and-safe-deployment.md",
+      "status": 200,
+      "details": 5,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/production-scenarios/01-peak-hour-latency-spike.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/production-scenarios/02-post-deployment-latency-spike.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/production-scenarios/03-high-p99-with-normal-average.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/production-scenarios/04-database-connection-pool-saturation.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/production-scenarios/05-downstream-timeout-and-retry-storm.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/production-scenarios/06-queue-backlog-and-stale-results.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/production-scenarios/07-cache-stampede-on-hot-key.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/production-scenarios/08-single-region-latency-spike.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/01-requirements-and-capacity-estimation.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/02-horizontal-scaling-and-load-balancing.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/03-choosing-sql-or-nosql.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/04-indexing-query-design-and-read-replicas.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/05-sharding-and-hot-partitions.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/06-replication-cap-and-consistency.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/07-cache-design-and-invalidation.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/08-media-storage-processing-and-cdn.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/09-cursor-pagination-for-changing-feeds.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/10-feed-fanout-strategy.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/11-synchronous-queues-and-pubsub.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/12-correct-multi-step-workflows.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/13-distributed-rate-limiting.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/14-token-lifecycle-and-revocation.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/15-search-and-near-real-time-indexing.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/16-feed-ranking-and-cold-start.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/17-real-time-notifications.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/18-slos-and-observability.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/19-multi-region-disaster-recovery.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/20-zero-downtime-schema-evolution.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/21-concurrent-writes-and-database-constraints.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/22-idempotency-keys-and-ambiguous-timeouts.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    },
+    {
+      "path": "docs/interview/02-system-design/questions/short-questions-and-answers/23-deadline-budgets-and-bounded-retries.md",
+      "status": 200,
+      "details": 3,
+      "codeBlocks": 0
+    }
+  ]
+}

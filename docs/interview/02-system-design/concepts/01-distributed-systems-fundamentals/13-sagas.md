@@ -2,36 +2,27 @@
 
 [Module](./README.md) · [Previous: two-phase commit](./12-distributed-transactions-and-2pc.md) · [Next: idempotency and delivery](./14-idempotency-and-delivery.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: separate atomic rollback from deliberate business recovery.
-- Prerequisites: local commits persist; 2PC requires cooperating participants and can block.
-- Core terms: saga, compensation, orchestrator.
+Core study: 10–15 minutes. Prerequisites: local commits persist; 2PC requires cooperating participants and can block.
 
-## What if one atomic transaction is unavailable? — Must understand
+## The file was saved. The post was not. Now what? — Must understand
 
-Publishing a post may span media storage, database metadata, and notification delivery. Those systems may not share a transaction protocol. Keeping a database transaction open while waiting for a notification provider also creates long waits and does not automatically make the provider transactional.
+Publishing post 42 needs three steps: store media M42, save metadata referring to M42, then notify a follower. The file store, database, and notification provider may not share a transaction protocol. Keeping a Java database transaction open does not make the other two services roll back with it.
 
-A **saga** is a workflow of locally committed steps with rules for retrying or counteracting earlier steps when the overall work cannot continue. “Saga” is a name, not an acronym requiring expansion. Individual steps are durable; intermediate states can be visible.
+Before picking a recovery technique, decide what “published” means. In this proposed workflow, publication succeeds when metadata commits with an existing media reference. Notification may arrive later. If metadata creation permanently fails, unreferenced M42 should be cleaned up after checking it is safe to delete.
 
-**Compensation** is a new business action that counteracts a completed step. It is not a database rollback of the original commit. Deleting unreferenced media is a possible compensation; an email someone already read cannot be unread by rolling back a row.
+Those requirements imply two different responses to failure. A metadata failure leaves a file with no post, so cleanup makes sense. A notification failure leaves a valid post, so deleting it would undo successful publication for the wrong reason. We should retry the notification instead.
 
-An **orchestrator** durably tracks workflow state and chooses the next step or recovery action. The durable part matters: a Java call stack disappears on process failure. Tracking only in memory can leave completed work with no record of what remains.
+## Record the recovery work as carefully as the forward work
 
-## Define the business outcome first
+A **saga** is a workflow of locally committed steps with rules for retrying or counteracting them. Saga is a name, not an acronym. Each completed step is durable, and intermediate states can be visible while the rest of the workflow runs.
 
-Fixed publish workflow for post 42:
+Counteracting an already completed step is **compensation**. Deleting unused M42 is a new operation; it is not the database rolling back a file save. It can fail, and it must not delete a file that has since acquired a legitimate reference. Similarly, an email already read cannot be made unread by rolling back a row.
 
-1. Store media M42.
-2. Create post metadata referring to M42.
-3. Notify a follower.
+An **orchestrator** tracks the workflow and decides its next action. That state must survive a crash. A call stack disappears when the process stops, while a durable `CLEANUP_PENDING` record lets another attempt discover unfinished work. We will start with no media, post, or notification and a workflow record of `STARTED`.
 
-Chosen contract: a post is successfully published when its metadata commits with an existing media reference. Notification may arrive later. If metadata creation fails permanently, clean up the unreferenced media after checking it is safe to delete. These are proposed requirements; other products can choose different rules.
+## Why metadata failure and notification failure recover differently
 
-This definition prevents a common mistake: reversing every step automatically when *any* later step fails. A failed optional notification does not make a valid published post invalid.
-
-## Trace the same workflow through two failure points
-
-Initial state: no M42, no post 42, no notification, workflow record `STARTED`.
+Follow the same publishing steps through two possible failure points:
 
 **Metadata failure branch:** media storage succeeds and records M42, so workflow state becomes `MEDIA_STORED`. Metadata creation then fails permanently. The orchestrator records `CLEANUP_PENDING`, verifies M42 has no valid references, and requests deletion. If deletion succeeds it records `COMPENSATED`; media is absent and no post was published.
 
@@ -45,7 +36,7 @@ Initial state: no M42, no post 42, no notification, workflow record `STARTED`.
 
 A crash can occur between a remote effect and recording the next state. Therefore each step also needs safe repetition or a way to discover its prior result. [Lesson 14](./14-idempotency-and-delivery.md) explains that identity/deduplication boundary. A durable orchestrator alone does not make external effects exactly once.
 
-## Why compensation is imperfect
+## Undoing is another fallible business action
 
 An earlier step may be visible to other users. Later actions may depend on it. Cleanup can fail, and a resource may become referenced before deletion. Recovery must verify current business state and ownership rather than undoing blindly. An operation sometimes requires manual resolution instead of a clean reversal.
 
@@ -59,15 +50,17 @@ Use a saga when services must commit independently and the business can tolerate
 
 [MediaStorageService.store](../../../../../src/main/java/com/instagram/backend/service/MediaStorageService.java) writes media; [PostService.create](../../../../../src/main/java/com/instagram/backend/service/PostService.java) stores metadata. No durable workflow or notification step is implemented by those methods. F-030 processing and future notification work are possible implementation follow-ups, not completed features.
 
-## Failure drill — paper exercise
+## Cleanup fails too — paper exercise
 
-- **Predict:** media succeeds, metadata fails permanently, and deletion is temporarily unavailable. What state should remain?
-- **Detect:** an old `CLEANUP_PENDING` record and an unreferenced M42, not a fictitious success or rollback.
-- **Contain:** prevent publication of invalid metadata and prevent unsafe deletion of media now referenced elsewhere.
-- **Recover:** retry the identity-aware cleanup, verify actual absence and no live references, then record compensation. Escalate if the invariant cannot be established.
-- **Prevent:** persist progress, test crashes around every remote effect/state-record boundary, and alert on aged recovery work. Temporary business inconsistency remains a deliberate cost.
+Media M42 was stored, metadata failed permanently, and deletion is temporarily unavailable. Predict which workflow state should remain.
 
-## Recap and stop/go
+An old `CLEANUP_PENDING` record alongside unreferenced M42 is unfinished recovery, not successful compensation. Keep invalid metadata from being published, but also check whether M42 has acquired a legitimate reference before deleting it.
+
+Retry cleanup using its operation identity, verify actual absence and the reference rule, then record compensation. Escalate if those facts cannot be established. Persist progress and test crashes on both sides of each remote-effect/state-record boundary. Alerting on aged pending work makes the remaining business inconsistency visible; calling the workflow a saga does not make that inconsistency disappear.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Explain the contract, derive the two different recovery actions, and state why compensation is a new fallible operation. Predict what survives an orchestrator crash.
 

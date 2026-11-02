@@ -2,18 +2,29 @@
 
 [Module](./README.md) · [Previous: CAP](./02-cap.md) · [Next: consistency models](./04-consistency-models.md)
 
-- Artifact: `READY`; comprehension: `TODO`.
-- Core study: 10–15 minutes. Primary idea: include ordinary communication delay when choosing a read/write guarantee.
-- Prerequisite: CAP's three promises; a replica is a maintained copy. This lesson reuses those meanings.
 - New core term: latency.
 
-## The question CAP leaves open — Must understand
+Core study: 10–15 minutes. Prerequisite: CAP's three promises; a replica is a maintained copy. This lesson reuses those meanings.
 
-A and B can communicate normally, but B is far away. Must every update wait for B? No machine has failed, yet the decision affects how quickly the user can publish and what a later reader can see.
+## The connection works. Why is publishing still slower? — Must understand
 
-**Latency** is elapsed time from starting an operation to receiving its result. Even a healthy network has nonzero latency. Waiting for an additional remote participant places some of that time on the operation's completion path. Doing work later can shorten the immediate wait, but changes what the service can safely promise meanwhile.
+Post 42 has two copies: A accepts writes, and B receives them. This time the connection is healthy. But B is far away. Should A tell you the caption was saved as soon as its own disk has it, or wait for B too?
 
-## Expand the whole name
+Neither machine has failed. Still, that choice changes both how long you wait and what a reader at B may see after your success message. CAP explained a constraint during broken communication. Here we need to reason about the cost of coordination during an ordinary successful request.
+
+The elapsed time from starting an operation to receiving its result is its **latency**. A healthy network still takes time. If the answer depends on confirmation from B, that confirmation becomes part of the time you wait. Let us calculate that cost before giving the trade-off its name.
+
+## Wait 4 ms, or wait 84 ms?
+
+Fixed setup: post 42 begins at caption v1 on primary A and replica B. A **primary** is the participant designated to accept this example's writes. A local durable save takes 4 ms. After that save, transmitting the update to B, persisting it there, and obtaining confirmation takes another 80 ms. Ignore all other costs for this deliberately simplified calculation. There is one write, v2, and no failures.
+
+**Policy 1: respond after the local save.** A persists v2 at t=4 ms and returns success. B receives the update later. At t=20 ms, a read at B can still return v1. The client's minimum modeled write wait is 4 ms, but a read anywhere is not guaranteed to include its completed write.
+
+**Policy 2: respond after B confirms durable receipt.** A finishes locally at t=4 ms, then waits 80 ms more. Success returns at t=84 ms: 4+80=84. At t=20 ms the write is still in progress, so an old read then is not evidence of missing a *completed* write. Once success returns, B has the version under these assumptions.
+
+The second policy still needs a correct read and ordering protocol. Confirmation from one replica does not make every other replica current or solve concurrent writes. This example isolates the cost of one required confirmation; it does not prove a full consistency model.
+
+## Give the two situations a name: PACELC
 
 **PACELC** is read as **if Partition, Availability versus Consistency; Else, Latency versus Consistency**. It is a conditional mnemonic rather than the name of one protocol.
 
@@ -28,23 +39,13 @@ A and B can communicate normally, but B is far away. Must every update wait for 
 
 The two C positions refer to consistency in different circumstances. The E does not introduce another correctness property. CAP explains a failure constraint; PACELC adds a question about normal operation. Daniel Abadi introduced this framing in his [discussion of CAP's limits](https://dbmsmusings.blogspot.com/2010/04/problems-with-cap-and-yahoos-little.html). It is a design lens, not a universal latency formula.
 
-## Worked timing example
-
-Fixed setup: post 42 begins at caption v1 on primary A and replica B. A **primary** is the participant designated to accept this example's writes. A local durable save takes 4 ms. After that save, transmitting the update to B, persisting it there, and obtaining confirmation takes another 80 ms. Ignore all other costs for this deliberately simplified calculation. There is one write, v2, and no failures.
-
-**Policy 1: respond after the local save.** A persists v2 at t=4 ms and returns success. B receives the update later. At t=20 ms, a read at B can still return v1. The client's minimum modeled write wait is 4 ms, but a read anywhere is not guaranteed to include its completed write.
-
-**Policy 2: respond after B confirms durable receipt.** A finishes locally at t=4 ms, then waits 80 ms more. Success returns at t=84 ms: 4+80=84. At t=20 ms the write is still in progress, so an old read then is not evidence of missing a *completed* write. Once success returns, B has the version under these assumptions.
-
-The second policy still needs a correct read and ordering protocol. Confirmation from one replica does not make every other replica current or solve concurrent writes. This example isolates the cost of one required confirmation; it does not prove a full consistency model.
-
-## Why the cost follows
+## Where does the extra 80 ms go?
 
 If a result depends on information from B, A must either wait for that information, obtain an equivalent guarantee elsewhere, or weaken the result it promises. A faster CPU at A does not remove time spent awaiting B. Moving the wait from writes to reads changes which user operation pays it; it does not make coordination free.
 
 A branch clerk answering from a local notebook is a useful analogy. Calling another branch before answering adds waiting. The analogy stops where replication protocols can confirm versions automatically and reason about ordered concurrent operations; a notebook alone supplies none of that machinery.
 
-## Choices, limits, and common mistakes
+## Decide which operation should pay for coordination
 
 For an approximate public count, a local answer may be valuable even if slightly old. For a permission change that must be honored before a later access, establish the required freshness through authoritative routing or coordination. Avoid making a distant replica mandatory for a low-stakes display without a requirement that justifies its cost.
 
@@ -54,15 +55,17 @@ Do not assign one PACELC label to an entire application and stop reasoning. A fe
 
 [PostService.feed](../../../../../src/main/java/com/instagram/backend/service/PostService.java) queries a single repository; no distant-replica confirmation policy is implemented there. The timing values are invented for this worked calculation. A future replicated database design would require measuring actual confirmation time and stale-read frequency together. Backend method execution time alone may omit network and client waiting.
 
-## Failure drill — paper exercise
+## Make B's confirmation slower — paper exercise
 
-- **Predict:** increase only the confirmation delay from 80 to 200 ms. What happens under each policy?
-- **Symptom:** policy 2 now takes at least 4+200=204 ms in the model. Policy 1 still acknowledges at 4 ms, while B may remain old longer.
-- **Contain:** do not quietly switch to local acknowledgment while retaining the stronger claim. Expose unavailability or explicitly downgrade only operations whose contract permits it.
-- **Recover:** restore the path, confirm catch-up, then compare observed write latency and read versions.
-- **Mitigate:** select a closer coordination group or revise a display's freshness requirement. Those choices change topology or contract; they do not repeal communication costs.
+Keep the same local save and change only the confirmation delay from 80 ms to 200 ms. Predict the client wait under each policy before calculating it.
 
-## Recap and stop/go
+Policy 2 now requires at least 4+200=204 ms. Policy 1 still acknowledges at 4 ms, but B may remain old longer. Latency measurements and returned versions expose those different effects. Quietly switching policy 2 to a local acknowledgment would also change its promise, so either report inability to meet the contract or explicitly relax only operations whose requirements allow it.
+
+Restore the communication path, check that B catches up, and compare write latency with read versions again. A closer coordination group can reduce this wait; a weaker display-freshness requirement can avoid some of it. Both are deliberate changes to topology or contract, rather than removal of communication cost.
+
+## Before moving on
+
+Artifact: `READY`; comprehension: `TODO`.
 
 Expand all six letters, distinguish P from E, and derive 4 ms, 84 ms, and 204 ms from the setup. Explain what the acknowledgment policies do and what they do not prove.
 
