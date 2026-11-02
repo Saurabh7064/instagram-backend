@@ -32,7 +32,7 @@ Backend code, API contracts, UI source, runnable examples, lab artifacts and lea
 
 ## 6) Commit pointers
 
-Artifact commit: pending; recorded after committing. See [commit map](../commit-map.md).
+Artifact commit: `d97e4f5` — rewrite the explanations and record review/browser evidence. See [commit map](../commit-map.md).
 
 ## 7) Pitfalls and fixes
 

@@ -913,7 +913,7 @@ For every new feature or learning concept:
 
 ## Readable system-design lessons — 2026-11-01
 
-- Artifact commit: pending.
+- Artifact commit: `d97e4f5` — rewrite the explanations, template and writing preference; record semantic/browser evidence.
 - Learning change: [Feature 26](./features/26-readable-system-design-lessons.md) revises 96 system-design lesson/entry documents, the author template and the saved writing preference. Concrete scenarios, causal explanations and topic-specific questions replace compressed checklist prose while preserving technical guarantees, project links and explained checkpoints.
 - Concept mapping: distributed failure/consistency, data placement, cache freshness, API contracts, safe retries/workflows, latency and overload, service boundaries, operational recovery and teaching prerequisites. Existing implementation and learner statuses remain unchanged.
 - Evidence: [semantic review and all document pointers](./interview/02-system-design/editorial-review.md), [browser/source/HTTP verification](./demo-proofs/2026-11-01/system-design-editorial-verification.txt), and [reviewed screenshot](./demo-proofs/2026-11-01/system-design-scaling-human-explanation.png). Documentation only; proposed designs are not claimed as executed labs.
