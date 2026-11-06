@@ -45,6 +45,8 @@ Each final PNG was opened and visually inspected after capture. Desktop proofs s
 
 ## Semantic review and commit scope
 
+Artifact commit: `51964ce` — five lessons, Java runners, independent models and reviewed browser proof.
+
 The fixed examples derive all outputs before optimized state; narration follows the actual reference operations, with full container mutations, exact comparisons, short circuits and termination. Complete reference blocks match runnable Java methods. Each lesson includes correctness/invariant reasoning, qualified complexity, relevant alternatives, pitfalls, separate editable practice and three explained checkpoints. No unsupported simulation or precomputed animation is introduced.
 
 The isolated artifact commit uses the repository's previously committed curriculum paths, preserving the already-staged `docs/interview` → `docs/learn` move and extending that move to the new lessons. Only this module's additions and its navigation/tracking deltas are committed. Unrelated staged and unstaged work is excluded. Commit pointers are recorded in the [commit map](../../commit-map.md).

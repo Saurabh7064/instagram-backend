@@ -924,4 +924,4 @@ For every new feature or learning concept:
 - Concept mapping: newest-first matching/operands, minimum history, monotonic waiting indexes, expiration and dominated window candidates. No application queue, production endpoint or learner mastery claim.
 - Evidence: [Java model/browser/HTTP record and reviewed screenshots](./demo-proofs/2026-11-06/stack-queue-verification.md). Eleven sources compile; five reference mains pass; five practice TODOs remain; fixed-seed independent checks and all five browser routes pass. The temporary UI catalog accounts for the existing uncommitted documentation move.
 - All new learning states remain TODO; Two Sum stays active. Existing feature/concept implementation statuses remain unchanged. The isolated commit excludes unrelated workspace changes.
-- Artifact commit: recorded in the follow-up after creating the artifact commit.
+- Artifact commit: `51964ce` — initialize all five lessons, runnable Java pairs, independent models and reviewed browser proof; preserve the pending documentation migration.

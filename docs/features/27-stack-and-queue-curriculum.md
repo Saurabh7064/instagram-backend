@@ -37,6 +37,8 @@ Module 05 is the next unprepared section of the existing index. Each problem sta
 
 ## 6) Commit pointers and evidence
 
+Artifact commit: `51964ce` — `docs: initialize stack and queue LeetCode lessons`.
+
 Exact checks, screenshots, limitations and commit pointers are recorded in the [verification record](../demo-proofs/2026-11-06/stack-queue-verification.md) and [commit map](../commit-map.md). No UI commit is needed for the authored lessons.
 
 ## 7) Pitfalls and fixes
