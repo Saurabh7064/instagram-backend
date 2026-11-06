@@ -125,3 +125,7 @@ DONE: [Feature 25](./25-learning-project-explorer.md), IDE-style nested learning
 ## Readable system-design lessons — 2026-11-01
 
 Completed the editorial artifact revision in [Feature 26](./26-readable-system-design-lessons.md): 96 lesson/entry documents now explain concrete situations through connected technical reasoning. The author template and writing preference are updated; semantic and browser evidence are linked from the note. This completes an editorial artifact, not a product implementation or learner mastery milestone. Existing feature/concept status rows and comprehension records remain unchanged.
+
+## Stack and queue lesson artifacts — 2026-11-06
+
+Prepared [five Module 05 lessons](../interview/01-leetcode/lessons/05-stack-queue/README.md); see [Feature 27](./27-stack-and-queue-curriculum.md) for runnable code and validation. Artifact READY; all learning TODO. No application behavior, build-track feature status, active Two Sum session, or mastery count changes.

@@ -80,3 +80,7 @@ Replaced the prior four-exercise format with [28 Java functional concept lessons
 ## Threading foundations correction — 2026-10-24
 
 The learner identified that the [threading course](./04-java/02-multithreading-from-scratch/README.md) used worker APIs before teaching what a thread is. Added seven prerequisite concept parts and revised start/join. The [new learner tracker](./04-java/02-multithreading-from-scratch/learner-progress.md) has eight TODO rows; the feedback is not a checkpoint attempt, and no active lesson or mastery count changes.
+
+## Prepared future artifacts — 2026-11-06
+
+[Module 05: Stack and Queue](./01-leetcode/lessons/05-stack-queue/README.md) now has five prepared lessons, ten compiled IntelliJ-runnable Java practice/reference files, full narrated state traces, and independent model/browser evidence. Artifact readiness is READY; every new learning status remains TODO. Two Sum remains the single active lesson, its checkpoints remain pending, and no mastery count changes.

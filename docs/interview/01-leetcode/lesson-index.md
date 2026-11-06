@@ -58,11 +58,11 @@ The core path contains 72 primary problems. Reviews, unseen variations, mock-int
 
 | ID | Focused idea | Primary practice | Difficulty | Status |
 |---|---|---|---|---|
-| C05.01 | Match nested delimiters | [Valid Parentheses](https://leetcode.com/problems/valid-parentheses/) | Easy | `TODO` |
-| C05.02 | Store auxiliary state with stack entries | [Min Stack](https://leetcode.com/problems/min-stack/) | Medium | `TODO` |
-| C05.03 | Maintain a monotonic stack | [Daily Temperatures](https://leetcode.com/problems/daily-temperatures/) | Medium | `TODO` |
-| C05.04 | Evaluate postfix operations | [Evaluate Reverse Polish Notation](https://leetcode.com/problems/evaluate-reverse-polish-notation/) | Medium | `TODO` |
-| C05.05 | Maintain a monotonic deque | [Sliding Window Maximum](https://leetcode.com/problems/sliding-window-maximum/) | Hard | `TODO` |
+| C05.01 | [Match nested delimiters](./lessons/05-stack-queue/01-valid-parentheses/README.md) | [Valid Parentheses](https://leetcode.com/problems/valid-parentheses/) | Easy | `TODO` |
+| C05.02 | [Store auxiliary state with stack entries](./lessons/05-stack-queue/02-min-stack/README.md) | [Min Stack](https://leetcode.com/problems/min-stack/) | Medium | `TODO` |
+| C05.03 | [Maintain a monotonic stack](./lessons/05-stack-queue/03-daily-temperatures/README.md) | [Daily Temperatures](https://leetcode.com/problems/daily-temperatures/) | Medium | `TODO` |
+| C05.04 | [Evaluate postfix operations](./lessons/05-stack-queue/04-evaluate-reverse-polish-notation/README.md) | [Evaluate Reverse Polish Notation](https://leetcode.com/problems/evaluate-reverse-polish-notation/) | Medium | `TODO` |
+| C05.05 | [Maintain a monotonic deque](./lessons/05-stack-queue/05-sliding-window-maximum/README.md) | [Sliding Window Maximum](https://leetcode.com/problems/sliding-window-maximum/) | Hard | `TODO` |
 
 ## Module 06 — Linked Lists
 

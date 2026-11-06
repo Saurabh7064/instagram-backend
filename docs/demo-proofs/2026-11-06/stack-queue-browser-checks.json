@@ -1,0 +1,59 @@
+{
+  "baseUrl": "http://127.0.0.1:5173",
+  "moduleLocalLinks": 9,
+  "results": [
+    {
+      "lesson": "01-valid-parentheses",
+      "http": 200,
+      "checkpointsExpanded": 3,
+      "localLinks": 3,
+      "codeBlocks": 4,
+      "numberedLines": 38,
+      "referenceLines": 22,
+      "screenshot": "stack-queue-01-valid-parentheses-trace.png"
+    },
+    {
+      "lesson": "02-min-stack",
+      "http": 200,
+      "checkpointsExpanded": 3,
+      "localLinks": 4,
+      "codeBlocks": 5,
+      "numberedLines": 39,
+      "referenceLines": 24,
+      "screenshot": "stack-queue-02-min-stack-trace.png"
+    },
+    {
+      "lesson": "03-daily-temperatures",
+      "http": 200,
+      "checkpointsExpanded": 3,
+      "localLinks": 5,
+      "codeBlocks": 4,
+      "numberedLines": 26,
+      "referenceLines": 16,
+      "screenshot": "stack-queue-03-daily-temperatures-trace.png"
+    },
+    {
+      "lesson": "04-evaluate-reverse-polish-notation",
+      "http": 200,
+      "checkpointsExpanded": 3,
+      "localLinks": 4,
+      "codeBlocks": 5,
+      "numberedLines": 46,
+      "referenceLines": 25,
+      "screenshot": "stack-queue-04-evaluate-reverse-polish-notation-trace.png"
+    },
+    {
+      "lesson": "05-sliding-window-maximum",
+      "http": 200,
+      "checkpointsExpanded": 3,
+      "localLinks": 6,
+      "codeBlocks": 4,
+      "numberedLines": 36,
+      "referenceLines": 21,
+      "screenshot": "stack-queue-05-sliding-window-maximum-trace.png"
+    }
+  ],
+  "mobileViewport": "390x844",
+  "mobilePageOverflow": false,
+  "pageErrors": []
+}

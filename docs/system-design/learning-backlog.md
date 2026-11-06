@@ -81,3 +81,7 @@ Created [Feature 23](../features/23-partitioning-and-cassandra-key-lessons.md): 
 ## Readable system-design lessons — 2026-11-01
 
 Completed the editorial artifact revision in [Feature 26](../features/26-readable-system-design-lessons.md): 96 lesson/entry documents now explain concrete situations through connected technical reasoning. The author template and writing preference are updated; semantic and browser evidence are linked from the note. This completes an editorial artifact, not a product implementation or learner mastery milestone. Existing feature/concept status rows and comprehension records remain unchanged.
+
+## Stack and queue learning artifacts — 2026-11-06
+
+Prepared [Feature 27](../features/27-stack-and-queue-curriculum.md): newest-first matching, saved minima, ordered waiting indexes, arithmetic operands and window candidates. These are local algorithm lessons, not implemented distributed queues or application scheduling. Artifacts READY; learning TODO. Existing system-design implementation and comprehension statuses are unchanged.

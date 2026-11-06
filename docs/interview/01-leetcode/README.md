@@ -52,6 +52,13 @@ The pattern list above is the high-level order. The lesson index expands it into
    - [Micro-Lesson 04: Merge Intervals](./lessons/04-prefix-suffix-intervals/04-merge-intervals/README.md) — `TODO`
    - [Micro-Lesson 05: Insert Interval](./lessons/04-prefix-suffix-intervals/05-insert-interval/README.md) — `TODO`
 
+5. [Stack and Queue](./lessons/05-stack-queue/README.md) — prepared module
+   - [Micro-Lesson 01: Valid Parentheses](./lessons/05-stack-queue/01-valid-parentheses/README.md) — `TODO`
+   - [Micro-Lesson 02: Min Stack](./lessons/05-stack-queue/02-min-stack/README.md) — `TODO`
+   - [Micro-Lesson 03: Daily Temperatures](./lessons/05-stack-queue/03-daily-temperatures/README.md) — `TODO`
+   - [Micro-Lesson 04: Evaluate Reverse Polish Notation](./lessons/05-stack-queue/04-evaluate-reverse-polish-notation/README.md) — `TODO`
+   - [Micro-Lesson 05: Sliding Window Maximum](./lessons/05-stack-queue/05-sliding-window-maximum/README.md) — `TODO`
+
 Current session: [Session 03 — HashMap Value-to-Index Lookup](../daily/2026-10-07-session-03.md)
 
 ## Mastery rule

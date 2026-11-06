@@ -917,3 +917,11 @@ For every new feature or learning concept:
 - Learning change: [Feature 26](./features/26-readable-system-design-lessons.md) revises 96 system-design lesson/entry documents, the author template and the saved writing preference. Concrete scenarios, causal explanations and topic-specific questions replace compressed checklist prose while preserving technical guarantees, project links and explained checkpoints.
 - Concept mapping: distributed failure/consistency, data placement, cache freshness, API contracts, safe retries/workflows, latency and overload, service boundaries, operational recovery and teaching prerequisites. Existing implementation and learner statuses remain unchanged.
 - Evidence: [semantic review and all document pointers](./interview/02-system-design/editorial-review.md), [browser/source/HTTP verification](./demo-proofs/2026-11-01/system-design-editorial-verification.txt), and [reviewed screenshot](./demo-proofs/2026-11-01/system-design-scaling-human-explanation.png). Documentation only; proposed designs are not claimed as executed labs.
+
+## Stack and queue LeetCode artifacts — 2026-11-06
+
+- Prepared [Feature 27](./features/27-stack-and-queue-curriculum.md) and [five Module 05 lessons](interview/01-leetcode/lessons/05-stack-queue/README.md): Valid Parentheses, Min Stack, Daily Temperatures, Evaluate Reverse Polish Notation and Sliding Window Maximum.
+- Concept mapping: newest-first matching/operands, minimum history, monotonic waiting indexes, expiration and dominated window candidates. No application queue, production endpoint or learner mastery claim.
+- Evidence: [Java model/browser/HTTP record and reviewed screenshots](./demo-proofs/2026-11-06/stack-queue-verification.md). Eleven sources compile; five reference mains pass; five practice TODOs remain; fixed-seed independent checks and all five browser routes pass. The temporary UI catalog accounts for the existing uncommitted documentation move.
+- All new learning states remain TODO; Two Sum stays active. Existing feature/concept implementation statuses remain unchanged. The isolated commit excludes unrelated workspace changes.
+- Artifact commit: recorded in the follow-up after creating the artifact commit.

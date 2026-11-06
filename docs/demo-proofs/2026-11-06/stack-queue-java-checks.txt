@@ -1,0 +1,12 @@
+Compiled 11 Java source files with javac 24.0.1.
+All reference-solution checks passed (10 parentheses scenarios).
+Practice ready: implement isValid, then rerun main. No solution has passed yet.
+MinStack reference checks passed (10 assertions).
+Practice ready: implement the TODO methods, then rerun main.
+All reference-solution checks passed.
+Practice ready: implement the TODO method, then rerun main.
+EvaluateRpn reference checks passed (11 results plus input preservation).
+Practice ready: implement the TODO method, then rerun main.
+All reference-solution checks passed.
+Practice ready: implement the TODO method, then rerun main.
+Independent model checks passed: 55987 bracket strings; 185612 Min Stack operations; 1000 temperature arrays; 6695 sliding-window cases; 2001 RPN expressions. Seed=20261106.
