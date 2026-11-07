@@ -85,3 +85,7 @@ Completed the editorial artifact revision in [Feature 26](../features/26-readabl
 ## Stack and queue learning artifacts — 2026-11-06
 
 Prepared [Feature 27](../features/27-stack-and-queue-curriculum.md): newest-first matching, saved minima, ordered waiting indexes, arithmetic operands and window candidates. These are local algorithm lessons, not implemented distributed queues or application scheduling. Artifacts READY; learning TODO. Existing system-design implementation and comprehension statuses are unchanged.
+
+## Min Stack constructor artifact correction — 2026-11-07
+
+[Feature 27](../features/27-stack-and-queue-curriculum.md) now teaches explicit constructor initialization and independent object state. This learning-artifact correction changes no application implementation or system-design comprehension status.

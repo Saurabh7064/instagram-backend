@@ -1,0 +1,19 @@
+{
+  "baseUrl": "http://127.0.0.1:5173",
+  "moduleLocalLinks": 9,
+  "results": [
+    {
+      "lesson": "02-min-stack",
+      "http": 200,
+      "checkpointsExpanded": 3,
+      "localLinks": 4,
+      "codeBlocks": 5,
+      "numberedLines": 47,
+      "referenceLines": 28,
+      "screenshot": "stack-queue-02-min-stack-trace.png"
+    }
+  ],
+  "mobileViewport": "390x844",
+  "mobilePageOverflow": false,
+  "pageErrors": []
+}

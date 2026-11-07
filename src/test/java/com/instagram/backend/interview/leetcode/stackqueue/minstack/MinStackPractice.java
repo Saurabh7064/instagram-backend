@@ -4,7 +4,12 @@ package com.instagram.backend.interview.leetcode.stackqueue.minstack;
 public class MinStackPractice {
 
     public static final class MinStack {
-        // TODO: Add the saved state needed by the four operations.
+        // TODO: Declare each object's saved state.
+
+        public MinStack() {
+            // TODO: Initialize a new empty stack owned by this object.
+            throw new UnsupportedOperationException("Implement MinStack constructor");
+        }
 
         public void push(int value) {
             // TODO: Add value and remember the minimum at this depth.
@@ -30,9 +35,9 @@ public class MinStackPractice {
     public static void main(String[] args) {
         try {
             runChecks();
-            System.out.println("MinStack practice checks passed (10 assertions).");
+            System.out.println("MinStack practice checks passed (16 assertions, including independent constructors).");
         } catch (UnsupportedOperationException exception) {
-            System.out.println("Practice ready: implement the TODO methods, then rerun main.");
+            System.out.println("Practice ready: implement the constructor and four TODO methods, then rerun main.");
         }
     }
 
@@ -62,6 +67,21 @@ public class MinStackPractice {
         check(-7, stack.top(), "reuse after empty: top");
         check(-7, stack.getMin(), "reuse after empty: minimum");
         stack.pop();
+
+        // Constructing and mutating a second stack must not reset or share the first.
+        stack.push(3);
+        MinStack other = new MinStack();
+        other.push(1);
+        other.push(1);
+        check(3, stack.top(), "constructor gives each object its own top");
+        check(3, stack.getMin(), "constructor gives each object its own minimum");
+        check(1, other.getMin(), "second object keeps its duplicate minimum");
+        other.pop();
+        check(1, other.getMin(), "second object retains one minimum");
+        check(3, stack.getMin(), "second object removal leaves first unchanged");
+        stack.pop();
+        check(1, other.top(), "emptying first object leaves second unchanged");
+        other.pop();
     }
 
     private static void check(int expected, int actual, String scenario) {

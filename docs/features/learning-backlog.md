@@ -129,3 +129,7 @@ Completed the editorial artifact revision in [Feature 26](./26-readable-system-d
 ## Stack and queue lesson artifacts — 2026-11-06
 
 Prepared [five Module 05 lessons](../interview/01-leetcode/lessons/05-stack-queue/README.md); see [Feature 27](./27-stack-and-queue-curriculum.md) for runnable code and validation. Artifact READY; all learning TODO. No application behavior, build-track feature status, active Two Sum session, or mastery count changes.
+
+## Min Stack constructor correction — 2026-11-07
+
+Updated [Feature 27](./27-stack-and-queue-curriculum.md#constructor-correction--2026-11-07) with an explicit constructor in practice, reference and lesson, independent-object checks and reviewed browser proof. Artifact correction complete; learning remains TODO and no product-feature status changes.

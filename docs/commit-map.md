@@ -925,3 +925,10 @@ For every new feature or learning concept:
 - Evidence: [Java model/browser/HTTP record and reviewed screenshots](./demo-proofs/2026-11-06/stack-queue-verification.md). Eleven sources compile; five reference mains pass; five practice TODOs remain; fixed-seed independent checks and all five browser routes pass. The temporary UI catalog accounts for the existing uncommitted documentation move.
 - All new learning states remain TODO; Two Sum stays active. Existing feature/concept implementation statuses remain unchanged. The isolated commit excludes unrelated workspace changes.
 - Artifact commit: `51964ce` — initialize all five lessons, runnable Java pairs, independent models and reviewed browser proof; preserve the pending documentation migration.
+
+## Explicit Min Stack constructor — 2026-11-07
+
+- Updated [Feature 27](./features/27-stack-and-queue-curriculum.md#constructor-correction--2026-11-07) and the [Min Stack lesson](interview/01-leetcode/lessons/05-stack-queue/02-min-stack/README.md): constructor TODO, explicit reference initialization and constructor walkthrough.
+- Concept mapping: object initialization, final instance-field assignment, separate ownership, implicit constructor versus inline initializer. Learning stays TODO; no application API or UI behavior changed.
+- Evidence: [compilation, 16 reference assertions, independent models, focused browser/HTTP checks and reviewed screenshots](./demo-proofs/2026-11-07/min-stack-constructor-verification.md). Existing workspace edits and documentation migration excluded.
+- Correction commit: recorded in the follow-up after creating the correction commit.

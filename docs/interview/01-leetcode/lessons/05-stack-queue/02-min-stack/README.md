@@ -2,19 +2,20 @@
 
 ## Question
 
-Design a stack supporting `push(value)`, `pop()`, `top()`, and `getMin()`: add a value, remove the newest value, inspect the newest value, and inspect the smallest value still stored. Aim for constant time per operation. `pop`, `top`, and `getMin` are called only when at least one value remains.
+Implement `public MinStack()` to initialize an empty stack, then support `push(value)`, `pop()`, `top()`, and `getMin()`: add a value, remove the newest value, inspect the newest value, and inspect the smallest value still stored. Aim for constant time per operation. `pop`, `top`, and `getMin` are called only when at least one value remains.
 
 Problem: [Min Stack on LeetCode](https://leetcode.com/problems/min-stack/) · Editable Java: [MinStackPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/stackqueue/minstack/MinStackPractice.java)
 
 ## What you will learn
 
+- Initialize each new object with its own empty saved state in `public MinStack()`.
 - Save the smallest value alongside each added value so removing an entry restores the earlier minimum.
 - Explain why repeated equal minima need their own saved state.
 - Separate the newest value from the smallest value, and state the actual time and space costs.
 
 ## Lesson status and prerequisites
 
-Learning status: `TODO`. This is a prepared artifact; no implementation attempt or understanding is recorded. Prerequisite: adding, inspecting, and removing the newest item in [Valid Parentheses](../01-valid-parentheses/README.md), plus Java classes and two-cell integer arrays. Primary idea: save the minimum for each stored depth. New terms: **entry**, **saved minimum**. The stack operations are reviewed below before the new state is introduced.
+Learning status: `TODO`. This is a prepared artifact; no implementation attempt or understanding is recorded. Prerequisite: adding, inspecting, and removing the newest item in [Valid Parentheses](../01-valid-parentheses/README.md), plus Java classes and two-cell integer arrays. Primary idea: save the minimum for each stored depth. New terms: **constructor**, **entry**, **saved minimum**. The stack operations are reviewed below before the new state is introduced.
 
 ## Inputs and limits
 
@@ -49,13 +50,29 @@ The general rule is: on an empty stack, the new minimum is the added value; othe
 
 ## Block-by-block code walkthrough
 
-### Block 1 — Keep the entry pairs together
+### Block 1 — Initialize the object in public MinStack()
+
+Before any of the ten fixed operations, the caller runs `MinStack stack = new MinStack();`. A **constructor** is the special initialization code that runs when `new MinStack()` creates an object. Its name matches the class and it has no return type, not even `void`. The `new` expression supplies the new object's reference to the caller; the constructor itself does not return a value. LeetCode includes `public MinStack()` in its starter code, so implement it along with the four operations.
 
 ```java
-private final Deque<int[]> entries = new ArrayDeque<>();
+private final Deque<int[]> entries;
+
+public MinStack() {
+    entries = new ArrayDeque<>();
+}
 ```
 
-`Deque<int[]>` declares a Java container of integer-array entries; `ArrayDeque` supplies its storage. We use only one end as the stack top: `push` adds there, `pop` removes there, and `peek` reads there without removing. `final` keeps the field pointing to this container while its contents remain mutable. A new `MinStack` creates `entries=[]`. An ordinary `ArrayList<int[]>` with operations at its end could express the same ownership, but the named stack operations make the intended end explicit.
+`Deque<int[]>` declares the type of the object's saved field: a Java container of integer-array entries. The declaration names that field; it does not create a container. `new ArrayDeque<>()` creates an empty container, and the constructor assigns its reference to this object's `entries`. `final` requires this field to be assigned during initialization and prevents reassignment afterward; adding and removing entries still changes the container's contents. Each call to `new MinStack()` creates a separate object and runs this assignment for that object, so two stacks keep independent state. Do not make the field `static`, which would share it across objects.
+
+With this final field declaration, leaving the constructor empty would fail compilation because `entries` was never assigned. The earlier version used the equivalent field initializer `private final Deque<int[]> entries = new ArrayDeque<>();`; that version could have an empty explicit constructor, or rely on Java to supply a no-argument constructor when none was declared. Its allocation still ran once per object. Here we put initialization inside the explicit constructor to match the part you implement in LeetCode. Writing `void MinStack()` instead would declare an ordinary method and would not initialize the object when `new` runs.
+
+**Construction before operation 0.** This creates the same initially empty stack used by the fixed sequence; it does not renumber the ten push/pop/query operations.
+
+- `new MinStack()` creates one object and invokes `public MinStack()`; the constructor receives no arguments.
+- `entries = new ArrayDeque<>()` creates an empty container and assigns it to this object's field; its complete saved state is `entries=[]`. No entry pair is added yet.
+- The constructor finishes; `MinStack stack = new MinStack()` saves the object's reference in `stack`. The next call is operation `0`, `push(3)`.
+
+We use only one end as the stack top: `push` adds there, `pop` removes there, and `peek` reads there without removing. An ordinary `ArrayList<int[]>` with operations at its end could express the same ownership, but the named stack operations make the intended end explicit.
 
 Every table below shows the complete entries **newest first**, matching these API operations. Within one entry, `[0]` means its value and `[1]` means its saved minimum. These cell indexes have a different meaning from operation positions.
 
@@ -208,12 +225,16 @@ public int top() {
 Directly runnable reference and checks: [MinStackSolution.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/stackqueue/minstack/MinStackSolution.java). The full class being implemented is below; the linked file wraps it in a runnable class. The operation guide describes calls, not input-array indexes. Imports are `java.util.ArrayDeque` and `java.util.Deque`.
 
 ```java
-// Input: the calls below on one initially empty MinStack.
+// Input: MinStack stack = new MinStack(); then the ten calls below on that empty object.
 // Operation position:   0        1        2        3       4      5       6      7      8       9
 // Calls:             push(3)  push(1)  push(1)  getMin()  pop()  getMin() pop()  top() getMin() pop()
 // Expected query returns in order: 1, 1, 3, 3. Final retained entries: [].
 public static final class MinStack {
-    private final Deque<int[]> entries = new ArrayDeque<>();
+    private final Deque<int[]> entries;
+
+    public MinStack() {
+        entries = new ArrayDeque<>();
+    }
 
     public void push(int value) {
         int minimum = entries.isEmpty() ? value : Math.min(value, entries.peek()[1]);
@@ -238,13 +259,13 @@ public static final class MinStack {
 
 The invariant is: every entry's second cell is the minimum of its own value and every value below it. The first entry satisfies this because its only value is its minimum. A push preserves all older entries and establishes the new entry's minimum by comparing its value with the old top's minimum. A pop discards only the newest pair; every remaining entry still has exactly the values at or below it that it had before. Therefore the exposed top's second cell is always the current global minimum, including when duplicate minima are removed one at a time.
 
-For `n` retained values, the structure stores `n` pairs: `O(n)` space. `top`, `getMin`, and `pop` take `O(1)` time. `ArrayDeque.push` takes **amortized `O(1)`**: over many pushes the total growth/copying work is linear, but an individual capacity expansion can take `O(n)`. If the requirement literally forbids a slow individual push, linked entries avoid array resizing, with one extra object/link per entry. This implementation makes its Java container's limit explicit rather than claiming a worst-case bound it does not supply.
+Construction creates one empty container in `O(1)` time and initial space. For `n` retained values, the structure stores `n` pairs: `O(n)` space. `top`, `getMin`, and `pop` take `O(1)` time. `ArrayDeque.push` takes **amortized `O(1)`**: over many pushes the total growth/copying work is linear, but an individual capacity expansion can take `O(n)`. If the requirement literally forbids a slow individual push, linked entries avoid array resizing, with one extra object/link per entry. This implementation makes its Java container's limit explicit rather than claiming a worst-case bound it does not supply.
 
 Keeping only one current-minimum variable loses the old minimum after operation `6`; it cannot recover `3` without scanning or saved history. A separate minimum stack can work, but it must preserve equal minimum occurrences; our paired entries make that synchronization automatic. No addition, subtraction, or sentinel value is needed, so both integer extremes remain legitimate stored values.
 
 ## Try it in IntelliJ
 
-Open [MinStackPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/stackqueue/minstack/MinStackPractice.java). Implement only its `MinStack` state and four TODO methods, then run `main`. Its checks cover the fixed sequence, repeated minima, the full integer range, and reuse after every entry was removed. The initial “Practice ready” message means the TODO remains; it is not a passing implementation. Assertion failures remain visible because only `UnsupportedOperationException` is caught.
+Open [MinStackPractice.java](../../../../../../src/test/java/com/instagram/backend/interview/leetcode/stackqueue/minstack/MinStackPractice.java). Declare its `MinStack` state, implement the `public MinStack()` constructor and the four TODO methods, then run `main`. Its 16 assertions cover the fixed sequence, repeated minima, the full integer range, reuse after every entry was removed, and independent state across separately constructed objects. The initial “Practice ready” message means the TODO remains; it is not a passing implementation. Assertion failures remain visible because only `UnsupportedOperationException` is caught.
 
 ## Checkpoints and explained answers
 
@@ -268,4 +289,4 @@ No. A capacity expansion may copy the retained entries, taking linear time for t
 
 ## Stop/go criteria
 
-Stop when you cannot explain what the two cells mean or why the earlier minimum survives a removal. Go only after your own practice passes, you explain the invariant and time/space bounds in plain language, and you predict the two minimum queries on either side of operation `4` without opening the answers. Artifact checks alone leave learning status `TODO`.
+Stop when you cannot explain what the two cells mean or why the earlier minimum survives a removal. Go only after your own practice passes, you explain what `new MinStack()` initializes and why two objects do not share entries, you explain the invariant and time/space bounds in plain language, and you predict the two minimum queries on either side of operation `4` without opening the answers. Artifact checks alone leave learning status `TODO`.

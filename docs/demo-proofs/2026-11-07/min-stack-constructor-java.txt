@@ -1,0 +1,4 @@
+Compiled 11 Module 05 Java sources with javac.
+MinStack reference checks passed (16 assertions, including independent constructors).
+Practice ready: implement the constructor and four TODO methods, then rerun main.
+Independent model checks passed: 55987 bracket strings; 185612 Min Stack operations; 1000 temperature arrays; 6695 sliding-window cases; 2001 RPN expressions; constructor isolation passed. Seed=20261106.

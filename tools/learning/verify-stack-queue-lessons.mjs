@@ -13,13 +13,17 @@ const date = process.env.PROOF_DATE ?? new Intl.DateTimeFormat('en-CA', { timeZo
 const proofDir = path.join(backendRoot, 'docs/demo-proofs', date)
 const curriculumRoot = await access(path.join(backendRoot, 'docs/learn/01-leetcode')).then(() => 'docs/learn').catch(() => 'docs/interview')
 const moduleId = `${curriculumRoot}/01-leetcode/lessons/05-stack-queue`
-const cases = [
+const allCases = [
   ['01-valid-parentheses', 'Valid Parentheses', 'ValidParentheses'],
   ['02-min-stack', 'Min Stack', 'MinStack'],
   ['03-daily-temperatures', 'Daily Temperatures', 'DailyTemperatures'],
   ['04-evaluate-reverse-polish-notation', 'Evaluate Reverse Polish Notation', 'EvaluateRpn'],
   ['05-sliding-window-maximum', 'Sliding Window Maximum', 'SlidingWindowMaximum'],
 ]
+const cases = process.env.LEARNING_LESSON
+  ? allCases.filter(([slug]) => slug === process.env.LEARNING_LESSON)
+  : allCases
+assert.ok(cases.length > 0, 'LEARNING_LESSON must match a known lesson slug')
 
 async function verifyLocalLinks(sourcePath) {
   const markdown = await readFile(path.join(backendRoot, sourcePath), 'utf8')
@@ -70,6 +74,14 @@ try {
     const referenceText = await reference.innerText()
     assert.ok(referenceText.includes('// Input:'), `Reference input missing for ${slug}`)
     assert.ok(referenceText.includes('// Expected'), `Reference expected result missing for ${slug}`)
+    if (slug === '02-min-stack') {
+      assert.ok(referenceText.includes('public MinStack()'), 'Explicit Min Stack constructor missing from reference')
+      assert.ok(referenceText.includes('entries = new ArrayDeque<>();'), 'Constructor must initialize empty state')
+      const constructorHeading = content.getByRole('heading', { name: 'Block 1 — Initialize the object in public MinStack()', exact: true })
+      await constructorHeading.waitFor()
+      await constructorHeading.evaluate(element => window.scrollTo({ top: window.scrollY + element.getBoundingClientRect().top - 100, behavior: 'instant' }))
+      await page.screenshot({ path: path.join(proofDir, 'stack-queue-min-stack-constructor.png') })
+    }
     const blocks = content.locator('pre')
     let numberedLines = 0
     for (let index = 0; index < await blocks.count(); index++) {
@@ -90,13 +102,14 @@ try {
     results.push({ lesson: slug, http: response.status(), checkpointsExpanded: 3, localLinks, codeBlocks: await blocks.count(), numberedLines, referenceLines: await reference.locator('.code-line-number').count(), screenshot })
   }
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto(`${baseUrl}/learn?lesson=${encodeURIComponent(`${moduleId}/05-sliding-window-maximum/README`)}`, { waitUntil: 'networkidle' })
+  await page.goto(`${baseUrl}/learn?lesson=${encodeURIComponent(`${moduleId}/${cases.at(-1)[0]}/README`)}`, { waitUntil: 'networkidle' })
+  await page.getByRole('button', { name: 'Browse lessons', exact: true }).waitFor({ state: 'visible' })
   assert.equal(await page.getByRole('button', { name: 'Browse lessons', exact: true }).isVisible(), true, 'Mobile catalog control')
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false, 'Mobile document overflow')
   await page.screenshot({ path: path.join(proofDir, 'stack-queue-mobile.png') })
   assert.deepEqual(errors, [], 'Browser errors')
   await writeFile(path.join(proofDir, 'stack-queue-browser-checks.json'), JSON.stringify({ baseUrl, moduleLocalLinks, results, mobileViewport: '390x844', mobilePageOverflow: false, pageErrors: errors }, null, 2) + '\n')
-  console.log(`Passed ${results.length} lesson browser checks: local links, 15 expanded checkpoint answers, numbered code, full reference inputs/results, state tables, mobile layout, no browser errors. Proofs: ${proofDir}`)
+  console.log(`Passed ${results.length} lesson browser checks: local links, ${results.length * 3} expanded checkpoint answers, numbered code, full reference inputs/results, state tables, mobile layout, no browser errors. Proofs: ${proofDir}`)
 } finally {
   await browser.close()
 }

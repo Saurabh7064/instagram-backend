@@ -7,7 +7,11 @@ import java.util.Deque;
 public class MinStackSolution {
 
     public static final class MinStack {
-        private final Deque<int[]> entries = new ArrayDeque<>();
+        private final Deque<int[]> entries;
+
+        public MinStack() {
+            entries = new ArrayDeque<>();
+        }
 
         public void push(int value) {
             int minimum = entries.isEmpty() ? value : Math.min(value, entries.peek()[1]);
@@ -55,7 +59,21 @@ public class MinStackSolution {
         check(-7, stack.top(), "reuse after empty: top");
         check(-7, stack.getMin(), "reuse after empty: minimum");
         stack.pop();
-        System.out.println("MinStack reference checks passed (10 assertions).");
+        // Constructing and mutating a second stack must not reset or share the first.
+        stack.push(3);
+        MinStack other = new MinStack();
+        other.push(1);
+        other.push(1);
+        check(3, stack.top(), "constructor gives each object its own top");
+        check(3, stack.getMin(), "constructor gives each object its own minimum");
+        check(1, other.getMin(), "second object keeps its duplicate minimum");
+        other.pop();
+        check(1, other.getMin(), "second object retains one minimum");
+        check(3, stack.getMin(), "second object removal leaves first unchanged");
+        stack.pop();
+        check(1, other.top(), "emptying first object leaves second unchanged");
+        other.pop();
+        System.out.println("MinStack reference checks passed (16 assertions, including independent constructors).");
     }
 
     private static void check(int expected, int actual, String scenario) {

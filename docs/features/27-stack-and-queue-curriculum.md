@@ -50,3 +50,7 @@ The workspace already contains a staged move from `docs/interview` to `docs/lear
 - Activate one lesson only after finishing or explicitly deferring the current Two Sum checkpoints.
 - Record the learner's own implementation and explanation separately from artifact checks.
 - Complete the existing documentation move and matching UI catalog update as their own change.
+
+## Constructor correction — 2026-11-07
+
+The [Min Stack lesson](../interview/01-leetcode/lessons/05-stack-queue/02-min-stack/README.md) now includes the explicit `public MinStack()` that LeetCode asks the learner to implement. Initialization moved from the reference field declaration into that constructor; the practice includes a constructor TODO. The walkthrough explains syntax, empty state, final-field assignment, and ownership across two objects. Added independent-object assertions and a focused browser constructor check. The earlier inline initialization was valid Java; this correction makes the implementation step explicit. [Verification and reviewed screenshots](../demo-proofs/2026-11-07/min-stack-constructor-verification.md). Learning remains TODO.

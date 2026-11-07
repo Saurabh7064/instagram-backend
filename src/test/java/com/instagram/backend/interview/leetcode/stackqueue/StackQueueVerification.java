@@ -27,12 +27,13 @@ public final class StackQueueVerification {
             verifyBrackets(new char[length], 0);
         }
         Random random = new Random(SEED);
+        verifyMinStackConstruction();
         verifyMinStack(random);
         verifyTemperatureAndWindows(random);
         verifyExpressions(random);
         System.out.println("Independent model checks passed: " + bracketCases + " bracket strings; "
                 + minStackOperations + " Min Stack operations; " + temperatureCases + " temperature arrays; "
-                + windowCases + " sliding-window cases; " + expressionCases + " RPN expressions. Seed=" + SEED + ".");
+                + windowCases + " sliding-window cases; " + expressionCases + " RPN expressions; constructor isolation passed. Seed=" + SEED + ".");
     }
 
     private static void verifyBrackets(char[] input, int index) {
@@ -54,6 +55,20 @@ public final class StackQueueVerification {
         } while (reduced.length() != previousLength);
         require(ValidParenthesesSolution.isValid(source) == reduced.isEmpty(), "bracket mismatch: " + source);
         bracketCases++;
+    }
+
+    private static void verifyMinStackConstruction() {
+        MinStack first = new MinStack();
+        first.push(3);
+        MinStack second = new MinStack();
+        second.push(1);
+        second.push(1);
+        require(first.top() == 3 && first.getMin() == 3, "new object reset or shared first object's state");
+        second.pop();
+        require(second.top() == 1 && second.getMin() == 1, "second object lost duplicate minimum");
+        require(first.top() == 3 && first.getMin() == 3, "second object's mutation affected first");
+        first.pop();
+        require(second.top() == 1 && second.getMin() == 1, "emptying first object affected second");
     }
 
     private static void verifyMinStack(Random random) {
