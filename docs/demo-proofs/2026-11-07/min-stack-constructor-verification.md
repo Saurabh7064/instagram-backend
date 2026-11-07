@@ -27,3 +27,5 @@ Opened and visually inspected all three final captures: the constructor proof sh
 - [Mobile Min Stack question](./stack-queue-mobile.png)
 
 See the [feature note](../../features/27-stack-and-queue-curriculum.md) and [commit map](../../commit-map.md) for commit pointers. Unrelated staged/unstaged work and the pending documentation migration are preserved.
+
+Correction commit: `7edcce6` — `docs: include explicit Min Stack constructor and initialization`.

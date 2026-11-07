@@ -931,4 +931,4 @@ For every new feature or learning concept:
 - Updated [Feature 27](./features/27-stack-and-queue-curriculum.md#constructor-correction--2026-11-07) and the [Min Stack lesson](interview/01-leetcode/lessons/05-stack-queue/02-min-stack/README.md): constructor TODO, explicit reference initialization and constructor walkthrough.
 - Concept mapping: object initialization, final instance-field assignment, separate ownership, implicit constructor versus inline initializer. Learning stays TODO; no application API or UI behavior changed.
 - Evidence: [compilation, 16 reference assertions, independent models, focused browser/HTTP checks and reviewed screenshots](./demo-proofs/2026-11-07/min-stack-constructor-verification.md). Existing workspace edits and documentation migration excluded.
-- Correction commit: recorded in the follow-up after creating the correction commit.
+- Correction commit: `7edcce6` — explicitly initialize Min Stack, include the practice constructor and verify independent objects; focused browser proof reviewed.
