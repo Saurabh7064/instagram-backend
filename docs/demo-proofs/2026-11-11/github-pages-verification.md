@@ -38,6 +38,7 @@ Observed:
 - The explanation beginning “No. A source file contains instructions…” became visible.
 - Other questions remained collapsed.
 - The generated navigation and search field remained available beside the lesson.
+- Clicking the generated `01B - Image, Container, and Dockerfile` sidebar link changed the route and rendered the 01B lesson heading; sidebar routes are resolved from the site root rather than beneath the current lesson.
 
 The [desktop screenshot](./github-pages-expandable-kubernetes-question.png) was visually inspected after capture. It shows the expanded first question, visible explanation, collapsed neighboring questions, responsive lesson column, search box, and generated explorer.
 

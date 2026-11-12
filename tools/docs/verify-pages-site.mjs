@@ -28,6 +28,11 @@ assert.match(indexHtml, /repositoryName = 'instagram-backend'/, 'Project Pages b
 assert.match(indexHtml, /homepage: 'index\.md'/, 'Documentation home page is not configured')
 assert.match(indexHtml, /loadSidebar: true/, 'Generated navigation is not enabled')
 assert.match(indexHtml, /plugins\/search\.min\.js/, 'Full-text search plugin is missing')
+assert.doesNotMatch(
+  indexHtml,
+  /relativePath:\s*true/,
+  'Root sidebar links break when Docsify resolves them relative to the current lesson',
+)
 
 const markdownFiles = await collectFiles(docsRoot, (absolutePath) => absolutePath.endsWith('.md'))
 const expectedPaths = markdownFiles
