@@ -45,3 +45,14 @@ The [desktop screenshot](./github-pages-expandable-kubernetes-question.png) was 
 ## Scope boundary
 
 This verifies the static Pages experience. GitHub Pages does not run the Spring Boot API, PostgreSQL, Docker, or Kubernetes workloads.
+
+## Live deployment
+
+GitHub Pages was enabled with **GitHub Actions** as its source. [Workflow run #2](https://github.com/Saurabh7064/instagram-backend/actions/runs/43163645475) completed successfully: the build and deploy jobs both passed and published one Pages artifact.
+
+Live HTTP verification succeeded for:
+
+- `https://saurabh7064.github.io/instagram-backend/`
+- `https://saurabh7064.github.io/instagram-backend/kubernetes/01-containerize-spring-boot-backend/01a-from-code-to-running-program.md`
+
+The public browser check opened the same Kubernetes lesson and expanded “1. Is a Java source file a running backend?”. Its explanation became visible while neighboring questions remained collapsed.

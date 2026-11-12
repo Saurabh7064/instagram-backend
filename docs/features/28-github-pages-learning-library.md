@@ -2,7 +2,7 @@
 
 ## What was built
 
-The complete committed `docs/` tree is now publishable as a searchable static site at:
+The complete committed `docs/` tree is published as a searchable static site at:
 
 `https://saurabh7064.github.io/instagram-backend/`
 
@@ -33,4 +33,4 @@ Browser verification covers desktop rendering, navigation to a Kubernetes lesson
 
 ## Important deployment setting
 
-The repository’s Pages source must be **GitHub Actions**. The workflow creates and deploys the `github-pages` environment; no `gh-pages` branch is required.
+The repository’s Pages source is **GitHub Actions**. The workflow creates and deploys the `github-pages` environment; no `gh-pages` branch is required. The successful deployment is recorded in [workflow run #2](https://github.com/Saurabh7064/instagram-backend/actions/runs/43163645475).
