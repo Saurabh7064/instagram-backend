@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Generated GitHub Pages navigation ###
+/docs/_sidebar.md
