@@ -932,3 +932,9 @@ For every new feature or learning concept:
 - Concept mapping: object initialization, final instance-field assignment, separate ownership, implicit constructor versus inline initializer. Learning stays TODO; no application API or UI behavior changed.
 - Evidence: [compilation, 16 reference assertions, independent models, focused browser/HTTP checks and reviewed screenshots](./demo-proofs/2026-11-07/min-stack-constructor-verification.md). Existing workspace edits and documentation migration excluded.
 - Correction commit: `7edcce6` — explicitly initialize Min Stack, include the practice constructor and verify independent objects; focused browser proof reviewed.
+
+## Kafka ChatGPT lesson transcript — 2026-11-11
+
+- Artifact commit: `62380a2` — archive the complete Kafka lesson-index conversation and Lesson 1 response as a GitHub Pages document.
+- Learning artifact: [Kafka Lesson Index](learn/kafka/chatgpt-export/kafka-lesson-index-and-lesson-1.md) preserves the original 40-item roadmap, Lesson 1 text, code, tables, interview answers, knowledge checks, and later stopped prompts without changing the lesson wording.
+- Verification: the GitHub Pages generator and verifier passed with 355 documents and 760 expandable blocks across 182 documents; the rendered lesson and click-to-reveal answer were also checked in a browser. No application/API behavior or learner status changed; unrelated workspace edits are excluded.
